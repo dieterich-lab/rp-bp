@@ -1,0 +1,15 @@
+*checkpoint.ipynb
+*egg-info
+__pycache__
+*pkl
+*bbl
+*blg
+*aux
+*log
+*converted-to.pdf
+*vim
+
+old
+src
+OpenBLAS
+
