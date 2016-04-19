@@ -93,8 +93,8 @@ def main():
 
     for name, data in config['samples']:
 
-        cmd = "run-rpbp-pipeline {} {} {} --num-procs {} --tmp {} {} {} {} {}".format(data, 
-                args.config, name, args.num_procs, args.tmp, do_not_call_str, 
+        cmd = "run-rpbp-pipeline {} {} {} --num-procs {} {} {} {} {} {}".format(data, 
+                args.config, name, args.num_procs, tmp_str, do_not_call_str, 
                 overwrite_str, logging_str, star_str)
 
         utils.check_sbatch(cmd, args=args)
