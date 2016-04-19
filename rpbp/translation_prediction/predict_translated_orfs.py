@@ -19,7 +19,7 @@ default_min_metagene_profile_count = 1000
 default_min_metagene_profile_bayes_factor_mean = 5
 default_max_metagene_profile_bayes_factor_var = 5
 
-def get_periodic_lengths_and_offsets(config, name):
+def get_periodic_lengths_and_offsets(config, name, do_not_call):
     # check if we specified to just use a fixed offset and length
     if 'use_fixed_lengths' in config:
         lengths = config['lengths']
@@ -39,11 +39,22 @@ def get_periodic_lengths_and_offsets(config, name):
 
     periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], name, is_unique=True)
     
-    if not os.path.exists(periodic_offsets):
+    if not os.path.exists(periodic_offsets) and not do_not_call:
         msg = ("The periodic offsets file does not exist. Please ensure the select-periodic-offsets "
             "script completed successfully or specify the \"use_fixed_lengths\", \"lengths\", and "
             "\"offsets\" values in the configuration file.")
         raise FileNotFoundError(msg)
+    else:
+        msg = ("The periodic offsets file does not exist. Please ensure the select-periodic-offsets "
+            "script completed successfully or specify the \"use_fixed_lengths\", \"lengths\", and "
+            "\"offsets\" values in the configuration file.\n\nThe --do-not-call flag was given, so "
+            "\"dummy\" default lengths will be used to check the remaining calls.")
+        logging.warning(msg)
+
+        offsets = ["12"]
+        lengths = ["29"]
+        return (offsets, lengths)
+        
     
     offsets_df = pd.read_csv(periodic_offsets)
     m_count = offsets_df['largest_count'] > min_metagene_profile_count
@@ -125,7 +136,7 @@ def main():
         overwrite_argument = "--overwrite"
 
     # get the lengths and offsets which meet the required criteria from the config file
-    lengths, offsets = get_periodic_lengths_and_offsets(config, args.name)
+    lengths, offsets = get_periodic_lengths_and_offsets(config, args.name, args.do_not_call)
     lengths_str = ' '.join(lengths)
     offsets_str = ' '.join(offsets)
 
