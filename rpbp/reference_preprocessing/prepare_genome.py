@@ -14,6 +14,7 @@ default_num_procs = 2
 default_mem = "8G"
 
 default_star_executable = "STAR"
+default_sjdb_overhang = 50
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -98,7 +99,7 @@ def main():
         default=default_sjdb_overhang)
     mem = utils.human2bytes(args.mem)
     cmd = ("{} --runMode genomeGenerate --genomeDir {} --genomeFastaFiles {} --sjdbGTFfile {} "
-        "--sjdbOverhang {} --runThreadN {} --limitGenomeGenerateRAM {}".format(args.star_executable, 
+        "{} --runThreadN {} --limitGenomeGenerateRAM {}".format(args.star_executable, 
         config['star_index'], config['fasta'], config['gtf'], sjdb_overhang_str, args.num_procs, mem))
         
     in_files = [config['gtf'], config['fasta']]
