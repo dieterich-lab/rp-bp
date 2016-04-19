@@ -77,9 +77,14 @@ def main():
     orfs_genomic = filenames.get_orfs(config['base_path'], config['name'], note=config.get('orf_note'))
     start_codons_str = utils.get_config_argument(config, 'start_codons')
     stop_codons_str = utils.get_config_argument(config, 'stop_codons')
-    
-    cmd = ("extract-orfs {} {} {} --num-procs {} {} {}".format(transcript_fasta, orfs_genomic, 
-        logging_str, args.num_procs, start_codons_str, stop_codons_str))
+    novel_id_str = utils.get_config_argument(config, 'novel_id_re')
+
+    ignore_parsing_errors_str = ""
+    if 'ignore_parsing_errors' in config:
+        ignore_parsing_errors_str = "--ignore-parsing-errors"
+
+    cmd = ("extract-orfs {} {} {} --num-procs {} {} {} {} {}".format(transcript_fasta, orfs_genomic, 
+        logging_str, args.num_procs, start_codons_str, stop_codons_str, novel_id_str, ignore_parsing_errors_str))
     in_files = [transcript_fasta]
     out_files = [orfs_genomic]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
