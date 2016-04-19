@@ -115,11 +115,11 @@ def install(openblas_install_path):
         
         if os.path.exists(virtual_env_lib_path):
             os.remove(virtual_env_lib_path)
-        os.symlink(open_blas_library_path, virtual_env_lib_path)
+        os.symlink(open_blas_symlink_path, virtual_env_lib_path)
 
         if os.path.exists(virtual_env_0_lib_path):
             os.remove(virtual_env_0_lib_path)
-        os.symlink(open_blas_0_library_path, virtual_env_0_lib_path)
+        os.symlink(open_blas_0_symlink_path, virtual_env_0_lib_path)
 
 
     # either way, make it clear they need to be in a place where the linker can find them
