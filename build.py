@@ -98,33 +98,35 @@ def install(openblas_install_path):
             os.remove(open_blas_0_symlink_path)
         os.symlink(open_blas_0_library_path, open_blas_0_symlink_path)
 
-        # additionally, check if we are working in a virtual environment
-        virtual_env_path = os.getenv('VIRTUAL_ENV')
-        if virtual_env_path is not None:
-            msg = "Symlinks will also be copied to the virtual environment lib directory"
-            logging.info(msg)
-
-            virtual_env_lib_path = os.path.join(virtual_env_path, 'lib', 'libopenblas.so')
-            virtual_env_0_lib_path = os.path.join(virtual_env_path, 'lib', 'libopenblas.so.0')
-            
-            if os.path.exists(virtual_env_lib_path):
-                os.remove(virtual_env_lib_path)
-            os.symlink(open_blas_library_path, virtual_env_lib_path)
-
-            if os.path.exists(virtual_env_0_lib_path):
-                os.remove(virtual_env_0_lib_path)
-            os.symlink(open_blas_0_library_path, virtual_env_0_lib_path)
-
+        
 
     else:
         msg = "The OpenBLAS libraries were found and will be used for linking."
         logging.info(msg)
 
+    # additionally, check if we are working in a virtual environment
+    virtual_env_path = os.getenv('VIRTUAL_ENV')
+    if virtual_env_path is not None:
+        msg = "Symlinks will also be copied to the virtual environment lib directory"
+        logging.info(msg)
+
+        virtual_env_lib_path = os.path.join(virtual_env_path, 'lib', 'libopenblas.so')
+        virtual_env_0_lib_path = os.path.join(virtual_env_path, 'lib', 'libopenblas.so.0')
+        
+        if os.path.exists(virtual_env_lib_path):
+            os.remove(virtual_env_lib_path)
+        os.symlink(open_blas_library_path, virtual_env_lib_path)
+
+        if os.path.exists(virtual_env_0_lib_path):
+            os.remove(virtual_env_0_lib_path)
+        os.symlink(open_blas_0_library_path, virtual_env_0_lib_path)
+
+
     # either way, make it clear they need to be in a place where the linker can find them
     msg = ("The OpenBLAS libraries will be used for the python libraries. Please ensure "
         "the following path is in the LD_LIBRARY_PATH variable (or analog for your "
         "operating system).\n\n{}\n\nFor bash, this line can be added to the ~/.bashrc "
-        "file to ensure correct compilation:\n\nexport LD_LIBRARY_PATH={}:$LD_LIBRARY_PATH".format(
+        "file to ensure correct compilation:\n\nexport LD_LIBRARY_PATH={}:$LD_LIBRARY_PATH\n\n".format(
         openblas_install_path, openblas_install_path))
     logging.info(msg)
 
