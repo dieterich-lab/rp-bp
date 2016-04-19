@@ -30,8 +30,7 @@ setup(name='rpbp',
         test_suite='nose.collector',
         tests_require=['nose'],
         entry_points = {
-            'console_scripts': ['extract-transcript-fasta=rpbp.reference_preprocessing.extract_transcript_fasta:main',
-                                'create-star-reference=rpbp.reference_preprocessing.create_star_reference:main',
+            'console_scripts': [
                                 'extract-orfs=rpbp.reference_preprocessing.extract_orfs:main',
                                 'prepare-genome=rpbp.reference_preprocessing.prepare_genome:main',
                                 'create-filtered-genome-profile=rpbp.genome_profile_construction.create_filtered_genome_profile:main',

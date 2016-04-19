@@ -5,6 +5,7 @@ import yaml
 import os
 import logging
 
+import misc.bio as bio
 import misc.utils as utils
 
 import rpbp.filenames as filenames
@@ -43,9 +44,7 @@ def main():
 
     # check that all of the necessary programs are callable
     programs =  [
-                 'extract-transcript-fasta',
                  'extract-orfs',
-                 'create-star-reference',
                  'bowtie2-build-s',
                  'gffread',
                  'intersectBed',
@@ -67,8 +66,8 @@ def main():
 
     # first, extract the transcript fasta
     transcript_fasta = filenames.get_transcript_fasta(config['base_path'], config['name'])
-    cmd  = "extract-transcript-fasta {} {} {}".format(config['gtf'], config['fasta'], transcript_fasta)
     
+    cmd = "gffread -W -w {} -g {} {}".format(transcript_fasta, config['fasta'], config['gtf'])
     in_files = [config['gtf'], config['fasta']]
     out_files = [transcript_fasta]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
@@ -90,23 +89,21 @@ def main():
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
     # the rrna index
-    if not args.overwrite:
-        msg = ("The --overwrite flag was not given, but the ribosomal bowtie2 "
-            "index will still be re-created.")
-        logging.warn(msg)
-
-    cmd = "bowtie2-build-s {} {}".format(config['ribosomal_fasta'], config['ribosomal_index'])
-    utils.check_call(cmd, call=call)
+    in_files = [config['ribosomal_fasta']]
+    out_files = bio.get_bowtie2_index_files(config['ribosomal_index'])
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
     # the STAR index
-    if not args.overwrite:
-        msg = ("The --overwrite flag was not given, but the STAR genome index "
-            "will still be re-created.")
-        logging.warn(msg)
-
-    cmd  = "create-star-reference {} {} {} --num-procs {} --mem {} --star-executable {}".format(config['gtf'], 
-        config['fasta'], config['star_index'], args.num_procs, args.mem, args.star_executable)
-    utils.check_call(cmd, call=call)
+    sjdb_overhang_str = utils.get_config_argument(config, 'sjdb_overhang', 'sjdbOverhang', 
+        default=default_sjdb_overhang)
+    mem = utils.human2bytes(args.mem)
+    cmd = ("{} --runMode genomeGenerate --genomeDir {} --genomeFastaFiles {} --sjdbGTFfile {} "
+        "--sjdbOverhang {} --runThreadN {} --limitGenomeGenerateRAM {}".format(args.star_executable, 
+        config['star_index'], config['fasta'], config['gtf'], sjdb_overhang_str, args.num_procs, mem))
+        
+    in_files = [config['gtf'], config['fasta']]
+    out_files = bio.get_star_index_files(config['star_index'])
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
 if __name__ == '__main__':
     main()
