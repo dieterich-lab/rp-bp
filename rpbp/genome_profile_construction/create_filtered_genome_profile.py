@@ -14,7 +14,7 @@ import rpbp.filenames as filenames
 
 default_num_procs = 2
 default_star_executable = "STAR"
-
+default_tmp = utils.abspath("tmp")
 
 def main():
     
@@ -34,6 +34,8 @@ def main():
 
     parser.add_argument('--star-executable', help="The name of the STAR executable",
         default=default_star_executable)
+    parser.add_argument('--tmp', help="The location for pybedtools temp files",
+        default=default_tmp)
 
     parser.add_argument('--do-not-call', action='store_true')
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
@@ -55,7 +57,6 @@ def main():
                     'bowtie2',
                     'create-base-genome-profile',
                     'remove-multimapping-reads',
-                    'filter-alignment-lengths',
                     'extract-metagene-profiles',
                     'estimate-metagene-profile-bayes-factors',
                     'select-periodic-offsets',

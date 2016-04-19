@@ -23,7 +23,6 @@ def main():
     parser.add_argument('--star-executable', help="The name of the STAR executable",
         default=default_star_executable)
 
-    parser.add_argument('--do-not-call', action='store_true')
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
     
@@ -48,7 +47,6 @@ def main():
                     'fastaFromBed',
                     'create-base-genome-profile',
                     'remove-multimapping-reads',
-                    'filter-alignment-lengths',
                     'extract-metagene-profiles',
                     'estimate-metagene-profile-bayes-factors',
                     'select-periodic-offsets',
@@ -90,11 +88,12 @@ def main():
         overwrite_str = "--overwrite"
     
     star_str = "--star-executable {}".format(args.star_executable)
+    tmp_str = "--tmp {}".format(args.tmp)
 
     for name, data in config['samples']:
 
-        cmd = "run-rpbp-pipeline {} {} {} --num-procs {} --tmp {} {} {} {} {}".format(data, 
-                args.config, name, args.num_procs, args.tmp, do_not_call_str, 
+        cmd = "run-rpbp-pipeline {} {} {} --num-procs {} {} {} {} {} {}".format(data, 
+                args.config, name, args.num_procs, tmp_str, do_not_call_str, 
                 overwrite_str, logging_str, star_str)
 
         utils.check_sbatch(cmd, args=args)

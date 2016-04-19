@@ -42,7 +42,7 @@ def main():
 
     # check that all of the necessary programs are callable
     programs =  [
-                    'flexbar',,
+                    'flexbar',
                     args.star_executable,
                     'samtools',
                     'bowtie2',
@@ -50,7 +50,6 @@ def main():
                     'fastaFromBed',
                     'create-base-genome-profile',
                     'remove-multimapping-reads',
-                    'filter-alignment-lengths',
                     'extract-metagene-profiles',
                     'estimate-metagene-profile-bayes-factors',
                     'select-periodic-offsets',
@@ -92,8 +91,9 @@ def main():
 
     # for a sample, we first create its filtered genome profile
     star_str = "--star-executable {}".format(args.star_executable)
-    cmd = ("create-filtered-genome-profile {} {} {} --num-procs {} {} {} {} {}".format(args.raw_data, 
-            args.config, args.name, args.num_procs, do_not_call_str, overwrite_str, logging_str, star_str))
+    tmp_str = "--tmp {}".format(args.tmp)
+    cmd = ("create-filtered-genome-profile {} {} {} --num-procs {} {} {} {} {} {}".format(args.raw_data, 
+            args.config, args.name, args.num_procs, do_not_call_str, overwrite_str, logging_str, star_str, tmp_str))
 
     # we always make the call, and let the individual script handle "--do-not-call"
     utils.check_call(cmd)
