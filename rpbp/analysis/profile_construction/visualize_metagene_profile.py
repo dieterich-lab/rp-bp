@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 default_title = "Periodicity analysis"
-default_xlabel = "Postion (bp). Translation start is at red line; end is at blue line; -12 is at green line."
+default_xlabel = "Postion (bp).\nRed: translation initiation site. Blue: translation termination site. Green line: TIS -12."
 default_ylabel = "Read count (starting at bp x)"
 default_font_size = 15
 default_series_label = ""
@@ -60,8 +60,7 @@ def main():
 
     step = 10
 
-    ymax = max(all_counts)
-    scaled_ymax = max(scaled_counts)
+    ymax = max(all_counts) + 0.1 * max(all_counts)
 
     # first, get the labels for the bp around the translation start
     # this needs to be something like: range(-50, 21)
@@ -79,9 +78,40 @@ def main():
     xticks = np.concatenate([xticks_start, xticks_end])
 
     fig, ax = plt.subplots(figsize=(10,5))
+    cm = plt.cm.Blues
 
     # first, plot the counts
-    ax.plot(all_counts, marker='o', color='g', label=args.series_label)
+    #ax.plot(all_counts, marker='o', color='g', label=args.series_label)
+
+    # first, the start counts
+    x_1 = start_counts[0::3]
+    x_2 = start_counts[1::3]
+    x_3 = start_counts[2::3]
+
+    x_1_pos = np.arange(len(start_counts))[0::3]
+    x_2_pos = np.arange(len(start_counts))[1::3]
+    x_3_pos = np.arange(len(start_counts))[2::3]
+
+    x_1_rects = ax.bar(x_1_pos, x_1, width=1, color=cm(0.8))
+    x_2_rects = ax.bar(x_2_pos, x_2, width=1, color=cm(0.5))
+    x_3_rects = ax.bar(x_3_pos, x_3, width=1, color=cm(0.2))
+
+    # now, the end counts
+    
+    x_1 = end_counts[0::3]
+    x_2 = end_counts[1::3]
+    x_3 = end_counts[2::3]
+
+    offset = len(start_counts) + len(middle_counts)
+
+    x_1_pos = np.arange(len(end_counts))[0::3] + offset
+    x_2_pos = np.arange(len(end_counts))[1::3] + offset
+    x_3_pos = np.arange(len(end_counts))[2::3] + offset
+
+    x_1_rects = ax.bar(x_1_pos, x_1, width=1, color=cm(0.8))
+    x_2_rects = ax.bar(x_2_pos, x_2, width=1, color=cm(0.5))
+    x_3_rects = ax.bar(x_3_pos, x_3, width=1, color=cm(0.2))
+
 
     # now, plot the lines to show translation start and end
 
