@@ -14,6 +14,7 @@ default_project_name = "ribosome profiling data"
 default_min_metagene_profile_count = 1000
 default_min_metagene_profile_bayes_factor_mean = 5
 default_max_metagene_profile_bayes_factor_var = 5
+default_min_visualization_count = 500
 
 def create_figures(config_file, config, name, min_read_length, max_read_length, overwrite):
     """ This function creates all of the figures in the preprocessing report
@@ -106,6 +107,10 @@ def main():
     parser.add_argument('--overwrite', help="If this flag is present, existing files will "
         "be overwritten.", action='store_true')
 
+    parser.add_argument('--min-visualization-count', help="Read lengths with fewer than this "
+        "number of reads will not be included in the report.", type=int, 
+        default=default_min_visualization_count)
+
     utils.add_logging_options(parser)
     args = parser.parse_args()
     utils.update_logging(args)
@@ -165,12 +170,7 @@ def main():
             i = 0
             for length in range(min_read_length, max_read_length + 1):
                 msg = "Processing length: {}".format(length)
-                logging.info(length)
-
-                out.write(name.replace('_', '-'))
-                out.write(", length: ")
-                out.write(str(length))
-                out.write(", selected offset: ")
+                logging.info(msg)
 
                 # check which offset is used
                 
@@ -189,6 +189,15 @@ def main():
                 if length_row['largest_count'] < min_metagene_profile_count:
                     offset = "Count too small"
                 
+                if length_row['largest_count'] < args.min_visualization_count:
+                    msg = "Not enough reads of this length. Skipping."
+                    logging.warning(msg)
+
+                out.write(name.replace('_', '-'))
+                out.write(", length: ")
+                out.write(str(length))
+                out.write(", selected offset: ")
+
                 out.write(str(offset))
 
                 out.write("\n\n")
