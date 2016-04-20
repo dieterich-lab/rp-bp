@@ -179,15 +179,17 @@ def main():
                 length_row = offsets_df[mask_length].iloc[0]
 
                 # now, check all of the filters
-                offset = "BF mean too small"
-                if length_row['largest_count_bf_mean'] > min_metagene_profile_bayes_factor_mean:
-                    offset = int(length_row['largest_count_offset'])
+                offset = int(length_row['largest_count_offset'])
+                offset_status = "Used for analysis"
+                
+                if length_row['largest_count_bf_mean'] < min_metagene_profile_bayes_factor_mean:
+                    offset_status = "BF mean too small"
 
                 if length_row['largest_count_bf_var'] > max_metagene_profile_bayes_factor_var:
-                    offset = "BF variance too high"
+                    offset_status = "BF variance too high"
 
                 if length_row['largest_count'] < min_metagene_profile_count:
-                    offset = "Count too small"
+                    offset_status = "Count too small"
                 
                 if length_row['largest_count'] < args.min_visualization_count:
                     msg = "Not enough reads of this length. Skipping."
@@ -196,9 +198,12 @@ def main():
                 out.write(name.replace('_', '-'))
                 out.write(", length: ")
                 out.write(str(length))
-                out.write(", selected offset: ")
+                out.write(", offset: ")
 
                 out.write(str(offset))
+
+                out.write(", status: ")
+                out.write(offset_status)
 
                 out.write("\n\n")
 
