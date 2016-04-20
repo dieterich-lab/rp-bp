@@ -24,7 +24,7 @@ def main():
     call = not args.do_not_call
 
     # remove the multimappers and sort the remaining reads
-    cmd = "samtools view -h {} | grep '^@\|NH:i:1	' | samtools view -bS  - | samtools sort - -o {}".format(args.align_in, align_out)
+    cmd = "samtools view -h {} | grep '^@\|NH:i:1	' | samtools view -bS  - | samtools sort - -o {}".format(args.align_in, args.align_out)
     utils.check_call(cmd, call=call)
 
     # index, unless specied not to
