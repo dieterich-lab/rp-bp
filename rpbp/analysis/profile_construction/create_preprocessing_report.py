@@ -192,6 +192,7 @@ def main():
                 if length_row['largest_count'] < args.min_visualization_count:
                     msg = "Not enough reads of this length. Skipping."
                     logging.warning(msg)
+                    continue
 
                 out.write(name.replace('_', '-'))
                 out.write(", length: ")
