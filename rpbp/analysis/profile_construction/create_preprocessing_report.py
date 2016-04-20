@@ -103,7 +103,7 @@ def main():
         description="This script creates a simple latex document containing the read "
         "filtering images, metagene profiles and analysis, and standard section text.")
     parser.add_argument('config', help="The (yaml) config file for the project")
-    parser.add_argument('out', help="The latex output file")
+    parser.add_argument('out', help="The path for the output files")
     parser.add_argument('--overwrite', help="If this flag is present, existing files will "
         "be overwritten.", action='store_true')
 
@@ -144,8 +144,9 @@ def main():
     max_metagene_profile_bayes_factor_var = config.get(
         "max_metagene_profile_bayes_factor_var", default_max_metagene_profile_bayes_factor_var)
 
+    tex_file = os.path.join(args.out, "preprocessing-report.tex")
 
-    with open(args.out, 'w') as out:
+    with open(tex_file, 'w') as out:
 
         out.write(header)
         out.write("\n")
@@ -240,6 +241,10 @@ def main():
             
 
         out.write(footer)
+
+    cmd = "pdflatex preprocessing-report"
+    utils.check_call(cmd)
+    utils.check_call(cmd) # call again to fix references
 
 if __name__ == '__main__':
     main()
