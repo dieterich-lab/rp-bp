@@ -28,8 +28,7 @@ default_out_sam_attributes = "AS NH HI nM MD"
 
 quant_mode_str = '--quantMode TranscriptomeSAM'
 star_compression_str = "--readFilesCommand zcat"
-
-
+star_out_str = "--outSAMtype BAM SortedByCoordinate"
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -129,11 +128,12 @@ def main():
         'outSAMattributes', default=default_out_sam_attributes)
 
     cmd = ("{} --runThreadN {} {} --genomeDir {} --sjdbGTFfile {} --readFilesIn {} "
-        "{} {} {} {} {} {} {} {} --outFileNamePrefix {}".format(args.star_executable,
+        "{} {} {} {} {} {} {} {} --outFileNamePrefix {} {}".format(args.star_executable,
         args.num_procs, star_compression_str, config['star_index'], config['gtf'], without_rrna, 
         align_intron_min_str, align_intron_max_str, out_filter_mismatch_n_max_str, 
         out_filter_type_str, out_filter_intron_motifs_str, quant_mode_str,
-        out_filter_mismatch_n_over_l_max_str, out_sam_attributes_str, star_output_prefix))
+        out_filter_mismatch_n_over_l_max_str, out_sam_attributes_str, star_output_prefix,
+        star_out_str))
     in_files = [without_rrna]
     out_files = [transcriptome_bam, genome_sam]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
