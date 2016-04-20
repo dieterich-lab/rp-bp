@@ -13,19 +13,19 @@ default_xlabel = "Postion (bp). Translation start is at red line; end is at blue
 default_ylabel = "Read count (starting at bp x)"
 default_ylabel_percent = "Percentage read count (starting at bp x)"
 default_font_size = 15
-
-default_series_label = ""
+default_lengths = []
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="This script visualizes a provided metagene profile.")
     parser.add_argument('metagene_profile', help="The metagene profile (csv) file")
+    parser.add_argument('length', help="The length to use for the visualization", type=int)
     parser.add_argument('out', help="The (output) image file")
     
     parser.add_argument('--title', help="The title for the figure", default=default_title)
     parser.add_argument('--xlabel', help="The label for the x-axis", default=default_xlabel)
     parser.add_argument('--ylabel', help="The label for the y-axis", default=default_ylabel)
-    parser.add_argument('--ylabel-percent', help="The label for the percent y-axis (i.e., the right y-axis)", default=default_ylabel_percent)
+    
     parser.add_argument('--series-label', help="The label for the legend", default=default_series_label)
     parser.add_argument('--font-size', help="The font size for the title, axis labels, and "
         "xticks labels", type=int, default=default_font_size)
@@ -33,6 +33,10 @@ def main():
     args = parser.parse_args()
 
     metagene_profile = pd.read_csv(args.metagene_profile)
+
+    m_length = metagene_profile['length'] == args.length
+    metagene_profile = metagene_profile[m_length]
+
     mask_starts = metagene_profile['type'] == 'start'
     start_counts = metagene_profile.loc[mask_starts, 'count'].values
     start_positions = metagene_profile.loc[mask_starts, 'position'].values
@@ -53,7 +57,6 @@ def main():
 
     counts_sum = sum(start_counts) + sum(end_counts)
     scaled_counts = all_counts / counts_sum
-
 
     step = 10
 

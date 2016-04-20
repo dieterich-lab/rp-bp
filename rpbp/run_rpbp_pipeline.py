@@ -99,8 +99,8 @@ def main():
     utils.check_call(cmd)
 
     # then we predict the ORFs
-    cmd = ("predict-translated-orfs {} {} --num-procs {} --tmp {} {} {} {}".format(args.config, 
-            args.name, args.num_procs, args.tmp, do_not_call_str, overwrite_str, logging_str))
+    cmd = ("predict-translated-orfs {} {} --num-procs {} {} {} {} {}".format(args.config, 
+            args.name, args.num_procs, tmp_str, do_not_call_str, overwrite_str, logging_str))
     utils.check_call(cmd)
 
 if __name__ == '__main__':

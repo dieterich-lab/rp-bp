@@ -9,45 +9,48 @@ import pandas as pd
 import misc.utils as utils
 import rpbp.filenames as filenames
 
-def create_figures(config_file, config, name, overwrite):
+
+default_project_name = "ribosome profiling data"
+default_min_metagene_profile_count = 1000
+default_min_metagene_profile_bayes_factor_mean = 5
+default_max_metagene_profile_bayes_factor_var = 5
+
+def create_figures(config_file, config, name, min_read_length, max_read_length, overwrite):
     """ This function creates all of the figures in the preprocessing report
         for the given dataset.
     """
     # visualize the metagene profiles
     msg = "{}: Visualizing metagene profiles and Bayes' factors".format(name)
     logging.info(msg)
-
     logging.debug("overwrite: {}".format(overwrite))
 
-    seqids_to_keep_str = utils.get_config_argument(config, 'seqids_to_keep')
-    read_length_range = range(config['min_read_length'], config['max_read_length']+1)
+    metagene_profiles = filenames.get_riboseq_metagene_profile(config['riboseq_data'], 
+        name, is_unique=True)
 
-    periodicity_bayes_factor = filenames.get_riboseq_metagene_periodicity_bayes_factors(config['riboseq_data'],
+    mp_df = pd.read_csv(metagene_profiles)
+    read_length_range = range(min_read_length, max_read_length)
+    
+    profile_bayes_factor = filenames.get_riboseq_metagene_profiles_bayes_factors(config['riboseq_data'],
         name, is_unique=True)
 
     for length in read_length_range:
-        metagene_profile = filenames.get_riboseq_metagene_profile(config['riboseq_data'], 
-            name, is_unique=True, length=length)
         
         # visualize the metagene profile
         title = "Periodicity, {}, length {}".format(name, length)
-        series_label = "Length {}".format(length)
         metagene_profile_image = filenames.get_riboseq_metagene_profile_image(config['riboseq_data'], 
             name, image_type='eps', is_unique=True, length=length)
-        cmd = ("visualize-metagene-profile {} {} --title '{}' --series-label '{}'".format(
-            metagene_profile, metagene_profile_image, title, series_label))
-        in_files = [metagene_profile]
+        cmd = ("visualize-metagene-profile {} {} {} --title \"{}\"".format(
+            metagene_profiles, length, metagene_profile_image, title))
+        in_files = [metagene_profiles]
         out_files = [metagene_profile_image]
         utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite, call=True)
 
         # and the Bayes' factor
         title = "Metagene profile Bayes' factors, {}, length {}".format(name, length)
-        series_label = "Length {}".format(length)
-        metagene_profile_image = filenames.get_riboseq_metagene_profile_bayes_factor_image(config['riboseq_data'], 
-            name, image_type='eps', is_unique=True, length=length)
-        cmd = ("visualize-metagene-profile-bayes-factor {} {} {} --title \"{}\" --series-label \"{}\" "
-            "--font-size 25".format(periodicity_bayes_factor, length, metagene_profile_image, 
-            title, series_label))
+        metagene_profile_image = filenames.get_riboseq_metagene_profile_bayes_factor_image(
+            config['riboseq_data'], name, image_type='eps', is_unique=True, length=length)
+        cmd = ("visualize-metagene-profile-bayes-factor {} {} {} --title \"{}\""
+            "--font-size 25".format(profile_bayes_factor, length, metagene_profile_image, title))
         in_files = [metagene_profile]
         out_files = [metagene_profile_image]
         utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite, call=True)
@@ -77,15 +80,18 @@ def create_figures(config_file, config, name, overwrite):
 
     read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(config['riboseq_data'])
     title = "Read filtering counts"
-    cmd = "visualize-read-filtering-counts {} {} --title \"{}\"".format(read_filtering_counts, read_filtering_image, title)
+    cmd = "visualize-read-filtering-counts {} {} --title \"{}\"".format(read_filtering_counts, 
+        read_filtering_image, title)
     in_files = [read_filtering_counts]
     out_files=[read_filtering_image]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite, call=True)
 
     # and visualize the filtering without the rrna
-    read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(config['riboseq_data'], note="no-rrna")
+    read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(
+        config['riboseq_data'], note="no-rrna")
     title = "Read filtering counts, no ribosomal matches"
-    cmd = "visualize-read-filtering-counts {} {} --title \"{}\" --without-rrna".format(read_filtering_counts, read_filtering_image, title)
+    cmd = "visualize-read-filtering-counts {} {} --title \"{}\" --without-rrna".format(
+        read_filtering_counts, read_filtering_image, title)
 
     in_files = [read_filtering_counts]
     out_files=[read_filtering_image]
@@ -120,8 +126,24 @@ def main():
     # make sure the path to the output file exists
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
 
-    header, footer = get_header_and_footer_text()
+    project_name = config.get("project_name", default_project_name)
+    header, footer = get_header_and_footer_text(project_name, config['riboseq_data'])
 
+
+    min_metagene_profile_count = config.get(
+        "min_metagene_profile_count", default_min_metagene_profile_count)
+
+    min_metagene_profile_bayes_factor_mean = config.get(
+        "min_metagene_profile_bayes_factor_mean", default_min_metagene_profile_bayes_factor_mean)
+
+    max_metagene_profile_bayes_factor_var = config.get(
+        "max_metagene_profile_bayes_factor_var", default_max_metagene_profile_bayes_factor_var)
+
+    periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], name, is_unique=True)
+    offsets_df = pd.read_csv(best_periodicity_and_offsets)
+
+    min_read_length = offsets_df['length'].min().iloc[0]
+    max_read_length = offsets_df['length'].max().iloc[0]
 
     with open(args.out, 'w') as out:
 
@@ -133,16 +155,13 @@ def main():
             logging.info(msg)
 
             logging.debug("overwrite: {}".format(args.overwrite))
-            create_figures(args.config, config, name, args.overwrite)
+            create_figures(args.config, config, name, min_read_length, max_read_length, args.overwrite)
 
             out.write("\\begin{figure}\n")
             out.write("\t\\centering\n")
-
-            best_periodicity_and_offsets = filenames.get_riboseq_best_periodicity_and_offsets(config['riboseq_data'], name, is_unique=True)
-            best_periodicity_and_offsets = pd.read_csv(best_periodicity_and_offsets)
             
             i = 0
-            for length in range(config['min_read_length'], config['max_read_length'] + 1):
+            for length in range(min_read_length, max_read_length + 1):
                 msg = "Processing length: {}".format(length)
                 logging.info(length)
 
@@ -154,12 +173,16 @@ def main():
                 # check which offset is used
                 
                 # select the row for this length
-                mask_length = best_periodicity_and_offsets['length'] == length
-                length_row = best_periodicity_and_offsets[mask_length].iloc[0]
+                mask_length = offsets_df['length'] == length
+                length_row = offsets_df[mask_length].iloc[0]
 
-                offset = "BF too small"
-                if length_row['largest_count_bf'] > config['min_periodicity_bf']:
+                # now, check all of the filters
+                offset = "BF mean too small"
+                if length_row['largest_count_bf_mean'] > min_metagene_profile_bayes_factor_mean
                     offset = int(length_row['largest_count_offset'])
+
+                if length_row['largest_count_bf_var'] > max_metagene_profile_bayes_factor_var:
+                    offset = "BF variance too high"
 
                 if length_row['largest_count'] < config['min_periodicity_count']:
                     offset = "Count too small"
@@ -168,10 +191,12 @@ def main():
 
                 out.write("\n\n")
 
-                metagene_profile_image = filenames.get_riboseq_metagene_profile_image(config['riboseq_data'], name, image_type='eps', is_unique=True, length=length)
+                metagene_profile_image = filenames.get_riboseq_metagene_profile_image(
+                    config['riboseq_data'], name, image_type='eps', is_unique=True, length=length)
                 metagene_profile_image = metagene_profile_image.replace(".eps", "}.eps")
                 
-                bayes_factor_image = filenames.get_riboseq_metagene_profile_bayes_factor_image(config['riboseq_data'], name, image_type='eps', is_unique=True, length=length)
+                bayes_factor_image = filenames.get_riboseq_metagene_profile_bayes_factor_image(
+                    config['riboseq_data'], name, image_type='eps', is_unique=True, length=length)
                 bayes_factor_image = bayes_factor_image.replace(".eps", "}.eps")
                 
                 out.write("\t\\includegraphics[width=0.6\\textwidth,keepaspectratio]{{")
@@ -202,7 +227,7 @@ def main():
 if __name__ == '__main__':
     main()
 
-def get_header_and_footer_text():
+def get_header_and_footer_text(project_name, riboseq_data):
     header = r"""
 \documentclass[a4paper,10pt]{article} % For LaTeX2e
 \usepackage[utf8x]{inputenc}
@@ -222,7 +247,7 @@ def get_header_and_footer_text():
 
 
 
-\title{Preprocessing results for Human S-tau 1 data}
+\title{Preprocessing results for <project_name>}
 
 \def\|#1{\ensuremath{\mathtt{#1}}}
 \def\!#1{\ensuremath{\mathbf{#1}}}
@@ -261,7 +286,7 @@ def get_header_and_footer_text():
 \begin{abstract}
 This document shows the results of preprocessing steps. 
 In particular, it shows the amount of reads filtered at each step in the pipeline. 
-Additionally, it includes ``metagene'' periodicity figures for all of the samples.
+Additionally, it includes ``metagene'' profile figures for all of the samples.
 \end{abstract}
 
 \section{Introduction}
@@ -276,16 +301,15 @@ Our \riboseq processing pipeline consists of the following steps.
 \textbf{3}. Reads are aligned to the genome.\\
 \textbf{4}. Reads with multiple alignments are removed.\\
 \textbf{5}. Reads with length that do not result in a strong periodic signal are removed.\\
-\textbf{6}. Remaing reads are used to construct transcript signals.\\
-\textbf{7}. Micropeptides, etc., are predicted using transcript signals.
+\textbf{6}. Remaing reads are used to construct the filtered genome profile
 
 Figure~\ref{fig:mapping-info}(left) shows the number of reads remaining after each stage in our preprocessing pipeline for all samples.
 Figure~\ref{fig:mapping-info}(right) shows a ``zoomed in'' version which does not include the reads of poor quality and that mapped to ribosomal sequences.
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.48\textwidth,keepaspectratio]{read-filtering-counts.eps}
-    \includegraphics[width=0.48\textwidth,keepaspectratio]{{read-filtering-counts.no-rrna}.eps}
+    \includegraphics[width=0.48\textwidth,keepaspectratio]{<riboseq_data>/read-filtering-counts.eps}
+    \includegraphics[width=0.48\textwidth,keepaspectratio]{<riboseq_data>/{read-filtering-counts.no-rrna}.eps}
     \caption{The number of reads lost at each stage in the mapping pipeline. \texttt{wrong\_length} refers to reads which have a length that does not result in a strong periodic signal (see Section~\ref{sec:periodicity}). Please note the different colors in the figures. \label{fig:mapping-info}}
 \end{figure}
 
@@ -303,5 +327,8 @@ Figure~\ref{fig:mapping-info}(right) shows a ``zoomed in'' version which does no
 
 \end{document}
         """
+
+    header = header.replace("<project_name>", project_name)
+    header = header.replace("<riboseq_data>", riboseq_data)
 
     return (header, footer)
