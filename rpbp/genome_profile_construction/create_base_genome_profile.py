@@ -110,7 +110,7 @@ def main():
     # Step 2: Running STAR to align rRNA-depleted reads to genome
     star_output_prefix = filenames.get_riboseq_sam_base(config['riboseq_data'], args.name)
     transcriptome_bam = "{}{}".format(star_output_prefix, "Aligned.toTranscriptome.out.bam")
-    genome_sam = "{}{}".format(star_output_prefix, "Aligned.out.sam")
+    genome_star_bam = "{}{}".format(star_output_prefix, "Aligned.sortedByCoord.out.bam")
 
     align_intron_min_str = utils.get_config_argument(config, 'align_intron_min', 
         'alignIntronMin', default=default_align_intron_min)
@@ -135,10 +135,21 @@ def main():
         out_filter_mismatch_n_over_l_max_str, out_sam_attributes_str, star_output_prefix,
         star_out_str))
     in_files = [without_rrna]
-    out_files = [transcriptome_bam, genome_sam]
+    out_files = [transcriptome_bam, genome_star_bam]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
-    # Step 3a: Running samtools to get the sorted bam files from the STAR transcriptome alignments
+    # now, we need to rename the STAR output to that expected by the rest of the pipeline
+    genome_sorted_bam = filenames.get_riboseq_bam(config['riboseq_data'], args.name)
+    os.replace(genome_star_bam, genome_sorted_bam)
+     
+    # remove the multimapping riboseq reads
+    unique_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True)
+    cmd = "remove-multimapping-reads {} {}".format(genome_sorted_bam, unique_filename)
+    in_files = [genome_sorted_bam]
+    out_files = [unique_filename]
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+
+    # Step 3: Running samtools to get the sorted bam files from the STAR transcriptome alignments
     transcriptome_sorted_bam = filenames.get_riboseq_bam(
         config['riboseq_data'], args.name, is_transcriptome=True)
     
@@ -148,36 +159,12 @@ def main():
     out_files = [transcriptome_sorted_bam]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
-    # Step 4a: Creating bam index file for transcriptome alignments
+    # Step 4: Creating bam index file for transcriptome alignments
     transcriptome_sorted_bai = transcriptome_sorted_bam + ".bai"
     cmd = "samtools index -b {} {}".format(transcriptome_sorted_bam, transcriptome_sorted_bai)
     in_files = [transcriptome_sorted_bam]
     out_files = [transcriptome_sorted_bai]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
-    
-
-    # Step 3b: Running samtools to get the sorted bam files from the STAR genome alignments
-    genome_sorted_bam = filenames.get_riboseq_bam(config['riboseq_data'], args.name)
-    
-    cmd = "samtools view -bS -@{} {} | samtools sort - -@{} -o {}".format(args.num_procs, 
-        genome_sam, args.num_procs, genome_sorted_bam)
-    in_files = [genome_sam]
-    out_files = [genome_sorted_bam]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
-
-    # Step 4b: Creating bam index file for genome alignments
-    genome_sorted_bai  = genome_sorted_bam + ".bai"
-    cmd = "samtools index -b {} {}".format(genome_sorted_bam, genome_sorted_bai)
-    in_files = [genome_sorted_bam]
-    out_files = [genome_sorted_bai]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
-
-    # remove the multimapping riboseq reads
-    unique_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True)
-    cmd = "remove-multimapping-reads {} {}".format(genome_sorted_bam, unique_filename)
-    in_files = [genome_sorted_bam]
-    out_files = [unique_filename]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
-
+   
 if __name__ == '__main__':
     main()
