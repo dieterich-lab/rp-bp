@@ -10,7 +10,7 @@ import pandas as pd
 import logging
 
 default_title = "Metagene profile Bayes' factors"
-default_xlabel = "Offset, relative to translation start site"
+default_xlabel = "Offset, relative to translation initiation site"
 default_ylabel = "Bayes' factor"
 default_font_size = 15
 

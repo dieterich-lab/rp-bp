@@ -109,6 +109,7 @@ def estimate_profile_bayes_factors(profile, args):
         m_nonperiodic_ex = m_nonperiodic_ex[max_nonperiodic_mean]
 
         profile_sum = np.sum(signal)
+        profile_peak = signal[0]
 
         v = {
             "offset": offset,
@@ -116,7 +117,8 @@ def estimate_profile_bayes_factors(profile, args):
             "p_periodic_var": np.var(m_periodic_ex['lp__']),
             "p_nonperiodic_mean": np.mean(m_nonperiodic_ex['lp__']),
             "p_nonperiodic_var": np.var(m_nonperiodic_ex['lp__']),
-            'profile_sum': profile_sum
+            'profile_sum': profile_sum,
+            'profile_peak': profile_peak
         }
 
         v['bayes_factor_mean'] = v['p_periodic_mean'] - v['p_nonperiodic_mean']
