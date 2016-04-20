@@ -242,7 +242,8 @@ def main():
 
         out.write(footer)
 
-    cmd = "pdflatex preprocessing-report"
+    os.chdir(args.out)
+    cmd = "pdflatex -shell-escape preprocessing-report"
     utils.check_call(cmd)
     utils.check_call(cmd) # call again to fix references
 
@@ -252,17 +253,14 @@ if __name__ == '__main__':
 def get_header_and_footer_text(project_name, riboseq_data):
     header = r"""
 \documentclass[a4paper,10pt]{article} % For LaTeX2e
-\usepackage[utf8x]{inputenc}
+\usepackage[utf8]{inputenc}
 \usepackage{amsmath}
 \usepackage{graphicx}
-\usepackage{framed}
 \usepackage{float}
-
-\usepackage{morefloats}
-
 \usepackage{xspace}
 
 \pagestyle{empty}
+
 \setlength{\parskip}{2mm}
 \setlength{\parindent}{0cm}
 
