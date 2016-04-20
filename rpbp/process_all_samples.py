@@ -17,8 +17,6 @@ def main():
 
     parser.add_argument('config', help="The (yaml) config file")
 
-    parser.add_argument('-p', '--num-procs', help="The number of processors to use",
-        type=int, default=default_num_procs)
     parser.add_argument('--tmp', help="The temp directory for pybedtools", default=default_tmp)
     parser.add_argument('--star-executable', help="The name of the STAR executable",
         default=default_star_executable)
@@ -35,7 +33,6 @@ def main():
 
     config = yaml.load(open(args.config))
     call = not args.do_not_call
-
 
     # check that all of the necessary programs are callable
     programs =  [
@@ -76,12 +73,11 @@ def main():
 
     note_str = config.get('note', None)
 
-    # the first step is the standard riboseq preprocessing
-    
-    # handle do_not_call so that we _do_ call the preprocessing script, but that it does not run anything
+    # handle do_not_call so that we _do_ call the pipeline script, but that it does not run anything
     do_not_call_str = ""
     if not call:
         do_not_call_str = "--do-not-call"
+    args.do_not_call = False
 
     overwrite_str = ""
     if args.overwrite:
@@ -89,11 +85,11 @@ def main():
     
     star_str = "--star-executable {}".format(args.star_executable)
     tmp_str = "--tmp {}".format(args.tmp)
-
-    for name, data in config['samples']:
+        
+    for name, data in config['samples'].items():
 
         cmd = "run-rpbp-pipeline {} {} {} --num-procs {} {} {} {} {} {}".format(data, 
-                args.config, name, args.num_procs, tmp_str, do_not_call_str, 
+                args.config, name, args.num_cpus, tmp_str, do_not_call_str, 
                 overwrite_str, logging_str, star_str)
 
         utils.check_sbatch(cmd, args=args)

@@ -7,7 +7,7 @@ import os
 import pandas as pd
 
 import misc.utils as utils
-import riboseq_utils.riboseq_filenames as filenames
+import rpbp.filenames as filenames
 
 def create_figures(config_file, config, name, overwrite):
     """ This function creates all of the figures in the preprocessing report
@@ -128,7 +128,7 @@ def main():
         out.write(header)
         out.write("\n")
 
-        for name in config['sample_names']:
+        for name, data in config['samples'].items():
             msg = "Processing sample: {}".format(name)
             logging.info(msg)
 

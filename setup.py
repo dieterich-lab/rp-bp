@@ -58,6 +58,3 @@ setup(name='rpbp',
         },
         zip_safe=False
         )
-
-
-        rst2pdf = project_a.tools.pdfgen [PDF]
