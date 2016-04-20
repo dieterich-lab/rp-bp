@@ -24,13 +24,13 @@ def create_figures(config_file, config, name, min_read_length, max_read_length, 
     logging.info(msg)
     logging.debug("overwrite: {}".format(overwrite))
 
-    metagene_profiles = filenames.get_riboseq_metagene_profile(config['riboseq_data'], 
+    metagene_profiles = filenames.get_metagene_profiles(config['riboseq_data'], 
         name, is_unique=True)
 
     mp_df = pd.read_csv(metagene_profiles)
     read_length_range = range(min_read_length, max_read_length)
     
-    profile_bayes_factor = filenames.get_riboseq_metagene_profiles_bayes_factors(config['riboseq_data'],
+    profile_bayes_factor = filenames.get_metagene_profiles_bayes_factors(config['riboseq_data'],
         name, is_unique=True)
 
     for length in read_length_range:
@@ -47,11 +47,11 @@ def create_figures(config_file, config, name, min_read_length, max_read_length, 
 
         # and the Bayes' factor
         title = "Metagene profile Bayes' factors, {}, length {}".format(name, length)
-        metagene_profile_image = filenames.get_riboseq_metagene_profile_bayes_factor_image(
+        metagene_profile_image = filenames.get_metagene_profile_bayes_factor_image(
             config['riboseq_data'], name, image_type='eps', is_unique=True, length=length)
-        cmd = ("visualize-metagene-profile-bayes-factor {} {} {} --title \"{}\""
+        cmd = ("visualize-metagene-profile-bayes-factor {} {} {} --title \"{}\" "
             "--font-size 25".format(profile_bayes_factor, length, metagene_profile_image, title))
-        in_files = [metagene_profile]
+        in_files = [profile_bayes_factor]
         out_files = [metagene_profile_image]
         utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite, call=True)
 
@@ -139,11 +139,6 @@ def main():
     max_metagene_profile_bayes_factor_var = config.get(
         "max_metagene_profile_bayes_factor_var", default_max_metagene_profile_bayes_factor_var)
 
-    periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], name, is_unique=True)
-    offsets_df = pd.read_csv(best_periodicity_and_offsets)
-
-    min_read_length = offsets_df['length'].min().iloc[0]
-    max_read_length = offsets_df['length'].max().iloc[0]
 
     with open(args.out, 'w') as out:
 
@@ -155,6 +150,13 @@ def main():
             logging.info(msg)
 
             logging.debug("overwrite: {}".format(args.overwrite))
+    
+            periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], name, is_unique=True)
+            offsets_df = pd.read_csv(periodic_offsets)
+
+            min_read_length = int(offsets_df['length'].min())
+            max_read_length = int(offsets_df['length'].max())
+    
             create_figures(args.config, config, name, min_read_length, max_read_length, args.overwrite)
 
             out.write("\\begin{figure}\n")
@@ -178,13 +180,13 @@ def main():
 
                 # now, check all of the filters
                 offset = "BF mean too small"
-                if length_row['largest_count_bf_mean'] > min_metagene_profile_bayes_factor_mean
+                if length_row['largest_count_bf_mean'] > min_metagene_profile_bayes_factor_mean:
                     offset = int(length_row['largest_count_offset'])
 
                 if length_row['largest_count_bf_var'] > max_metagene_profile_bayes_factor_var:
                     offset = "BF variance too high"
 
-                if length_row['largest_count'] < config['min_periodicity_count']:
+                if length_row['largest_count'] < min_metagene_profile_count:
                     offset = "Count too small"
                 
                 out.write(str(offset))
@@ -195,7 +197,7 @@ def main():
                     config['riboseq_data'], name, image_type='eps', is_unique=True, length=length)
                 metagene_profile_image = metagene_profile_image.replace(".eps", "}.eps")
                 
-                bayes_factor_image = filenames.get_riboseq_metagene_profile_bayes_factor_image(
+                bayes_factor_image = filenames.get_metagene_profile_bayes_factor_image(
                     config['riboseq_data'], name, image_type='eps', is_unique=True, length=length)
                 bayes_factor_image = bayes_factor_image.replace(".eps", "}.eps")
                 

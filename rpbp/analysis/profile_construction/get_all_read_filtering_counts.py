@@ -9,20 +9,25 @@ import scipy.io
 
 import crimson.fastqc
 
-import riboseq_utils.riboseq_filenames as filenames
+import rpbp.filenames as filenames
 
 import misc.bio as bio
 import misc.parallel as parallel
 import misc.utils as utils
 
 default_num_procs = 2
+default_min_metagene_profile_count = 1000
+default_min_metagene_profile_bayes_factor_mean = 5
+default_max_metagene_profile_bayes_factor_var = 5
 
-def get_counts(name, config, overwrite):
+
+def get_counts(name_data, config, overwrite):
+    name, data = name_data
     msg = "processing {}...".format(name)
     logging.info(msg)
 
     # first, get the filenames
-    raw_data = filenames.get_riboseq_fastq(config['riboseq_data'], name)
+    raw_data = data
     without_adapters = filenames.get_without_adapters_fastq(config['riboseq_data'], name)
     with_rrna = filenames.get_with_rrna_fastq(config['riboseq_data'], name)
     without_rrna = filenames.get_without_rrna_fastq(config['riboseq_data'], name)
@@ -108,12 +113,23 @@ def get_counts(name, config, overwrite):
     # count reads with correct lengths
     msg = "{}: counting reads with selected lengths".format(name)
     logging.info(msg)
-    best_periodicity_and_offsets = filenames.get_riboseq_best_periodicity_and_offsets(config['riboseq_data'], 
-        name, is_unique=True)
-    best_info_df = pd.read_csv(best_periodicity_and_offsets)
-    mask_largest_count = best_info_df['largest_count'] > config['min_periodicity_count']
-    mask_largest_count_bf = best_info_df['largest_count_bf'] > config['min_periodicity_bf']
-    filtered_po = best_info_df[mask_largest_count & mask_largest_count_bf]
+
+    min_metagene_profile_count = config.get(
+        "min_metagene_profile_count", default_min_metagene_profile_count)
+
+    min_metagene_profile_bayes_factor_mean = config.get(
+        "min_metagene_profile_bayes_factor_mean", default_min_metagene_profile_bayes_factor_mean)
+
+    max_metagene_profile_bayes_factor_var = config.get(
+        "max_metagene_profile_bayes_factor_var", default_max_metagene_profile_bayes_factor_var)
+
+    periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], name, is_unique=True)
+    offsets_df = pd.read_csv(periodic_offsets)
+
+    m_count = offsets_df['largest_count'] > min_metagene_profile_count
+    m_bf_mean = offsets_df['largest_count_bf_mean'] > min_metagene_profile_bayes_factor_mean
+    m_bf_var = offsets_df['largest_count_bf_var'] < max_metagene_profile_bayes_factor_var
+    filtered_po = offsets_df[m_count & m_bf_mean & m_bf_var]
 
     offsets = filtered_po['largest_count_offset']
     lengths = filtered_po['length']
@@ -174,7 +190,7 @@ def main():
 
     config = yaml.load(open(args.config))
 
-    res = parallel.apply_parallel_iter(config['sample_names'], args.num_procs, get_counts, config, args.overwrite)
+    res = parallel.apply_parallel_iter(config['samples'].items(), args.num_procs, get_counts, config, args.overwrite)
     res_df = pd.DataFrame(res)
     #res_df = pd.concat(res)
 

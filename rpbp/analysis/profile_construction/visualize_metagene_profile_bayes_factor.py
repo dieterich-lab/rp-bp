@@ -38,7 +38,7 @@ def main():
     mask_length = bayes_factors['length'] == args.length
     group = bayes_factors.loc[mask_length]
 
-    bfs = group['bf']
+    bfs = group['bayes_factor_mean']
     offsets = group['offset']
     bf_range = max(bfs) - min(bfs)
     

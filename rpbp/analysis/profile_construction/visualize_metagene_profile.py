@@ -11,8 +11,8 @@ import pandas as pd
 default_title = "Periodicity analysis"
 default_xlabel = "Postion (bp). Translation start is at red line; end is at blue line; -12 is at green line."
 default_ylabel = "Read count (starting at bp x)"
-default_ylabel_percent = "Percentage read count (starting at bp x)"
 default_font_size = 15
+default_series_label = ""
 default_lengths = []
 
 def main():
@@ -83,10 +83,6 @@ def main():
     # first, plot the counts
     ax.plot(all_counts, marker='o', color='g', label=args.series_label)
 
-    # also plot the scaled counts to get the proportion
-    ax2 = ax.twinx()
-    #ax2.plot(scaled_counts, marker='o', color='g')
-
     # now, plot the lines to show translation start and end
 
     # start
@@ -112,14 +108,12 @@ def main():
     ax.set_title(args.title, fontsize=args.font_size)
     ax.set_xlabel(args.xlabel, fontsize=args.font_size)
     ax.set_ylabel(args.ylabel, fontsize=args.font_size)
-    ax2.set_ylabel(args.ylabel_percent, fontsize=args.font_size)
     ax.legend(loc="upper right")
 
     ax.set_xticks(xticks)
     ax.set_xticklabels(xticklabels, fontsize=args.font_size)
 
     ax.set_ylim((0, ymax))
-    ax2.set_ylim((0, scaled_ymax))
     ax.set_xlim((0, len(all_counts)))
 
     fig.tight_layout()
