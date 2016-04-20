@@ -24,8 +24,8 @@ install_requirements = [
     "pystan",
     "pybedtools",
     "pyyaml",
-    "-e git+https://bitbucket.org/bmmalone/misc.git#egg=misc[bio]",
-    "-e ."
+    "git+https://bitbucket.org/bmmalone/misc.git#egg=misc[bio]",
+    "-e .[analysis]"
 ]
 
 clean_requirements = [
@@ -42,7 +42,7 @@ clean_requirements = [
     "pybedtools",
     "pyyaml",
     "misc[bio]",
-    "rpbp"
+    "rpbp[analysis]"
 ]
 
 stan_model_files = [

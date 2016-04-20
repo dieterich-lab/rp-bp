@@ -20,12 +20,16 @@ setup(name='rpbp',
             'scipy',
             'pandas',
             'joblib',
+            'docopt',
             'tqdm',
             'pysam',
             'pyfasta',
             'pystan',
             'misc[bio]'
         ],
+        extras_require = {
+            'analysis': ['matplotlib', 'matplotlib_venn', 'crimson>=0.1.1']
+        },
         include_package_data=True,
         test_suite='nose.collector',
         tests_require=['nose'],
@@ -44,8 +48,16 @@ setup(name='rpbp',
                                 'estimate-orf-bayes-factors=rpbp.translation_prediction.estimate_orf_bayes_factors:main',
                                 'select-final-prediction-set=rpbp.translation_prediction.select_final_prediction_set:main',
                                 'run-rpbp-pipeline=rpbp.run_rpbp_pipeline:main',
-                                'process-all-samples=rpbp.process_all_samples:main'
+                                'process-all-samples=rpbp.process_all_samples:main',
+                                'visualize-metagene-profile=rpbp.analysis.profile_construction.visualize_metagene_profile:main [analysis]',
+                                'visualize-metagene-profile-bayes-factor=rpbp.analysis.profile_construction.visualize_metagene_profile_bayes_factor:main [analysis]',
+                                'create-preprocessing-report=rpbp.analysis.profile_construction.create_preprocessing_report:main [analysis]',
+                                'get-all-read-filtering-counts=rpbp.analysis.profile_construction.get_all_read_filtering_counts:main [analysis]',
+                                'visualize-read-filtering-counts=rpbp.analysis.profile_construction.visualize_read_filtering_counts:main [analysis]'
                                ]
         },
         zip_safe=False
         )
+
+
+        rst2pdf = project_a.tools.pdfgen [PDF]
