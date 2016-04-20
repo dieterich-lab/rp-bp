@@ -42,7 +42,7 @@ def get_periodic_lengths_and_offsets(config, name, do_not_call):
     if not os.path.exists(periodic_offsets) and not do_not_call:
         msg = ("The periodic offsets file does not exist. Please ensure the select-periodic-offsets "
             "script completed successfully or specify the \"use_fixed_lengths\", \"lengths\", and "
-            "\"offsets\" values in the configuration file.")
+            "\"offsets\" values in the configuration file. Filename: {}".format(periodic_offsets))
         raise FileNotFoundError(msg)
     else:
         msg = ("The periodic offsets file does not exist. Please ensure the select-periodic-offsets "
@@ -53,7 +53,7 @@ def get_periodic_lengths_and_offsets(config, name, do_not_call):
 
         offsets = ["12"]
         lengths = ["29"]
-        return (offsets, lengths)
+        return (lengths, offsets)
         
     
     offsets_df = pd.read_csv(periodic_offsets)

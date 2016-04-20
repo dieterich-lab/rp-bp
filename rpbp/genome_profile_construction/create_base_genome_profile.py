@@ -26,6 +26,7 @@ default_out_filter_type = "BySJout"
 default_out_filter_intron_motifs = "RemoveNoncanonicalUnannotated"
 default_out_sam_attributes = "AS NH HI nM MD"
 
+flexbar_compression_str = "--zip-output GZ"
 quant_mode_str = '--quantMode TranscriptomeSAM'
 star_compression_str = "--readFilesCommand zcat"
 star_out_str = "--outSAMtype BAM SortedByCoordinate"
@@ -85,8 +86,6 @@ def main():
         default=default_quality_format)
     max_uncalled_str = utils.get_config_argument(config, 'max_uncalled', default=default_max_uncalled)
     pre_trim_left_str = utils.get_config_argument(config, 'pre_trim_left', default=default_pre_trim_left)
-
-    flexbar_compression_str = "--zip-output GZ"
 
     cmd = "flexbar {} {} {} {} -n {} {} -r {} -t {} {}".format(quality_format_str, 
         max_uncalled_str, adapter_seq_str, adapter_file_str, args.num_procs, flexbar_compression_str, 
