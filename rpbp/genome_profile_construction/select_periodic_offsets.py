@@ -7,33 +7,39 @@ import misc.utils as utils
 
 def get_most_periodic_offset(profile_df):
     
-    mask_largest_count = profile_df['profile_sum'] == profile_df['profile_sum'].max()
-    largest_count_row = profile_df[mask_largest_count].iloc[0]
+    #mask_largest_count = profile_df['profile_sum'] == profile_df['profile_sum'].max()
+    #largest_count_row = profile_df[mask_largest_count].iloc[0]
+    m_highest_peak = profile_df['profile_peak'] == profile_df['profile_peak'].max()
+    highest_peak_row = profile_df[m_highest_peak].iloc[0]
 
-    length = largest_count_row['length']
+    length = highest_peak_row['length']
 
-    largest_count = largest_count_row['profile_sum']
-    largest_count_offset = int(largest_count_row['offset'])
-    largest_count_bf_mean = largest_count_row['bayes_factor_mean']
-    largest_count_bf_var = largest_count_row['bayes_factor_var']
+    highest_peak_peak = highest_peak_row['profile_peak']
+    highest_peak_profile_sum = highest_peak_row['profile_sum']
+    highest_peak_offset = int(highest_peak_row['offset'])
+    highest_peak_bf_mean = highest_peak_row['bayes_factor_mean']
+    highest_peak_bf_var = highest_peak_row['bayes_factor_var']
 
     # and now the offset with the best bayes factor mean
     mask_largest_bf = profile_df['bayes_factor_mean'] == profile_df['bayes_factor_mean'].max()
     largest_bf_row = profile_df[mask_largest_bf].iloc[0]
     
-    largest_bf_count = largest_count_row['profile_sum']
-    largest_bf_offset = int(largest_count_row['offset'])
-    largest_bf_mean = largest_count_row['bayes_factor_mean']
-    largest_bf_var = largest_count_row['bayes_factor_var']
+    largest_bf_peak = largest_bf_row['profile_peak']
+    largest_bf_profile_sum = largest_bf_row['profile_sum']
+    largest_bf_offset = int(largest_bf_row['offset'])
+    largest_bf_mean = largest_bf_row['bayes_factor_mean']
+    largest_bf_var = largest_bf_row['bayes_factor_var']
 
     # and construct the output
     ret = {
         'length': length,
-        'largest_count': largest_count,
-        'largest_count_offset': largest_count_offset,
-        'largest_count_bf_mean': largest_count_bf_mean,
-        'largest_count_bf_var': largest_count_bf_var,
-        'largest_bf_count': largest_bf_count,
+        'highest_peak_peak': highest_peak_peak,
+        'highest_peak_profile_sum': highest_peak_profile_sum,
+        'highest_peak_offset': highest_peak_offset,
+        'highest_peak_bf_mean': highest_peak_bf_mean,
+        'highest_peak_bf_var': highest_peak_bf_var,
+        'largest_bf_peak': largest_bf_peak,
+        'largest_bf_profile_sum': largest_bf_profile_sum,
         'largest_bf_offset': largest_bf_offset,
         'largest_bf_mean': largest_bf_mean,
         'largest_bf_var': largest_bf_var
