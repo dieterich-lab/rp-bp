@@ -15,6 +15,7 @@ default_min_metagene_profile_count = 1000
 default_min_metagene_profile_bayes_factor_mean = 5
 default_max_metagene_profile_bayes_factor_var = 5
 default_min_visualization_count = 500
+default_num_procs = 1
 
 def create_figures(config_file, config, name, min_read_length, max_read_length, overwrite):
     """ This function creates all of the figures in the preprocessing report
@@ -56,29 +57,22 @@ def create_figures(config_file, config, name, min_read_length, max_read_length, 
         out_files = [metagene_profile_image]
         utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite, call=True)
 
- 
+def create_read_filtering_plots(config_file, config, overwrite, num_procs):
         
     # get the filtering counts
-    msg = "{}: Getting reading filtering counts".format(name)
-    logging.info(msg)
-
     read_filtering_counts = filenames.get_riboseq_read_filtering_counts(config['riboseq_data'])
-    cmd = "get-all-read-filtering-counts {} {}".format(config_file, read_filtering_counts)
+    overwrite_str = ""
+    if overwrite:
+        overwrite_str = "--overwrite"
+
+    procs_str = "--num-procs {}".format(num_procs)
+    cmd = "get-all-read-filtering-counts {} {} {} {}".format(config_file, 
+        read_filtering_counts, overwrite_str, procs_str)
     in_files = [config_file]
     out_files = [read_filtering_counts]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite, call=True)
 
     # and visualize them
-    
-    read_filtering_counts = filenames.get_riboseq_read_filtering_counts(config['riboseq_data'])
-    overwrite_str = ""
-    if overwrite:
-        overwrite_str = "--overwrite"
-    cmd = "get-all-read-filtering-counts {} {} {}".format(config_file, read_filtering_counts, overwrite_str)
-    in_files = [config_file]
-    out_files = [read_filtering_counts]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite, call=True)
-
     read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(config['riboseq_data'])
     title = "Read filtering counts"
     cmd = "visualize-read-filtering-counts {} {} --title \"{}\"".format(read_filtering_counts, 
@@ -104,6 +98,10 @@ def main():
         "filtering images, metagene profiles and analysis, and standard section text.")
     parser.add_argument('config', help="The (yaml) config file for the project")
     parser.add_argument('out', help="The path for the output files")
+
+    parser.add_argument('--num-procs', help="The number of processors to use for counting "
+        "the mapped reads. This is only useful up to the number of samples in the project.",
+        type=int, default=default_num_procs)
     parser.add_argument('--overwrite', help="If this flag is present, existing files will "
         "be overwritten.", action='store_true')
 
@@ -133,6 +131,9 @@ def main():
 
     project_name = config.get("project_name", default_project_name)
     header, footer = get_header_and_footer_text(project_name, config['riboseq_data'])
+
+    # first, create the read filtering information
+    create_read_filtering_plots(args.config, config, args.overwrite, args.num_procs)
 
 
     min_metagene_profile_count = config.get(
