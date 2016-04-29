@@ -2,6 +2,8 @@
 
 import argparse
 import yaml
+
+import misc.slurm as slurm
 import misc.utils as utils
 
 default_num_procs = 2
@@ -24,7 +26,7 @@ def main():
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
     
-    utils.add_sbatch_options(parser)
+    slurm.add_sbatch_options(parser)
     utils.add_logging_options(parser)
     args = parser.parse_args()
     utils.update_logging(args)
@@ -60,10 +62,10 @@ def main():
     required_keys = [   
                         'riboseq_data',
                         'ribosomal_index',
-                        'star_index',
+                        'genome_base_path',
+                        'genome_name',
                         'fasta',
                         'gtf',
-                        'orfs',
                         'translated_models',
                         'untranslated_models',
                         'periodic_models',
@@ -92,7 +94,7 @@ def main():
                 args.config, name, args.num_cpus, tmp_str, do_not_call_str, 
                 overwrite_str, logging_str, star_str)
 
-        utils.check_sbatch(cmd, args=args)
+        slurm.check_sbatch(cmd, args=args)
 
 if __name__ == '__main__':
     main()

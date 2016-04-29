@@ -69,7 +69,6 @@ def main():
                         'gtf',
                         'genome_base_path',
                         'genome_name',
-                        'orfs',
                         'periodic_models',
                         'nonperiodic_models'
                     ]
@@ -88,6 +87,9 @@ def main():
     overwrite_argument = ""
     if args.overwrite:
         overwrite_argument = "--overwrite"
+
+    orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
+        note=config.get('orf_note'))
 
     star_str = "--star-executable {}".format(args.star_executable)
     riboseq_raw_data = args.raw_data
@@ -114,10 +116,10 @@ def main():
         'metagene_profile_end_downstream', 'end-downstream')
 
     cmd = "extract-metagene-profiles {} {} {} --num-procs {} {} {} {} {} {} {}".format(riboseq_bam_filename,
-        config['orfs'], metagene_profiles, args.num_procs, logging_str, seqids_to_keep_str,
+        orfs_genomic, metagene_profiles, args.num_procs, logging_str, seqids_to_keep_str,
         start_upstream_str, start_downstream_str, end_upstream_str, end_downstream_str)
 
-    in_files = [riboseq_bam_filename, config['orfs']]
+    in_files = [riboseq_bam_filename, orfs_genomic]
     out_files = [metagene_profiles]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 

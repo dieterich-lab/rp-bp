@@ -148,10 +148,14 @@ def main():
     profiles_filename = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
         length=lengths, offset=offsets, is_unique=True)
 
+    
+    orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
+        note=config.get('orf_note'))
+
     cmd = ("extract-orf-profiles {} {} {} --lengths {} --offsets {} {} {} --num-procs {} "
-            "--tmp {}".format(unique_filename, config['orfs'], profiles_filename, lengths_str, 
+            "--tmp {}".format(unique_filename, orfs_genomic, profiles_filename, lengths_str, 
             offsets_str, logging_str, seqname_prefix_str, args.num_procs, args.tmp))
-    in_files = [config['orfs'], unique_filename]
+    in_files = [orfs_genomic, unique_filename]
     out_files = [profiles_filename]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
@@ -179,11 +183,11 @@ def main():
         chi_square_only_str = "--chi-square-only"
 
     cmd = "estimate-orf-bayes-factors {} {} {} {} {} {} {} {} {} {} {} {} {} {} --num-procs {}".format(
-        profiles_filename, config['orfs'], bayes_factors, translated_models_str, untranslated_models_str, 
+        profiles_filename, orfs_genomic, bayes_factors, translated_models_str, untranslated_models_str, 
         logging_str, orf_types_str, min_signal_str, min_length_str, max_length_str, seed_str, 
         iterations_str, chains_str, chi_square_only_str, args.num_procs)
     
-    in_files = [profiles_filename, config['orfs']]
+    in_files = [profiles_filename, orfs_genomic]
     in_files.extend(config['translated_models'])
     in_files.extend(config['untranslated_models'])
     out_files = [bayes_factors]
