@@ -7,7 +7,7 @@ import misc.slurm as slurm
 import misc.utils as utils
 
 default_num_procs = 2
-default_tmp = utils.abspath('tmp')
+default_tmp = None # utils.abspath('tmp')
 default_star_executable = "STAR"
 
 def main():
@@ -87,9 +87,14 @@ def main():
         overwrite_str = "--overwrite"
     
     star_str = "--star-executable {}".format(args.star_executable)
-    tmp_str = "--tmp {}".format(args.tmp)
+    tmp_str = ""
+    if args.tmp is not None:
+        tmp_str = "--tmp {}".format(args.tmp)
         
     for name, data in config['riboseq_samples'].items():
+
+        tmp = utils.abspath('tmp', name)
+        tmp_str = "--tmp {}".format(tmp)
 
         cmd = "run-rpbp-pipeline {} {} {} --num-procs {} {} {} {} {} {}".format(data, 
                 args.config, name, args.num_cpus, tmp_str, do_not_call_str, 

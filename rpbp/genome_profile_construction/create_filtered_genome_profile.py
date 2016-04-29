@@ -14,7 +14,7 @@ import rpbp.filenames as filenames
 
 default_num_procs = 2
 default_star_executable = "STAR"
-default_tmp = utils.abspath("tmp")
+default_tmp = None # utils.abspath("tmp")
 
 def main():
     
@@ -34,8 +34,7 @@ def main():
 
     parser.add_argument('--star-executable', help="The name of the STAR executable",
         default=default_star_executable)
-    parser.add_argument('--tmp', help="The location for pybedtools temp files",
-        default=default_tmp)
+    parser.add_argument('--tmp', help="The location for temp files", default=default_tmp)
 
     parser.add_argument('--do-not-call', action='store_true')
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
@@ -92,10 +91,16 @@ def main():
         note=config.get('orf_note'))
 
     star_str = "--star-executable {}".format(args.star_executable)
+
+
+    tmp_str = ""
+    if args.tmp is not None:
+        tmp_str = "--tmp {}".format(args.tmp)
+
     riboseq_raw_data = args.raw_data
     riboseq_bam_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True)
-    cmd = "create-base-genome-profile {} {} {} --num-procs {} {} {} {} {}".format(riboseq_raw_data, 
-        args.config, args.name, args.num_procs, do_not_call_argument, overwrite_argument, logging_str, star_str)
+    cmd = "create-base-genome-profile {} {} {} --num-procs {} {} {} {} {} {}".format(riboseq_raw_data, 
+        args.config, args.name, args.num_procs, do_not_call_argument, overwrite_argument, logging_str, star_str, tmp_str)
     in_files = [riboseq_raw_data]
     out_files = [riboseq_bam_filename]
 

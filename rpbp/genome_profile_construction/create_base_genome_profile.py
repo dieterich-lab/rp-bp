@@ -7,6 +7,8 @@ import os
 import yaml
 
 import rpbp.filenames as filenames
+
+import misc.bio as bio
 import misc.utils as utils
 
 default_num_procs = 2
@@ -31,6 +33,8 @@ quant_mode_str = '--quantMode TranscriptomeSAM'
 star_compression_str = "--readFilesCommand zcat"
 star_out_str = "--outSAMtype BAM SortedByCoordinate"
 
+default_tmp = None
+
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="") #filenames.run_riboseq_preprocessing_description)
@@ -44,6 +48,9 @@ def main():
         
     parser.add_argument('--star-executable', help="The name of the STAR executable",
         default=default_star_executable)
+
+    parser.add_argument('-t', '--tmp', help="The location for temporary files. If not "
+            "specified, program-specific temp locations are used.", default=default_tmp)
 
     parser.add_argument('--do-not-call', action='store_true')
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
@@ -130,13 +137,17 @@ def main():
     out_sam_attributes_str = utils.get_config_argument(config, 'out_sam_attributes', 
         'outSAMattributes', default=default_out_sam_attributes)
 
+    star_tmp_str = ""
+    if args.tmp is not None:
+        star_tmp_str = "--outTmpDir {}".format(args.tmp)
+
     cmd = ("{} --runThreadN {} {} --genomeDir {} --sjdbGTFfile {} --readFilesIn {} "
-        "{} {} {} {} {} {} {} {} --outFileNamePrefix {} {}".format(args.star_executable,
+        "{} {} {} {} {} {} {} {} --outFileNamePrefix {} {} {}".format(args.star_executable,
         args.num_procs, star_compression_str, star_index, config['gtf'], without_rrna, 
         align_intron_min_str, align_intron_max_str, out_filter_mismatch_n_max_str, 
         out_filter_type_str, out_filter_intron_motifs_str, quant_mode_str,
         out_filter_mismatch_n_over_l_max_str, out_sam_attributes_str, star_output_prefix,
-        star_out_str))
+        star_out_str, star_tmp_str))
     in_files = [without_rrna]
     out_files = [transcriptome_bam, genome_star_bam]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)

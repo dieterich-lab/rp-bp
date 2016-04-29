@@ -5,7 +5,7 @@ import yaml
 import misc.utils as utils
 
 default_num_procs = 2
-default_tmp = utils.abspath('tmp')
+default_tmp = None # utils.abspath('tmp')
 default_star_executable = "STAR"
 
 
@@ -91,7 +91,11 @@ def main():
 
     # for a sample, we first create its filtered genome profile
     star_str = "--star-executable {}".format(args.star_executable)
-    tmp_str = "--tmp {}".format(args.tmp)
+
+    tmp_str = ""
+    if args.tmp is not None:
+        tmp_str = "--tmp {}".format(args.tmp)
+
     cmd = ("create-filtered-genome-profile {} {} {} --num-procs {} {} {} {} {} {}".format(args.raw_data, 
             args.config, args.name, args.num_procs, do_not_call_str, overwrite_str, logging_str, star_str, tmp_str))
 
