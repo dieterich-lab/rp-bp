@@ -115,7 +115,8 @@ def main():
     
     required_keys = [   'riboseq_data',
                         'fasta',
-                        'orfs',
+                        'genome_base_path',
+                        'genome_name',
                         'translated_models',
                         'untranslated_models'
                     ]

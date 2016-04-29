@@ -67,13 +67,16 @@ def main():
     required_keys = [   'riboseq_data',
                         'ribosomal_index',
                         'gtf',
-                        'star_index',
+                        'genome_base_path',
+                        'genome_name',
                         'orfs',
                         'periodic_models',
                         'nonperiodic_models'
                     ]
     utils.check_keys_exist(config, required_keys)
 
+    star_index = filenames.get_star_index(config['genome_base_path'], 
+        config['genome_name'], is_merged=True)
 
     # the first step is the standard riboseq preprocessing
     
@@ -93,7 +96,9 @@ def main():
         args.config, args.name, args.num_procs, do_not_call_argument, overwrite_argument, logging_str, star_str)
     in_files = [riboseq_raw_data]
     out_files = [riboseq_bam_filename]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True) # we always call this, and pass --do-not-call through
+
+    # we always call this, and pass --do-not-call through
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True) 
 
     # create the metagene profiles
     metagene_profiles = filenames.get_metagene_profiles(config['riboseq_data'], args.name, is_unique=True)

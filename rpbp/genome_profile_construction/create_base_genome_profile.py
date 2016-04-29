@@ -68,10 +68,14 @@ def main():
     required_keys = [   'riboseq_data',
                         'ribosomal_index',
                         'gtf',
-                        'star_index'
+                        'genome_base_path',
+                        'genome_name'
                     ]
     utils.check_keys_exist(config, required_keys)
 
+
+    star_index = filenames.get_star_index(config['genome_base_path'], 
+        config['genome_name'], is_merged=True)
 
     # Step 0: Running flexbar to remove adapter sequences
 
@@ -107,7 +111,7 @@ def main():
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
     # Step 2: Running STAR to align rRNA-depleted reads to genome
-    star_output_prefix = filenames.get_riboseq_sam_base(config['riboseq_data'], args.name)
+    star_output_prefix = filenames.get_riboseq_bam_base(config['riboseq_data'], args.name)
     transcriptome_bam = "{}{}".format(star_output_prefix, "Aligned.toTranscriptome.out.bam")
     genome_star_bam = "{}{}".format(star_output_prefix, "Aligned.sortedByCoord.out.bam")
 
@@ -128,7 +132,7 @@ def main():
 
     cmd = ("{} --runThreadN {} {} --genomeDir {} --sjdbGTFfile {} --readFilesIn {} "
         "{} {} {} {} {} {} {} {} --outFileNamePrefix {} {}".format(args.star_executable,
-        args.num_procs, star_compression_str, config['star_index'], config['gtf'], without_rrna, 
+        args.num_procs, star_compression_str, star_index, config['gtf'], without_rrna, 
         align_intron_min_str, align_intron_max_str, out_filter_mismatch_n_max_str, 
         out_filter_type_str, out_filter_intron_motifs_str, quant_mode_str,
         out_filter_mismatch_n_over_l_max_str, out_sam_attributes_str, star_output_prefix,
@@ -137,33 +141,61 @@ def main():
     out_files = [transcriptome_bam, genome_star_bam]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
-    # now, we need to rename the STAR output to that expected by the rest of the pipeline
+    
+    # now, we need to symlink the (genome) STAR output to that expected by the rest of the pipeline
     genome_sorted_bam = filenames.get_riboseq_bam(config['riboseq_data'], args.name)
-    os.replace(genome_star_bam, genome_sorted_bam)
-     
-    # remove the multimapping riboseq reads
-    unique_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True)
-    cmd = "remove-multimapping-reads {} {}".format(genome_sorted_bam, unique_filename)
-    in_files = [genome_sorted_bam]
-    out_files = [unique_filename]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
-    # Step 3: Running samtools to get the sorted bam files from the STAR transcriptome alignments
+    if os.path.exists(genome_star_bam):
+        utils.create_symlink(genome_star_bam, genome_sorted_bam, call)
+    else:
+        msg = ("Could not find the STAR genome bam alignment file. Unless "
+        "--do-not-call was given, this is a problem.")
+        logging.warning(msg)
+
+    # sort the transcriptome bam file
     transcriptome_sorted_bam = filenames.get_riboseq_bam(
         config['riboseq_data'], args.name, is_transcriptome=True)
-    
-    cmd = "samtools view -bS -@{} {} | samtools sort - -@{} -o {}".format(args.num_procs, 
-        transcriptome_bam, args.num_procs, transcriptome_sorted_bam)
+
+    sam_tmp_str = ""
+    if args.tmp is not None:
+        sam_tmp_str = "-T {}".format(args.tmp)
+
+    cmd = "samtools sort {} -@{} -o {} {}".format(transcriptome_bam, args.num_procs, 
+        transcriptome_sorted_bam, sam_tmp_str)
     in_files = [transcriptome_bam]
     out_files = [transcriptome_sorted_bam]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
-    # Step 4: Creating bam index file for transcriptome alignments
+    # Creating bam index file for transcriptome alignments
     transcriptome_sorted_bai = transcriptome_sorted_bam + ".bai"
     cmd = "samtools index -b {} {}".format(transcriptome_sorted_bam, transcriptome_sorted_bai)
     in_files = [transcriptome_sorted_bam]
     out_files = [transcriptome_sorted_bai]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+
+    
+    # remove multimapping reads from the genome file
+    unique_genome_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True)
+    if call and (args.overwrite or not os.path.exists(unique_genome_filename)):
+        msg = "Removing multimapping reads from: '{}'".format(genome_sorted_bam)
+        logging.info(msg)
+        bio.remove_multimapping_reads(genome_sorted_bam, unique_genome_filename, tmp=args.tmp)
+    else:
+        msg = "NOT removing multimapping reads from: '{}'".format(genome_sorted_bam)
+        logging.warning(msg)
+
+    # remove multimapping reads from the transcriptome file
+    unique_transcriptome_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, 
+        is_unique=True, is_transcriptome=True)
+
+    if call and (args.overwrite or not os.path.exists(unique_transcriptome_filename)):
+        msg = "Removing multimapping reads from: '{}'".format(transcriptome_sorted_bam)
+        logging.info(msg)
+        bio.remove_multimapping_reads(transcriptome_sorted_bam, unique_transcriptome_filename, tmp=args.tmp)
+    else:
+        msg = "NOT removing multimapping reads from: '{}'".format(transcriptome_sorted_bam)
+        logging.warning(msg)
+
    
 if __name__ == '__main__':
     main()

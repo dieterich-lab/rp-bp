@@ -54,19 +54,37 @@ def main():
     utils.check_programs_exist(programs)
 
     
-    required_keys = [   'base_path',
-                        'name',
+    required_keys = [   'genome_base_path',
+                        'genome_name',
                         'gtf',
                         'fasta',
                         'ribosomal_fasta',
                         'ribosomal_index',
-                        'star_index'
                     ]
     utils.check_keys_exist(config, required_keys)
+   
+    # the rrna index
+    cmd = "bowtie2-build-s {} {}".format(config['ribosomal_fasta'], config['ribosomal_index'])
 
+    in_files = [config['ribosomal_fasta']]
+    out_files = bio.get_bowtie2_index_files(config['ribosomal_index'])
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+    
+    # the STAR index
+    sjdb_overhang_str = utils.get_config_argument(config, 'sjdb_overhang', 'sjdbOverhang', 
+        default=default_sjdb_overhang)
+    mem = utils.human2bytes(args.mem)
+    star_index = filenames.get_star_index(config['genome_base_path'], config['genome_name'], is_merged=False)
+    cmd = ("{} --runMode genomeGenerate --genomeDir {} --genomeFastaFiles {} --sjdbGTFfile {} "
+        "{} --runThreadN {} --limitGenomeGenerateRAM {}".format(args.star_executable, 
+        star_index, config['fasta'], config['gtf'], sjdb_overhang_str, args.num_procs, mem))
+        
+    in_files = [config['gtf'], config['fasta']]
+    out_files = bio.get_star_index_files(star_index)
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
-    # first, extract the transcript fasta
-    transcript_fasta = filenames.get_transcript_fasta(config['base_path'], config['name'])
+    # extract the transcript fasta
+    transcript_fasta = filenames.get_transcript_fasta(config['genome_base_path'], config['genome_name'])
     
     cmd = "gffread -W -w {} -g {} {}".format(transcript_fasta, config['fasta'], config['gtf'])
     in_files = [config['gtf'], config['fasta']]
@@ -74,7 +92,8 @@ def main():
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
          
     # the deduplicated, annotated, genomic coordinates orfs
-    orfs_genomic = filenames.get_orfs(config['base_path'], config['name'], note=config.get('orf_note'))
+    orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
+        note=config.get('orf_note'))
     start_codons_str = utils.get_config_argument(config, 'start_codons')
     stop_codons_str = utils.get_config_argument(config, 'stop_codons')
     novel_id_str = utils.get_config_argument(config, 'novel_id_re')
@@ -87,23 +106,6 @@ def main():
         logging_str, args.num_procs, start_codons_str, stop_codons_str, novel_id_str, ignore_parsing_errors_str))
     in_files = [transcript_fasta]
     out_files = [orfs_genomic]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
-
-    # the rrna index
-    in_files = [config['ribosomal_fasta']]
-    out_files = bio.get_bowtie2_index_files(config['ribosomal_index'])
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
-
-    # the STAR index
-    sjdb_overhang_str = utils.get_config_argument(config, 'sjdb_overhang', 'sjdbOverhang', 
-        default=default_sjdb_overhang)
-    mem = utils.human2bytes(args.mem)
-    cmd = ("{} --runMode genomeGenerate --genomeDir {} --genomeFastaFiles {} --sjdbGTFfile {} "
-        "{} --runThreadN {} --limitGenomeGenerateRAM {}".format(args.star_executable, 
-        config['star_index'], config['fasta'], config['gtf'], sjdb_overhang_str, args.num_procs, mem))
-        
-    in_files = [config['gtf'], config['fasta']]
-    out_files = bio.get_star_index_files(config['star_index'])
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
 if __name__ == '__main__':
