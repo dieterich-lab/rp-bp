@@ -24,6 +24,12 @@ def get_length_string(length=None):
             l = ".length-{}".format(length)
     return l
 
+def get_merged_string(is_merged):
+    m = ""
+    if is_merged:
+        m = ".merged"
+    return m
+
 def get_micro_string(is_micro):
     m = ""
     if is_micro:
