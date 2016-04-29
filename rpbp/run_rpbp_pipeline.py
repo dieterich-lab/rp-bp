@@ -65,10 +65,10 @@ def main():
     required_keys = [   
                         'riboseq_data',
                         'ribosomal_index',
-                        'star_index',
+                        'genome_base_path',
+                        'genome_name',
                         'fasta',
                         'gtf',
-                        'orfs',
                         'translated_models',
                         'untranslated_models',
                         'periodic_models',

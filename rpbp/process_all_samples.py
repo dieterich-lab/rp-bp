@@ -61,6 +61,7 @@ def main():
     
     required_keys = [   
                         'riboseq_data',
+                        'riboseq_samples',
                         'ribosomal_index',
                         'genome_base_path',
                         'genome_name',
@@ -88,7 +89,7 @@ def main():
     star_str = "--star-executable {}".format(args.star_executable)
     tmp_str = "--tmp {}".format(args.tmp)
         
-    for name, data in config['samples'].items():
+    for name, data in config['riboseq_samples'].items():
 
         cmd = "run-rpbp-pipeline {} {} {} --num-procs {} {} {} {} {} {}".format(data, 
                 args.config, name, args.num_cpus, tmp_str, do_not_call_str, 

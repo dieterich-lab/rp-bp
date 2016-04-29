@@ -33,7 +33,7 @@ star_out_str = "--outSAMtype BAM SortedByCoordinate"
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description=filenames.run_riboseq_preprocessing_description)
+        description="") #filenames.run_riboseq_preprocessing_description)
 
     parser.add_argument('raw_data', help="The raw data file (fastq[.gz])")
     parser.add_argument('config', help="The (yaml) config file")
