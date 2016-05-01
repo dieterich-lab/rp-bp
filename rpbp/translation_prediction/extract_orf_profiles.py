@@ -23,7 +23,7 @@ import misc.external_sparse_matrix_list as external_sparse_matrix_list
 default_num_procs = 2
 default_num_orfs = 0
 default_num_groups = 100
-default_tmp = utils.abspath("tmp")
+default_tmp = None # utils.abspath("tmp")
 
 default_lengths = []
 default_offsets = []
@@ -303,7 +303,9 @@ def main():
     programs = ['bamToBed']
     utils.check_programs_exist(programs)
 
-    pybedtools.helpers.set_tempdir(args.tmp)
+    if args.tmp is not None:
+        os.makedirs(args.tmp, exist_ok=True)
+        pybedtools.helpers.set_tempdir(args.tmp)
     
     # make sure the number of lengths and offsets match
     if len(args.lengths) != len(args.offsets):

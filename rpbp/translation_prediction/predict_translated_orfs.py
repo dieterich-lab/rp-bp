@@ -13,7 +13,7 @@ import misc.utils as utils
 import rpbp.filenames as filenames
 
 default_num_procs = 2
-default_tmp = utils.abspath('tmp')
+default_tmp = None # utils.abspath('tmp')
 
 default_min_metagene_profile_count = 1000
 default_min_metagene_profile_bayes_factor_mean = 5
