@@ -44,7 +44,7 @@ def get_periodic_lengths_and_offsets(config, name, do_not_call):
             "script completed successfully or specify the \"use_fixed_lengths\", \"lengths\", and "
             "\"offsets\" values in the configuration file. Filename: {}".format(periodic_offsets))
         raise FileNotFoundError(msg)
-    else:
+    elif not os.path.exists(periodic_offsets) and do_not_call:
         msg = ("The periodic offsets file does not exist. Please ensure the select-periodic-offsets "
             "script completed successfully or specify the \"use_fixed_lengths\", \"lengths\", and "
             "\"offsets\" values in the configuration file.\n\nThe --do-not-call flag was given, so "
