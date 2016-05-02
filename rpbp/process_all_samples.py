@@ -1,12 +1,13 @@
 #! /usr/bin/env python3
 
 import argparse
+import os
 import yaml
 
 import misc.slurm as slurm
 import misc.utils as utils
 
-default_num_procs = 2
+default_num_procs = 1
 default_tmp = None # utils.abspath('tmp')
 default_star_executable = "STAR"
 
@@ -93,8 +94,10 @@ def main():
         
     for name, data in config['riboseq_samples'].items():
 
-        tmp = utils.abspath('tmp', name)
-        tmp_str = "--tmp {}".format(tmp)
+        tmp_str = ""
+        if args.tmp is not None:
+            tmp = os.path.join(args.tmp, "{}_rpbp".format(name))
+            tmp_str = "--tmp {}".format(tmp)
 
         cmd = "run-rpbp-pipeline {} {} {} --num-procs {} {} {} {} {} {}".format(data, 
                 args.config, name, args.num_cpus, tmp_str, do_not_call_str, 
