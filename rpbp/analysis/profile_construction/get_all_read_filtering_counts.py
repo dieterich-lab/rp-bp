@@ -190,7 +190,7 @@ def main():
 
     config = yaml.load(open(args.config))
 
-    res = parallel.apply_parallel_iter(config['samples'].items(), args.num_procs, get_counts, config, args.overwrite)
+    res = parallel.apply_parallel_iter(config['riboseq_samples'].items(), args.num_procs, get_counts, config, args.overwrite)
     res_df = pd.DataFrame(res)
     #res_df = pd.concat(res)
 

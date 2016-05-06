@@ -152,7 +152,7 @@ def main():
         out.write(header)
         out.write("\n")
 
-        for name, data in config['samples'].items():
+        for name, data in config['riboseq_samples'].items():
             msg = "Processing sample: {}".format(name)
             logging.info(msg)
 
