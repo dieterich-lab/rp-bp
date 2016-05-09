@@ -3,6 +3,7 @@
 import argparse
 import logging
 import os
+import shutil
 
 import yaml
 
@@ -139,7 +140,10 @@ def main():
 
     star_tmp_str = ""
     if args.tmp is not None:
-        star_tmp_str = "--outTmpDir {}".format(args.tmp)
+        star_tmp_dir = os.path.join(args.tmp, "STAR")
+        if os.path.exists(star_tmp_dir):
+            shutil.rmtree(star_tmp_dir)
+        star_tmp_str = "--outTmpDir {}".format(star_tmp_dir)
 
     cmd = ("{} --runThreadN {} {} --genomeDir {} --sjdbGTFfile {} --readFilesIn {} "
         "{} {} {} {} {} {} {} {} --outFileNamePrefix {} {} {}".format(args.star_executable,
