@@ -9,6 +9,7 @@ import pandas as pd
 import misc.utils as utils
 import rpbp.filenames as filenames
 
+default_tmp = None
 
 default_project_name = "ribosome profiling data"
 default_min_metagene_profile_count = 1000
@@ -57,20 +58,24 @@ def create_figures(config_file, config, name, min_read_length, max_read_length, 
         out_files = [metagene_profile_image]
         utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite, call=True)
 
-def create_read_filtering_plots(config_file, config, overwrite, num_procs):
+def create_read_filtering_plots(config_file, config, args):
         
     # get the filtering counts
     read_filtering_counts = filenames.get_riboseq_read_filtering_counts(config['riboseq_data'])
     overwrite_str = ""
-    if overwrite:
+    if args.overwrite:
         overwrite_str = "--overwrite"
 
-    procs_str = "--num-procs {}".format(num_procs)
-    cmd = "get-all-read-filtering-counts {} {} {} {}".format(config_file, 
-        read_filtering_counts, overwrite_str, procs_str)
+    tmp_str = ""
+    if args.tmp is not None:
+        tmp_str = "--tmp {}".format(args.tmp)
+
+    procs_str = "--num-procs {}".format(args.num_procs)
+    cmd = "get-all-read-filtering-counts {} {} {} {} {}".format(config_file, 
+        read_filtering_counts, overwrite_str, procs_str, tmp_str)
     in_files = [config_file]
     out_files = [read_filtering_counts]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite, call=True)
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
 
     # and visualize them
     read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(config['riboseq_data'])
@@ -79,7 +84,7 @@ def create_read_filtering_plots(config_file, config, overwrite, num_procs):
         read_filtering_image, title)
     in_files = [read_filtering_counts]
     out_files=[read_filtering_image]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite, call=True)
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
 
     # and visualize the filtering without the rrna
     read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(
@@ -90,7 +95,7 @@ def create_read_filtering_plots(config_file, config, overwrite, num_procs):
 
     in_files = [read_filtering_counts]
     out_files=[read_filtering_image]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite, call=True)
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -108,6 +113,9 @@ def main():
     parser.add_argument('--min-visualization-count', help="Read lengths with fewer than this "
         "number of reads will not be included in the report.", type=int, 
         default=default_min_visualization_count)
+
+    parser.add_argument('--tmp', help="Intermediate files (such as fastqc reports when "
+        "they are first generated) will be written here", default=default_tmp)
 
     utils.add_logging_options(parser)
     args = parser.parse_args()
@@ -133,7 +141,7 @@ def main():
     header, footer = get_header_and_footer_text(project_name, config['riboseq_data'])
 
     # first, create the read filtering information
-    create_read_filtering_plots(args.config, config, args.overwrite, args.num_procs)
+    create_read_filtering_plots(args.config, config, args)
 
 
     min_metagene_profile_count = config.get(

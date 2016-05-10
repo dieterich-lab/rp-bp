@@ -10,18 +10,18 @@ import scipy.io
 import crimson.fastqc
 
 import rpbp.filenames as filenames
+import rpbp.rpbp_utils as rpbp_utils
+
 
 import misc.bio as bio
 import misc.parallel as parallel
 import misc.utils as utils
 
+default_tmp = None
+
 default_num_procs = 2
-default_min_metagene_profile_count = 1000
-default_min_metagene_profile_bayes_factor_mean = 5
-default_max_metagene_profile_bayes_factor_var = 5
 
-
-def get_counts(name_data, config, overwrite):
+def get_counts(name_data, config, args):
     name, data = name_data
     msg = "processing {}...".format(name)
     logging.info(msg)
@@ -50,27 +50,31 @@ def get_counts(name_data, config, overwrite):
     without_rrna_fastqc_path = filenames.get_without_rrna_fastqc(config['riboseq_data'])
     without_rrna_mapping_fastqc_path = filenames.get_riboseq_bam_fastqc_path(config['riboseq_data'])
 
-    cmd = "fastqc --outdir {} --extract {}".format(raw_data_fastqc_path, raw_data)
+    fastqc_tmp_str = ""
+    if args.tmp is not None:
+        fastqc_tmp_str = "--dir {}".format(args.tmp)
+
+    cmd = "fastqc --outdir {} --extract {} {}".format(raw_data_fastqc_path, raw_data, fastqc_tmp_str)
     in_files = [raw_data]
     out_files = [raw_data_fastqc]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite)
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
-    cmd = "fastqc --outdir {} --extract {}".format(without_adapters_fastqc_path, without_adapters)
+    cmd = "fastqc --outdir {} --extract {} {}".format(without_adapters_fastqc_path, without_adapters, fastqc_tmp_str)
     in_files = [without_adapters]
     out_files = [without_adapters_fastqc]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite)
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
-    cmd = "fastqc --outdir {} --extract {}".format(with_rrna_fastqc_path, with_rrna)
+    cmd = "fastqc --outdir {} --extract {} {}".format(with_rrna_fastqc_path, with_rrna, fastqc_tmp_str)
     in_files = [with_rrna]
     out_files = [with_rrna_fastqc]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite)
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
-    cmd = "fastqc --outdir {} --extract {}".format(without_rrna_fastqc_path, without_rrna)
+    cmd = "fastqc --outdir {} --extract {} {}".format(without_rrna_fastqc_path, without_rrna, fastqc_tmp_str)
     in_files = [without_rrna]
     out_files = [without_rrna_fastqc]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite)
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
-    cmd = "fastqc --outdir {} --extract {}".format(without_rrna_mapping_fastqc_path, genome_bam)
+    cmd = "fastqc --outdir {} --extract {} {}".format(without_rrna_mapping_fastqc_path, genome_bam, fastqc_tmp_str)
     in_files = [genome_bam]
     out_files = [genome_bam_fastqc]
 
@@ -80,12 +84,12 @@ def get_counts(name_data, config, overwrite):
     msg = "genome_bam_fastqc: '{}'".format(genome_bam_fastqc)
     logging.debug(msg)
 
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite)
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
-    cmd = "fastqc --outdir {} --extract {}".format(without_rrna_mapping_fastqc_path, unique_filename)
+    cmd = "fastqc --outdir {} --extract {} {}".format(without_rrna_mapping_fastqc_path, unique_filename, fastqc_tmp_str)
     in_files = [unique_filename]
     out_files = [unique_filename_fastqc]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite)
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
     # and parse the reports
     msg = "{}: parsing FastQC reports".format(name)
@@ -114,29 +118,7 @@ def get_counts(name_data, config, overwrite):
     msg = "{}: counting reads with selected lengths".format(name)
     logging.info(msg)
 
-    min_metagene_profile_count = config.get(
-        "min_metagene_profile_count", default_min_metagene_profile_count)
-
-    min_metagene_profile_bayes_factor_mean = config.get(
-        "min_metagene_profile_bayes_factor_mean", default_min_metagene_profile_bayes_factor_mean)
-
-    max_metagene_profile_bayes_factor_var = config.get(
-        "max_metagene_profile_bayes_factor_var", default_max_metagene_profile_bayes_factor_var)
-
-    periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], name, is_unique=True)
-    offsets_df = pd.read_csv(periodic_offsets)
-
-    m_count = offsets_df['largest_count'] > min_metagene_profile_count
-    m_bf_mean = offsets_df['largest_count_bf_mean'] > min_metagene_profile_bayes_factor_mean
-    m_bf_var = offsets_df['largest_count_bf_var'] < max_metagene_profile_bayes_factor_var
-    filtered_po = offsets_df[m_count & m_bf_mean & m_bf_var]
-
-    offsets = filtered_po['largest_count_offset']
-    lengths = filtered_po['length']
-    
-    # offsets must be positive
-    offsets_l = [str(-1*int(o)) for o in offsets]
-    lengths_l = [str(int(l)) for l in lengths]
+    lengths, offsets = rpbp_utils.get_periodic_lengths_and_offsets(config, args.name, args.do_not_call)
     
     # now count the unique reads with the appropriate length
     length_count = sum(l['Count'] for l in unique_filename_report['Sequence Length Distribution']['contents'] if str(l['Length']) in lengths_l)
@@ -178,6 +160,8 @@ def main():
     parser.add_argument('-p', '--num-procs', help="The number of processors to use", 
         type=int, default=default_num_procs)
     parser.add_argument('--overwrite', action='store_true')
+    parser.add_argument('--tmp', help="Intermediate files (such as fastqc reports when "
+        "they are first generated) will be written here", default=default_tmp)
     
     utils.add_logging_options(parser)
     args = parser.parse_args()
@@ -190,7 +174,7 @@ def main():
 
     config = yaml.load(open(args.config))
 
-    res = parallel.apply_parallel_iter(config['riboseq_samples'].items(), args.num_procs, get_counts, config, args.overwrite)
+    res = parallel.apply_parallel_iter(config['riboseq_samples'].items(), args.num_procs, get_counts, config, args)
     res_df = pd.DataFrame(res)
     #res_df = pd.concat(res)
 
