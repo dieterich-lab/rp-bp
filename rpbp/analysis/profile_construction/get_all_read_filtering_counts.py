@@ -91,6 +91,28 @@ def get_counts(name_data, config, args):
     out_files = [unique_filename_fastqc]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
+    # in some cases, fastqc can fail. make sure all of the reports are present
+    all_fastqc_reports = [
+        raw_data_fastqc,
+        without_adapters_fastqc,
+        without_rrna_fastqc,
+        genome_bam_fastqc,
+        unique_filename_fastqc
+    ]
+
+    missing_files = [
+        f if not os.path.exists(f) for f in all_fastqc_reports
+    ]
+
+    if len(missing_files) > 0:
+        msg = "The following fastqc reports were not created correctly:\n"
+        msg += '\n'.join(missing_files)
+        msg += "\nSkipping these counts."
+        logging.warning(msg)
+
+        return None
+
+
     # and parse the reports
     msg = "{}: parsing FastQC reports".format(name)
     logging.info(msg)
@@ -175,8 +197,8 @@ def main():
     config = yaml.load(open(args.config))
 
     res = parallel.apply_parallel_iter(config['riboseq_samples'].items(), args.num_procs, get_counts, config, args)
+    res = [r for r in res if r is not None]
     res_df = pd.DataFrame(res)
-    #res_df = pd.concat(res)
 
     utils.write_df(res_df, args.out, index=False)
     

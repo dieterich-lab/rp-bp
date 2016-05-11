@@ -138,7 +138,7 @@ def main():
     ax.set_title(args.title, fontsize=args.font_size)
     ax.set_xlabel(args.xlabel, fontsize=args.font_size)
     ax.set_ylabel(args.ylabel, fontsize=args.font_size)
-    ax.legend(loc="upper right")
+    #ax.legend(loc="upper right")
 
     ax.set_xticks(xticks)
     ax.set_xticklabels(xticklabels, fontsize=args.font_size)

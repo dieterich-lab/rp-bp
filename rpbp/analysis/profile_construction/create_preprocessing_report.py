@@ -18,25 +18,34 @@ default_max_metagene_profile_bayes_factor_var = 5
 default_min_visualization_count = 500
 default_num_procs = 1
 
-def create_figures(config_file, config, name, min_read_length, max_read_length, overwrite):
+def create_figures(config_file, config, name, offsets_df, args):
     """ This function creates all of the figures in the preprocessing report
         for the given dataset.
     """
     # visualize the metagene profiles
     msg = "{}: Visualizing metagene profiles and Bayes' factors".format(name)
     logging.info(msg)
-    logging.debug("overwrite: {}".format(overwrite))
+    logging.debug("overwrite: {}".format(args.overwrite))
 
     metagene_profiles = filenames.get_metagene_profiles(config['riboseq_data'], 
         name, is_unique=True)
-
-    mp_df = pd.read_csv(metagene_profiles)
-    read_length_range = range(min_read_length, max_read_length)
     
     profile_bayes_factor = filenames.get_metagene_profiles_bayes_factors(config['riboseq_data'],
         name, is_unique=True)
 
-    for length in read_length_range:
+    mp_df = pd.read_csv(metagene_profiles)
+
+    min_read_length = int(offsets_df['length'].min())
+    max_read_length = int(offsets_df['length'].max())
+
+    for length in range(min_read_length, max_read_length+1):
+
+        mask_length = offsets_df['length'] == length
+        length_row = offsets_df[mask_length].iloc[0]
+               
+        # make sure we have enough reads to visualize
+        if length_row['highest_peak_profile_sum'] < args.min_visualization_count:
+            continue
         
         # visualize the metagene profile
         title = "Periodicity, {}, length {}".format(name, length)
@@ -46,7 +55,7 @@ def create_figures(config_file, config, name, min_read_length, max_read_length, 
             metagene_profiles, length, metagene_profile_image, title))
         in_files = [metagene_profiles]
         out_files = [metagene_profile_image]
-        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite, call=True)
+        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
 
         # and the Bayes' factor
         title = "Metagene profile Bayes' factors, {}, length {}".format(name, length)
@@ -56,7 +65,7 @@ def create_figures(config_file, config, name, min_read_length, max_read_length, 
             "--font-size 25".format(profile_bayes_factor, length, metagene_profile_image, title))
         in_files = [profile_bayes_factor]
         out_files = [metagene_profile_image]
-        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=overwrite, call=True)
+        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
 
 def create_read_filtering_plots(config_file, config, args):
         
@@ -172,7 +181,7 @@ def main():
             min_read_length = int(offsets_df['length'].min())
             max_read_length = int(offsets_df['length'].max())
     
-            create_figures(args.config, config, name, min_read_length, max_read_length, args.overwrite)
+            create_figures(args.config, config, name, offsets_df, args)
 
             out.write("\\begin{figure}\n")
             out.write("\t\\centering\n")
