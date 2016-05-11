@@ -77,8 +77,12 @@ def main():
         args = ["call-sbatch", "--mem", str(args.mem), "--num-cpus", str(args.num_procs)]
         args = args + sys.argv
 
+        # ! remove the --use-slurm option!
+        args.remove('--use-slurm')
+
         # replace the current process with the call to sbatch
-        os.execvp("call-sbatch", args)
+        print(args)
+        #os.execvp("call-sbatch", args)
    
     # the rrna index
     cmd = "bowtie2-build-s {} {}".format(config['ribosomal_fasta'], config['ribosomal_index'])
