@@ -101,7 +101,7 @@ def get_counts(name_data, config, args):
     ]
 
     missing_files = [
-        f if not os.path.exists(f) for f in all_fastqc_reports
+        f for f in all_fastqc_reports if not os.path.exists(f)
     ]
 
     if len(missing_files) > 0:

@@ -140,9 +140,8 @@ def main():
 
     star_tmp_str = ""
     if args.tmp is not None:
-        star_tmp_dir = os.path.join(args.tmp, "STAR")
-        if os.path.exists(star_tmp_dir):
-            shutil.rmtree(star_tmp_dir)
+        star_tmp_name = "STAR_rpbp"
+        star_tmp_dir = bio.create_star_tmp(args.tmp, star_tmp_name)
         star_tmp_str = "--outTmpDir {}".format(star_tmp_dir)
 
     cmd = ("{} --runThreadN {} {} --genomeDir {} --sjdbGTFfile {} --readFilesIn {} "

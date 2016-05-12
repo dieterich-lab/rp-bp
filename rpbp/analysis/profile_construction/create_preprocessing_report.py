@@ -79,9 +79,11 @@ def create_read_filtering_plots(config_file, config, args):
     if args.tmp is not None:
         tmp_str = "--tmp {}".format(args.tmp)
 
+    logging_str = utils.get_logging_options_string(args)
+
     procs_str = "--num-procs {}".format(args.num_procs)
-    cmd = "get-all-read-filtering-counts {} {} {} {} {}".format(config_file, 
-        read_filtering_counts, overwrite_str, procs_str, tmp_str)
+    cmd = "get-all-read-filtering-counts {} {} {} {} {} {}".format(config_file, 
+        read_filtering_counts, overwrite_str, procs_str, tmp_str, loggin_str)
     in_files = [config_file]
     out_files = [read_filtering_counts]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
