@@ -1,10 +1,15 @@
 #! /usr/bin/env python3
 
 import argparse
+import logging
+import os
+
 import yaml
+
 import misc.utils as utils
 
-default_num_procs = 2
+
+default_num_procs = 1
 default_tmp = None # utils.abspath('tmp')
 default_star_executable = "STAR"
 
@@ -29,6 +34,11 @@ def main():
     parser.add_argument('--do-not-call', action='store_true')
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
+        
+    parser.add_argument('--use-slurm', help="If this flag is present, then the script "
+        "will submit itself to slurm (with call-sbatch from the misc package) rather "
+        "than executing in the current context.", action='store_true')
+
     
     utils.add_logging_options(parser)
     args = parser.parse_args()
@@ -75,6 +85,26 @@ def main():
                         'nonperiodic_models'
                     ]
     utils.check_keys_exist(config, required_keys)
+
+    
+    # now, check if we want to use slurm
+    if args.use_slurm:
+        msg = ("The --use-slurm option was given. The required programs and config keys are "
+            "present, so call-sbatch will now be used to submit to slurm.")
+        logging.warning(msg)
+
+        args = ["call-sbatch", "--mem", str(args.mem), "--num-cpus", str(args.num_procs)]
+        args = args + sys.argv
+
+        # ! remove the --use-slurm option!
+        args.remove('--use-slurm')
+
+        call = ' '.join(args)
+        logging.warning(call)
+
+        # replace the current process with the call to sbatch
+        os.execvp("call-sbatch", args)
+
 
     note_str = config.get('note', None)
 
