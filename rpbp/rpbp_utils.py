@@ -27,7 +27,7 @@ def get_periodic_lengths_and_offsets(config, name, do_not_call=False):
         "max_metagene_profile_bayes_factor_var", default_max_metagene_profile_bayes_factor_var)
 
     periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], name, 
-        is_unique=True, is_merged=True)
+        is_unique=True)
     
     if not os.path.exists(periodic_offsets):
         msg = ("The periodic offsets file does not exist. Please ensure the select-periodic-offsets "

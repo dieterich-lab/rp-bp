@@ -14,6 +14,34 @@ def get_chisq_string(is_chisq):
         chisq = ".chisq"
     return chisq
 
+def get_fastqc_name(filename):
+    """ Given the sequence or alignment filename, this function extracts the name
+        used by fastqc. In particular, it removes the ".fasta[.gz]" or ".fastq[.gz]"
+        or ".sam" or ".bam" ending from the filename.
+
+        Args:
+            filename: the name of the sequence or alignment file (NOT including the path)
+
+        Returns:
+            string : the fastqc name
+
+        Imports:
+            misc.utils
+    """
+
+    import misc.utils as utils
+
+    # first, get the filename
+    filename = utils.get_basename(filename)
+    filename = filename.replace(".fasta", "")
+    filename = filename.replace(".fastq", "")
+    filename = filename.replace(".sam", "")
+    filename = filename.replace(".bam", "")
+    filename = filename.replace(".gz", "")
+
+    return filename
+
+
 def get_length_string(length=None):
     l = ""
     if length is not None:
@@ -118,10 +146,17 @@ def get_raw_data_fastqc_path(base_path):
     return os.path.join(rdp, 'fastqc')
 
 
-def get_raw_data_fastqc_data(base_path, name):
+def get_raw_data_fastqc_data(base_path, filename):
+
+    name = get_fastqc_name(filename)
     fastqc_folder = '{}_fastqc'.format(name)
-    rdp = get_raw_data_path(base_path)
-    return os.path.join(rdp, 'fastqc', fastqc_folder, 'fastqc_data.txt')
+    rdp = get_raw_data_fastqc_path(base_path)
+
+    p = os.path.join(rdp, fastqc_folder, 'fastqc_data.txt')
+    print("raw data path: {}".format(rdp))
+    print("fastqc folder: {}".format(fastqc_folder))
+    print("hey!!! i'm here!!! p: {}".format(p))
+    return p
 
 ### riboseq
 

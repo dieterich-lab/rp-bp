@@ -3,6 +3,7 @@
 import argparse
 import logging
 import os
+import sys
 
 import yaml
 
@@ -93,7 +94,7 @@ def main():
             "present, so call-sbatch will now be used to submit to slurm.")
         logging.warning(msg)
 
-        args = ["call-sbatch", "--mem", str(args.mem), "--num-cpus", str(args.num_procs)]
+        args = ["call-sbatch", "--num-cpus", str(args.num_procs)]
         args = args + sys.argv
 
         # ! remove the --use-slurm option!

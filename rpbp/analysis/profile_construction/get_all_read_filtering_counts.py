@@ -35,7 +35,7 @@ def get_counts(name_data, config, args):
     unique_filename = filenames.get_riboseq_bam(config['riboseq_data'], name, is_unique = True)
 
     # now, get the fastqc report filenames
-    raw_data_fastqc = filenames.get_raw_data_fastqc_data(config['riboseq_data'], name)
+    raw_data_fastqc = filenames.get_raw_data_fastqc_data(config['riboseq_data'], raw_data)
     without_adapters_fastqc = filenames.get_without_adapters_fastqc_data(config['riboseq_data'], name)
     with_rrna_fastqc = filenames.get_with_rrna_fastqc_data(config['riboseq_data'], name)
     without_rrna_fastqc = filenames.get_without_rrna_fastqc_data(config['riboseq_data'], name)
@@ -54,9 +54,12 @@ def get_counts(name_data, config, args):
     if args.tmp is not None:
         fastqc_tmp_str = "--dir {}".format(args.tmp)
 
+    msg = "Looking for raw data fastqc report: '{}'".format(raw_data_fastqc)
+    logging.debug(msg)
     cmd = "fastqc --outdir {} --extract {} {}".format(raw_data_fastqc_path, raw_data, fastqc_tmp_str)
     in_files = [raw_data]
     out_files = [raw_data_fastqc]
+
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
     cmd = "fastqc --outdir {} --extract {} {}".format(without_adapters_fastqc_path, without_adapters, fastqc_tmp_str)
@@ -140,10 +143,10 @@ def get_counts(name_data, config, args):
     msg = "{}: counting reads with selected lengths".format(name)
     logging.info(msg)
 
-    lengths, offsets = rpbp_utils.get_periodic_lengths_and_offsets(config, args.name, args.do_not_call)
+    lengths, offsets = rpbp_utils.get_periodic_lengths_and_offsets(config, name)
     
     # now count the unique reads with the appropriate length
-    length_count = sum(l['Count'] for l in unique_filename_report['Sequence Length Distribution']['contents'] if str(l['Length']) in lengths_l)
+    length_count = sum(l['Count'] for l in unique_filename_report['Sequence Length Distribution']['contents'] if str(l['Length']) in lengths)
 
     msg = "{}: counting filtered reads does not work correctly due to counting multiple isoforms. It is disabled.".format(name)
     logging.warning(msg)

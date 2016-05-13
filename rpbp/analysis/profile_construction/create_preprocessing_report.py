@@ -41,6 +41,10 @@ def create_figures(config_file, config, name, offsets_df, args):
     for length in range(min_read_length, max_read_length+1):
 
         mask_length = offsets_df['length'] == length
+
+        # TODO: it is not clear why, but it seems sometimes no rows match
+        if sum(mask_length) == 0:
+            continue
         length_row = offsets_df[mask_length].iloc[0]
                
         # make sure we have enough reads to visualize
@@ -83,7 +87,7 @@ def create_read_filtering_plots(config_file, config, args):
 
     procs_str = "--num-procs {}".format(args.num_procs)
     cmd = "get-all-read-filtering-counts {} {} {} {} {} {}".format(config_file, 
-        read_filtering_counts, overwrite_str, procs_str, tmp_str, loggin_str)
+        read_filtering_counts, overwrite_str, procs_str, tmp_str, logging_str)
     in_files = [config_file]
     out_files = [read_filtering_counts]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
@@ -146,7 +150,7 @@ def main():
 
 
     # make sure the path to the output file exists
-    os.makedirs(os.path.dirname(args.out), exist_ok=True)
+    os.makedirs(args.out, exist_ok=True)
 
     project_name = config.get("project_name", default_project_name)
     header, footer = get_header_and_footer_text(project_name, config['riboseq_data'])
@@ -197,6 +201,11 @@ def main():
                 
                 # select the row for this length
                 mask_length = offsets_df['length'] == length
+
+                # TODO: this is sometimes length 0. why?
+                if sum(mask_length) == 0:
+                    continue
+
                 length_row = offsets_df[mask_length].iloc[0]
 
                 # now, check all of the filters
@@ -278,6 +287,7 @@ def get_header_and_footer_text(project_name, riboseq_data):
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{xspace}
+\usepackage{morefloats}
 
 \pagestyle{empty}
 
