@@ -53,7 +53,8 @@ setup(name='rpbp',
                                 'visualize-metagene-profile-bayes-factor=rpbp.analysis.profile_construction.visualize_metagene_profile_bayes_factor:main [analysis]',
                                 'create-preprocessing-report=rpbp.analysis.profile_construction.create_preprocessing_report:main [analysis]',
                                 'get-all-read-filtering-counts=rpbp.analysis.profile_construction.get_all_read_filtering_counts:main [analysis]',
-                                'visualize-read-filtering-counts=rpbp.analysis.profile_construction.visualize_read_filtering_counts:main [analysis]'
+                                'visualize-read-filtering-counts=rpbp.analysis.profile_construction.visualize_read_filtering_counts:main [analysis]',
+                                'get-orf-peptide-matches=rpbp.analysis.get_orf_peptide_matches:main [analysis]'
                                ]
         },
         zip_safe=False

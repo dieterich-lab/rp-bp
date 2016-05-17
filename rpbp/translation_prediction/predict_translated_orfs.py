@@ -10,6 +10,7 @@ import yaml
 
 import misc.utils as utils
 
+import rpbp.rpbp_utils
 import rpbp.filenames as filenames
 
 default_num_procs = 2
@@ -18,60 +19,6 @@ default_tmp = None # utils.abspath('tmp')
 default_min_metagene_profile_count = 1000
 default_min_metagene_profile_bayes_factor_mean = 5
 default_max_metagene_profile_bayes_factor_var = 5
-
-def get_periodic_lengths_and_offsets(config, name, do_not_call):
-    # check if we specified to just use a fixed offset and length
-    if 'use_fixed_lengths' in config:
-        lengths = config['lengths']
-        offsets = config['offsets']
-
-        return (lengths, offsets)
-
-    # filter out the lengths which do not satisfy the quality thresholds
-    min_metagene_profile_count = config.get(
-        "min_metagene_profile_count", default_min_metagene_profile_count)
-
-    min_metagene_profile_bayes_factor_mean = config.get(
-        "min_metagene_profile_bayes_factor_mean", default_min_metagene_profile_bayes_factor_mean)
-
-    max_metagene_profile_bayes_factor_var = config.get(
-        "max_metagene_profile_bayes_factor_var", default_max_metagene_profile_bayes_factor_var)
-
-    periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], name, is_unique=True)
-    
-    if not os.path.exists(periodic_offsets) and not do_not_call:
-        msg = ("The periodic offsets file does not exist. Please ensure the select-periodic-offsets "
-            "script completed successfully or specify the \"use_fixed_lengths\", \"lengths\", and "
-            "\"offsets\" values in the configuration file. Filename: {}".format(periodic_offsets))
-        raise FileNotFoundError(msg)
-    elif not os.path.exists(periodic_offsets) and do_not_call:
-        msg = ("The periodic offsets file does not exist. Please ensure the select-periodic-offsets "
-            "script completed successfully or specify the \"use_fixed_lengths\", \"lengths\", and "
-            "\"offsets\" values in the configuration file.\n\nThe --do-not-call flag was given, so "
-            "\"dummy\" default lengths will be used to check the remaining calls.")
-        logging.warning(msg)
-
-        offsets = ["12"]
-        lengths = ["29"]
-        return (lengths, offsets)
-        
-    
-    offsets_df = pd.read_csv(periodic_offsets)
-    m_count = offsets_df['highest_peak_peak'] > min_metagene_profile_count
-    m_bf_mean = offsets_df['highest_peak_bf_mean'] > min_metagene_profile_bayes_factor_mean
-    m_bf_var = offsets_df['highest_peak_bf_var'] < max_metagene_profile_bayes_factor_var
-
-    filtered_periodic_offsets = offsets_df[m_count & m_bf_mean & m_bf_var]
-
-    offsets = filtered_periodic_offsets['highest_peak_offset']
-    lengths = filtered_periodic_offsets['length']
-
-    # offsets must be positive
-    offsets = [str(-1*int(o)) for o in offsets]
-    lengths = [str(int(l)) for l in lengths]
-
-    return (lengths, offsets)
-
 
 def main():
     
@@ -137,7 +84,7 @@ def main():
         overwrite_argument = "--overwrite"
 
     # get the lengths and offsets which meet the required criteria from the config file
-    lengths, offsets = get_periodic_lengths_and_offsets(config, args.name, args.do_not_call)
+    lengths, offsets = rpbp.rpbp_utils.get_periodic_lengths_and_offsets(config, args.name, args.do_not_call)
     lengths_str = ' '.join(lengths)
     offsets_str = ' '.join(offsets)
 

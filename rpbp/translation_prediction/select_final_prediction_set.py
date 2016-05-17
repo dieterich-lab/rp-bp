@@ -52,15 +52,10 @@ def main():
     parser.add_argument('--use-chi-square', help="If this flag is present, the the "
         "chi square value will be used to predict ORFs rather than the Bayes' factor",
         action='store_true')
-    parser.add_argument('--chisq-significance-level', help="If using chi square, then this "
+    parser.add_argument('--chisq-alpha', help="If using chi square, then this "
         "value is Bonferroni corrected and used as the significance cutoff", type=float, 
         default=default_chisq_significance_level)
     
-    parser.add_argument('--bf-mean-field', default=default_bf_mean_field)
-    parser.add_argument('--bf-var-field', default=default_bf_var_field)
-    parser.add_argument('--profile-sum-field', default=default_profile_sum_field)
-    parser.add_argument('--chi-square-field', default=default_chi_square_field)
-
     utils.add_logging_options(parser)
     args = parser.parse_args()
     utils.update_logging(args)
@@ -74,37 +69,17 @@ def main():
 
     bayes_factors = bio.read_bed(args.bayes_factors)
 
-    m_minimum_profile_sum = bayes_factors[args.profile_sum_field] >= args.minimum_profile_sum
-
-    # get the set of predicted ORFs
+    longest_orfs, bf_orfs, chisq_orfs = rpbp.rpbp_utils.get_predicted_orfs(bf, 
+                                                       min_signal=args.minimum_profile_sum, 
+                                                       min_bf_mean=args.min_bf_mean, 
+                                                       max_bf_var=args.max_bf_var, 
+                                                       min_length=args.min_length,
+                                                       chisq_alpha=args.chisq_alpha)
+    
     if args.use_chi_square:
-        # for the bonferroni correction, we only correct for the number of tests we actually consider
-        # that is, we only correct for orfs which pass the minimum profile filter
-        corrected_significance_level = args.chisq_significance_level / sum(m_minimum_profile_sum)
-
-        msg = "Corrected significance level: {}".format(corrected_significance_level)
-        logging.debug(msg)
-
-        m_significant_pval = bayes_factors[args.chi_square_field] <= corrected_significance_level
-        m_filter = m_significant_pval & m_minimum_profile_sum
-
+        longest_predicted_orfs = chisq_orfs
     else:
-        m_min_bf_mean = bayes_factors[args.bf_mean_field] >= args.min_bf_mean
-        m_max_bf_var = bayes_factors[args.bf_var_field] <= args.max_bf_var
-        m_filter = m_min_bf_mean & m_max_bf_var & m_minimum_profile_sum
-
-    # apply the filters
-    if not args.all:
-        num_predicted_orfs = sum(m_filter)
-        msg = "Number of predicted ORFs: {}".format(num_predicted_orfs)
-        logging.info(msg)
-        
-        filtered_predictions = bayes_factors[m_filter]
-    else:
-        filtered_predictions = bayes_factors
-
-    # now, select the longest filtered ORF for each stop codon
-    longest_predicted_orfs = bio.get_longest_features_by_end(filtered_predictions)
+        longest_predicted_orfs = bf_orfs
 
     msg = "Number of longest ORFs: {}".format(len(longest_predicted_orfs))
     logging.info(msg)
