@@ -101,7 +101,11 @@ def main():
     riboseq_bam_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True)
     cmd = "create-base-genome-profile {} {} {} --num-procs {} {} {} {} {} {}".format(riboseq_raw_data, 
         args.config, args.name, args.num_procs, do_not_call_argument, overwrite_argument, logging_str, star_str, tmp_str)
-    in_files = [riboseq_raw_data]
+    # There could be cases where we start somewhere in the middle of creating
+    # the base genome profile. So even if the "raw data" is not available, 
+    # we still want to call the base pipeline.
+    #in_files = [riboseq_raw_data]
+    in_files = []
     out_files = [riboseq_bam_filename]
 
     # we always call this, and pass --do-not-call through
