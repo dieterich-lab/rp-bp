@@ -46,23 +46,23 @@ clean_requirements = [
 ]
 
 stan_model_files = [
-    os.path.join(os.getcwd(), "models", "metagene-periodicity", "no-periodicity.stan"),
-    os.path.join(os.getcwd(), "models", "metagene-periodicity", "start-high-high-low.stan"),
-    os.path.join(os.getcwd(), "models", "metagene-periodicity", "start-high-low-high.stan"),
-    os.path.join(os.getcwd(), "models", "metagene-periodicity", "start-high-low-low.stan"),
-    os.path.join(os.getcwd(), "models", "orf-translation", "gaussian-naive-bayes.stan"),
-    os.path.join(os.getcwd(), "models", "orf-translation", "periodic-cauchy-mixture.stan"),
-    os.path.join(os.getcwd(), "models", "orf-translation", "zero-inflated-periodic-cauchy-mixture.stan")
+    os.path.join(os.getcwd(), "models", "nonperiodic", "no-periodicity.stan"),
+    os.path.join(os.getcwd(), "models", "nonperiodic", "start-high-high-low.stan"),
+    os.path.join(os.getcwd(), "models", "nonperiodic", "start-high-low-high.stan"),
+    os.path.join(os.getcwd(), "models", "periodic", "start-high-low-low.stan"),
+    os.path.join(os.getcwd(), "models", "untranslated", "gaussian-naive-bayes.stan"),
+    os.path.join(os.getcwd(), "models", "translated", "periodic-cauchy-mixture.stan"),
+    os.path.join(os.getcwd(), "models", "translated", "zero-inflated-periodic-cauchy-mixture.stan")
 ]
 
 stan_pickle_files = [
-    os.path.join(os.getcwd(), "models", "metagene-periodicity", "no-periodicity.pkl"),
-    os.path.join(os.getcwd(), "models", "metagene-periodicity", "start-high-high-low.pkl"),
-    os.path.join(os.getcwd(), "models", "metagene-periodicity", "start-high-low-high.pkl"),
-    os.path.join(os.getcwd(), "models", "metagene-periodicity", "start-high-low-low.pkl"),
-    os.path.join(os.getcwd(), "models", "orf-translation", "gaussian-naive-bayes.pkl"),
-    os.path.join(os.getcwd(), "models", "orf-translation", "periodic-cauchy-mixture.pkl"),
-    os.path.join(os.getcwd(), "models", "orf-translation", "zero-inflated-periodic-cauchy-mixture.pkl")
+    os.path.join(os.getcwd(), "models", "nonperiodic", "no-periodicity.pkl"),
+    os.path.join(os.getcwd(), "models", "nonperiodic", "start-high-high-low.pkl"),
+    os.path.join(os.getcwd(), "models", "nonperiodic", "start-high-low-high.pkl"),
+    os.path.join(os.getcwd(), "models", "periodic", "start-high-low-low.pkl"),
+    os.path.join(os.getcwd(), "models", "untranslated", "gaussian-naive-bayes.pkl"),
+    os.path.join(os.getcwd(), "models", "translated", "periodic-cauchy-mixture.pkl"),
+    os.path.join(os.getcwd(), "models", "translated", "zero-inflated-periodic-cauchy-mixture.pkl")
 ]
 
 def install(openblas_install_path):
