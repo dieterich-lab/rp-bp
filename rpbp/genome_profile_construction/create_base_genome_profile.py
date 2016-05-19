@@ -83,7 +83,7 @@ def main():
 
 
     star_index = filenames.get_star_index(config['genome_base_path'], 
-        config['genome_name'], is_merged=True)
+        config['genome_name'], is_merged=False)
 
     # Step 0: Running flexbar to remove adapter sequences
 
