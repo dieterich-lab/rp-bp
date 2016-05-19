@@ -68,13 +68,14 @@ def main():
                         'gtf',
                         'genome_base_path',
                         'genome_name',
-                        'periodic_models',
-                        'nonperiodic_models'
+                        'models_base'
+                        #'periodic_models',
+                        #'nonperiodic_models'
                     ]
     utils.check_keys_exist(config, required_keys)
 
     star_index = filenames.get_star_index(config['genome_base_path'], 
-        config['genome_name'], is_merged=True)
+        config['genome_name'], is_merged=False)
 
     # the first step is the standard riboseq preprocessing
     
@@ -100,7 +101,9 @@ def main():
     riboseq_raw_data = args.raw_data
     riboseq_bam_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True)
     cmd = "create-base-genome-profile {} {} {} --num-procs {} {} {} {} {} {}".format(riboseq_raw_data, 
-        args.config, args.name, args.num_procs, do_not_call_argument, overwrite_argument, logging_str, star_str, tmp_str)
+        args.config, args.name, args.num_procs, do_not_call_argument, overwrite_argument, 
+        logging_str, star_str, tmp_str)
+
     # There could be cases where we start somewhere in the middle of creating
     # the base genome profile. So even if the "raw data" is not available, 
     # we still want to call the base pipeline.
@@ -136,8 +139,11 @@ def main():
     metagene_profile_bayes_factors = filenames.get_metagene_profiles_bayes_factors(config['riboseq_data'],
         args.name, is_unique=True)
 
-    periodic_models_str = utils.get_config_argument(config, 'periodic_models')
-    non_periodic_models_str = utils.get_config_argument(config, 'nonperiodic_models')
+    #periodic_models_str = utils.get_config_argument(config, 'periodic_models')
+    #non_periodic_models_str = utils.get_config_argument(config, 'nonperiodic_models')
+    periodic_models_str = filenames.get_models_string(config['models_base'], 'periodic')
+    non_periodic_models_str = filenames.get_models_string(config['models_base'], 'nonperiodic')
+    
     periodic_offset_start_str = utils.get_config_argument(config, 'periodic_offset_start')
     periodic_offset_end_str = utils.get_config_argument(config, 'periodic_offset_end')
     metagene_profile_length_str = utils.get_config_argument(config, 'metagene_profile_length')

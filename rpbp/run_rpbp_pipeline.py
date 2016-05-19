@@ -80,10 +80,11 @@ def main():
                         'genome_name',
                         'fasta',
                         'gtf',
-                        'translated_models',
-                        'untranslated_models',
-                        'periodic_models',
-                        'nonperiodic_models'
+                        'models_base'
+                        #'translated_models',
+                        #'untranslated_models',
+                        #'periodic_models',
+                        #'nonperiodic_models'
                     ]
     utils.check_keys_exist(config, required_keys)
 

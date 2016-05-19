@@ -64,8 +64,9 @@ def main():
                         'fasta',
                         'genome_base_path',
                         'genome_name',
-                        'translated_models',
-                        'untranslated_models'
+                        'models_base'
+                        #'translated_models',
+                        #'untranslated_models'
                     ]
     utils.check_keys_exist(config, required_keys)
 
@@ -111,8 +112,10 @@ def main():
         length=lengths, offset=offsets, is_unique=True, note=note_str)
     
     # parse out all of the options from the config file, if they are present
-    translated_models_str = utils.get_config_argument(config, 'translated_models')
-    untranslated_models_str = utils.get_config_argument(config, 'untranslated_models')
+    #translated_models_str = utils.get_config_argument(config, 'translated_models')
+    #untranslated_models_str = utils.get_config_argument(config, 'untranslated_models')
+    translated_models_str = filenames.get_models_string(config['models_base'], 'translated')
+    untranslated_models_str = filenames.get_models_string(config['models_base'], 'untranslated')
     
     orf_types_str = utils.get_config_argument(config, 'orf_types')
     min_length_str = utils.get_config_argument(config, 'min_orf_length', 'min-length')

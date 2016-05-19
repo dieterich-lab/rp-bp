@@ -115,6 +115,13 @@ def get_metagene_profiles_bayes_factors(riboseq_base, name, length=None, is_uniq
     return s
 
 
+# used
+def get_models_string(models_base, model_type):
+    path_ex = os.path.join(models_base, model_type, '*pkl')
+    models = glob.glob(path_ex)
+    models_str = ' '.join(models)
+    return models_str
+
 ### o
 
 # used
@@ -173,14 +180,14 @@ def get_riboseq_base(riboseq_base, name, sub_folder, length=None, offset=None, i
     transcriptome = get_transcriptome_string(is_transcriptome)
     chisq = get_chisq_string(is_chisq)
     n = get_note_string(note)
-    return os.path.join(riboseq_base, 'without-rrna-mapping', sub_folder, 
+    return os.path.join(riboseq_base, sub_folder, 
             '{}{}{}{}{}{}{}{}'.format(name, n, transcriptome, unique, cds_only, l, o, chisq))
 
 # used
 def get_riboseq_bam_base(riboseq_base, name, length=None, is_unique=False, 
         is_cds_only=False, is_transcriptome=False):
 
-    bam_base = get_riboseq_base(riboseq_base, name, 'bam', length=length, is_unique=is_unique, 
+    bam_base = get_riboseq_base(riboseq_base, name, 'without-rrna-mapping', length=length, is_unique=is_unique, 
         is_cds_only=is_cds_only, is_transcriptome=is_transcriptome)
     return bam_base
 
@@ -194,7 +201,7 @@ def get_riboseq_bam(riboseq_base, name, length=None, is_unique=False, is_cds_onl
     return s
 
 def get_riboseq_bam_fastqc_path(riboseq_data):
-    return os.path.join(riboseq_data, 'without-rrna-mapping', 'bam', 'fastqc')
+    return os.path.join(riboseq_data, 'without-rrna-mapping', 'fastqc')
 
 def get_riboseq_bam_fastqc_data(riboseq_data, name, length=None, is_unique=False, 
         is_cds_only=False, is_transcriptome=False, note=None):
@@ -259,6 +266,16 @@ def get_riboseq_predicted_orfs_dna(riboseq_base, name, length=None, offset=None,
     s = s + ".predicted-orfs.dna.fa"
     return s
 
+# used
+def get_riboseq_predicted_orfs_protein(riboseq_base, name, length=None, offset=None, is_unique=False, 
+        is_cds_only=False, is_transcriptome=False, is_chisq=False, note=None):
+    
+    s = get_riboseq_base(riboseq_base, name, 'orf-predictions', length=length, offset=offset, 
+        is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, 
+        is_chisq=is_chisq, note=note)
+    s = s + ".predicted-orfs.protein.fa"
+    return s
+
 def get_riboseq_predicted_orf_mackowiak_overlap_image(riboseq_base, name, image_type='eps', 
         length=None, offset=None, is_unique=False, is_cds_only=False, is_transcriptome=False, 
         is_chisq=False, note=None):
@@ -267,16 +284,6 @@ def get_riboseq_predicted_orf_mackowiak_overlap_image(riboseq_base, name, image_
         is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, 
         is_chisq=is_chisq, note=note)
     s = s + ".predicted-orf-mackowiak-overlap.{}".format(image_type)
-    return s
-
-# u
-def get_riboseq_predicted_orfs_protein(riboseq_base, name, length=None, offset=None, is_unique=False, 
-        is_cds_only=False, is_transcriptome=False, is_chisq=False, note=None):
-    
-    s = get_riboseq_base(riboseq_base, name, 'orf-predictions', length=length, offset=offset, 
-        is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, 
-        is_chisq=is_chisq, note=note)
-    s = s + ".predicted-orfs.protein.fa"
     return s
 
 def get_riboseq_predicted_orf_peptide_coverage(riboseq_base, name, length=None, offset=None, is_unique=False, 
@@ -339,7 +346,7 @@ def get_riboseq_predicted_orf_type_overlap_image(riboseq_base, name, image_type=
 def get_riboseq_profiles(riboseq_base, name, length=None, offset=None, is_unique=False, 
         is_cds_only=False, is_transcriptome=False):
 
-    s = get_riboseq_base(riboseq_base, name, 'mtx', length=length, offset=offset, 
+    s = get_riboseq_base(riboseq_base, name, 'orf-profiles', length=length, offset=offset, 
             is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome)
 
     s = s + ".profiles.mtx"

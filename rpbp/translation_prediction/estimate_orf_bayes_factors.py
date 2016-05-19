@@ -103,11 +103,6 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
         "profile_sum": profile_sum
     }
     ret = pd.Series(ret)
-
-    # chi-square values
-    f_obs = [x_1_sum, x_2_sum, x_3_sum]
-    chisq, chi_square_p = scipy.stats.chisquare(f_obs)
-    ret['chi_square_p'] = chi_square_p
  
     # check if we only wanted the chi square value
     if args.chi_square_only:
@@ -121,6 +116,11 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
     if x_1_sum < (x_2_sum + x_3_sum):
         return ret
        
+    # chi-square values
+    f_obs = [x_1_sum, x_2_sum, x_3_sum]
+    chisq, chi_square_p = scipy.stats.chisquare(f_obs)
+    ret['chi_square_p'] = chi_square_p
+
     # check if something odd happens with the length
     # this should already be checked before calling the function.
     if (T != len(x_2)) or (T != len(x_3)):
