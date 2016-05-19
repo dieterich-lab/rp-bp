@@ -261,13 +261,14 @@ def main():
                     out.write("\t\\caption{{{0}}}\n".format(name.replace("_", "-")))
                     out.write("\\end{figure}\n")
                     out.write("\n")
+                    out.write("\\clearpage\n")
                     out.write("\\begin{figure}\n")
                     out.write("\t\\centering\n")
 
             out.write("\t\\caption{{{0}}}\n".format(name.replace("_", "-")))
             out.write("\\end{figure}\n")
             out.write("\n")
-            
+        
 
         out.write(footer)
 
@@ -358,8 +359,8 @@ Figure~\ref{fig:mapping-info}(right) shows a ``zoomed in'' version which does no
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.48\textwidth,keepaspectratio]{<riboseq_data>/read-filtering-counts.eps}
-    \includegraphics[width=0.48\textwidth,keepaspectratio]{<riboseq_data>/{read-filtering-counts.no-rrna}.eps}
+    \includegraphics[width=0.75\textwidth,keepaspectratio]{<riboseq_data>/read-filtering-counts.eps}
+    \includegraphics[width=0.75\textwidth,keepaspectratio]{<riboseq_data>/{read-filtering-counts.no-rrna}.eps}
     \caption{The number of reads lost at each stage in the mapping pipeline. \texttt{wrong\_length} refers to reads which have a length that does not result in a strong periodic signal (see Section~\ref{sec:periodicity}). Please note the different colors in the figures. \label{fig:mapping-info}}
 \end{figure}
 

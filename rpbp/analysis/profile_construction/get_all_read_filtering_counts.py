@@ -5,6 +5,8 @@ import yaml
 import logging
 import pandas as pd
 import os
+
+import numpy as np
 import scipy.io
 
 import crimson.fastqc
@@ -41,7 +43,7 @@ def get_counts(name_data, config, args):
     without_rrna_fastqc = filenames.get_without_rrna_fastqc_data(config['riboseq_data'], name)
 
     genome_bam_fastqc = filenames.get_riboseq_bam_fastqc_data(config['riboseq_data'], name)
-    unique_filename_fastqc = filenames.get_riboseq_bam_fastqc_data(config['riboseq_data'], name)
+    unique_filename_fastqc = filenames.get_riboseq_bam_fastqc_data(config['riboseq_data'], name, is_unique=True)
 
     # create the fastqc reports if they do not exist
     raw_data_fastqc_path = filenames.get_raw_data_fastqc_path(config['riboseq_data'])
@@ -125,6 +127,9 @@ def get_counts(name_data, config, args):
     genome_bam_report = crimson.fastqc.parse(genome_bam_fastqc)
     unique_filename_report = crimson.fastqc.parse(unique_filename_fastqc)
 
+    msg = "{}: the unique report is: {}".format(name, unique_filename_fastqc)
+    logging.debug(msg)
+
     # get the read counts
     msg = "{}: counting reads in fastqc reports".format(name)
     logging.info(msg)
@@ -144,9 +149,26 @@ def get_counts(name_data, config, args):
     logging.info(msg)
 
     lengths, offsets = rpbp_utils.get_periodic_lengths_and_offsets(config, name)
+
+    # TODO: this is a fairly big hack to make the counting by length work when
+    # fastqc groups reads together. It should at least cause an exception if
+    # it fails, though.
+    sld = unique_filename_report['Sequence Length Distribution']['contents']
+    length_counts = {}
+    for lc in sld:
+        len_strs = str(lc['Length']).split("-")
+        for l in len_strs:
+            l_int = int(l)
+            count = np.ceil(lc['Count'] / len(len_strs))
+            length_counts[l_int] = count
+
     
     # now count the unique reads with the appropriate length
-    length_count = sum(l['Count'] for l in unique_filename_report['Sequence Length Distribution']['contents'] if str(l['Length']) in lengths)
+    length_count = sum(length_counts[l] for l in length_counts if str(l) in lengths)
+    
+    lengths_str = ','.join(lengths)
+    msg = "{}: found the following periodic lengths: {}. The number of reads of these lengths: {}".format(name, lengths_str, length_count)
+    logging.debug(msg)
 
     msg = "{}: counting filtered reads does not work correctly due to counting multiple isoforms. It is disabled.".format(name)
     logging.warning(msg)

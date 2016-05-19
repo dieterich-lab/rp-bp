@@ -147,6 +147,9 @@ def main():
         find_matching_orfs_group, predicted_orfs_df, progress_bar=True, num_groups=args.num_groups)
 
     # filter out the Nones to avoid DataFrame conversion problems
+    msg = "Joining results back into large data frame"
+    logging.info(msg)
+
     peptide_matches = [pm for pm in peptide_matches if pm is not None]
     peptide_matches = pd.concat(peptide_matches)
 
