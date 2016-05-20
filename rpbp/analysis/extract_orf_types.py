@@ -19,6 +19,11 @@ extended_canonical_types = ['canonical_truncated', 'canonical', 'canonical_exten
     'five_prime_overlap', 'suspect_overlap', 'three_prime_overlap',
     'novel_suspect_overlap']
 
+all_types = ['canonical', 'within', 'canonical_extended', 'canonical_truncated',
+       'three_prime_overlap', 'suspect_overlap', 'noncoding', 'five_prime',
+       'five_prime_overlap', 'three_prime', 'novel_suspect_overlap',
+       'novel']
+
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="This script extracts ORFs of specified types from any of the BED12+ "
@@ -41,6 +46,8 @@ def main():
         "except the canonical (extended and truncated) types", action='store_true')
     parser.add_argument('--extended-canonical', help="Give this flag to include all "
         "types which overlap canonical coding transcripts in some way", action='store_true')
+    parser.add_argument('--all', help="Give this flag to select all types. This is "
+        "mostly helpful to fix the BED score and color columns", action='store_true')
 
     utils.add_logging_options(parser)
     args = parser.parse_args()
@@ -59,6 +66,9 @@ def main():
 
     if args.extended_canonical:
         types = types + extended_canonical_types
+
+    if args.all:
+        types = all_types
 
     types_str = '\n'.join(types)
     msg = "Extracting the following types:\n{}".format(types_str)
