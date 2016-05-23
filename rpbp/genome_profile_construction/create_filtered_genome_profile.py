@@ -141,8 +141,11 @@ def main():
 
     #periodic_models_str = utils.get_config_argument(config, 'periodic_models')
     #non_periodic_models_str = utils.get_config_argument(config, 'nonperiodic_models')
-    periodic_models_str = filenames.get_models_string(config['models_base'], 'periodic')
-    non_periodic_models_str = filenames.get_models_string(config['models_base'], 'nonperiodic')
+    periodic_models = filenames.get_models(config['models_base'], 'periodic')
+    non_periodic_models = filenames.get_models(config['models_base'], 'nonperiodic')
+    
+    periodic_models_str = ' '.join(periodic_models)
+    non_periodic_models_str = ' '.join(non_periodic_models)
     
     periodic_offset_start_str = utils.get_config_argument(config, 'periodic_offset_start')
     periodic_offset_end_str = utils.get_config_argument(config, 'periodic_offset_end')
@@ -158,8 +161,8 @@ def main():
         seed_str, chains_str, iterations_str, logging_str))
 
     in_files = [metagene_profiles]
-    in_files.extend(config['periodic_models'])
-    in_files.extend(config['nonperiodic_models'])
+    in_files.extend(periodic_models)
+    in_files.extend(non_periodic_models)
     out_files = [metagene_profile_bayes_factors]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
     

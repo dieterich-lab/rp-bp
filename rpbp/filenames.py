@@ -1,3 +1,4 @@
+import glob
 import os
 
 ### parameterized names
@@ -116,11 +117,10 @@ def get_metagene_profiles_bayes_factors(riboseq_base, name, length=None, is_uniq
 
 
 # used
-def get_models_string(models_base, model_type):
+def get_models(models_base, model_type):
     path_ex = os.path.join(models_base, model_type, '*pkl')
     models = glob.glob(path_ex)
-    models_str = ' '.join(models)
-    return models_str
+    return models
 
 ### o
 

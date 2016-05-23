@@ -114,8 +114,11 @@ def main():
     # parse out all of the options from the config file, if they are present
     #translated_models_str = utils.get_config_argument(config, 'translated_models')
     #untranslated_models_str = utils.get_config_argument(config, 'untranslated_models')
-    translated_models_str = filenames.get_models_string(config['models_base'], 'translated')
-    untranslated_models_str = filenames.get_models_string(config['models_base'], 'untranslated')
+    translated_models = filenames.get_models(config['models_base'], 'translated')
+    untranslated_models = filenames.get_models(config['models_base'], 'untranslated')
+
+    translated_models_str = ' '.join(translated_models)
+    untranslated_models_str = ' '.join(untranslated_models)
     
     orf_types_str = utils.get_config_argument(config, 'orf_types')
     min_length_str = utils.get_config_argument(config, 'min_orf_length', 'min-length')
@@ -138,8 +141,8 @@ def main():
         iterations_str, chains_str, chi_square_only_str, args.num_procs)
     
     in_files = [profiles_filename, orfs_genomic]
-    in_files.extend(config['translated_models'])
-    in_files.extend(config['untranslated_models'])
+    in_files.extend(translated_models)
+    in_files.extend(untranslated_models)
     out_files = [bayes_factors]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
