@@ -10,8 +10,11 @@ from Bio.Seq import Seq
 import misc.bio as bio
 import misc.utils as utils
 
+import rpbp.rpbp_utils as rpbp_utils
+
 default_min_bf_mean = 5
 default_max_bf_var = 2
+default_min_length = 20
 default_minimum_profile_sum = 5
 
 default_chisq_significance_level = 0.01
@@ -45,6 +48,8 @@ def main():
         "an ORF as translated", type=float, default=default_min_bf_mean)
     parser.add_argument('--max-bf-var', help="The maximum Bayes' factor variance to predict "
         "an ORF as translated", type=float, default=default_max_bf_var)
+    parser.add_argument('--min-length', help="The minimum length to predict an ORF "
+        "as translated", type=int, default=default_min_length)
     parser.add_argument('--minimum-profile-sum', help="The minimum read count (or however "
         "the profile sum is calculated) to consider for prediction", type=float,
         default=default_minimum_profile_sum)
@@ -69,7 +74,7 @@ def main():
 
     bayes_factors = bio.read_bed(args.bayes_factors)
 
-    longest_orfs, bf_orfs, chisq_orfs = rpbp.rpbp_utils.get_predicted_orfs(bf, 
+    longest_orfs, bf_orfs, chisq_orfs = rpbp_utils.get_predicted_orfs(bayes_factors, 
                                                        min_signal=args.minimum_profile_sum, 
                                                        min_bf_mean=args.min_bf_mean, 
                                                        max_bf_var=args.max_bf_var, 
