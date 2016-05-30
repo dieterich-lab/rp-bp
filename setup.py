@@ -55,7 +55,8 @@ setup(name='rpbp',
                                 'get-all-read-filtering-counts=rpbp.analysis.profile_construction.get_all_read_filtering_counts:main [analysis]',
                                 'visualize-read-filtering-counts=rpbp.analysis.profile_construction.visualize_read_filtering_counts:main [analysis]',
                                 'get-orf-peptide-matches=rpbp.analysis.proteomics.get_orf_peptide_matches:main [analysis]',
-                                'extract-orf-types=rpbp.analysis.extract_orf_types:main [analysis]'
+                                'extract-orf-types=rpbp.analysis.extract_orf_types:main [analysis]',
+                                'get-all-orf-peptide-matches=rpbp.analysis.proteomics.get_all_orf_peptide_matches:main [analysis]'
                                ]
         },
         zip_safe=False

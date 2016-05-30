@@ -247,6 +247,17 @@ def get_metagene_profile_bayes_factor_image(riboseq_base, name, image_type='eps'
 # p
 
 # used
+def get_riboseq_peptide_matches(riboseq_base, name, length=None, offset=None, is_unique=False, 
+        is_cds_only=False, is_transcriptome=False, is_chisq=False, note=None):
+    
+    s = get_riboseq_base(riboseq_base, name, 'peptide-matches', length=length, offset=offset, 
+        is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, 
+        is_chisq=is_chisq, note=note)
+    s = s + ".peptide-matches.csv.gz"
+    return s
+
+
+# used
 def get_riboseq_predicted_orfs(riboseq_base, name, length=None, offset=None, is_unique=False, 
         is_cds_only=False, is_transcriptome=False, note=None, is_chisq=False):
     
