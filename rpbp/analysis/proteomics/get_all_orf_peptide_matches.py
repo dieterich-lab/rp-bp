@@ -27,7 +27,7 @@ def main():
     parser.add_argument('--peptide-separator', help="The separator in the --peptide file",
         default=default_peptide_separator)
 
-    utils.add_slurm_options(parser)
+    slurm.add_sbatch_options(parser)
     utils.add_logging_options(parser)
     args = parser.parse_args()
     utils.update_logging(args)
