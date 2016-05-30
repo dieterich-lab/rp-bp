@@ -160,9 +160,9 @@ def get_raw_data_fastqc_data(base_path, filename):
     rdp = get_raw_data_fastqc_path(base_path)
 
     p = os.path.join(rdp, fastqc_folder, 'fastqc_data.txt')
-    print("raw data path: {}".format(rdp))
-    print("fastqc folder: {}".format(fastqc_folder))
-    print("hey!!! i'm here!!! p: {}".format(p))
+    #print("raw data path: {}".format(rdp))
+    #print("fastqc folder: {}".format(fastqc_folder))
+    #print("hey!!! i'm here!!! p: {}".format(p))
     return p
 
 ### riboseq
@@ -214,7 +214,7 @@ def get_riboseq_bam_fastqc_data(riboseq_data, name, length=None, is_unique=False
     name = '{}{}{}{}{}{}'.format(name, n, transcriptome, unique, cds_only, l)
 
     fastqc_folder = '{}_fastqc'.format(name)
-    return os.path.join(riboseq_data, 'without-rrna-mapping', 'bam', 'fastqc', fastqc_folder, 'fastqc_data.txt')
+    return os.path.join(riboseq_data, 'without-rrna-mapping', 'fastqc', fastqc_folder, 'fastqc_data.txt')
     
 # used
 def get_riboseq_bayes_factors(riboseq_base, name, length=None, offset=None, is_unique=False, 
