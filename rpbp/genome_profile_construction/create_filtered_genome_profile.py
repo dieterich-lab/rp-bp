@@ -146,6 +146,9 @@ def main():
     
     periodic_models_str = ' '.join(periodic_models)
     non_periodic_models_str = ' '.join(non_periodic_models)
+
+    periodic_models_str = "--periodic-models {}".format(periodic_models_str)
+    non_periodic_models_str = "--nonperiodic-models {}".format(non_periodic_models_str)
     
     periodic_offset_start_str = utils.get_config_argument(config, 'periodic_offset_start')
     periodic_offset_end_str = utils.get_config_argument(config, 'periodic_offset_end')

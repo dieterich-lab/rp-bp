@@ -119,6 +119,9 @@ def main():
 
     translated_models_str = ' '.join(translated_models)
     untranslated_models_str = ' '.join(untranslated_models)
+
+    translated_models_str = "--translated-models {}".format(translated_models_str)
+    untranslated_models_str = "--untranslated-models {}".format(untranslated_models_str)
     
     orf_types_str = utils.get_config_argument(config, 'orf_types')
     min_length_str = utils.get_config_argument(config, 'min_orf_length', 'min-length')

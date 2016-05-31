@@ -27,7 +27,7 @@ default_out_filter_mismatch_n_max = 1
 default_out_filter_mismatch_n_over_l_max = 0.04
 default_out_filter_type = "BySJout"
 default_out_filter_intron_motifs = "RemoveNoncanonicalUnannotated"
-default_out_sam_attributes = "AS NH HI nM MD"
+default_out_sam_attributes = ["AS", "NH", "HI", "nM", "MD"]
 
 flexbar_compression_str = "--zip-output GZ"
 quant_mode_str = '--quantMode TranscriptomeSAM'
