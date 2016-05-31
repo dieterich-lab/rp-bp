@@ -34,6 +34,18 @@ default_font_size = 20
 default_ystep = 10000000
 default_ymax = 0
 
+# these come from the Spectral colormap
+colors = [
+    (0.61960786581039429, 0.0039215688593685627, 0.25882354378700256, 1.0),
+    (0.91395617583218747, 0.3623990802203908, 0.27935410773052888, 1.0),
+    (0.99346405267715454, 0.74771243333816528, 0.43529413143793744, 1.0),
+    (0.99807766255210428, 0.99923106502084169, 0.74602077638401709, 1.0),
+    (0.74771243333816528, 0.89803922176361084, 0.62745100259780884, 1.0),
+    (0.3280276866520152, 0.68050751615973082, 0.68027683566598329, 1.0)
+]
+
+edge_colors = [matplotlib.colors.cnames['darkgrey']] * (len(names)+1)
+
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="This script visualizes the number of reads lost at step in filtering. "
@@ -96,12 +108,10 @@ def main():
         ylabels = np.arange(0, args.ymax, args.ystep)
         yticks = (ylabels, ylabels)
 
-    cm = pylab.get_cmap('Spectral')
-    edge_cm = pylab.get_cmap('gray')
     lgd = SBG.stackedBarPlot(ax,
                         diff,
-                        cm,
-                        edgeCols=edge_cm,
+                        colors,
+                        edgeCols=edge_colors,
                         xLabels=names,
                         yTicks = yticks,
                         gap=gap,
