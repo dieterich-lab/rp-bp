@@ -44,7 +44,6 @@ colors = [
     (0.3280276866520152, 0.68050751615973082, 0.68027683566598329, 1.0)
 ]
 
-edge_colors = [matplotlib.colors.cnames['darkgrey']] * (len(names)+1)
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -107,6 +106,8 @@ def main():
     if args.ymax != default_ymax:
         ylabels = np.arange(0, args.ymax, args.ystep)
         yticks = (ylabels, ylabels)
+
+    edge_colors = [matplotlib.colors.cnames['darkgrey']] * (len(names)+1)
 
     lgd = SBG.stackedBarPlot(ax,
                         diff,
