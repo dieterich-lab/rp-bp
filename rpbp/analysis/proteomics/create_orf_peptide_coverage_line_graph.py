@@ -15,7 +15,7 @@ import pandas as pd
 import misc.parallel as parallel
 import misc.utils as utils
 
-default_num_procs = 1
+default_num_cpus = 1
 
 default_min_length = 0
 
@@ -82,8 +82,8 @@ def main():
     parser.add_argument('-l', '--min-length', help="The minimum length for ORFs (in "
         "nucleotides) to consider in the analyis", type=int, default=default_min_length)
 
-    parser.add_argument('-p', '--num-procs', help="The number of processors to use", type=int,
-        default=default_num_procs)
+    parser.add_argument('-p', '--num-cpus', help="The number of processors to use", type=int,
+        default=default_num_cpus)
 
     parser.add_argument('--title', default=default_title)
     parser.add_argument('--fontsize', type=int, default=default_fontsize)
@@ -116,7 +116,7 @@ def main():
     msg = "Calculating Rp-Bp coverage"
     logging.info(msg)
     bf_coverage = parallel.apply_parallel(rpbp_peptide_matches, 
-                                            args.num_procs, 
+                                            args.num_cpus, 
                                             get_orf_coverage, 
                                             progress_bar=True)
     bf_coverage = pd.DataFrame(bf_coverage)
@@ -124,7 +124,7 @@ def main():
     msg = "Calculating Rp-chi coverage"
     logging.info(msg)
     chisq_coverage = parallel.apply_parallel(rpchi_peptide_matches, 
-                                                args.num_procs,
+                                                args.num_cpus,
                                                 get_orf_coverage, 
                                                 progress_bar=True)
     chisq_coverage = pd.DataFrame(chisq_coverage)
