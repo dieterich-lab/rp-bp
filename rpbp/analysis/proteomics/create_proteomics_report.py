@@ -96,20 +96,66 @@ def main():
     ]
     utils.check_keys_exist(config, required_keys)
 
-
-
     # make sure the path to the output file exists
     os.makedirs(args.out, exist_ok=True)
 
     project_name = config.get("project_name", default_project_name)
+    title = "Proteomics analysis for {}".format(project_name)
+    abstract = "This document shows the results of proteomics analysis."
 
-    for name, data in config['riboseq_samples'].items():
-        msg = "Processing sample: {}".format(name)
-        logging.info(msg)
+    header = latex.get_header_text(title, abstract)
+    footer = latex.get_footer_text()
 
-        logging.debug("overwrite: {}".format(args.overwrite))
+    tex_file = os.path.join(args.out, "proteomics-report.tex")
 
-        create_figures(args.config, config, name, args)
+    with open(tex_file, 'w') as out:
+
+        out.write(header)
+        out.write("\n")
+
+        title = "ORF peptide coverage"
+        latex.section(out, title)
+
+
+        for name, data in config['riboseq_samples'].items():
+            msg = "Processing sample: {}".format(name)
+            logging.info(msg)
+
+            logging.debug("overwrite: {}".format(args.overwrite))
+
+            create_figures(args.config, config, name, args)
+
+            title = name
+            latex.subsection(out, title)
+
+            try:
+                lengths, offsets = rpbp.rpbp_utils.get_periodic_lengths_and_offsets(config, name)
+            except FileNotFoundError:
+                msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(name)
+                logging.error(msg)
+                return
+            
+            peptide_coverage_line_graph = filenames.get_peptide_coverage_line_graph(config['riboseq_data'], 
+                name, length=lengths, offset=offsets, is_unique=True, note=out_note_str)
+
+            if os.path.exists(peptide_coverage_line_graph):
+                latex.begin_figure(out)
+                latex.write_graphics(out, peptide_coverage_line_graph, width=0.9)
+                latex.end_figure(out)
+
+            else:
+                text = "Problem creating ORF peptide coverage plot"
+                out.write(text)
+                out.write("\n")
+
+            latex.clearpage(out)
+
+    
+    os.chdir(args.out)
+    cmd = "pdflatex -shell-escape proteomics-report"
+    utils.check_call(cmd)
+    utils.check_call(cmd) # call again to fix references            
+
 
 if __name__ == '__main__':
     main()
