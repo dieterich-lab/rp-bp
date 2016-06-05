@@ -2,15 +2,19 @@
 
 import argparse
 import logging
+import os
 import yaml
 
 import misc.utils as utils
+
+import rpbp.rpbp_utils
 import rpbp.filenames as filenames
 
 
 default_tmp = None
-
+default_min_orf_length = 0
 default_project_name = "riboseq proteomics report"
+default_note = None
 default_num_cpus = 1
 
 
@@ -19,8 +23,7 @@ def create_figures(config_file, config, name, args):
         for the given dataset.
     """
 
-    out_note_str = note_str
-
+    out_note_str = config.get('note', None)
     if args.note is not None and len(args.note) > 0:
         out_note_str = args.note
 
@@ -28,11 +31,11 @@ def create_figures(config_file, config, name, args):
     logging.info(msg)
 
     try:
-        lengths, offsets = rpbp.rpbp_utils.get_periodic_lengths_and_offsets(config, name, args.do_not_call)
+        lengths, offsets = rpbp.rpbp_utils.get_periodic_lengths_and_offsets(config, name)
     except FileNotFoundError:
         msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(name)
         logging.error(msg)
-        continue
+        return
     
     peptide_matches = filenames.get_riboseq_peptide_matches(
         config['riboseq_data'], name, length=lengths, offset=offsets, 
@@ -42,19 +45,19 @@ def create_figures(config_file, config, name, args):
         config['riboseq_data'], name, length=lengths, offset=offsets, 
         is_unique=True, note=out_note_str, is_chisq=True)
 
-    out = filenames.get_peptide_coverage_line_graph(config['riboseq_data'], 
+    peptide_coverage_line_graph = filenames.get_peptide_coverage_line_graph(config['riboseq_data'], 
         name, length=lengths, offset=offsets, is_unique=True, note=out_note_str)
 
     title_str = "--title {}".format(name)
     min_length_str = "--min-length {}".format(args.min_orf_length)
-    num_procs_str = "--num-procs {}".format(args.num_cpus)
+    num_cpus_str = "--num-cpus {}".format(args.num_cpus)
 
     cmd = "create-orf-peptide-coverage-line-graph {} {} {} {} {} {}".format(
         peptide_matches, chisq_peptide_matches, peptide_coverage_line_graph,
-        title_str, min_length_str, num_procs_str)
+        title_str, min_length_str, num_cpus_str)
 
     in_files = [peptide_matches, chisq_peptide_matches]
-    out_files = [out]
+    out_files = [peptide_coverage_line_graph]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
 
 def main():
@@ -63,9 +66,13 @@ def main():
     parser.add_argument('config', help="The (yaml) config file for the project")
     parser.add_argument('out', help="The path for the output files")
 
+    parser.add_argument('-l', '--min-orf-length', help="The minimum length for ORFs (in "
+        "nucleotides) to consider in the analyis", type=int, default=default_min_orf_length)
+
+
     parser.add_argument('--num-cpus', help="The number of processors to use for counting "
         "the matching peptides coverage for each predicted ORF.",
-        type=int, default=default_num_procs)
+        type=int, default=default_num_cpus)
     parser.add_argument('--overwrite', help="If this flag is present, existing files will "
         "be overwritten.", action='store_true')
         

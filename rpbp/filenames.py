@@ -134,12 +134,13 @@ def get_orfs(base_path, name, note=None):
 
 # used
 def get_peptide_coverage_line_graph(riboseq_base, name, length=None, offset=None, is_unique=False, 
-        is_cds_only=False, is_transcriptome=False, note=None):
+        is_cds_only=False, is_transcriptome=False, note=None, image_type='pdf'):
     
-    s = get_riboseq_base(riboseq_base, name, 'peptide-matches', 'plots', length=length, offset=offset, 
+    subfolder = os.path.join('peptide-matches', 'plots')
+    s = get_riboseq_base(riboseq_base, name, subfolder, length=length, offset=offset, 
         is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, 
         note=note)
-    s = s + ".peptide-matches.csv.gz"
+    s = s + ".orf-peptide-coverage.{}".format(image_type)
     return s
 
 

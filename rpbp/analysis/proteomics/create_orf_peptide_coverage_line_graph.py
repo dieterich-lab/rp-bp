@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 import matplotlib
+matplotlib.use('agg')
 matplotlib.rc('text', usetex=True)
 
 import argparse
