@@ -47,7 +47,7 @@ def get_periodic_lengths_and_offsets(config, name, do_not_call=False):
             raise FileNotFoundError(msg)
     
     offsets_df = pd.read_csv(periodic_offsets)
-    m_count = offsets_df['highest_peak_peak'] > min_metagene_profile_count
+    m_count = offsets_df['highest_peak_profile_sum'] > min_metagene_profile_count
     m_bf_mean = offsets_df['highest_peak_bf_mean'] > min_metagene_profile_bayes_factor_mean
     m_bf_var = offsets_df['highest_peak_bf_var'] < max_metagene_profile_bayes_factor_var
 
