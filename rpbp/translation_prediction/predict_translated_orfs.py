@@ -86,6 +86,14 @@ def main():
 
     # get the lengths and offsets which meet the required criteria from the config file
     lengths, offsets = rpbp.rpbp_utils.get_periodic_lengths_and_offsets(config, args.name, args.do_not_call)
+
+    if len(lengths) == 0:
+        msg = ("No periodic read lengths and offsets were found. Try relaxing "
+            "min_metagene_profile_count, min_metagene_profile_bayes_factor_mean, "
+            "max_metagene_profile_bayes_factor_var. Qutting.")
+        logging.critical(msg)
+        return
+
     lengths_str = ' '.join(lengths)
     offsets_str = ' '.join(offsets)
 

@@ -7,12 +7,10 @@ import sys
 
 import yaml
 import misc.bio as bio
+import misc.slurm as slurm
 import misc.utils as utils
 
 import rpbp.filenames as filenames
-
-default_num_procs = 2
-default_mem = "8G"
 
 default_star_executable = "STAR"
 default_sjdb_overhang = 50
@@ -23,22 +21,13 @@ def main():
         "analysis performed with the rpbp package.")
     parser.add_argument('config', help="The (yaml) config file")
 
-    parser.add_argument('-p', '--num-procs', help="The number of processors to use",
-        type=int, default=default_num_procs)
-    parser.add_argument('-m', '--mem', help="The amount of memory to use for creating "
-        "the STAR index", default=default_mem)
-
     parser.add_argument('--star-executable', help="The name of the STAR executable",
         default=default_star_executable)
     
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
-    parser.add_argument('--do-not-call', action='store_true')
-
-    parser.add_argument('--use-slurm', help="If this flag is present, then the script "
-        "will submit itself to slurm (with call-sbatch from the misc package) rather "
-        "than executing in the current context.", action='store_true')
     
+    slurm.add_sbatch_options(parser)
     utils.add_logging_options(parser)
     args = parser.parse_args()
     utils.update_logging(args)
@@ -74,17 +63,25 @@ def main():
             "present, so call-sbatch will now be used to submit to slurm.")
         logging.warning(msg)
 
-        args = ["call-sbatch", "--mem", str(args.mem), "--num-cpus", str(args.num_procs)]
-        args = args + sys.argv
+        # build up the command by pulling out the non-sbatch options
+        cmd_args = [sys.argv[0], args.config, "--star-executable", args.star_executable,
+            "--mem", str(args.mem), "--num-cpus", str(args.num_cpus)]
 
-        # ! remove the --use-slurm option!
-        args.remove('--use-slurm')
+        if args.overwrite:
+            cmd_args = cmd_args + ["--overwrite"]
 
-        call = ' '.join(args)
-        logging.warning(call)
+        slurm_options = slurm.get_slurm_options_string(args).split(' ')
+        slurm_args = ["call-sbatch"] + slurm_options
+        
+        args = slurm_args + cmd_args
 
-        # replace the current process with the call to sbatch
-        os.execvp("call-sbatch", args)
+        cmd = ' '.join(args)
+        logging.warning(cmd)
+
+        slurm.check_sbatch(cmd, args)
+
+        # and quit!
+        return
    
     # the rrna index
     cmd = "bowtie2-build-s {} {}".format(config['ribosomal_fasta'], config['ribosomal_index'])
@@ -100,7 +97,7 @@ def main():
     star_index = filenames.get_star_index(config['genome_base_path'], config['genome_name'], is_merged=False)
     cmd = ("{} --runMode genomeGenerate --genomeDir {} --genomeFastaFiles {} --sjdbGTFfile {} "
         "{} --runThreadN {} --limitGenomeGenerateRAM {}".format(args.star_executable, 
-        star_index, config['fasta'], config['gtf'], sjdb_overhang_str, args.num_procs, mem))
+        star_index, config['fasta'], config['gtf'], sjdb_overhang_str, args.num_cpus, mem))
         
     in_files = [config['gtf'], config['fasta']]
     out_files = bio.get_star_index_files(star_index)
@@ -126,7 +123,7 @@ def main():
         ignore_parsing_errors_str = "--ignore-parsing-errors"
 
     cmd = ("extract-orfs {} {} {} --num-procs {} {} {} {} {}".format(transcript_fasta, orfs_genomic, 
-        logging_str, args.num_procs, start_codons_str, stop_codons_str, novel_id_str, ignore_parsing_errors_str))
+        logging_str, args.num_cpus, start_codons_str, stop_codons_str, novel_id_str, ignore_parsing_errors_str))
     in_files = [transcript_fasta]
     out_files = [orfs_genomic]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
