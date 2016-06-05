@@ -5,6 +5,7 @@ import logging
 import os
 import yaml
 
+import misc.latex as latex
 import misc.utils as utils
 
 import rpbp.rpbp_utils
@@ -99,6 +100,12 @@ def main():
     # make sure the path to the output file exists
     os.makedirs(args.out, exist_ok=True)
 
+    note_str = config.get('note', None)
+    out_note_str = note_str
+
+    if args.note is not None and len(args.note) > 0:
+        out_note_str = args.note
+
     project_name = config.get("project_name", default_project_name)
     title = "Proteomics analysis for {}".format(project_name)
     abstract = "This document shows the results of proteomics analysis."
@@ -149,6 +156,8 @@ def main():
                 out.write("\n")
 
             latex.clearpage(out)
+
+        out.write(footer)
 
     
     os.chdir(args.out)
