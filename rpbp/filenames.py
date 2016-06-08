@@ -383,7 +383,7 @@ def get_riboseq_read_filtering_counts(riboseq_base):
 
 def get_riboseq_read_filtering_counts_image(riboseq_base, note="", image_type="eps"):
     note_str = get_note_string(note)
-    fn = "read-filtering-counts.{}{}".format(note_str, image_type)
+    fn = "read-filtering-counts{}.{}".format(note_str, image_type)
     s = os.path.join(riboseq_base, fn)
     return s
 

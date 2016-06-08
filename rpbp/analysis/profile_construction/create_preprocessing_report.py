@@ -218,7 +218,7 @@ def main():
                 if length_row['highest_peak_bf_var'] > max_metagene_profile_bayes_factor_var:
                     offset_status = "BF variance too high"
 
-                if length_row['highest_peak_peak'] < min_metagene_profile_count:
+                if length_row['highest_peak_profile_sum'] < min_metagene_profile_count:
                     offset_status = "Count too small"
                 
                 if length_row['highest_peak_profile_sum'] < args.min_visualization_count:
