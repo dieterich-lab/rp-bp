@@ -409,8 +409,10 @@ def get_transcript_fasta(base_path, name):
 ### w
 
 # used
-def get_without_adapters_base(base_path, name):
-    return os.path.join(base_path, 'without-adapters', name)
+def get_without_adapters_base(base_path, name, note=None):
+    n = get_note_string(note)
+    base = "{}{}".format(name, n)
+    return os.path.join(base_path, 'without-adapters', base)
 
 # used
 def get_without_adapters_fastq(base_path, name, note=None):
