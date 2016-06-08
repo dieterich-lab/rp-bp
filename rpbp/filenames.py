@@ -99,19 +99,19 @@ def get_transcriptome_string(is_transcriptome):
 
 # used
 def get_metagene_profiles(riboseq_base, name, length=None, is_unique=False, 
-        is_cds_only=False, is_transcriptome=False):
+        is_cds_only=False, is_transcriptome=False, note=None):
 
     s = get_riboseq_base(riboseq_base, name, 'metagene-profiles', length=length, 
-            is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome)
+            is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
     s = s + ".metagene-profile.csv.gz"
     return s
 
 # used
 def get_metagene_profiles_bayes_factors(riboseq_base, name, length=None, is_unique=False, 
-        is_cds_only=False, is_transcriptome=False):
+        is_cds_only=False, is_transcriptome=False, note=None):
 
     s = get_riboseq_base(riboseq_base, name, 'metagene-profiles', length=length, 
-            is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome)
+            is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
     s = s + ".metagene-periodicity-bayes-factors.csv.gz"
     return s
 
@@ -145,9 +145,9 @@ def get_peptide_coverage_line_graph(riboseq_base, name, length=None, offset=None
 
 
 # used
-def get_periodic_offsets(riboseq_base, name, is_unique=False, is_cds_only=False, is_transcriptome=False):
+def get_periodic_offsets(riboseq_base, name, is_unique=False, is_cds_only=False, is_transcriptome=False, note=None):
     s = get_riboseq_base(riboseq_base, name, 'metagene-profiles', is_unique=is_unique, 
-        is_cds_only=is_cds_only, is_transcriptome=is_transcriptome)
+        is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
 
     s = s + ".periodic-offsets.csv.gz"
     return s
@@ -197,10 +197,10 @@ def get_riboseq_base(riboseq_base, name, sub_folder, length=None, offset=None, i
 
 # used
 def get_riboseq_bam_base(riboseq_base, name, length=None, is_unique=False, 
-        is_cds_only=False, is_transcriptome=False):
+        is_cds_only=False, is_transcriptome=False, note=None):
 
     bam_base = get_riboseq_base(riboseq_base, name, 'without-rrna-mapping', length=length, is_unique=is_unique, 
-        is_cds_only=is_cds_only, is_transcriptome=is_transcriptome)
+        is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
     return bam_base
 
 # used
@@ -208,7 +208,7 @@ def get_riboseq_bam(riboseq_base, name, length=None, is_unique=False, is_cds_onl
         is_transcriptome=False, note=None):
 
     s = get_riboseq_bam_base(riboseq_base, name, length=length, is_unique=is_unique, 
-            is_cds_only=is_cds_only, is_transcriptome=is_transcriptome)
+            is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
     s = s + ".bam"
     return s
 
@@ -244,13 +244,13 @@ def get_riboseq_fastq(riboseq_data, name):
 
 # m
 
-def get_riboseq_metagene_profile_image(riboseq_base, name, image_type='eps', length=None, is_unique=False, is_cds_only=False, is_transcriptome=False):
-    s = get_riboseq_base(riboseq_base, name, 'metagene-profiles', length=length, is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome)
+def get_riboseq_metagene_profile_image(riboseq_base, name, image_type='eps', length=None, is_unique=False, is_cds_only=False, is_transcriptome=False, note=None):
+    s = get_riboseq_base(riboseq_base, name, 'metagene-profiles', length=length, is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
     s = s + "." + image_type
     return s
 
-def get_metagene_profile_bayes_factor_image(riboseq_base, name, image_type='eps', length=None, is_unique=False, is_cds_only=False, is_transcriptome=False):
-    s = get_riboseq_base(riboseq_base, name, 'metagene-profiles', length=length, is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome)
+def get_metagene_profile_bayes_factor_image(riboseq_base, name, image_type='eps', length=None, is_unique=False, is_cds_only=False, is_transcriptome=False, note=None):
+    s = get_riboseq_base(riboseq_base, name, 'metagene-profiles', length=length, is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
     s = s + ".bayes-factors." + image_type
     return s
 
@@ -367,10 +367,10 @@ def get_riboseq_predicted_orf_type_overlap_image(riboseq_base, name, image_type=
 
 # used
 def get_riboseq_profiles(riboseq_base, name, length=None, offset=None, is_unique=False, 
-        is_cds_only=False, is_transcriptome=False):
+        is_cds_only=False, is_transcriptome=False, note=None):
 
     s = get_riboseq_base(riboseq_base, name, 'orf-profiles', length=length, offset=offset, 
-            is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome)
+            is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
 
     s = s + ".profiles.mtx"
     return s
@@ -382,9 +382,7 @@ def get_riboseq_read_filtering_counts(riboseq_base):
     return s
 
 def get_riboseq_read_filtering_counts_image(riboseq_base, note="", image_type="eps"):
-    note_str = ""
-    if len(note) > 0:
-        note_str = "{}.".format(note)
+    note_str = get_note_string(note)
     fn = "read-filtering-counts.{}{}".format(note_str, image_type)
     s = os.path.join(riboseq_base, fn)
     return s
@@ -415,37 +413,43 @@ def get_without_adapters_base(base_path, name):
     return os.path.join(base_path, 'without-adapters', name)
 
 # used
-def get_without_adapters_fastq(base_path, name):
-    return os.path.join(base_path, 'without-adapters', '{}.fastq.gz'.format(name))
+def get_without_adapters_fastq(base_path, name, note=None):
+    n = get_note_string(note)
+    return os.path.join(base_path, 'without-adapters', '{}{}.fastq.gz'.format(name, n))
 
 def get_without_adapters_fastqc(base_path):
     return os.path.join(base_path, 'without-adapters', 'fastqc')
 
-def get_without_adapters_fastqc_data(base_path, name):
-    fastqc_folder = '{}_fastqc'.format(name)
+def get_without_adapters_fastqc_data(base_path, name, note=None):
+    n = get_note_string(note)
+    fastqc_folder = '{}{}_fastqc'.format(name, n)
     return os.path.join(base_path, 'without-adapters', 'fastqc', fastqc_folder, 'fastqc_data.txt')
 
 
 # used
-def get_with_rrna_fastq(base_path, name):
-    return os.path.join(base_path, 'with-rrna', '{}.fastq.gz'.format(name))
+def get_with_rrna_fastq(base_path, name, note=None):
+    n = get_note_string(note)
+    return os.path.join(base_path, 'with-rrna', '{}{}.fastq.gz'.format(name, n))
 
 # used
 def get_with_rrna_fastqc(base_path):
     return os.path.join(base_path, 'with-rrna', 'fastqc')
 
-def get_with_rrna_fastqc_data(base_path, name):
-    fastqc_folder = '{}_fastqc'.format(name)
+def get_with_rrna_fastqc_data(base_path, name, note=None):
+    n = get_note_string(note)
+    fastqc_folder = '{}{}_fastqc'.format(name, n)
     return os.path.join(base_path, 'with-rrna', 'fastqc', fastqc_folder, 'fastqc_data.txt')
 
 # used
-def get_without_rrna_fastq(base_path, name):
-    return os.path.join(base_path, 'without-rrna', '{}.fastq.gz'.format(name))
+def get_without_rrna_fastq(base_path, name, note=None):
+    n = get_note_string(note)
+    return os.path.join(base_path, 'without-rrna', '{}{}.fastq.gz'.format(name, n))
 
 def get_without_rrna_fastqc(base_path):
     return os.path.join(base_path, 'without-rrna', 'fastqc')
 
-def get_without_rrna_fastqc_data(base_path, name):
-    fastqc_folder = '{}_fastqc'.format(name)
+def get_without_rrna_fastqc_data(base_path, name, note=None):
+    n = get_note_string(note)
+    fastqc_folder = '{}{}_fastqc'.format(name, n)
     return os.path.join(base_path, 'without-rrna', 'fastqc', fastqc_folder, 'fastqc_data.txt')
 
