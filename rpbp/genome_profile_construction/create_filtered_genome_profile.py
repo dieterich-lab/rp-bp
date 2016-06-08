@@ -74,6 +74,8 @@ def main():
                     ]
     utils.check_keys_exist(config, required_keys)
 
+    note = config.get('note', None)
+
     star_index = filenames.get_star_index(config['genome_base_path'], 
         config['genome_name'], is_merged=False)
 
@@ -99,7 +101,7 @@ def main():
         tmp_str = "--tmp {}".format(args.tmp)
 
     riboseq_raw_data = args.raw_data
-    riboseq_bam_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True)
+    riboseq_bam_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True, note=note)
     cmd = "create-base-genome-profile {} {} {} --num-procs {} {} {} {} {} {}".format(riboseq_raw_data, 
         args.config, args.name, args.num_procs, do_not_call_argument, overwrite_argument, 
         logging_str, star_str, tmp_str)
@@ -115,7 +117,7 @@ def main():
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True) 
 
     # create the metagene profiles
-    metagene_profiles = filenames.get_metagene_profiles(config['riboseq_data'], args.name, is_unique=True)
+    metagene_profiles = filenames.get_metagene_profiles(config['riboseq_data'], args.name, is_unique=True, note=note)
 
     seqids_to_keep_str = utils.get_config_argument(config, 'seqids_to_keep')
     start_upstream_str = utils.get_config_argument(config, 
@@ -137,7 +139,7 @@ def main():
 
     # estimate the periodicity for each offset for all read lengths
     metagene_profile_bayes_factors = filenames.get_metagene_profiles_bayes_factors(config['riboseq_data'],
-        args.name, is_unique=True)
+        args.name, is_unique=True, note=note)
 
     #periodic_models_str = utils.get_config_argument(config, 'periodic_models')
     #non_periodic_models_str = utils.get_config_argument(config, 'nonperiodic_models')
@@ -170,7 +172,7 @@ def main():
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
     
     # select the best read lengths for constructing the signal
-    periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], args.name, is_unique=True)
+    periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], args.name, is_unique=True, note=note)
 
     cmd = "select-periodic-offsets {} {}".format(metagene_profile_bayes_factors, periodic_offsets)
     in_files = [metagene_profile_bayes_factors]

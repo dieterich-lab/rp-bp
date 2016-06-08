@@ -59,3 +59,6 @@ This can be accomplished by adding a line like ``export PATH=$HOME/local/bin:$PA
 
 The build process includes compiling several libraries for optimized numerical calculations. Due to the optimized nature of these libraries, the initial installation can take up to an hour.
 
+**Usage instructions**
+
+Please see the usage-instructions.html file for usage.

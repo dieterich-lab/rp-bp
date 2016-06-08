@@ -76,7 +76,7 @@ def main():
                     ]
     utils.check_keys_exist(config, required_keys)
 
-    note_str = config.get('note', None)
+    note = config.get('note', None)
 
     # handle do_not_call so that we _do_ call the pipeline script, but that it does not run anything
     do_not_call_str = ""
@@ -97,7 +97,7 @@ def main():
 
         tmp_str = ""
         if args.tmp is not None:
-            tmp = os.path.join(args.tmp, "{}_rpbp".format(name))
+            tmp = os.path.join(args.tmp, "{}_{}_rpbp".format(name, note))
             tmp_str = "--tmp {}".format(tmp)
 
         cmd = "run-rpbp-pipeline {} {} {} --num-procs {} {} {} {} {} {}".format(data, 
