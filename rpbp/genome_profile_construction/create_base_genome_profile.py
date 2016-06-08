@@ -81,6 +81,7 @@ def main():
                     ]
     utils.check_keys_exist(config, required_keys)
 
+    note = config.get('note', None)
 
     star_index = filenames.get_star_index(config['genome_base_path'], 
         config['genome_name'], is_merged=False)
@@ -88,8 +89,8 @@ def main():
     # Step 0: Running flexbar to remove adapter sequences
 
     raw_data = args.raw_data
-    flexbar_target = filenames.get_without_adapters_base(config['riboseq_data'], args.name)
-    without_adapters = filenames.get_without_adapters_fastq(config['riboseq_data'], args.name)
+    flexbar_target = filenames.get_without_adapters_base(config['riboseq_data'], args.name, note=note)
+    without_adapters = filenames.get_without_adapters_fastq(config['riboseq_data'], args.name, note=note)
 
     adapter_seq_str = utils.get_config_argument(config, 'adapter_sequence', 'adapter-seq')
     adapter_file_str = utils.get_config_argument(config, 'adapter_file', 'adapters')
@@ -108,8 +109,8 @@ def main():
 
     # Step 1: Running bowtie2 to remove rRNA alignments
     out = utils.abspath("dev","null") # we do not care about the alignments
-    without_rrna = filenames.get_without_rrna_fastq(config['riboseq_data'], args.name)
-    with_rrna = filenames.get_with_rrna_fastq(config['riboseq_data'], args.name)
+    without_rrna = filenames.get_without_rrna_fastq(config['riboseq_data'], args.name, note=note)
+    with_rrna = filenames.get_with_rrna_fastq(config['riboseq_data'], args.name, note=note)
 
     cmd = "bowtie2 -p {} --very-fast -x {} -U {} -S {} --un-gz {} --al-gz {}".format(
         args.num_procs, config['ribosomal_index'], without_adapters, out, 
@@ -119,7 +120,7 @@ def main():
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
     # Step 2: Running STAR to align rRNA-depleted reads to genome
-    star_output_prefix = filenames.get_riboseq_bam_base(config['riboseq_data'], args.name)
+    star_output_prefix = filenames.get_riboseq_bam_base(config['riboseq_data'], args.name, note=note)
     transcriptome_bam = "{}{}".format(star_output_prefix, "Aligned.toTranscriptome.out.bam")
     genome_star_bam = "{}{}".format(star_output_prefix, "Aligned.sortedByCoord.out.bam")
 
@@ -157,7 +158,7 @@ def main():
 
     
     # now, we need to symlink the (genome) STAR output to that expected by the rest of the pipeline
-    genome_sorted_bam = filenames.get_riboseq_bam(config['riboseq_data'], args.name)
+    genome_sorted_bam = filenames.get_riboseq_bam(config['riboseq_data'], args.name, note=note)
 
     if os.path.exists(genome_star_bam):
         utils.create_symlink(genome_star_bam, genome_sorted_bam, call)
@@ -168,7 +169,7 @@ def main():
 
     # sort the transcriptome bam file
     transcriptome_sorted_bam = filenames.get_riboseq_bam(
-        config['riboseq_data'], args.name, is_transcriptome=True)
+        config['riboseq_data'], args.name, is_transcriptome=True, note=note)
 
     sam_tmp_str = ""
     if args.tmp is not None:
@@ -189,7 +190,7 @@ def main():
 
     
     # remove multimapping reads from the genome file
-    unique_genome_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True)
+    unique_genome_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True, note=note)
     if call:
         if args.overwrite or not os.path.exists(unique_genome_filename):
             msg = "Removing multimapping reads from: '{}'".format(genome_sorted_bam)
@@ -205,7 +206,7 @@ def main():
 
     # remove multimapping reads from the transcriptome file
     unique_transcriptome_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, 
-        is_unique=True, is_transcriptome=True)
+        is_unique=True, is_transcriptome=True, note=note)
 
     if call:
         if args.overwrite or not os.path.exists(unique_transcriptome_filename):
