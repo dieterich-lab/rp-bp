@@ -100,9 +100,9 @@ def main():
     seqname_prefix_str = utils.get_config_argument(config, 'seqname_prefix')
     
     # extract the riboseq profiles for each orf
-    unique_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True)
+    unique_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True, note=note_str)
     profiles_filename = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
-        length=lengths, offset=offsets, is_unique=True)
+        length=lengths, offset=offsets, is_unique=True, note=note_str)
 
     
     orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
