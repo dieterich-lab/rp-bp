@@ -16,8 +16,8 @@ The python packages and OpenBlas installation can also be removed with make:
 
 If possible, we recommend installing inside a virtual environment.
 
-Please see [installation.html](installation.html) file for more detailed installation instructions, including prerequisites and step-by-step details of installing within a virtual machine.
+Please see [installation.md](installation.md) file for more detailed installation instructions, including prerequisites and step-by-step details of installing within a virtual machine. (Locally, ``installation.html`` may be easier to view.)
 
 **Usage instructions**
 
-Please see the [usage-instructions.html](usage-instructions.html) file for usage.
+Please see the [usage-instructions.md](usage-instructions.md) file for usage. (Locally, ``usage-instructions.html`` may be easier to view.)
