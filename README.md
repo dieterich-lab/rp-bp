@@ -2,7 +2,7 @@ This project contains scripts for running the Rp-Bp and Rp-chi translation predi
 
 **Install**
 
-This package is written in python3. Internally, pip3 is used to install the python dependencies. Additionally, the `OpenBLAS <http://www.openblas.net/>`_ library is used for efficiency. The installation procedure also downloads and compiles this library. Automatic installation of OpenBLAS has been thoroughly tested within a virtual environment (see below) on Ubuntu. Other environments may require adjustments. Please contact us for help.
+This package is written in python3. Internally, pip3 is used to install the python dependencies. Additionally, the [OpenBLAS](http://www.openblas.net/) library is used for efficiency. The installation procedure also downloads and compiles this library. Automatic installation of OpenBLAS has been thoroughly tested within a virtual environment (see below) on Ubuntu. Other environments may require adjustments. Please contact us for help.
 
 Installation is managed through the included makefile. The required privileges are determined by the installation location of pip3. In particular, if pip3 does not require sudo access, then none of the installation process requires sudo access; this is the case within a virtual environment, for example.
 
