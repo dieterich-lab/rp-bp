@@ -28,22 +28,35 @@ def get_counts(name_data, config, args):
     msg = "processing {}...".format(name)
     logging.info(msg)
 
+    note = config.get('note', None)
+
     # first, get the filenames
     raw_data = data
-    without_adapters = filenames.get_without_adapters_fastq(config['riboseq_data'], name)
-    with_rrna = filenames.get_with_rrna_fastq(config['riboseq_data'], name)
-    without_rrna = filenames.get_without_rrna_fastq(config['riboseq_data'], name)
-    genome_bam = filenames.get_riboseq_bam(config['riboseq_data'], name)
-    unique_filename = filenames.get_riboseq_bam(config['riboseq_data'], name, is_unique = True)
+    without_adapters = filenames.get_without_adapters_fastq(
+        config['riboseq_data'], name, note=note)
+    with_rrna = filenames.get_with_rrna_fastq(
+        config['riboseq_data'], name, note=note)
+    without_rrna = filenames.get_without_rrna_fastq(
+        config['riboseq_data'], name, note=note)
+    genome_bam = filenames.get_riboseq_bam(
+        config['riboseq_data'], name, note=note)
+    unique_filename = filenames.get_riboseq_bam(
+        config['riboseq_data'], name, is_unique = True, note=note)
 
     # now, get the fastqc report filenames
-    raw_data_fastqc = filenames.get_raw_data_fastqc_data(config['riboseq_data'], raw_data)
-    without_adapters_fastqc = filenames.get_without_adapters_fastqc_data(config['riboseq_data'], name)
-    with_rrna_fastqc = filenames.get_with_rrna_fastqc_data(config['riboseq_data'], name)
-    without_rrna_fastqc = filenames.get_without_rrna_fastqc_data(config['riboseq_data'], name)
+    raw_data_fastqc = filenames.get_raw_data_fastqc_data(
+        config['riboseq_data'], raw_data, note=note)
+    without_adapters_fastqc = filenames.get_without_adapters_fastqc_data(
+        config['riboseq_data'], name, note=note)
+    with_rrna_fastqc = filenames.get_with_rrna_fastqc_data(
+        config['riboseq_data'], name, note=note)
+    without_rrna_fastqc = filenames.get_without_rrna_fastqc_data(
+        config['riboseq_data'], name, note=note)
 
-    genome_bam_fastqc = filenames.get_riboseq_bam_fastqc_data(config['riboseq_data'], name)
-    unique_filename_fastqc = filenames.get_riboseq_bam_fastqc_data(config['riboseq_data'], name, is_unique=True)
+    genome_bam_fastqc = filenames.get_riboseq_bam_fastqc_data(
+        config['riboseq_data'], name)
+    unique_filename_fastqc = filenames.get_riboseq_bam_fastqc_data(
+        config['riboseq_data'], name, is_unique=True, note=note)
 
     # create the fastqc reports if they do not exist
     raw_data_fastqc_path = filenames.get_raw_data_fastqc_path(config['riboseq_data'])
@@ -58,28 +71,33 @@ def get_counts(name_data, config, args):
 
     msg = "Looking for raw data fastqc report: '{}'".format(raw_data_fastqc)
     logging.debug(msg)
-    cmd = "fastqc --outdir {} --extract {} {}".format(raw_data_fastqc_path, raw_data, fastqc_tmp_str)
+    cmd = "fastqc --outdir {} --extract {} {}".format(raw_data_fastqc_path, 
+        raw_data, fastqc_tmp_str)
     in_files = [raw_data]
     out_files = [raw_data_fastqc]
 
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
-    cmd = "fastqc --outdir {} --extract {} {}".format(without_adapters_fastqc_path, without_adapters, fastqc_tmp_str)
+    cmd = "fastqc --outdir {} --extract {} {}".format(without_adapters_fastqc_path, 
+        without_adapters, fastqc_tmp_str)
     in_files = [without_adapters]
     out_files = [without_adapters_fastqc]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
-    cmd = "fastqc --outdir {} --extract {} {}".format(with_rrna_fastqc_path, with_rrna, fastqc_tmp_str)
+    cmd = "fastqc --outdir {} --extract {} {}".format(with_rrna_fastqc_path, 
+        with_rrna, fastqc_tmp_str)
     in_files = [with_rrna]
     out_files = [with_rrna_fastqc]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
-    cmd = "fastqc --outdir {} --extract {} {}".format(without_rrna_fastqc_path, without_rrna, fastqc_tmp_str)
+    cmd = "fastqc --outdir {} --extract {} {}".format(without_rrna_fastqc_path, 
+        without_rrna, fastqc_tmp_str)
     in_files = [without_rrna]
     out_files = [without_rrna_fastqc]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
-    cmd = "fastqc --outdir {} --extract {} {}".format(without_rrna_mapping_fastqc_path, genome_bam, fastqc_tmp_str)
+    cmd = "fastqc --outdir {} --extract {} {}".format(without_rrna_mapping_fastqc_path, 
+        genome_bam, fastqc_tmp_str)
     in_files = [genome_bam]
     out_files = [genome_bam_fastqc]
 
@@ -91,7 +109,8 @@ def get_counts(name_data, config, args):
 
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
-    cmd = "fastqc --outdir {} --extract {} {}".format(without_rrna_mapping_fastqc_path, unique_filename, fastqc_tmp_str)
+    cmd = "fastqc --outdir {} --extract {} {}".format(without_rrna_mapping_fastqc_path, 
+        unique_filename, fastqc_tmp_str)
     in_files = [unique_filename]
     out_files = [unique_filename_fastqc]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
@@ -133,11 +152,19 @@ def get_counts(name_data, config, args):
     # get the read counts
     msg = "{}: counting reads in fastqc reports".format(name)
     logging.info(msg)
-    raw_data_count = sum(l['Count'] for l in raw_data_report['Sequence Length Distribution']['contents'])
-    without_adapters_count = sum(l['Count'] for l in without_adapters_report['Sequence Length Distribution']['contents'])
-    without_rrna_count = sum(l['Count'] for l in without_rrna_report['Sequence Length Distribution']['contents'])
+    
+    raw_data_count = sum(l['Count'] 
+        for l in raw_data_report['Sequence Length Distribution']['contents'])
+    
+    without_adapters_count = sum(l['Count'] 
+        for l in without_adapters_report['Sequence Length Distribution']['contents'])
+    
+    without_rrna_count = sum(l['Count'] 
+        for l in without_rrna_report['Sequence Length Distribution']['contents'])
+
     # for the unique counts, we filter out the duplicates, so we can use the fastqc numbers again
-    unique_count = sum(l['Count'] for l in unique_filename_report['Sequence Length Distribution']['contents'])
+    unique_count = sum(l['Count'] 
+        for l in unique_filename_report['Sequence Length Distribution']['contents'])
 
     # fastqc reports duplicated sequences, so for the genome alignments, we have to use samtools to count
     msg = "{}: counting reads with samtools".format(name)
@@ -167,10 +194,12 @@ def get_counts(name_data, config, args):
     length_count = sum(length_counts[l] for l in length_counts if str(l) in lengths)
     
     lengths_str = ','.join(lengths)
-    msg = "{}: found the following periodic lengths: {}. The number of reads of these lengths: {}".format(name, lengths_str, length_count)
+    msg = ("{}: found the following periodic lengths: {}. The number of reads "
+        "of these lengths: {}".format(name, lengths_str, length_count))
     logging.debug(msg)
 
-    msg = "{}: counting filtered reads does not work correctly due to counting multiple isoforms. It is disabled.".format(name)
+    msg = ("{}: counting filtered reads does not work correctly due to counting "
+        "multiple isoforms. It is disabled.".format(name))
     logging.warning(msg)
     transcriptome_count = 0
     #if os.path.exists(signals_filename):
@@ -221,7 +250,9 @@ def main():
 
     config = yaml.load(open(args.config))
 
-    res = parallel.apply_parallel_iter(config['riboseq_samples'].items(), args.num_procs, get_counts, config, args)
+    res = parallel.apply_parallel_iter(config['riboseq_samples'].items(), 
+                                        args.num_procs, 
+                                        get_counts, config, args)
     res = [r for r in res if r is not None]
     res_df = pd.DataFrame(res)
 

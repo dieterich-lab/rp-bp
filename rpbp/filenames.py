@@ -212,9 +212,11 @@ def get_riboseq_bam(riboseq_base, name, length=None, is_unique=False, is_cds_onl
     s = s + ".bam"
     return s
 
+# used
 def get_riboseq_bam_fastqc_path(riboseq_data):
     return os.path.join(riboseq_data, 'without-rrna-mapping', 'fastqc')
 
+# used
 def get_riboseq_bam_fastqc_data(riboseq_data, name, length=None, is_unique=False, 
         is_cds_only=False, is_transcriptome=False, note=None):
 
@@ -227,6 +229,22 @@ def get_riboseq_bam_fastqc_data(riboseq_data, name, length=None, is_unique=False
 
     fastqc_folder = '{}_fastqc'.format(name)
     return os.path.join(riboseq_data, 'without-rrna-mapping', 'fastqc', fastqc_folder, 'fastqc_data.txt')
+
+# used
+def get_riboseq_bam_fastqc_read_lengths(riboseq_data, name, length=None, is_unique=False, 
+        is_cds_only=False, is_transcriptome=False, note=None):
+
+    cds_only = get_cds_only_string(is_cds_only)
+    unique = get_unique_string(is_unique)
+    l = get_length_string(length)
+    transcriptome = get_transcriptome_string(is_transcriptome)
+    n = get_note_string(note)
+    name = '{}{}{}{}{}{}'.format(name, n, transcriptome, unique, cds_only, l)
+
+    fastqc_folder = '{}_fastqc'.format(name)
+    return os.path.join(riboseq_data, 'without-rrna-mapping', 'fastqc', fastqc_folder, 
+        'Images', 'sequence_length_distribution.png')
+
     
 # used
 def get_riboseq_bayes_factors(riboseq_base, name, length=None, offset=None, is_unique=False, 
@@ -244,13 +262,19 @@ def get_riboseq_fastq(riboseq_data, name):
 
 # m
 
-def get_riboseq_metagene_profile_image(riboseq_base, name, image_type='eps', length=None, is_unique=False, is_cds_only=False, is_transcriptome=False, note=None):
-    s = get_riboseq_base(riboseq_base, name, 'metagene-profiles', length=length, is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
+def get_riboseq_metagene_profile_image(riboseq_base, name, image_type='eps', 
+        length=None, is_unique=False, is_cds_only=False, is_transcriptome=False, note=None):
+
+    s = get_riboseq_base(riboseq_base, name, 'metagene-profiles', length=length, 
+        is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
     s = s + "." + image_type
     return s
 
-def get_metagene_profile_bayes_factor_image(riboseq_base, name, image_type='eps', length=None, is_unique=False, is_cds_only=False, is_transcriptome=False, note=None):
-    s = get_riboseq_base(riboseq_base, name, 'metagene-profiles', length=length, is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
+def get_metagene_profile_bayes_factor_image(riboseq_base, name, image_type='eps', 
+        length=None, is_unique=False, is_cds_only=False, is_transcriptome=False, note=None):
+
+    s = get_riboseq_base(riboseq_base, name, 'metagene-profiles', length=length, 
+        is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
     s = s + ".bayes-factors." + image_type
     return s
 

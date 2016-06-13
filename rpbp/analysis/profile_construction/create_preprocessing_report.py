@@ -6,6 +6,7 @@ import logging
 import os
 import pandas as pd
 
+import misc.latex as latex
 import misc.utils as utils
 import rpbp.filenames as filenames
 
@@ -18,20 +19,56 @@ default_max_metagene_profile_bayes_factor_var = 5
 default_min_visualization_count = 500
 default_num_procs = 1
 
+abstract = """
+This document shows the results of preprocessing steps. 
+In particular, it shows the amount of reads filtered at each step in the pipeline. 
+Additionally, it includes ``metagene'' profile figures for all of the samples.
+"""
+
+read_filtering_label = "fig:mapping-info"
+length_distribution_section_label = "sec:read-length-distribution"
+periodicity_label = "sec:periodicity"
+
+mapping_and_filtering_text = """
+Our \\riboseq processing pipeline consists of the following steps.
+
+\\begin{enumerate}
+\\item Adapters and low quality reads are removed.
+\\item Reads mapping to rRNA are removed.
+\\item Reads are aligned to the genome.
+\\item Reads with multiple alignments are removed.
+\\item Reads with length that do not result in a strong periodic signal are removed.
+\\item Remaing reads are used to construct the filtered genome profile
+\\end{enumerate}
+
+Figure~\\ref{fig:mapping-info}(left) shows the number of reads remaining after each stage in our preprocessing pipeline for all samples.
+Figure~\ref{fig:mapping-info}(right) shows a ``zoomed in'' version which does not include the reads of poor quality and that mapped to ribosomal sequences.
+"""
+
+read_length_distribution_text = """
+This section shows the distribution of read lengths \\textbf{for reads which uniquely map to the genome}.
+"""
+
+read_filtering_caption = """
+The number of reads lost at each stage in the mapping pipeline. 
+\texttt{wrong\_length} refers to reads which have a length that does not result in a strong periodic signal (see Section~\ref{sec:periodicity}).
+"""
+
 def create_figures(config_file, config, name, offsets_df, args):
     """ This function creates all of the figures in the preprocessing report
         for the given dataset.
     """
+    note = config.get('note', None)
     # visualize the metagene profiles
     msg = "{}: Visualizing metagene profiles and Bayes' factors".format(name)
     logging.info(msg)
     logging.debug("overwrite: {}".format(args.overwrite))
 
     metagene_profiles = filenames.get_metagene_profiles(config['riboseq_data'], 
-        name, is_unique=True)
+        name, is_unique=True, note=note)
     
     profile_bayes_factor = filenames.get_metagene_profiles_bayes_factors(config['riboseq_data'],
-        name, is_unique=True)
+        name, is_unique=True, note=note)
 
     mp_df = pd.read_csv(metagene_profiles)
 
@@ -54,7 +91,7 @@ def create_figures(config_file, config, name, offsets_df, args):
         # visualize the metagene profile
         title = "Periodicity, {}, length {}".format(name, length)
         metagene_profile_image = filenames.get_riboseq_metagene_profile_image(config['riboseq_data'], 
-            name, image_type='eps', is_unique=True, length=length)
+            name, image_type='eps', is_unique=True, length=length, note=note)
         cmd = ("visualize-metagene-profile {} {} {} --title \"{}\"".format(
             metagene_profiles, length, metagene_profile_image, title))
         in_files = [metagene_profiles]
@@ -64,7 +101,7 @@ def create_figures(config_file, config, name, offsets_df, args):
         # and the Bayes' factor
         title = "Metagene profile Bayes' factors, {}, length {}".format(name, length)
         metagene_profile_image = filenames.get_metagene_profile_bayes_factor_image(
-            config['riboseq_data'], name, image_type='eps', is_unique=True, length=length)
+            config['riboseq_data'], name, image_type='eps', is_unique=True, length=length, note=note)
         cmd = ("visualize-metagene-profile-bayes-factor {} {} {} --title \"{}\" "
             "--font-size 25".format(profile_bayes_factor, length, metagene_profile_image, title))
         in_files = [profile_bayes_factor]
@@ -74,7 +111,8 @@ def create_figures(config_file, config, name, offsets_df, args):
 def create_read_filtering_plots(config_file, config, args):
         
     # get the filtering counts
-    read_filtering_counts = filenames.get_riboseq_read_filtering_counts(config['riboseq_data'])
+    note = config.get('note', None)
+    read_filtering_counts = filenames.get_riboseq_read_filtering_counts(config['riboseq_data'], note=note)
     overwrite_str = ""
     if args.overwrite:
         overwrite_str = "--overwrite"
@@ -93,7 +131,7 @@ def create_read_filtering_plots(config_file, config, args):
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
 
     # and visualize them
-    read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(config['riboseq_data'])
+    read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(config['riboseq_data'], note=note)
     title = "Read filtering counts"
     cmd = "visualize-read-filtering-counts {} {} --title \"{}\"".format(read_filtering_counts, 
         read_filtering_image, title)
@@ -102,8 +140,8 @@ def create_read_filtering_plots(config_file, config, args):
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
 
     # and visualize the filtering without the rrna
-    read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(
-        config['riboseq_data'], note="no-rrna")
+    n = "no-rrna-{}".format(note)
+    read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(config['riboseq_data'], note=n)
     title = "Read filtering counts, no ribosomal matches"
     cmd = "visualize-read-filtering-counts {} {} --title \"{}\" --without-rrna".format(
         read_filtering_counts, read_filtering_image, title)
@@ -148,16 +186,15 @@ def main():
                 ]
     utils.check_programs_exist(programs)
 
+    note = config.get('note', None)
+
 
     # make sure the path to the output file exists
     os.makedirs(args.out, exist_ok=True)
 
-    project_name = config.get("project_name", default_project_name)
-    header, footer = get_header_and_footer_text(project_name, config['riboseq_data'])
-
+   
     # first, create the read filtering information
     create_read_filtering_plots(args.config, config, args)
-
 
     min_metagene_profile_count = config.get(
         "min_metagene_profile_count", default_min_metagene_profile_count)
@@ -168,12 +205,61 @@ def main():
     max_metagene_profile_bayes_factor_var = config.get(
         "max_metagene_profile_bayes_factor_var", default_max_metagene_profile_bayes_factor_var)
 
-    tex_file = os.path.join(args.out, "preprocessing-report.tex")
 
+    project_name = config.get("project_name", default_project_name)
+    title = "Preprocessing results for {}".format(project_name)
+   
+    header = latex.get_header_text(title, abstract)
+    footer = latex.get_footer_text()
+
+    tex_file = os.path.join(args.out, "preprocessing-report.tex")
     with open(tex_file, 'w') as out:
 
         out.write(header)
         out.write("\n")
+
+        latex.section(out, "Introduction"}
+
+        latex.clearpage(out)
+        latex.newpage(out)
+
+        latex.section("Mapping and filtering")
+        out.write(mapping_and_filtering_text)
+
+        # the read filtering figures
+
+        read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(
+            config['riboseq_data'], note=note)
+    
+        n = "no-rrna-{}".format(note)
+        no_rrna_read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(
+            config['riboseq_data'], note=n)
+
+        latex.begin_figure(out)
+        latex.write_graphics(out, read_filtering_image, width=0.75)
+        latex.write_graphics(out, no_rrna_read_filtering_image, width=0.75)
+        latex.write_caption(out, read_filtering_caption, label=read_filtering_label)
+        latex.end_figure(out)
+
+        # the read length distributions
+        latex.section(out, "Read length distributions", label=length_distribution_section_label)
+        out.write(read_length_distribution_text)
+
+        msg = "Writing length distribution figures"
+        logging.info(msg)
+
+        for name, data in config['riboseq_samples'].items():
+            unique_filename_fastqc_read_lengths = filenames.get_riboseq_bam_fastqc_data(
+                config['riboseq_data'], name, is_unique=True, note=note)
+
+            caption = "Read length distribution of mapped reads for {}".format(name)
+            latex.begin_figure(out)
+            latex.write_graphics(out, unique_filename_fastqc_read_lengths, width=0.5)
+            latex.write_caption(caption)
+            latex.end_figure(out)
+
+
+        latex.section(out, "Periodicity", label=periodicity_label)
 
         for name, data in config['riboseq_samples'].items():
             msg = "Processing sample: {}".format(name)
@@ -181,7 +267,8 @@ def main():
 
             logging.debug("overwrite: {}".format(args.overwrite))
     
-            periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], name, is_unique=True)
+            periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], 
+                name, is_unique=True, note=note)
             offsets_df = pd.read_csv(periodic_offsets)
 
             min_read_length = int(offsets_df['length'].min())
@@ -189,9 +276,19 @@ def main():
     
             create_figures(args.config, config, name, offsets_df, args)
 
-            out.write("\\begin{figure}\n")
-            out.write("\t\\centering\n")
-            
+
+            # first, the read length figure
+            without_rrna_fastqc_read_lengths = filenames.get_without_rrna_fastqc_read_lengths(
+                config['riboseq_data'], name, note=note)
+            read_lengths_caption = "Read length distribution of mapped read for {}".format(name)
+
+            latex.begin_figure(out)
+            latex.write_graphics(out, without_rrna_fastqc_read_lengths, width=0.5)
+            latex.write_caption(read_lengths_caption)
+            latex.end_figure(out)
+
+            latex.begin_figure(out)
+
             i = 0
             for length in range(min_read_length, max_read_length + 1):
                 msg = "Processing length: {}".format(length)
@@ -239,36 +336,26 @@ def main():
                 out.write("\n\n")
 
                 metagene_profile_image = filenames.get_riboseq_metagene_profile_image(
-                    config['riboseq_data'], name, image_type='eps', is_unique=True, length=length)
+                    config['riboseq_data'], name, image_type='eps', is_unique=True, length=length, note=note)
                 metagene_profile_image = metagene_profile_image.replace(".eps", "}.eps")
                 
                 bayes_factor_image = filenames.get_metagene_profile_bayes_factor_image(
-                    config['riboseq_data'], name, image_type='eps', is_unique=True, length=length)
+                    config['riboseq_data'], name, image_type='eps', is_unique=True, length=length, note=note)
                 bayes_factor_image = bayes_factor_image.replace(".eps", "}.eps")
-                
-                out.write("\t\\includegraphics[width=0.6\\textwidth,keepaspectratio]{{")
-                out.write(metagene_profile_image)
-                out.write("}\n")
-                
-                out.write("\t\\includegraphics[width=0.39\\textwidth,keepaspectratio]{{")
-                out.write(bayes_factor_image)
-                out.write("}\n")
 
-                
+                latex.write_graphics(out, metagene_profile_image, width=0.6)
+                latex.write_graphics(out, bayes_factor_image, width=0.39)
+                                
                 i += 1
 
                 if i % 5 == 0:
-                    out.write("\t\\caption{{{0}}}\n".format(name.replace("_", "-")))
-                    out.write("\\end{figure}\n")
-                    out.write("\n")
-                    out.write("\\clearpage\n")
-                    out.write("\\begin{figure}\n")
-                    out.write("\t\\centering\n")
+                    latex.write_caption(out, name)
+                    latex.end_figure(out)
+                    latex.clearpage(out)
+                    latex.begin_figure(out)
 
-            out.write("\t\\caption{{{0}}}\n".format(name.replace("_", "-")))
-            out.write("\\end{figure}\n")
-            out.write("\n")
-        
+            latex.write_caption(out, name)
+            latex.end_figure(out)
 
         out.write(footer)
 
@@ -280,106 +367,3 @@ def main():
 if __name__ == '__main__':
     main()
 
-def get_header_and_footer_text(project_name, riboseq_data):
-    header = r"""
-\documentclass[a4paper,10pt]{article} % For LaTeX2e
-\usepackage[utf8]{inputenc}
-\usepackage{amsmath}
-\usepackage{graphicx}
-\usepackage{float}
-\usepackage{xspace}
-\usepackage{morefloats}
-
-\pagestyle{empty}
-
-\setlength{\parskip}{2mm}
-\setlength{\parindent}{0cm}
-
-
-
-
-\title{Preprocessing results for <project_name>}
-
-\def\|#1{\ensuremath{\mathtt{#1}}}
-\def\!#1{\ensuremath{\mathbf{#1}}}
-\def\*#1{\ensuremath{\mathcal{#1}}}
-
-\newcommand*{\defeq}{\mathrel{\vcenter{\baselineskip0.5ex \lineskiplimit0pt
-                     \hbox{\scriptsize.}\hbox{\scriptsize.}}}%
-                     =}
-
-
-\DeclareMathOperator*{\argmax}{arg\,max}
-
-\newtheorem{definition}{Definition}
-\newtheorem{theorem}{Theorem}
-
-\newcommand{\bitseq}{\textsc{BitSeq}\xspace}
-\newcommand{\flexbar}{\textsc{Flexbar}\xspace}
-\newcommand{\bowtiep}{\textsc{Bowtie2}\xspace}
-\newcommand{\starp}{\textsc{STAR}\xspace}
-
-\newcommand{\te}{\textsc{TE}\xspace}
-\newcommand{\riboseq}{ribo-seq\xspace}
-\newcommand{\rnaseq}{\textsc{RNA}-Seq\xspace}
-\newcommand{\tets}{\ensuremath{\te_t^s}\xspace}
-\newcommand{\ribots}{\ensuremath{ribo_t^s}\xspace}
-\newcommand{\rnats}{\ensuremath{rna_t^s}\xspace}
-
-\newcommand{\dep}{\ensuremath{\mathcal{M}^{dep}}}
-\newcommand{\indep}{\ensuremath{\mathcal{M}^{indep}}}
-
-\begin{document}
-
-
-\maketitle
-
-\begin{abstract}
-This document shows the results of preprocessing steps. 
-In particular, it shows the amount of reads filtered at each step in the pipeline. 
-Additionally, it includes ``metagene'' profile figures for all of the samples.
-\end{abstract}
-
-\section{Introduction}
-
-
-\section{Mapping and filtering}
-
-Our \riboseq processing pipeline consists of the following steps.
-
-\textbf{1}. Adapters and low quality reads are removed.\\
-\textbf{2}. Reads mapping to rRNA are removed.\\
-\textbf{3}. Reads are aligned to the genome.\\
-\textbf{4}. Reads with multiple alignments are removed.\\
-\textbf{5}. Reads with length that do not result in a strong periodic signal are removed.\\
-\textbf{6}. Remaing reads are used to construct the filtered genome profile
-
-Figure~\ref{fig:mapping-info}(left) shows the number of reads remaining after each stage in our preprocessing pipeline for all samples.
-Figure~\ref{fig:mapping-info}(right) shows a ``zoomed in'' version which does not include the reads of poor quality and that mapped to ribosomal sequences.
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.75\textwidth,keepaspectratio]{<riboseq_data>/read-filtering-counts.eps}
-    \includegraphics[width=0.75\textwidth,keepaspectratio]{<riboseq_data>/{read-filtering-counts.no-rrna}.eps}
-    \caption{The number of reads lost at each stage in the mapping pipeline. \texttt{wrong\_length} refers to reads which have a length that does not result in a strong periodic signal (see Section~\ref{sec:periodicity}). Please note the different colors in the figures. \label{fig:mapping-info}}
-\end{figure}
-
-
-\section{Periodicity}
-\label{sec:periodicity}
-
-        """
-
-    footer = r"""
-
-%\small
-%\bibliographystyle{abbrv}
-%\bibliography{library}
-
-\end{document}
-        """
-
-    header = header.replace("<project_name>", project_name)
-    header = header.replace("<riboseq_data>", riboseq_data)
-
-    return (header, footer)
