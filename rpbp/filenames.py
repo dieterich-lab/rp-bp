@@ -401,8 +401,10 @@ def get_riboseq_profiles(riboseq_base, name, length=None, offset=None, is_unique
 
 # r
 
-def get_riboseq_read_filtering_counts(riboseq_base):
-    s = os.path.join(riboseq_base, 'read-filtering-counts.csv.gz')
+def get_riboseq_read_filtering_counts(riboseq_base, note=None):
+    note_str = get_note_string(note)
+    fn = "read-filtering-counts{}.csv.gz".format(note_str)
+    s = os.path.join(riboseq_base, fn)
     return s
 
 def get_riboseq_read_filtering_counts_image(riboseq_base, note="", image_type="eps"):
