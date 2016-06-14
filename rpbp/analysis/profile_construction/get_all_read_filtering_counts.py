@@ -45,7 +45,7 @@ def get_counts(name_data, config, args):
 
     # now, get the fastqc report filenames
     raw_data_fastqc = filenames.get_raw_data_fastqc_data(
-        config['riboseq_data'], raw_data, note=note)
+        config['riboseq_data'], raw_data)
     without_adapters_fastqc = filenames.get_without_adapters_fastqc_data(
         config['riboseq_data'], name, note=note)
     with_rrna_fastqc = filenames.get_with_rrna_fastqc_data(
@@ -54,7 +54,7 @@ def get_counts(name_data, config, args):
         config['riboseq_data'], name, note=note)
 
     genome_bam_fastqc = filenames.get_riboseq_bam_fastqc_data(
-        config['riboseq_data'], name)
+        config['riboseq_data'], name, note=note)
     unique_filename_fastqc = filenames.get_riboseq_bam_fastqc_data(
         config['riboseq_data'], name, is_unique=True, note=note)
 

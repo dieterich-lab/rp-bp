@@ -218,12 +218,12 @@ def main():
         out.write(header)
         out.write("\n")
 
-        latex.section(out, "Introduction"}
+        latex.section(out, "Introduction")
 
         latex.clearpage(out)
         latex.newpage(out)
 
-        latex.section("Mapping and filtering")
+        latex.section(out, "Mapping and filtering")
         out.write(mapping_and_filtering_text)
 
         # the read filtering figures
@@ -249,13 +249,13 @@ def main():
         logging.info(msg)
 
         for name, data in config['riboseq_samples'].items():
-            unique_filename_fastqc_read_lengths = filenames.get_riboseq_bam_fastqc_data(
+            unique_filename_fastqc_read_lengths = filenames.get_riboseq_bam_fastqc_read_lengths(
                 config['riboseq_data'], name, is_unique=True, note=note)
 
             caption = "Read length distribution of mapped reads for {}".format(name)
             latex.begin_figure(out)
             latex.write_graphics(out, unique_filename_fastqc_read_lengths, width=0.5)
-            latex.write_caption(caption)
+            latex.write_caption(out, caption)
             latex.end_figure(out)
 
 
@@ -278,13 +278,13 @@ def main():
 
 
             # first, the read length figure
-            without_rrna_fastqc_read_lengths = filenames.get_without_rrna_fastqc_read_lengths(
+            without_rrna_fastqc_read_lengths = filenames.get_riboseq_bam_fastqc_read_lengths(
                 config['riboseq_data'], name, note=note)
             read_lengths_caption = "Read length distribution of mapped read for {}".format(name)
 
             latex.begin_figure(out)
             latex.write_graphics(out, without_rrna_fastqc_read_lengths, width=0.5)
-            latex.write_caption(read_lengths_caption)
+            latex.write_caption(out, read_lengths_caption)
             latex.end_figure(out)
 
             latex.begin_figure(out)
@@ -337,11 +337,9 @@ def main():
 
                 metagene_profile_image = filenames.get_riboseq_metagene_profile_image(
                     config['riboseq_data'], name, image_type='eps', is_unique=True, length=length, note=note)
-                metagene_profile_image = metagene_profile_image.replace(".eps", "}.eps")
                 
                 bayes_factor_image = filenames.get_metagene_profile_bayes_factor_image(
                     config['riboseq_data'], name, image_type='eps', is_unique=True, length=length, note=note)
-                bayes_factor_image = bayes_factor_image.replace(".eps", "}.eps")
 
                 latex.write_graphics(out, metagene_profile_image, width=0.6)
                 latex.write_graphics(out, bayes_factor_image, width=0.39)
