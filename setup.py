@@ -59,6 +59,7 @@ setup(name='rpbp',
                                 'get-all-orf-peptide-matches=rpbp.analysis.proteomics.get_all_orf_peptide_matches:main [analysis]',
                                 'create-orf-peptide-coverage-line-graph=rpbp.analysis.proteomics.create_orf_peptide_coverage_line_graph:main [analysis]',
                                 'create-proteomics-report=rpbp.analysis.proteomics.create_proteomics_report:main [analysis]'
+                                'create-riboseq-test-dataset=rpbp.analysis.create_riboseq_test_dataset:main [analysis]'
                                ]
         },
         zip_safe=False
