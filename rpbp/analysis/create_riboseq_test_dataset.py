@@ -3,6 +3,7 @@
 import argparse
 import itertools
 import logging
+import yaml
 
 import pysam
 
@@ -11,7 +12,7 @@ import misc.utils as utils
 import rpbp.filenames as filenames
 
 default_reference = 'I'
-
+default_max_reads = 100000
 
 def get_first_token(s):
     return s.split()[0]
@@ -34,7 +35,9 @@ def main():
     
     utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(parser)
+    utils.update_logging(args)
+
+    config = yaml.load(open(args.config))
 
     note = config.get('note', None)
 
@@ -61,7 +64,7 @@ def main():
     rrna_qnames = {get_first_token(read[0]) for read in rrna}
 
     ###
-    msg = "Extracting a similar number of reads which do not map to the genome"
+    msg = "Extracting a similar number of reads which do not uniquely map to the genome"
     logging.info(msg)
 
     # first, pull out the qnames of all alignments
@@ -80,11 +83,23 @@ def main():
     logging.info(msg)
 
     # first, pull in all the reads and their names
+
+    msg = "Reading all reads into a dictionary"
+    logging.debug(msg)
+
     raw_data_file = config['riboseq_samples'][args.name]
     raw_data = bio.get_fasta_dict(raw_data_file, is_fasta=False, key_fn=get_first_token)
     raw_data_qnames = set(raw_data.keys())
 
+    msg = "Reading quality scores into dictionary"
+    logging.debug(msg)
+
+    raw_data_qual = bio.get_fastq_qual_dict(raw_data_file, key_fn=get_first_token)
+
     # now, the reads which _did_ pass quality filtering
+    msg = "Reading reads which pass quality filtering into a set"
+    logging.debug(msg)
+
     without_adapters_file = filenames.get_without_adapters_fastq(config['riboseq_data'], args.name, note=note)
     without_adapters = bio.get_read_iterator(without_adapters_file, is_fasta=False)
     without_adapters_qnames = {get_first_token(read[0]) for read in without_adapters}
@@ -117,7 +132,7 @@ def main():
     msg = "Writing sequences to disk"
     logging.info(msg)
 
-    bio.write_fasta(out_raw_data, args.out, progress_bar=True)
+    bio.write_fastq(out_raw_data, raw_data_qual, args.out, progress_bar=True)
 
 if __name__ == '__main__':
     main()
