@@ -230,7 +230,7 @@ def get_riboseq_bam_fastqc_data(riboseq_data, name, length=None, is_unique=False
     fastqc_folder = '{}_fastqc'.format(name)
     return os.path.join(riboseq_data, 'without-rrna-mapping', 'fastqc', fastqc_folder, 'fastqc_data.txt')
 
-# used
+# not used
 def get_riboseq_bam_fastqc_read_lengths(riboseq_data, name, length=None, is_unique=False, 
         is_cds_only=False, is_transcriptome=False, note=None):
 
@@ -412,6 +412,28 @@ def get_riboseq_read_filtering_counts_image(riboseq_base, note="", image_type="e
     fn = "read-filtering-counts{}.{}".format(note_str, image_type)
     s = os.path.join(riboseq_base, fn)
     return s
+
+def get_riboseq_read_length_distribution(riboseq_data, name, length=None, is_unique=False, 
+        is_cds_only=False, is_transcriptome=False, note=None):
+
+    s = get_riboseq_base(riboseq_base, name, 'without-rrna-mapping', length=length, offset=offset, 
+            is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
+
+    s = s + ".length-distribution.csv.gz"
+    return s
+
+
+def get_riboseq_read_length_distribution(riboseq_data, name, length=None, is_unique=False, 
+        is_cds_only=False, is_transcriptome=False, note=None, image_type='eps'):
+
+    subfolder = os.path.join('without-rrna-mapping', 'plots')
+
+    s = get_riboseq_base(riboseq_base, name, subfolder, length=length, offset=offset, 
+            is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
+
+    s = s + ".length-distribution.{}".format(image_type)
+    return s
+
 
     
 
