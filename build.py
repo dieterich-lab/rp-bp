@@ -19,6 +19,7 @@ install_requirements = [
     "joblib",
     "docopt",
     "tqdm",
+    "statsmodels",
     "pysam",
     "pyfasta",
     "pystan",
@@ -36,6 +37,7 @@ clean_requirements = [
     "joblib",
     "docopt",
     "tqdm",
+    "statsmodels",
     "pysam",
     "pyfasta",
     "pystan",
@@ -90,11 +92,11 @@ def install(openblas_install_path):
         msg = "Symlinks will be created to the OpenBLAS libraries."
         logging.info(msg)
 
-        if os.path.exists(open_blas_symlink_path):
+        if os.path.lexists(open_blas_symlink_path):
             os.remove(open_blas_symlink_path)
         os.symlink(open_blas_library_path, open_blas_symlink_path)
 
-        if os.path.exists(open_blas_0_symlink_path):
+        if os.path.lexists(open_blas_0_symlink_path):
             os.remove(open_blas_0_symlink_path)
         os.symlink(open_blas_0_library_path, open_blas_0_symlink_path)
 
@@ -113,11 +115,11 @@ def install(openblas_install_path):
         virtual_env_lib_path = os.path.join(virtual_env_path, 'lib', 'libopenblas.so')
         virtual_env_0_lib_path = os.path.join(virtual_env_path, 'lib', 'libopenblas.so.0')
         
-        if os.path.exists(virtual_env_lib_path):
+        if os.path.lexists(virtual_env_lib_path):
             os.remove(virtual_env_lib_path)
         os.symlink(open_blas_symlink_path, virtual_env_lib_path)
 
-        if os.path.exists(virtual_env_0_lib_path):
+        if os.path.lexists(virtual_env_0_lib_path):
             os.remove(virtual_env_0_lib_path)
         os.symlink(open_blas_0_symlink_path, virtual_env_0_lib_path)
 

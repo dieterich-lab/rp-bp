@@ -7,6 +7,7 @@ import sys
 
 import yaml
 
+import misc.slurm as slurm
 import misc.utils as utils
 
 
@@ -25,22 +26,15 @@ def main():
     parser.add_argument('config', help="The (yaml) config file")
     parser.add_argument('name', help="The name for the dataset, used in the created files")
 
-    parser.add_argument('-p', '--num-procs', help="The number of processors to use",
-        type=int, default=default_num_procs)
     parser.add_argument('--tmp', help="The temp directory for pybedtools", default=default_tmp)
 
     parser.add_argument('--star-executable', help="The name of the STAR executable",
         default=default_star_executable)
         
-    parser.add_argument('--do-not-call', action='store_true')
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
-        
-    parser.add_argument('--use-slurm', help="If this flag is present, then the script "
-        "will submit itself to slurm (with call-sbatch from the misc package) rather "
-        "than executing in the current context.", action='store_true')
-
-    
+           
+    slurm.add_sbatch_options(parser)
     utils.add_logging_options(parser)
     args = parser.parse_args()
     utils.update_logging(args)
@@ -81,32 +75,14 @@ def main():
                         'fasta',
                         'gtf',
                         'models_base'
-                        #'translated_models',
-                        #'untranslated_models',
-                        #'periodic_models',
-                        #'nonperiodic_models'
                     ]
     utils.check_keys_exist(config, required_keys)
 
     
     # now, check if we want to use slurm
     if args.use_slurm:
-        msg = ("The --use-slurm option was given. The required programs and config keys are "
-            "present, so call-sbatch will now be used to submit to slurm.")
-        logging.warning(msg)
-
-        args = ["call-sbatch", "--num-cpus", str(args.num_procs)]
-        args = args + sys.argv
-
-        # ! remove the --use-slurm option!
-        args.remove('--use-slurm')
-
-        call = ' '.join(args)
-        logging.warning(call)
-
-        # replace the current process with the call to sbatch
-        os.execvp("call-sbatch", args)
-
+        cmd = ' '.join(sys.argv)
+        slurm.check_sbatch(cmd, args)
 
     note_str = config.get('note', None)
 
@@ -129,14 +105,13 @@ def main():
         tmp_str = "--tmp {}".format(args.tmp)
 
     cmd = ("create-filtered-genome-profile {} {} {} --num-procs {} {} {} {} {} {}".format(args.raw_data, 
-            args.config, args.name, args.num_procs, do_not_call_str, overwrite_str, logging_str, star_str, tmp_str))
+            args.config, args.name, args.num_cpus, do_not_call_str, overwrite_str, logging_str, star_str, tmp_str))
 
-    # we always make the call, and let the individual script handle "--do-not-call"
     utils.check_call(cmd)
 
     # then we predict the ORFs
     cmd = ("predict-translated-orfs {} {} --num-procs {} {} {} {} {}".format(args.config, 
-            args.name, args.num_procs, tmp_str, do_not_call_str, overwrite_str, logging_str))
+            args.name, args.num_cpus, tmp_str, do_not_call_str, overwrite_str, logging_str))
     utils.check_call(cmd)
 
 if __name__ == '__main__':
