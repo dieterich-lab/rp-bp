@@ -116,6 +116,7 @@ def main():
         args.num_procs, config['ribosomal_index'], without_adapters, out, 
         without_rrna, with_rrna)
     in_files = [without_adapters]
+    in_files.extend(bio.get_bowtie2_index_files(config['ribosomal_index']))
     out_files = [without_rrna, with_rrna]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
@@ -153,6 +154,7 @@ def main():
         out_filter_mismatch_n_over_l_max_str, out_sam_attributes_str, star_output_prefix,
         star_out_str, star_tmp_str))
     in_files = [without_rrna]
+    in_files.extend(bio.get_star_index_files(star_index))
     out_files = [transcriptome_bam, genome_star_bam]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
