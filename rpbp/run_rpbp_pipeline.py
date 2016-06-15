@@ -80,9 +80,13 @@ def main():
 
     
     # now, check if we want to use slurm
+    msg = "use_slurm: {}".format(args.use_slurm)
+    logging.debug(msg)
+
     if args.use_slurm:
         cmd = ' '.join(sys.argv)
-        slurm.check_sbatch(cmd, args)
+        slurm.check_sbatch(cmd, args=args)
+        return
 
     note_str = config.get('note', None)
 

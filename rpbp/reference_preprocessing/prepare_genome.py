@@ -59,28 +59,8 @@ def main():
 
     # now, check if we want to use slurm
     if args.use_slurm:
-        msg = ("The --use-slurm option was given. The required programs and config keys are "
-            "present, so call-sbatch will now be used to submit to slurm.")
-        logging.warning(msg)
-
-        # build up the command by pulling out the non-sbatch options
-        cmd_args = [sys.argv[0], args.config, "--star-executable", args.star_executable,
-            "--mem", str(args.mem), "--num-cpus", str(args.num_cpus)]
-
-        if args.overwrite:
-            cmd_args = cmd_args + ["--overwrite"]
-
-        slurm_options = slurm.get_slurm_options_string(args).split(' ')
-        slurm_args = ["call-sbatch"] + slurm_options
-        
-        args = slurm_args + cmd_args
-
-        cmd = ' '.join(args)
-        logging.warning(cmd)
-
-        slurm.check_sbatch(cmd, args)
-
-        # and quit!
+        cmd = ' '.join(sys.argv)
+        slurm.check_sbatch(cmd, args=args)
         return
    
     # the rrna index
