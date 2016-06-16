@@ -11,6 +11,7 @@ import misc.utils as utils
 import rpbp.filenames as filenames
 
 default_tmp = None
+default_image_type = 'eps'
 
 default_project_name = "ribosome profiling data"
 default_min_metagene_profile_count = 1000
@@ -58,6 +59,7 @@ def create_figures(config_file, config, name, offsets_df, args):
     """ This function creates all of the figures in the preprocessing report
         for the given dataset.
     """
+    logging_str = utils.get_logging_options_string(args)
     note = config.get('note', None)
 
     note_str = ''
@@ -81,7 +83,7 @@ def create_figures(config_file, config, name, offsets_df, args):
     read_length_distribution_image = filenames.get_riboseq_read_length_distribution_image(
         config['riboseq_data'], name, is_unique=False, note=note, image_type=args.image_type)
 
-    cmd = "get-read-length-distribution {} {}".format(genome_bam, read_length_distribution)
+    cmd = "get-read-length-distribution {} {} {}".format(genome_bam, read_length_distribution, logging_str)
     in_files = [genome_bam]
     out_files = [read_length_distribution]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
@@ -104,7 +106,7 @@ def create_figures(config_file, config, name, offsets_df, args):
     unique_read_length_distribution_image = filenames.get_riboseq_read_length_distribution_image(
         config['riboseq_data'], name, is_unique=True, note=note, image_type=args.image_type)
     
-    cmd = "get-read-length-distribution {} {}".format(unique_filename, unique_read_length_distribution)
+    cmd = "get-read-length-distribution {} {} {}".format(unique_filename, unique_read_length_distribution, logging_str)
     in_files = [unique_filename]
     out_files = [unique_read_length_distribution]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
@@ -243,7 +245,9 @@ def main():
                     'fastqc',
                     'java',
                     'samtools',
-                    'visualize-read-filtering-counts'
+                    'visualize-read-filtering-counts',
+                    'get-read-length-distribution',
+                    'plot-read-length-distribution'
                 ]
     utils.check_programs_exist(programs)
 
@@ -322,6 +326,8 @@ def main():
             latex.write_caption(out, caption)
             latex.end_figure(out)
 
+            latex.clearpage(out)
+
 
         latex.section(out, "Periodicity", label=periodicity_label)
 
@@ -341,15 +347,7 @@ def main():
             create_figures(args.config, config, name, offsets_df, args)
 
 
-            # first, the read length figure
-            without_rrna_fastqc_read_lengths = filenames.get_riboseq_bam_fastqc_read_lengths(
-                config['riboseq_data'], name, note=note)
-            read_lengths_caption = "Read length distribution of mapped read for {}".format(name)
-
-            latex.begin_figure(out)
-            latex.write_graphics(out, without_rrna_fastqc_read_lengths, width=0.5)
-            latex.write_caption(out, read_lengths_caption)
-            latex.end_figure(out)
+            latex.clearpage(out)
 
             latex.begin_figure(out)
 

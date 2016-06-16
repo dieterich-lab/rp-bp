@@ -413,8 +413,8 @@ def get_riboseq_read_filtering_counts_image(riboseq_base, note="", image_type="e
     s = os.path.join(riboseq_base, fn)
     return s
 
-def get_riboseq_read_length_distribution(riboseq_data, name, length=None, is_unique=False, 
-        is_cds_only=False, is_transcriptome=False, note=None):
+def get_riboseq_read_length_distribution(riboseq_base, name, length=None, is_unique=False, 
+        is_cds_only=False, is_transcriptome=False, offset=None, note=None):
 
     s = get_riboseq_base(riboseq_base, name, 'without-rrna-mapping', length=length, offset=offset, 
             is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
@@ -423,8 +423,8 @@ def get_riboseq_read_length_distribution(riboseq_data, name, length=None, is_uni
     return s
 
 
-def get_riboseq_read_length_distribution(riboseq_data, name, length=None, is_unique=False, 
-        is_cds_only=False, is_transcriptome=False, note=None, image_type='eps'):
+def get_riboseq_read_length_distribution_image(riboseq_base, name, length=None, is_unique=False, 
+        is_cds_only=False, is_transcriptome=False, note=None, offset=None, image_type='eps'):
 
     subfolder = os.path.join('without-rrna-mapping', 'plots')
 
