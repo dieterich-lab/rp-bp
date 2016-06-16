@@ -68,45 +68,124 @@ def get_periodic_lengths_and_offsets(config, name, do_not_call=False):
 
 default_min_signal = 10
 default_min_bf_mean = 5
-default_max_bf_var = 2
-default_min_length = 200
+default_max_bf_var = None
+default_min_bf_likelihood = None
+default_min_length = 0
 default_chisq_alpha = 0.01
 
-def get_predicted_orfs(bf, min_signal=default_min_signal, min_bf_mean=default_min_bf_mean, 
-                       max_bf_var=default_max_bf_var, min_length=default_min_length,
-                       chisq_alpha=default_chisq_alpha):
+def get_predicted_orfs(bf, min_signal=default_min_signal, 
+                            min_length=default_min_length,
+                            min_bf_mean=default_min_bf_mean, 
+                            max_bf_var=default_max_bf_var,
+                            min_bf_likelihood=default_min_bf_likelihood,
+                            chisq_alpha=default_chisq_alpha):
+    """ This function applies a set of filters to ORFs to select those which
+        are predicted as "translated." This function selects translated ORFs
+        based on the Bayes factor estimates and the chi-square p-values. ORFs
+        must pass all of the relevant features to be selected as "translated."
+        Finally, among all ORFs which share a stop codon, only longest
+        "translated" ORF is selected.
+
+        Furthermore, for both BF and chi-square predictions, only ORFs which
+        have more reads in the first reading frame than either of the other two
+        will be selected as translated. (This is called the 'frame filter'
+        below.)
+
+        Args:
+            bf (pd.DataFrame) : a data frame containing the relevant ORF information
+
+            min_signal (int) : the minimum sum across all reading frames to consider
+                an ORF as translated
+            
+            min_length (int) : the minimum length of ORF to consider
+
+            min_bf_mean (float) : if max_bf_var is not None, then this is taken
+                as a hard threshold on the estimated Bayes factor mean. If
+                min_bf_likelihood is given, then this is taken as the boundary
+                value; that is, an ORF is "translated" if:
+
+                    [P(bf > min_bf_mean)] > min_bf_likelihood
+
+                If both max_bf_var and min_bf_likelihood are None, then this is
+                taken as a hard threshold on the mean for selecting translated ORFs.
+
+                If both max_bf_var and min_bf_likelihood are given, then both
+                filters will be applied and the result will be the intersection.
+
+            max_bf_var (float) : if given, then this is taken as a hard threshold
+                on the estimated Bayes factor variance
+
+            min_bf_likelihood (float) : if given, then this is taken a threshold
+                on the likelihood of translation (see min_bf_mean description
+                for more details)
+
+            chisq_alpha (float) : the significance value for selecting translated
+                ORFs according to the chi-square test. This value is 
+                Bonferroni-corrected based on the number of ORFs which meet the
+                length, profile and frame filters.
+
+        Returns:
+            longest_orfs (pd.DataFrame) : all longest ORFs which meet the profile,
+                 length, frame filters
+
+            bf_longest_orfs (pd.DataFrame) : all longest ORFs which meet the
+                profile, length, frame (min_bf_mean, max_bf_var, min_bf_likelihood) filters
+
+            chisq_longest_orfs (pd.DataFrame) : all longest ORFs which meet the
+                profile, length, frame, chisq_alpha filters
+
+        Imports:
+            misc.bio
+
+    """
 
     import misc.bio as bio
 
     msg = "Finding all longest ORFs with signal"
     logging.info(msg)
 
-    mask_profile = bf['profile_sum'] > min_signal
-    longest_orfs = bio.get_longest_features_by_end(bf[mask_profile])
-    
-    # create the selected ORFs
-    m_profile_sum = bf['profile_sum'] > min_signal
-    m_bf_mean = bf['bayes_factor_mean'] > min_bf_mean
-    m_bf_var = bf['bayes_factor_var'] < max_bf_var
+    m_profile = bf['profile_sum'] > min_signal
+    m_length = bf['orf_len'] > min_length
     m_x1_gt_x2 = bf['x_1_sum'] > bf['x_2_sum']
     m_x1_gt_x3 = bf['x_1_sum'] > bf['x_3_sum']
-    
-    m_length = bf['orf_len'] > min_length
 
-    m_bf_predicted = m_x1_gt_x2 & m_x1_gt_x3 & m_profile_sum & m_bf_mean & m_bf_var & m_length
+    m_base = m_profile & m_length & m_x1_gt_x2 & m_x1_gt_x3
+
+    longest_orfs = bio.get_longest_features_by_end(bf[m_base])
+    
+    # create the selected ORFs
+
+    # which bf mean/variance filters do we use? 
+    m_bf_mean = bf['bayes_factor_mean'] > min_bf_mean
+    m_bf_var = True
+    m_bf_likelihood = True
+
+    if max_bf_var is not None:
+        m_bf_var = bf['bayes_factor_var'] < max_bf_var
+    if min_bf_likelihood is not None:
+        # first, calculate the likelihood that the true BF is greater than m_bf_mean
+
+        # the likelihood that BF>min_mean is 1-cdf(estimated_mean, estimated_var)
+        likelihood = 1-scipy.stats.norm.cdf(min_bf_mean, bf['mean'], bf['std'])
+
+        # now filter
+        m_bf_likelihood = likelihood > min_bf_likelihood
+
+    # apply all the filters
+    m_bf_predicted = m_base & m_bf_mean & m_bf_var & m_bf_likelihood
 
     bf_longest_predicted_orfs = bio.get_longest_features_by_end(bf[m_bf_predicted])
 
     M = len(longest_orfs)
     # for the bonferroni correction, we only correct for the number of tests we actually consider
-    # that is, we only correct for orfs which pass the minimum profile filter
-    corrected_significance_level = chisq_alpha / sum(m_profile_sum)
+    # that is, we only correct for orfs which pass the base filter
+    corrected_significance_level = chisq_alpha / M
 
     msg = "Corrected significance level: {}".format(corrected_significance_level)
     logging.debug(msg)
     
     m_chisq_pval = bf['chi_square_p'] < corrected_significance_level
-    m_chisq_predicted = m_x1_gt_x2 & m_x1_gt_x3 & m_profile_sum & m_chisq_pval & m_length
+    m_chisq_predicted = m_base & m_chisq_pval
 
     chisq_longest_predicted_orfs = bio.get_longest_features_by_end(bf[m_chisq_predicted])
     
