@@ -64,7 +64,7 @@ def find_reverse_last_matching_read_positions(cds_region, reads):
 def get_metagene_profile(length_alignment_df, args):
     length, alignment_df = length_alignment_df
     
-    logging.info("Getting annotated start and end regions...")
+    logging.debug("Getting annotated start and end regions...")
     # pull out the canonical CDS regions
     orfs = bio.read_bed(args.orfs)
 
@@ -76,9 +76,12 @@ def get_metagene_profile(length_alignment_df, args):
     canonical_reverse_df = orfs.loc[m_canonical & m_reverse]
 
     msg = "Found {} forward canonical and {} reverse canonical ORFs".format(len(canonical_forward_df), len(canonical_reverse_df))
-    logging.info(msg)
+    logging.debug(msg)
 
     # start and end already contain the boundaries of the ORF
+
+    # TODO: these calls raise a pandas SettingWithCopyWarning. It does not look
+    # very good when executing the script.
 
     # set the ranges we want to find
     canonical_forward_df['start_upstream'] = canonical_forward_df['start'] - args.start_upstream
@@ -110,13 +113,13 @@ def get_metagene_profile(length_alignment_df, args):
 
     for seqname in seqnames:
         msg = "seqname: {}".format(seqname)
-        logging.info(msg)
+        logging.debug(msg)
         
         mask_reads_seq = alignment_df['seqname'] == seqname
         reads_region = alignment_df[mask_reads_seq]
         
         # first, handle the forward, first CDS reads
-        logging.info("ff...")
+        logging.debug("ff...")
         mask_ff_seq = canonical_forward_df['seqname'] == seqname
         forward_seq_df = canonical_forward_df[mask_ff_seq]
         res = parallel.apply_df_simple(forward_seq_df, find_forward_first_matching_read_positions, reads_region)
@@ -126,10 +129,10 @@ def get_metagene_profile(length_alignment_df, args):
             forward_first_cds_count[i] += 1
 
         msg = "Found {} reads in region".format(len(res))
-        logging.info(msg)
+        logging.debug(msg)
             
         # the forward, last CDS reads
-        logging.info("fl...")
+        logging.debug("fl...")
         res = parallel.apply_df_simple(forward_seq_df, find_forward_last_matching_read_positions, reads_region)
         if len(res) > 0:
             res = np.concatenate(res)
@@ -137,10 +140,10 @@ def get_metagene_profile(length_alignment_df, args):
             forward_last_cds_count[i] += 1
 
         msg = "Found {} reads in region".format(len(res))
-        logging.info(msg)
+        logging.debug(msg)
             
         # reverse, first CDS reads
-        logging.info("rf...")
+        logging.debug("rf...")
         mask_rf_seq = canonical_reverse_df['seqname'] == seqname
         reverse_seq_df = canonical_reverse_df[mask_rf_seq]
         res = parallel.apply_df_simple(reverse_seq_df, find_reverse_first_matching_read_positions, reads_region)
@@ -150,10 +153,10 @@ def get_metagene_profile(length_alignment_df, args):
             reverse_first_cds_count[i] += 1
 
         msg = "Found {} reads in region".format(len(res))
-        logging.info(msg)
+        logging.debug(msg)
             
         # reverse, last CDS reads
-        logging.info("rl...")
+        logging.debug("rl...")
         res = parallel.apply_df_simple(reverse_seq_df, find_reverse_last_matching_read_positions, reads_region)
         if len(res) > 0:
             res = np.concatenate(res)
@@ -161,9 +164,8 @@ def get_metagene_profile(length_alignment_df, args):
             reverse_last_cds_count[i] += 1
 
         msg = "Found {} reads in region".format(len(res))
-        logging.info(msg)
+        logging.debug(msg)
 
-    logging.info("Writing the counts...")
     # we need to reverse the "reverse" counts so they match the forward strand counts
     reverse_first_cds_count_r = reverse_first_cds_count[::-1]
     reverse_last_cds_count_r = reverse_last_cds_count[::-1]

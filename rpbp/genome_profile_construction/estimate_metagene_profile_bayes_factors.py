@@ -84,7 +84,7 @@ def estimate_profile_bayes_factors(profile, args):
         offset = start_positions[i]
 
         msg = "Length: {}, Offset: {}".format(length, offset)
-        logging.info(msg)
+        logging.debug(msg)
 
         # pull out the signal for this offset
         signal = start_counts[i:i+args.metagene_profile_length]

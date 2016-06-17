@@ -100,7 +100,7 @@ def main():
             tmp = os.path.join(args.tmp, "{}_{}_rpbp".format(name, note))
             tmp_str = "--tmp {}".format(tmp)
 
-        cmd = "run-rpbp-pipeline {} {} {} --num-procs {} {} {} {} {} {}".format(data, 
+        cmd = "run-rpbp-pipeline {} {} {} --num-cpus {} {} {} {} {} {}".format(data, 
                 args.config, name, args.num_cpus, tmp_str, do_not_call_str, 
                 overwrite_str, logging_str, star_str)
 
