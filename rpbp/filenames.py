@@ -42,6 +42,11 @@ def get_fastqc_name(filename):
 
     return filename
 
+def get_fraction_string(fraction=None):
+    fraction_str = ""
+    if (fraction is not None) and  (len(fraction) > 0):
+        fraction_str = ".frac-{}".format(fraction)
+    return fraction_str
 
 def get_length_string(length=None):
     l = ""
@@ -81,6 +86,18 @@ def get_offset_string(offset=None):
             o = ".offset-{}".format(offset)
     return o
 
+def get_reweighting_iterations_string(reweighting_iterations=None):
+    reweighting_iterations_str = ""
+    if (reweighting_iterations is not None) and  (len(reweighting_iterations) > 0):
+        reweighting_iterations_str = ".rw-{}".format(reweighting_iterations)
+    return reweighting_iterations_str
+
+
+def get_smooth_string(is_smooth):
+    s = ""
+    if is_smooth:
+        s = ".smooth"
+    return s
 
 def get_unique_string(is_unique):
     unique = ""
@@ -183,7 +200,8 @@ def get_raw_data_fastqc_data(base_path, filename):
 
 # used
 def get_riboseq_base(riboseq_base, name, sub_folder, length=None, offset=None, is_unique=False, 
-        is_cds_only=False, is_transcriptome=False, is_chisq=False, note=None):
+        is_cds_only=False, is_transcriptome=False is_smooth=False, fraction=None, 
+        reweighting_iterations=None, is_chisq=False, note=None):
     
     cds_only = get_cds_only_string(is_cds_only)
     unique = get_unique_string(is_unique)
@@ -192,8 +210,11 @@ def get_riboseq_base(riboseq_base, name, sub_folder, length=None, offset=None, i
     transcriptome = get_transcriptome_string(is_transcriptome)
     chisq = get_chisq_string(is_chisq)
     n = get_note_string(note)
+    s = get_smooth_string(is_smooth)
+    f = get_fraction_string(fraction)
+    r = get_reweighting_iterations_string(reweighting_iterations)
     return os.path.join(riboseq_base, sub_folder, 
-            '{}{}{}{}{}{}{}{}'.format(name, n, transcriptome, unique, cds_only, l, o, chisq))
+            '{}{}{}{}{}{}{}{}{}{}{}'.format(name, n, transcriptome, unique, cds_only, l, o, s, f, r, chisq))
 
 # used
 def get_riboseq_bam_base(riboseq_base, name, length=None, is_unique=False, 
@@ -391,10 +412,13 @@ def get_riboseq_predicted_orf_type_overlap_image(riboseq_base, name, image_type=
 
 # used
 def get_riboseq_profiles(riboseq_base, name, length=None, offset=None, is_unique=False, 
-        is_cds_only=False, is_transcriptome=False, note=None):
+        is_cds_only=False, is_transcriptome=False, is_smooth=False, fraction=None, 
+        reweighting_iterations=None, note=None):
 
     s = get_riboseq_base(riboseq_base, name, 'orf-profiles', length=length, offset=offset, 
-            is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
+            is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, 
+            is_smooth=is_smooth, fraction=fraction, 
+            reweighting_iteration=reweighting_iteration, note=note)
 
     s = s + ".profiles.mtx"
     return s

@@ -51,6 +51,7 @@ def main():
                     'estimate-metagene-profile-bayes-factors',
                     'select-periodic-offsets',
                     'extract-orf-profiles',
+                    'smooth-orf-profiles',
                     'estimate-orf-bayes-factors',
                     'select-final-prediction-set',
                     'create-filtered-genome-profile',

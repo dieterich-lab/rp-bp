@@ -18,7 +18,7 @@ import misc.utils as utils
 default_fraction = 0.5
 default_reweighting_iterations = 0
 
-default_num_procs = 1
+default_num_cpus = 1
 default_num_orfs = 0
 
 def smooth_profile(profile, frac, reweighting_iterations):
@@ -97,8 +97,8 @@ def main():
         "iterations to use in LOWESS. Please see the statsmodels documentation for a "
         "detailed description of this parameter.", type=int, default=default_reweighting_iterations)
      
-    parser.add_argument('-p', '--num-procs', help="The number of processes to use", 
-        type=int, default=default_num_procs)
+    parser.add_argument('--num-cpus', help="The number of processes to use", 
+        type=int, default=default_num_cpus)
     parser.add_argument('-k', '--num-orfs', help="If  n>0, then only the first n orfs "
         "will be processed.", type=int, default=default_num_orfs)
 
