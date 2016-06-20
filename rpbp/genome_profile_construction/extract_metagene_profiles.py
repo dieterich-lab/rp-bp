@@ -82,9 +82,6 @@ def get_metagene_profile(length_alignment_df, args):
 
     # start and end already contain the boundaries of the ORF
 
-    # TODO: these calls raise a pandas SettingWithCopyWarning. It does not look
-    # very good when executing the script.
-
     # set the ranges we want to find
     #canonical_forward_df['start_upstream'] = canonical_forward_df['start'] - args.start_upstream
     #canonical_forward_df['start_downstream'] = canonical_forward_df['start'] + args.start_downstream
