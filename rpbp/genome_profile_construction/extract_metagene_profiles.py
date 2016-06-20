@@ -14,7 +14,7 @@ import misc.parallel as parallel
 import misc.utils as utils
 
 
-default_num_procs = 2
+default_num_cpus = 1
 default_lengths = []
 default_num_alignments = 0
 
@@ -72,10 +72,12 @@ def get_metagene_profile(length_alignment_df, args):
     m_forward = orfs['strand'] == '+'
     m_reverse = ~m_forward
     
-    canonical_forward_df = orfs.loc[m_canonical & m_forward]
-    canonical_reverse_df = orfs.loc[m_canonical & m_reverse]
+    #canonical_forward_df = orfs.loc[m_canonical & m_forward]
+    #canonical_reverse_df = orfs.loc[m_canonical & m_reverse]
+    m_canonical_forward = m_canonical & m_forward
+    m_canonical_reverse = m_canonical & m_reverse
 
-    msg = "Found {} forward canonical and {} reverse canonical ORFs".format(len(canonical_forward_df), len(canonical_reverse_df))
+    msg = "Found {} forward canonical and {} reverse canonical ORFs".format(sum(m_canonical_forward), sum(m_canonical_reverse))
     logging.debug(msg)
 
     # start and end already contain the boundaries of the ORF
@@ -84,21 +86,29 @@ def get_metagene_profile(length_alignment_df, args):
     # very good when executing the script.
 
     # set the ranges we want to find
-    canonical_forward_df['start_upstream'] = canonical_forward_df['start'] - args.start_upstream
-    canonical_forward_df['start_downstream'] = canonical_forward_df['start'] + args.start_downstream
+    #canonical_forward_df['start_upstream'] = canonical_forward_df['start'] - args.start_upstream
+    #canonical_forward_df['start_downstream'] = canonical_forward_df['start'] + args.start_downstream
+    orfs.loc[m_canonical_forward, 'start_upstream'] = orfs.loc[m_canonical_forward, 'start'] - args.start_upstream
+    orfs.loc[m_canonical_forward, 'start_downstream'] = orfs.loc[m_canonical_forward, 'start'] + args.start_downstream
 
-    canonical_forward_df['end_upstream'] = canonical_forward_df['end'] - args.end_upstream
-    canonical_forward_df['end_downstream'] = canonical_forward_df['end'] + args.end_downstream
+    #canonical_forward_df['end_upstream'] = canonical_forward_df['end'] - args.end_upstream
+    #canonical_forward_df['end_downstream'] = canonical_forward_df['end'] + args.end_downstream
+    orfs.loc[m_canonical_forward, 'end_upstream'] = orfs.loc[m_canonical_forward, 'end'] - args.end_upstream
+    orfs.loc[m_canonical_forward, 'end_downstream'] = orfs.loc[m_canonical_forward, 'end'] + args.end_downstream
 
 
     # WE ARE SWITCHING THE ORDER OF THE COORDINATES FOR THE REVERSE STRAND
     # AFTER THIS, start_upstream, etc., WILL HAVE THE SAME SEMANTICS AS FOR THE FORWARD STRAND
-    canonical_reverse_df['start_upstream'] = canonical_reverse_df['end'] + args.start_upstream
-    canonical_reverse_df['start_downstream'] = canonical_reverse_df['end'] - args.start_downstream
+    
+    #canonical_reverse_df['start_upstream'] = canonical_reverse_df['end'] + args.start_upstream
+    #canonical_reverse_df['start_downstream'] = canonical_reverse_df['end'] - args.start_downstream
+    orfs.loc[m_canonical_reverse, 'start_upstream'] = orfs.loc[m_canonical_reverse, 'end'] + args.start_upstream
+    orfs.loc[m_canonical_reverse, 'start_downstream'] = orfs.loc[m_canonical_reverse, 'end'] - args.start_downstream
 
-    canonical_reverse_df['end_upstream'] = canonical_reverse_df['start'] + args.end_upstream
-    canonical_reverse_df['end_downstream'] = canonical_reverse_df['start'] - args.end_downstream
-
+    #canonical_reverse_df['end_upstream'] = canonical_reverse_df['start'] + args.end_upstream
+    #canonical_reverse_df['end_downstream'] = canonical_reverse_df['start'] - args.end_downstream
+    orfs.loc[m_canonical_reverse, 'end_upstream'] = orfs.loc[m_canonical_reverse, 'start'] + args.end_upstream
+    orfs.loc[m_canonical_reverse, 'end_downstream'] = orfs.loc[m_canonical_reverse, 'start'] - args.end_downstream
     
     forward_first_cds_count = np.zeros(args.start_upstream + args.start_downstream + 1)
     forward_last_cds_count = np.zeros(args.end_upstream + args.end_downstream + 1)
@@ -109,7 +119,8 @@ def get_metagene_profile(length_alignment_df, args):
     if len(args.seqids_to_keep) > 0:
         seqnames = args.seqids_to_keep
     else:
-        seqnames = canonical_forward_df['seqname'].unique()
+        #seqnames = canonical_forward_df['seqname'].unique()
+        seqnames = orfs.loc[m_canonical_forward, 'seqname'].unique()
 
     for seqname in seqnames:
         msg = "seqname: {}".format(seqname)
@@ -118,10 +129,14 @@ def get_metagene_profile(length_alignment_df, args):
         mask_reads_seq = alignment_df['seqname'] == seqname
         reads_region = alignment_df[mask_reads_seq]
         
+        m_orf_seq = orfs['seqname'] == seqname
+        
         # first, handle the forward, first CDS reads
         logging.debug("ff...")
-        mask_ff_seq = canonical_forward_df['seqname'] == seqname
-        forward_seq_df = canonical_forward_df[mask_ff_seq]
+        #mask_ff_seq = orfs['seqname'] == seqname
+        #forward_seq_df = canonical_forward_df[mask_ff_seq]
+        forward_seq_df = orfs[m_orf_seq & m_canonical_forward]
+
         res = parallel.apply_df_simple(forward_seq_df, find_forward_first_matching_read_positions, reads_region)
         if len(res) > 0:
             res = np.concatenate(res)
@@ -144,8 +159,9 @@ def get_metagene_profile(length_alignment_df, args):
             
         # reverse, first CDS reads
         logging.debug("rf...")
-        mask_rf_seq = canonical_reverse_df['seqname'] == seqname
-        reverse_seq_df = canonical_reverse_df[mask_rf_seq]
+        #m_rf_seq = canonical_reverse_df['seqname'] == seqname
+        #reverse_seq_df = canonical_reverse_df[mask_rf_seq]
+        reverse_seq_df = orfs[m_orf_seq & m_canonical_reverse]
         res = parallel.apply_df_simple(reverse_seq_df, find_reverse_first_matching_read_positions, reads_region)
         if len(res) > 0:
             res = np.concatenate(res)
@@ -205,8 +221,8 @@ def main():
     parser.add_argument('orfs', help="The annotated orfs (bed) file")
     parser.add_argument('out', help="The (output) csv.gz counts file")
 
-    parser.add_argument('-p', '--num-procs', help="The number of processors to use",
-        type=int, default=default_num_procs)
+    parser.add_argument('-p', '--num-cpus', help="The number of processors to use",
+        type=int, default=default_num_cpus)
 
     parser.add_argument('--is-sam', help="If this flag is present, the alignment file will "
         "be parsed as SAM rather than BAM", action='store_true')
@@ -289,7 +305,7 @@ def main():
         l_df = pd.DataFrame(alignment_df[m_length])
         length_alignment_dfs.append((l, l_df))
 
-    all_profiles_df = parallel.apply_parallel_iter(length_alignment_dfs, args.num_procs, 
+    all_profiles_df = parallel.apply_parallel_iter(length_alignment_dfs, args.num_cpus, 
         get_metagene_profile, args, progress_bar=True)
     all_profiles_df = pd.concat(all_profiles_df)
     
