@@ -1,7 +1,7 @@
 
 # Running the small example dataset
 
-A small example dataset using _C. elegans_ is available for [download](...). Please see [below](#example-dataset-files) for the exact contents of the download.
+A small example dataset using _C. elegans_ is available for [download](http://cloud.dieterichlab.org/index.php/s/3cyluM3ZCsvf0PT). Please see [below](#example-dataset-files) for the exact contents of the download.
 
 Additionally, the expected outputs of the pipeline are included. Due to differences among versions of the external programs used in the pipeline (samtools, etc.), it is unlikely that all intermediate files will match exactly. However, we do include a script to compare the ORFs predicted as translated using the pipeline to those which are expected. If these differ significantly, it suggests something is not working correctly in the pipeline.
 
