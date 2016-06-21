@@ -19,7 +19,7 @@ default_min_length = 0
 default_max_length = 0
 default_min_signal = 5
 
-default_fraction = 0.5
+default_fraction = 0.2
 default_reweighting_iterations = 0
 
 default_num_cpus = 1
@@ -150,14 +150,6 @@ def main():
 
     orfs = orfs.sort_values('orf_num')
     
-    # add the lengths of the orfs
-    msg = "Getting ORF lengths"
-    logging.info(msg)
-
-    orf_lengths = parallel.apply_parallel(orfs, args.num_cpus, 
-        bio.get_bed_12_feature_length, progress_bar=True)
-    orf_lengths = np.array(orf_lengths)
-
     msg = "Reading profiles"
     logging.info(msg)
 
@@ -172,6 +164,7 @@ def main():
     msg = "Adding end-of-ORF marker to all ORFs"
     logging.info(msg)
 
+    orf_lengths = np.array(orfs['orf_len'])
     for i in range(profiles.shape[0]):
         length = orf_lengths[i]
         profiles[i, length] = -1

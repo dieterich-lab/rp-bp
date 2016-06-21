@@ -18,7 +18,7 @@ import misc.utils as utils
 default_start_codons = ['ATG']
 default_stop_codons = ['TAA', 'TGA', 'TAG']
 
-default_num_procs = 1
+default_num_cpus = 1
 default_num_transcripts = 0
 
 # build up the header regular expression
@@ -605,8 +605,8 @@ def main():
         "'suspect_overlap'. If no expression is given, no ORFs are annotated as novel.", 
         default=default_novel_id_re)
 
-    parser.add_argument('--num-procs', help="The number of CPUs to use", type=int, 
-        default=default_num_procs)
+    parser.add_argument('--num-cpus', help="The number of CPUs to use", type=int, 
+        default=default_num_cpus)
 
     parser.add_argument('--num-transcripts', help="If n>0, then only the first n "
         "transcripts will be processed.", type=int, default=default_num_transcripts)
@@ -647,7 +647,7 @@ def main():
     msg = "Extracting ORFs"
     logging.info(msg)
 
-    orfs = parallel.apply_parallel_iter(transcripts, args.num_procs, extract_orfs,
+    orfs = parallel.apply_parallel_iter(transcripts, args.num_cpus, extract_orfs,
                                      header_re, start_codons_re, stop_codons_re,
                                      args.ignore_parsing_errors,
                                      progress_bar=True, total=total)
@@ -676,7 +676,7 @@ def main():
     logging.info(msg)
 
     # extract the canonical ORFs based on the annotation
-    canonical_orfs = parallel.apply_parallel_iter(transcripts, args.num_procs,
+    canonical_orfs = parallel.apply_parallel_iter(transcripts, args.num_cpus,
                                                extract_canonical_orf, header_re, 
                                                start_codons_re, stop_codons_re,
                                                args.ignore_parsing_errors,
@@ -969,13 +969,23 @@ def main():
 
     orfs = orfs.sort_values(['seqname', 'start'])
 
+    # now, get the lengths of all of the ORFs
+    msg = "Getting ORF lengths"
+    logging.info(msg)
+
+    orf_lengths = parallel.apply_parallel(orfs, args.num_cpus, 
+        bio.get_bed_12_feature_length, progress_bar=True)
+    orf_lengths = np.array(orf_lengths) 
+    orfs['orf_len'] = orf_lengths
+
+
     msg = "Writing ORFs as BED"
     logging.info(msg)
 
     # also, add a numeric index field
     orfs['orf_num'] = range(len(orfs))
 
-    output_fields = bio.bed12_field_names + ['orf_type', 'orf_num']
+    output_fields = bio.bed12_field_names + ['orf_type', 'orf_len', 'orf_num']
     bio.write_bed(orfs[output_fields], args.out)
 
 if __name__ == '__main__':

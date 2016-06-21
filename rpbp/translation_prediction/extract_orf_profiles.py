@@ -340,16 +340,7 @@ def main():
         m_num_orfs = orfs['orf_num'] < args.num_orfs
         orfs = orfs[m_num_orfs]
      
-    # add the lengths of the orfs
-    msg = "Getting ORF lengths"
-    logging.info(msg)
-
-    orf_lengths = parallel.apply_parallel(orfs, args.num_cpus, 
-        bio.get_bed_12_feature_length, progress_bar=True)
-    orf_lengths = np.array(orf_lengths) 
-    orfs['orf_len'] = orf_lengths
-
-    max_orf_len = np.max(orf_lengths)
+    max_orf_len = np.max(orfs['orf_len'])
     msg = "The length of the longest ORF is: {}".format(max_orf_len)
     logging.debug(msg)
 

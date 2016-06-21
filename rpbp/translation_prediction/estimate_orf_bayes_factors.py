@@ -290,10 +290,6 @@ def main():
         mask_orfs = regions[args.orf_num_field] < args.num_orfs
         regions = regions[mask_orfs]
 
-    # add the lengths of the orfs
-    exon_lengths = regions.apply(bio.get_bed_12_feature_length, axis=1)
-    regions['orf_len'] = exon_lengths
-
     if len(args.orf_types) > 0:
         mask_a = regions[args.orf_type_field].isin(args.orf_types)
         regions = regions[mask_a]

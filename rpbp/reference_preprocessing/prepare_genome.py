@@ -102,7 +102,7 @@ def main():
     if 'ignore_parsing_errors' in config:
         ignore_parsing_errors_str = "--ignore-parsing-errors"
 
-    cmd = ("extract-orfs {} {} {} --num-procs {} {} {} {} {}".format(transcript_fasta, orfs_genomic, 
+    cmd = ("extract-orfs {} {} {} --num-cpus {} {} {} {} {}".format(transcript_fasta, orfs_genomic, 
         logging_str, args.num_cpus, start_codons_str, stop_codons_str, novel_id_str, ignore_parsing_errors_str))
     in_files = [transcript_fasta]
     out_files = [orfs_genomic]
