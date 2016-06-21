@@ -12,7 +12,7 @@ import misc.utils as utils
 
 import rpbp.filenames as filenames
 
-default_num_procs = 2
+default_num_cpus = 1
 default_star_executable = "STAR"
 default_tmp = None # utils.abspath("tmp")
 
@@ -29,8 +29,8 @@ def main():
     parser.add_argument('config', help="The (json) config file")
     parser.add_argument('name', help="The name for the dataset, used in the created files")
 
-    parser.add_argument('-p', '--num-procs', help="The number of processors to use",
-        type=int, default=default_num_procs)
+    parser.add_argument('-p', '--num-cpus', help="The number of processors to use",
+        type=int, default=default_num_cpus)
 
     parser.add_argument('--star-executable', help="The name of the STAR executable",
         default=default_star_executable)
@@ -102,8 +102,8 @@ def main():
 
     riboseq_raw_data = args.raw_data
     riboseq_bam_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True, note=note)
-    cmd = "create-base-genome-profile {} {} {} --num-procs {} {} {} {} {} {}".format(riboseq_raw_data, 
-        args.config, args.name, args.num_procs, do_not_call_argument, overwrite_argument, 
+    cmd = "create-base-genome-profile {} {} {} --num-cpus {} {} {} {} {} {}".format(riboseq_raw_data, 
+        args.config, args.name, args.num_cpus, do_not_call_argument, overwrite_argument, 
         logging_str, star_str, tmp_str)
 
     # There could be cases where we start somewhere in the middle of creating
@@ -129,8 +129,8 @@ def main():
     end_downstream_str = utils.get_config_argument(config, 
         'metagene_profile_end_downstream', 'end-downstream')
 
-    cmd = "extract-metagene-profiles {} {} {} --num-procs {} {} {} {} {} {} {}".format(riboseq_bam_filename,
-        orfs_genomic, metagene_profiles, args.num_procs, logging_str, seqids_to_keep_str,
+    cmd = "extract-metagene-profiles {} {} {} --num-cpus {} {} {} {} {} {} {}".format(riboseq_bam_filename,
+        orfs_genomic, metagene_profiles, args.num_cpus, logging_str, seqids_to_keep_str,
         start_upstream_str, start_downstream_str, end_upstream_str, end_downstream_str)
 
     in_files = [riboseq_bam_filename, orfs_genomic]
@@ -159,9 +159,9 @@ def main():
     chains_str = utils.get_config_argument(config, 'chains')
     iterations_str = utils.get_config_argument(config, 'metagene_profile_iterations', 'iterations')
 
-    cmd = ("estimate-metagene-profile-bayes-factors {} {} --num-procs {} {} {} "
+    cmd = ("estimate-metagene-profile-bayes-factors {} {} --num-cpus {} {} {} "
         "{} {} {} {} {} {} {}".format(metagene_profiles, 
-        metagene_profile_bayes_factors, args.num_procs, periodic_models_str, non_periodic_models_str,
+        metagene_profile_bayes_factors, args.num_cpus, periodic_models_str, non_periodic_models_str,
         periodic_offset_start_str, periodic_offset_end_str, metagene_profile_length_str,
         seed_str, chains_str, iterations_str, logging_str))
 

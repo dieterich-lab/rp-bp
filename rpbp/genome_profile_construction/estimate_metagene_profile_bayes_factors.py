@@ -4,6 +4,7 @@ import argparse
 import logging
 import os
 import pickle
+import sys
 
 import numpy as np
 import pandas as pd
@@ -12,7 +13,7 @@ import misc.parallel as parallel
 import misc.utils as utils
 
 
-default_num_procs = 2
+default_num_cpus = 1
 
 default_periodic_models = []
 default_nonperiodic_models = []
@@ -28,6 +29,10 @@ default_count_field = 'count'
 default_iterations = 500
 default_chains = 2
 default_seed = 8675309
+
+class NullDevice():
+    def write(self, s):
+        pass
 
 def estimate_marginal_likelihoods(signal, periodic_models, nonperiodic_models, iterations, chains, seed):
         
@@ -49,11 +54,11 @@ def estimate_marginal_likelihoods(signal, periodic_models, nonperiodic_models, i
 
     # get the likelihood for each of the models 
     bft_periodic = [
-        pm.sampling(data=data, iter=iterations, chains=chains, n_jobs=1, seed=seed, refresh=0)
+        pm.sampling(data=data, iter=iterations, chains=chains, n_jobs=1, seed=seed, refresh=-1)
             for pm in periodic_models]
 
     bft_nonperiodic = [
-        nm.sampling(data=data, iter=iterations, chains=chains, n_jobs=1, seed=seed, refresh=0)
+        nm.sampling(data=data, iter=iterations, chains=chains, n_jobs=1, seed=seed, refresh=-1)
             for nm in nonperiodic_models]
         
     return (bft_periodic, bft_nonperiodic)
@@ -84,7 +89,7 @@ def estimate_profile_bayes_factors(profile, args):
         offset = start_positions[i]
 
         msg = "Length: {}, Offset: {}".format(length, offset)
-        logging.info(msg)
+        logging.debug(msg)
 
         # pull out the signal for this offset
         signal = start_counts[i:i+args.metagene_profile_length]
@@ -168,9 +173,9 @@ def main():
     parser.add_argument('-i', '--iterations', help="The number of MCMC iterations to use for "
         "each chain", type=int, default=default_iterations)
     
-    parser.add_argument('-p', '--num-procs', help="The number of CPUs to use. Each read "
+    parser.add_argument('-p', '--num-cpus', help="The number of CPUs to use. Each read "
         "length will be processed in its own thread (so that is the maximum number of CPUs "
-        "that is useful).", type=int, default=default_num_procs)
+        "that is useful).", type=int, default=default_num_cpus)
 
     parser.add_argument('--type-field', default=default_type_field)
     parser.add_argument('--count-field', default=default_count_field)
@@ -190,8 +195,17 @@ def main():
     logging.info(msg)
 
     length_groups = metagene_profiles.groupby('length')
-    all_profile_estimates_df = parallel.apply_parallel_groups(length_groups, args.num_procs,
+
+    # this is not wonderful, but a hack to redirect sys.stderr to devnull to
+    # had pystan output
+    temp = sys.stderr
+    f = open(os.devnull, 'w')
+    sys.stderr = f
+
+    all_profile_estimates_df = parallel.apply_parallel_groups(length_groups, args.num_cpus,
         estimate_profile_bayes_factors, args, progress_bar=True)
+    sys.stderr = temp
+    
     all_profile_estimates_df = pd.concat(all_profile_estimates_df)
 
     utils.write_df(all_profile_estimates_df, args.out, index=False)

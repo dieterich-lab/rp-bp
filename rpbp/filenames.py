@@ -42,6 +42,11 @@ def get_fastqc_name(filename):
 
     return filename
 
+def get_fraction_string(fraction=None):
+    fraction_str = ""
+    if (fraction is not None) and  (len(str(fraction)) > 0):
+        fraction_str = ".frac-{}".format(fraction)
+    return fraction_str
 
 def get_length_string(length=None):
     l = ""
@@ -81,6 +86,18 @@ def get_offset_string(offset=None):
             o = ".offset-{}".format(offset)
     return o
 
+def get_reweighting_iterations_string(reweighting_iterations=None):
+    reweighting_iterations_str = ""
+    if (reweighting_iterations is not None) and  (len(str(reweighting_iterations)) > 0):
+        reweighting_iterations_str = ".rw-{}".format(reweighting_iterations)
+    return reweighting_iterations_str
+
+
+def get_smooth_string(is_smooth):
+    s = ""
+    if is_smooth:
+        s = ".smooth"
+    return s
 
 def get_unique_string(is_unique):
     unique = ""
@@ -183,7 +200,8 @@ def get_raw_data_fastqc_data(base_path, filename):
 
 # used
 def get_riboseq_base(riboseq_base, name, sub_folder, length=None, offset=None, is_unique=False, 
-        is_cds_only=False, is_transcriptome=False, is_chisq=False, note=None):
+        is_cds_only=False, is_transcriptome=False, is_smooth=False, fraction=None, 
+        reweighting_iterations=None, is_chisq=False, note=None):
     
     cds_only = get_cds_only_string(is_cds_only)
     unique = get_unique_string(is_unique)
@@ -192,8 +210,11 @@ def get_riboseq_base(riboseq_base, name, sub_folder, length=None, offset=None, i
     transcriptome = get_transcriptome_string(is_transcriptome)
     chisq = get_chisq_string(is_chisq)
     n = get_note_string(note)
+    s = get_smooth_string(is_smooth)
+    f = get_fraction_string(fraction)
+    r = get_reweighting_iterations_string(reweighting_iterations)
     return os.path.join(riboseq_base, sub_folder, 
-            '{}{}{}{}{}{}{}{}'.format(name, n, transcriptome, unique, cds_only, l, o, chisq))
+            '{}{}{}{}{}{}{}{}{}{}{}'.format(name, n, transcriptome, unique, cds_only, l, o, s, f, r, chisq))
 
 # used
 def get_riboseq_bam_base(riboseq_base, name, length=None, is_unique=False, 
@@ -212,9 +233,11 @@ def get_riboseq_bam(riboseq_base, name, length=None, is_unique=False, is_cds_onl
     s = s + ".bam"
     return s
 
+# used
 def get_riboseq_bam_fastqc_path(riboseq_data):
     return os.path.join(riboseq_data, 'without-rrna-mapping', 'fastqc')
 
+# used
 def get_riboseq_bam_fastqc_data(riboseq_data, name, length=None, is_unique=False, 
         is_cds_only=False, is_transcriptome=False, note=None):
 
@@ -227,6 +250,22 @@ def get_riboseq_bam_fastqc_data(riboseq_data, name, length=None, is_unique=False
 
     fastqc_folder = '{}_fastqc'.format(name)
     return os.path.join(riboseq_data, 'without-rrna-mapping', 'fastqc', fastqc_folder, 'fastqc_data.txt')
+
+# not used
+def get_riboseq_bam_fastqc_read_lengths(riboseq_data, name, length=None, is_unique=False, 
+        is_cds_only=False, is_transcriptome=False, note=None):
+
+    cds_only = get_cds_only_string(is_cds_only)
+    unique = get_unique_string(is_unique)
+    l = get_length_string(length)
+    transcriptome = get_transcriptome_string(is_transcriptome)
+    n = get_note_string(note)
+    name = '{}{}{}{}{}{}'.format(name, n, transcriptome, unique, cds_only, l)
+
+    fastqc_folder = '{}_fastqc'.format(name)
+    return os.path.join(riboseq_data, 'without-rrna-mapping', 'fastqc', fastqc_folder, 
+        'Images', 'sequence_length_distribution.png')
+
     
 # used
 def get_riboseq_bayes_factors(riboseq_base, name, length=None, offset=None, is_unique=False, 
@@ -244,13 +283,19 @@ def get_riboseq_fastq(riboseq_data, name):
 
 # m
 
-def get_riboseq_metagene_profile_image(riboseq_base, name, image_type='eps', length=None, is_unique=False, is_cds_only=False, is_transcriptome=False, note=None):
-    s = get_riboseq_base(riboseq_base, name, 'metagene-profiles', length=length, is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
+def get_riboseq_metagene_profile_image(riboseq_base, name, image_type='eps', 
+        length=None, is_unique=False, is_cds_only=False, is_transcriptome=False, note=None):
+
+    s = get_riboseq_base(riboseq_base, name, 'metagene-profiles', length=length, 
+        is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
     s = s + "." + image_type
     return s
 
-def get_metagene_profile_bayes_factor_image(riboseq_base, name, image_type='eps', length=None, is_unique=False, is_cds_only=False, is_transcriptome=False, note=None):
-    s = get_riboseq_base(riboseq_base, name, 'metagene-profiles', length=length, is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
+def get_metagene_profile_bayes_factor_image(riboseq_base, name, image_type='eps', 
+        length=None, is_unique=False, is_cds_only=False, is_transcriptome=False, note=None):
+
+    s = get_riboseq_base(riboseq_base, name, 'metagene-profiles', length=length, 
+        is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
     s = s + ".bayes-factors." + image_type
     return s
 
@@ -367,18 +412,23 @@ def get_riboseq_predicted_orf_type_overlap_image(riboseq_base, name, image_type=
 
 # used
 def get_riboseq_profiles(riboseq_base, name, length=None, offset=None, is_unique=False, 
-        is_cds_only=False, is_transcriptome=False, note=None):
+        is_cds_only=False, is_transcriptome=False, is_smooth=False, fraction=None, 
+        reweighting_iterations=None, note=None):
 
     s = get_riboseq_base(riboseq_base, name, 'orf-profiles', length=length, offset=offset, 
-            is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
+            is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, 
+            is_smooth=is_smooth, fraction=fraction, 
+            reweighting_iterations=reweighting_iterations, note=note)
 
     s = s + ".profiles.mtx"
     return s
 
 # r
 
-def get_riboseq_read_filtering_counts(riboseq_base):
-    s = os.path.join(riboseq_base, 'read-filtering-counts.csv.gz')
+def get_riboseq_read_filtering_counts(riboseq_base, note=None):
+    note_str = get_note_string(note)
+    fn = "read-filtering-counts{}.csv.gz".format(note_str)
+    s = os.path.join(riboseq_base, fn)
     return s
 
 def get_riboseq_read_filtering_counts_image(riboseq_base, note="", image_type="eps"):
@@ -386,6 +436,28 @@ def get_riboseq_read_filtering_counts_image(riboseq_base, note="", image_type="e
     fn = "read-filtering-counts{}.{}".format(note_str, image_type)
     s = os.path.join(riboseq_base, fn)
     return s
+
+def get_riboseq_read_length_distribution(riboseq_base, name, length=None, is_unique=False, 
+        is_cds_only=False, is_transcriptome=False, offset=None, note=None):
+
+    s = get_riboseq_base(riboseq_base, name, 'without-rrna-mapping', length=length, offset=offset, 
+            is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
+
+    s = s + ".length-distribution.csv.gz"
+    return s
+
+
+def get_riboseq_read_length_distribution_image(riboseq_base, name, length=None, is_unique=False, 
+        is_cds_only=False, is_transcriptome=False, note=None, offset=None, image_type='eps'):
+
+    subfolder = os.path.join('without-rrna-mapping', 'plots')
+
+    s = get_riboseq_base(riboseq_base, name, subfolder, length=length, offset=offset, 
+            is_unique=is_unique, is_cds_only=is_cds_only, is_transcriptome=is_transcriptome, note=note)
+
+    s = s + ".length-distribution.{}".format(image_type)
+    return s
+
 
     
 

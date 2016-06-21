@@ -1,7 +1,7 @@
 from setuptools import setup
 
 def readme():
-    with open('README.rst') as f:
+    with open('README.md') as f:
         return f.read()
 
 setup(name='rpbp',
@@ -22,6 +22,7 @@ setup(name='rpbp',
             'joblib',
             'docopt',
             'tqdm',
+            'statsmodels',
             'pysam',
             'pyfasta',
             'pystan',
@@ -45,6 +46,7 @@ setup(name='rpbp',
                                 'select-periodic-offsets=rpbp.genome_profile_construction.select_periodic_offsets:main',
                                 'predict-translated-orfs=rpbp.translation_prediction.predict_translated_orfs:main',
                                 'extract-orf-profiles=rpbp.translation_prediction.extract_orf_profiles:main',
+                                'smooth-orf-profiles=rpbp.translation_prediction.smooth_orf_profiles:main',
                                 'estimate-orf-bayes-factors=rpbp.translation_prediction.estimate_orf_bayes_factors:main',
                                 'select-final-prediction-set=rpbp.translation_prediction.select_final_prediction_set:main',
                                 'run-rpbp-pipeline=rpbp.run_rpbp_pipeline:main',
@@ -58,7 +60,8 @@ setup(name='rpbp',
                                 'extract-orf-types=rpbp.analysis.extract_orf_types:main [analysis]',
                                 'get-all-orf-peptide-matches=rpbp.analysis.proteomics.get_all_orf_peptide_matches:main [analysis]',
                                 'create-orf-peptide-coverage-line-graph=rpbp.analysis.proteomics.create_orf_peptide_coverage_line_graph:main [analysis]',
-                                'create-proteomics-report=rpbp.analysis.proteomics.create_proteomics_report:main [analysis]'
+                                'create-proteomics-report=rpbp.analysis.proteomics.create_proteomics_report:main [analysis]',
+                                'create-riboseq-test-dataset=rpbp.analysis.create_riboseq_test_dataset:main [analysis]'
                                ]
         },
         zip_safe=False

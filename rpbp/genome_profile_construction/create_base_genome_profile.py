@@ -12,7 +12,7 @@ import rpbp.filenames as filenames
 import misc.bio as bio
 import misc.utils as utils
 
-default_num_procs = 2
+default_num_cpus = 1
 
 default_quality_format = 'sanger'
 default_max_uncalled = 1
@@ -44,8 +44,8 @@ def main():
     parser.add_argument('config', help="The (yaml) config file")
     parser.add_argument('name', help="The name for the dataset, used in the created files")
 
-    parser.add_argument('-p', '--num-procs', help="The number of processors to use",
-        type=int, default=default_num_procs)
+    parser.add_argument('-p', '--num-cpus', help="The number of processors to use",
+        type=int, default=default_num_cpus)
         
     parser.add_argument('--star-executable', help="The name of the STAR executable",
         default=default_star_executable)
@@ -101,7 +101,7 @@ def main():
     pre_trim_left_str = utils.get_config_argument(config, 'pre_trim_left', default=default_pre_trim_left)
 
     cmd = "flexbar {} {} {} {} -n {} {} -r {} -t {} {}".format(quality_format_str, 
-        max_uncalled_str, adapter_seq_str, adapter_file_str, args.num_procs, flexbar_compression_str, 
+        max_uncalled_str, adapter_seq_str, adapter_file_str, args.num_cpus, flexbar_compression_str, 
         raw_data, flexbar_target, pre_trim_left_str)
     in_files = [raw_data]
     out_files = [without_adapters]
@@ -113,9 +113,10 @@ def main():
     with_rrna = filenames.get_with_rrna_fastq(config['riboseq_data'], args.name, note=note)
 
     cmd = "bowtie2 -p {} --very-fast -x {} -U {} -S {} --un-gz {} --al-gz {}".format(
-        args.num_procs, config['ribosomal_index'], without_adapters, out, 
+        args.num_cpus, config['ribosomal_index'], without_adapters, out, 
         without_rrna, with_rrna)
     in_files = [without_adapters]
+    in_files.extend(bio.get_bowtie2_index_files(config['ribosomal_index']))
     out_files = [without_rrna, with_rrna]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
@@ -147,12 +148,13 @@ def main():
 
     cmd = ("{} --runThreadN {} {} --genomeDir {} --sjdbGTFfile {} --readFilesIn {} "
         "{} {} {} {} {} {} {} {} --outFileNamePrefix {} {} {}".format(args.star_executable,
-        args.num_procs, star_compression_str, star_index, config['gtf'], without_rrna, 
+        args.num_cpus, star_compression_str, star_index, config['gtf'], without_rrna, 
         align_intron_min_str, align_intron_max_str, out_filter_mismatch_n_max_str, 
         out_filter_type_str, out_filter_intron_motifs_str, quant_mode_str,
         out_filter_mismatch_n_over_l_max_str, out_sam_attributes_str, star_output_prefix,
         star_out_str, star_tmp_str))
     in_files = [without_rrna]
+    in_files.extend(bio.get_star_index_files(star_index))
     out_files = [transcriptome_bam, genome_star_bam]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
@@ -175,7 +177,7 @@ def main():
     if args.tmp is not None:
         sam_tmp_str = "-T {}".format(args.tmp)
 
-    cmd = "samtools sort {} -@{} -o {} {}".format(transcriptome_bam, args.num_procs, 
+    cmd = "samtools sort {} -@{} -o {} {}".format(transcriptome_bam, args.num_cpus, 
         transcriptome_sorted_bam, sam_tmp_str)
     in_files = [transcriptome_bam]
     out_files = [transcriptome_sorted_bam]

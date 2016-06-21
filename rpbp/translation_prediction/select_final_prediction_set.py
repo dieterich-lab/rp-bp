@@ -13,9 +13,9 @@ import misc.utils as utils
 import rpbp.rpbp_utils as rpbp_utils
 
 default_min_bf_mean = 5
-default_max_bf_var = 2
+default_min_bf_likelihood = 0.5
+default_max_bf_var = None
 default_min_length = 20
-default_minimum_profile_sum = 5
 
 default_chisq_significance_level = 0.01
 
@@ -26,10 +26,27 @@ default_profile_sum_field = 'profile_sum'
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description="Given a list of ORFs with associated Bayes' factors and a fasta "
-        "sequence file, this script extracts the sequences of the ORFs whose Bayes' factor "
+        description="Given a list of ORFs with associated Bayes factors and a fasta "
+        "sequence file, this script extracts the sequences of the ORFs whose Bayes factor "
         "exceeds the given threshold. Finally, biopython is used to translate the "
-        "selected ORFs into protein sequences.")
+        "selected ORFs into protein sequences.\n\n"
+        "The min-length and minimum-profile-sum filters are applied in the obvious way.\n\n"
+        "For both BF and chi-square predictions, only ORFs which have more reads in the "
+        "first reading frame than either of the other two will be selected as translated. "
+        "(This is called the 'frame filter' below.)\n\n"
+        "The selection based on Bayes factors follows this logic: if max_bf_var is given, "
+        "then it and min_bf_mean are taken as a hard threshold on the estimated Bayes "
+        "factor mean. If min_bf_likelihood is given, then this min_bf_mean is taken as the "
+        "boundary value; that is, an ORF is \"translated\" if:\n\n"
+        "\t\t[P(bf > min_bf_mean)] > min_bf_likelihood\n\n"
+        "If both max_bf_var and min_bf_likelihood are None, then min_bf_mean is taken as a "
+        "hard threshold on the mean for selecting translated ORFs.\n\n"
+        "If both max_bf_var and min_bf_likelihood are given, then both filters will be "
+        "applied and the result will be the intersection.\n\n"
+        "If the --use-chi-square option is given, the significance value is "
+        "Bonferroni-corrected based on the number of ORFs which meet the length, profile "
+        "and frame filters.")
+
     parser.add_argument('bayes_factors', help="The file containing the ORFs and Bayes' "
         "factors (BED12+)")
     parser.add_argument('fasta', help="The *genome* fasta file")
@@ -40,24 +57,24 @@ def main():
     parser.add_argument('predicted_protein_sequences', help="The (output) fasta file "
         "containing the predicted ORF sequences, as protein sequences")
 
-    parser.add_argument('--all', help="If this flag is present, then all ORF sequences "
-        "will be extracted.", action='store_true')
-
-
-    parser.add_argument('--min-bf-mean', help="The minimum Bayes' factor mean to predict "
-        "an ORF as translated", type=float, default=default_min_bf_mean)
-    parser.add_argument('--max-bf-var', help="The maximum Bayes' factor variance to predict "
-        "an ORF as translated", type=float, default=default_max_bf_var)
     parser.add_argument('--min-length', help="The minimum length to predict an ORF "
         "as translated", type=int, default=default_min_length)
-    parser.add_argument('--minimum-profile-sum', help="The minimum read count (or however "
-        "the profile sum is calculated) to consider for prediction", type=float,
-        default=default_minimum_profile_sum)
+    
+    parser.add_argument('--min-bf-mean', help="The minimum Bayes' factor mean to predict "
+        "an ORF as translated (use --help for more details)", 
+        type=float, default=default_min_bf_mean)
+    parser.add_argument('--max-bf-var', help="The maximum Bayes' factor variance to predict "
+        "an ORF as translated (use --help for more details)", 
+        type=float, default=default_max_bf_var)
 
+    parser.add_argument('--min-bf-likelihood', help="If given, then this is taken a threshold "
+        "on the likelihood of translation (use --help for more details)", 
+        type=float, default=default_min_bf_likelihood)
+   
     parser.add_argument('--use-chi-square', help="If this flag is present, the the "
         "chi square value will be used to predict ORFs rather than the Bayes' factor",
         action='store_true')
-    parser.add_argument('--chisq-alpha', help="If using chi square, then this "
+    parser.add_argument('--chisq-significance-level', help="If using chi square, then this "
         "value is Bonferroni corrected and used as the significance cutoff", type=float, 
         default=default_chisq_significance_level)
     
@@ -75,11 +92,11 @@ def main():
     bayes_factors = bio.read_bed(args.bayes_factors)
 
     longest_orfs, bf_orfs, chisq_orfs = rpbp_utils.get_predicted_orfs(bayes_factors, 
-                                                       min_signal=args.minimum_profile_sum, 
                                                        min_bf_mean=args.min_bf_mean, 
                                                        max_bf_var=args.max_bf_var, 
+                                                       min_bf_likelihood=args.min_bf_likelihood,
                                                        min_length=args.min_length,
-                                                       chisq_alpha=args.chisq_alpha)
+                                                       chisq_alpha=args.chisq_significance_level)
     
     if args.use_chi_square:
         longest_predicted_orfs = chisq_orfs

@@ -51,6 +51,7 @@ def main():
                     'estimate-metagene-profile-bayes-factors',
                     'select-periodic-offsets',
                     'extract-orf-profiles',
+                    'smooth-orf-profiles',
                     'estimate-orf-bayes-factors',
                     'select-final-prediction-set',
                     'create-filtered-genome-profile',
@@ -100,7 +101,7 @@ def main():
             tmp = os.path.join(args.tmp, "{}_{}_rpbp".format(name, note))
             tmp_str = "--tmp {}".format(tmp)
 
-        cmd = "run-rpbp-pipeline {} {} {} --num-procs {} {} {} {} {} {}".format(data, 
+        cmd = "run-rpbp-pipeline {} {} {} --num-cpus {} {} {} {} {} {}".format(data, 
                 args.config, name, args.num_cpus, tmp_str, do_not_call_str, 
                 overwrite_str, logging_str, star_str)
 
