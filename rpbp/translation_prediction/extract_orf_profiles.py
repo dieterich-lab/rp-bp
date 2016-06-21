@@ -21,7 +21,7 @@ import misc.utils as utils
 
 import misc.external_sparse_matrix_list as external_sparse_matrix_list
 
-default_num_procs = 2
+default_num_cpus = 2
 default_num_orfs = 0
 default_num_groups = 100
 default_tmp = None # utils.abspath("tmp")
@@ -149,8 +149,8 @@ def get_orf_profile(orf_group):
     orf_name = orf_group['orf_id'].iloc[0]
 
     # pull out the profile
-    max_position = np.max(orf_group['position'])
-    profile = np.zeros(max_position+1)
+    orf_len = np.max(orf_group['orf_len'])
+    profile = np.zeros(orf_len+1)
     for p in orf_group['position']:
         profile[p] += 1
 
@@ -255,6 +255,9 @@ def get_orf_profiles(orfs, p_sites_file):
     msg = "Time in conversion: {}".format(convert_time)
     logging.debug(msg)
 
+    # we need to add the lengths
+    aligned_positions_df = aligned_positions_df.merge(orfs[ ['id', 'orf_len'] ], left_on='orf_id', right_on='id')
+
     # pull out the profiles
     orf_groups = aligned_positions_df.groupby('orf_id')
 
@@ -284,8 +287,8 @@ def main():
         "amount. There must be one offset value for each length (given by the --lengths "
         "argument.", type=int, default=default_offsets, nargs='*')
        
-    parser.add_argument('-p', '--num-procs', help="The number of processes to use", 
-        type=int, default=default_num_procs)
+    parser.add_argument('-p', '--num-cpus', help="The number of processes to use", 
+        type=int, default=default_num_cpus)
     parser.add_argument('-k', '--num-orfs', help="If  n>0, then only the first n orfs "
         "will be processed.", type=int, default=default_num_orfs)
     parser.add_argument('-g', '--num-groups', help="The number of groups into which to split "
@@ -336,12 +339,25 @@ def main():
     if args.num_orfs > 0:
         m_num_orfs = orfs['orf_num'] < args.num_orfs
         orfs = orfs[m_num_orfs]
+     
+    # add the lengths of the orfs
+    msg = "Getting ORF lengths"
+    logging.info(msg)
+
+    orf_lengths = parallel.apply_parallel(orfs, args.num_cpus, 
+        bio.get_bed_12_feature_length, progress_bar=True)
+    orf_lengths = np.array(orf_lengths) 
+    orfs['orf_len'] = orf_lengths
+
+    max_orf_len = np.max(orf_lengths)
+    msg = "The length of the longest ORF is: {}".format(max_orf_len)
+    logging.debug(msg)
 
     # use bedtools to get the profiles
     msg = "Extracting profiles"
     logging.info(msg)
 
-    profiles = parallel.apply_parallel_split(orfs, args.num_procs, get_orf_profiles,
+    profiles = parallel.apply_parallel_split(orfs, args.num_cpus, get_orf_profiles,
         p_sites_bed.fn, num_groups=args.num_groups, progress_bar=True)
 
     pybedtools.helpers.cleanup(verbose=True, remove_all=True)
@@ -363,7 +379,11 @@ def main():
 
     # convert back to a single sparse matrix
     logging.info("Converting to single sparse matrix")
-    all_profiles = all_profiles.to_sparse_matrix()
+
+    # make sure we have enough columns to accomodate the longest ORF, even if
+    # we do not have any reads from its batch.
+    min_cols = max_orf_len + 1
+    all_profiles = all_profiles.to_sparse_matrix(min_cols=min_cols)
 
     logging.info("Writing sparse matrix to disk")
     scipy.io.mmwrite(args.out, all_profiles)

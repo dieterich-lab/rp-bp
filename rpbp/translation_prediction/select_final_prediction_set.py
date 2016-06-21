@@ -16,7 +16,6 @@ default_min_bf_mean = 5
 default_min_bf_likelihood = 0.5
 default_max_bf_var = None
 default_min_length = 20
-default_minimum_profile_sum = 5
 
 default_chisq_significance_level = 0.01
 
@@ -60,11 +59,7 @@ def main():
 
     parser.add_argument('--min-length', help="The minimum length to predict an ORF "
         "as translated", type=int, default=default_min_length)
-    parser.add_argument('--minimum-profile-sum', help="The minimum read count (or however "
-        "the profile sum is calculated) to consider for prediction", type=float,
-        default=default_minimum_profile_sum)
-
-
+    
     parser.add_argument('--min-bf-mean', help="The minimum Bayes' factor mean to predict "
         "an ORF as translated (use --help for more details)", 
         type=float, default=default_min_bf_mean)
@@ -97,7 +92,6 @@ def main():
     bayes_factors = bio.read_bed(args.bayes_factors)
 
     longest_orfs, bf_orfs, chisq_orfs = rpbp_utils.get_predicted_orfs(bayes_factors, 
-                                                       min_signal=args.minimum_profile_sum, 
                                                        min_bf_mean=args.min_bf_mean, 
                                                        max_bf_var=args.max_bf_var, 
                                                        min_bf_likelihood=args.min_bf_likelihood,

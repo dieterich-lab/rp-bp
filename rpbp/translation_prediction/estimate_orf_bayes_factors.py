@@ -21,12 +21,8 @@ default_orf_type_field = 'orf_type'
 default_orf_types = []
 
 default_num_orfs = 0
-default_num_procs = 1
+default_num_cpus = 1
 default_num_groups = 100
-
-default_min_length = 0
-default_max_length = 0
-default_min_signal = 5
 
 default_iterations = 200
 default_chains = 2
@@ -46,10 +42,6 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
                 seed (int): random seed for initializing MCMC
                 chains (int): the number of MCMC chains
                 iterations (int): the number of iterations for each chain
-
-                min_signal: the minimum sum over the !in-frame! ORF profile (x_1) to consider 
-                    for processing. If sum(x_1) < min_signal, then '-inf' is returned for 
-                    all estimated values.
 
         Returns:
             pd.Series: a series containing:
@@ -103,30 +95,25 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
         "profile_sum": profile_sum
     }
     ret = pd.Series(ret)
- 
-    # check if we only wanted the chi square value
-    if args.chi_square_only:
+
+    # first, make sure this profile was not filtered during smoothing
+    if profile_sum == 0:
         return ret
 
-    # make sure there is enough signal to process
-    if x_1_sum < args.min_signal:
-        return ret
-
-    # also, make sure we have more reads in x_1 than the others
-    if x_1_sum < (x_2_sum + x_3_sum):
-        return ret
-       
+     
     # chi-square values
     f_obs = [x_1_sum, x_2_sum, x_3_sum]
     chisq, chi_square_p = scipy.stats.chisquare(f_obs)
     ret['chi_square_p'] = chi_square_p
-
+ 
+    # check if we only wanted the chi square value
+    if args.chi_square_only:
+        return ret
+      
     # check if something odd happens with the length
     # this should already be checked before calling the function.
     if (T != len(x_2)) or (T != len(x_3)):
         return ret
-
-    # sample
 
     # construct the input for Stan
     data = {
@@ -270,13 +257,6 @@ def main():
         "those types are processed.", nargs='*', default=default_orf_types)
     parser.add_argument('--orf-type-field', default=default_orf_type_field)
 
-    parser.add_argument('--min-length', help="ORFs with length less than this value will not "
-        "be processed", type=int, default=default_min_length)
-    parser.add_argument('--max-length', help="ORFs with length greater than this value will not "
-        "be processed", type=int, default=default_max_length)
-    parser.add_argument('--min-signal', help="ORFs with profile signal less than this value "
-        "will not be processed.", type=float, default=default_min_signal)
-
     parser.add_argument('-s', '--seed', help="The random seeds to use for inference",
         type=int, default=default_seed)
     parser.add_argument('-c', '--chains', help="The number of MCMC chains to use", type=int,
@@ -288,8 +268,8 @@ def main():
         type=int, default=default_num_orfs)
     parser.add_argument('--orf-num-field', default=default_orf_num_field)
 
-    parser.add_argument('--num-procs', help="The number of CPUs to use. ", type=int,
-        default=default_num_procs)
+    parser.add_argument('--num-cpus', help="The number of CPUs to use. ", type=int,
+        default=default_num_cpus)
     parser.add_argument('--do-not-compress', help="Unless otherwise specified, the output will "
         "be written in GZip format", action='store_true')
 
@@ -314,19 +294,11 @@ def main():
     exon_lengths = regions.apply(bio.get_bed_12_feature_length, axis=1)
     regions['orf_len'] = exon_lengths
 
-    if args.min_length != default_min_length:
-        mask_l = regions['orf_len'] >= args.min_length
-        regions = regions[mask_l]
-
-    if args.max_length != default_max_length:
-        mask_l = regions['orf_len'] <= args.max_length
-        regions = regions[mask_l]
-
     if len(args.orf_types) > 0:
         mask_a = regions[args.orf_type_field].isin(args.orf_types)
         regions = regions[mask_a]
 
-    regions.reset_index(drop=True, inplace=True)
+    regions = regions.reset_index(drop=True)
 
     msg = "Number of regions after filtering: {}".format(len(regions))
     logging.info(msg)
@@ -334,7 +306,7 @@ def main():
     # read in everything else in the parallel call
 
     # calculate the bayes' factor for each region
-    bfs_l = parallel.apply_parallel_split(regions, args.num_procs, get_all_bayes_factors, args,
+    bfs_l = parallel.apply_parallel_split(regions, args.num_cpus, get_all_bayes_factors, args,
         num_groups=args.num_groups, progress_bar=True)
     bfs = pd.concat(bfs_l)
 

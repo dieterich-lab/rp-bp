@@ -105,7 +105,7 @@ def main():
     orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
         note=config.get('orf_note'))
 
-    cmd = ("extract-orf-profiles {} {} {} --lengths {} --offsets {} {} {} --num-procs {} "
+    cmd = ("extract-orf-profiles {} {} {} --lengths {} --offsets {} {} {} --num-cpus {} "
             "--tmp {}".format(unique_filename, orfs_genomic, profiles_filename, lengths_str, 
             offsets_str, logging_str, seqname_prefix_str, args.num_cpus, args.tmp))
     in_files = [orfs_genomic, unique_filename]
@@ -113,6 +113,9 @@ def main():
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
     # now, smooth the ORF signal
+    min_length_str = utils.get_config_argument(config, 'min_orf_length', 'min-length')
+    max_length_str = utils.get_config_argument(config, 'max_orf_length', 'max-length')
+    min_signal_str = utils.get_config_argument(config, 'min_signal')
 
     fraction_str = utils.get_config_argument(config, 'smoothing_fraction', 'fraction')
     reweighting_iterations_str = utils.get_config_argument(config, 
@@ -126,9 +129,12 @@ def main():
         length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
         fraction=fraction, reweighting_iterations=reweighting_iterations)
 
-    cmd = "smooth-orf-profiles {} {} {} {} --num-cpus {}".format(orfs_genomic, 
+    cmd = "smooth-orf-profiles {} {} {} {} {} {} {} {} {} --num-cpus {}".format(orfs_genomic, 
         profiles_filename, smooth_profiles, fraction_str, reweighting_iterations_str, 
-        logging_str, args.num_cpus)
+        logging_str, min_signal_str, min_length_str, max_length_str, args.num_cpus)
+    in_files = [orfs_genomic, profiles_filename]
+    out_files = [smooth_profiles]
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
     # estimate the bayes factors
     bayes_factors = filenames.get_riboseq_bayes_factors(config['riboseq_data'], args.name, 
@@ -147,10 +153,7 @@ def main():
     untranslated_models_str = "--untranslated-models {}".format(untranslated_models_str)
     
     orf_types_str = utils.get_config_argument(config, 'orf_types')
-    min_length_str = utils.get_config_argument(config, 'min_orf_length', 'min-length')
-    max_length_str = utils.get_config_argument(config, 'max_orf_length', 'max-length')
-    min_signal_str = utils.get_config_argument(config, 'min_signal')
-
+    
     seed_str = utils.get_config_argument(config, 'seed')
     chains_str = utils.get_config_argument(config, 'chains', 'chains')
     iterations_str = utils.get_config_argument(config, 'translation_iterations', 'iterations')
@@ -161,9 +164,9 @@ def main():
         chi_square_only = True
         chi_square_only_str = "--chi-square-only"
 
-    cmd = "estimate-orf-bayes-factors {} {} {} {} {} {} {} {} {} {} {} {} {} {} --num-procs {}".format(
+    cmd = "estimate-orf-bayes-factors {} {} {} {} {} {} {} {} {} {} {} --num-cpus {}".format(
         smooth_profiles, orfs_genomic, bayes_factors, translated_models_str, untranslated_models_str, 
-        logging_str, orf_types_str, min_signal_str, min_length_str, max_length_str, seed_str, 
+        logging_str, orf_types_str, seed_str, 
         iterations_str, chains_str, chi_square_only_str, args.num_cpus)
     
     in_files = [profiles_filename, orfs_genomic]
@@ -183,13 +186,12 @@ def main():
 
     min_bf_mean_str = utils.get_config_argument(config, 'min_bf_mean')
     max_bf_var_str = utils.get_config_argument(config, 'max_bf_var')
-    min_profile_str = utils.get_config_argument(config, 'min_signal', 'minimum-profile-sum')
     min_bf_likelihood_str = utils.get_config_argument(config, 'min_bf_likelihood')
 
-    cmd = "select-final-prediction-set {} {} {} {} {} {} {} {} {} {}".format(bayes_factors, 
+    cmd = "select-final-prediction-set {} {} {} {} {} {} {} {} {}".format(bayes_factors, 
         config['fasta'], predicted_orfs, predicted_orfs_dna, 
         predicted_orfs_protein, min_bf_mean_str, max_bf_var_str, 
-        min_profile_str, min_bf_likelihood_str, logging_str)
+        min_bf_likelihood_str, logging_str)
     in_files = [bayes_factors, config['fasta']]
     out_files = [predicted_orfs, predicted_orfs_dna, predicted_orfs_protein]
     
@@ -209,9 +211,9 @@ def main():
     chisq_significance_level_str = utils.get_config_argument(config, 'chisq_significance_level')
     min_profile_str = utils.get_config_argument(config, 'min_signal', 'minimum-profile-sum')
 
-    cmd = "select-final-prediction-set {} {} {} {} {} {} {} {} --use-chi-square".format(bayes_factors, 
+    cmd = "select-final-prediction-set {} {} {} {} {} {} {} --use-chi-square".format(bayes_factors, 
         config['fasta'], predicted_orfs, predicted_orfs_dna, 
-        predicted_orfs_protein, chisq_significance_level_str, min_profile_str, logging_str)
+        predicted_orfs_protein, chisq_significance_level_str, logging_str)
     in_files = [bayes_factors, config['fasta']]
     out_files = [predicted_orfs, predicted_orfs_dna, predicted_orfs_protein]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)

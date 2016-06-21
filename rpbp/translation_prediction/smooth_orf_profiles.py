@@ -15,13 +15,17 @@ import misc.external_sparse_matrix_list as external_sparse_matrix_list
 import misc.parallel as parallel
 import misc.utils as utils
 
+default_min_length = 0
+default_max_length = 0
+default_min_signal = 5
+
 default_fraction = 0.5
 default_reweighting_iterations = 0
 
 default_num_cpus = 1
 default_num_orfs = 0
 
-def smooth_profile(profile, frac, reweighting_iterations):
+def smooth_profile(profile, args):
 
     # first, convert it to a dense matrix
     # this is always a single row, so always convert row 0
@@ -37,38 +41,58 @@ def smooth_profile(profile, frac, reweighting_iterations):
     
     # now, find the actual index of that data position
     neg_index = profile.indices[pos]
-    
-    profile = utils.to_dense(profile, 0, float, length=neg_index)
 
-    if sum(profile) == 0:
-        return scipy.sparse.csr_matrix(profile)
+    profile = utils.to_dense(profile, 0, float, length=neg_index)
+    smoothed_profile = np.zeros_like(profile)
 
     msg = "Length of profile: {}".format(len(profile))
     logging.debug(msg)
+
+    # make sure the length is okay
+    if (args.min_length > 0) and (neg_index < args.min_length):
+        return scipy.sparse.csr_matrix(smoothed_profile)
+    
+    if (args.max_length > 0) and (neg_index > args.max_length):
+        return scipy.sparse.csr_matrix(smoothed_profile)
 
     # split the signal based on frame
     x_1 = profile[0::3]
     x_2 = profile[1::3]
     x_3 = profile[2::3]
 
+    # do not bother smoothing signals for which we will not estimate the Bayes factor
+    # in these cases, just return a 0 signal
+    x_1_sum = sum(x_1)
+    x_2_sum = sum(x_2)
+    x_3_sum = sum(x_3)
+    
+    # make sure there is enough signal to process
+    if x_1_sum < args.min_signal:
+        return scipy.sparse.csr_matrix(smoothed_profile)
+
+    # also, make sure we have more reads in x_1 than the others
+    if x_1_sum < (x_2_sum + x_3_sum):
+        return scipy.sparse.csr_matrix(smoothed_profile)
+
+
     exog = np.arange(len(x_1))
 
     # x_1
     endog = x_1
     smoothed_x_1 = lowess(endog, exog, is_sorted=True, return_sorted=False, 
-        it=reweighting_iterations, frac=frac)
+        it=args.reweighting_iterations, frac=args.fraction)
     
     # x_2
     endog = x_2
     smoothed_x_2 = lowess(endog, exog, is_sorted=True, return_sorted=False, 
-        it=reweighting_iterations, frac=frac)
+        it=args.reweighting_iterations, frac=args.fraction)
     
     # x_3
     endog = x_3
     smoothed_x_3 = lowess(endog, exog, is_sorted=True, return_sorted=False, 
-        it=reweighting_iterations, frac=frac)
+        it=args.reweighting_iterations, frac=args.fraction)
     
-    smoothed_profile = np.zeros_like(profile)
+    
     smoothed_profile[0::3] = smoothed_x_1
     smoothed_profile[1::3] = smoothed_x_2
     smoothed_profile[2::3] = smoothed_x_3
@@ -89,6 +113,14 @@ def main():
     parser.add_argument('orfs', help="The (BED12+) ORFs file")
     parser.add_argument('profiles', help="The (mtx) ORF profiles")
     parser.add_argument('out', help="The output (mtx) file")
+
+    parser.add_argument('--min-length', help="ORFs with length less than this value will not "
+        "be processed", type=int, default=default_min_length)
+    parser.add_argument('--max-length', help="ORFs with length greater than this value will not "
+        "be processed", type=int, default=default_max_length)
+    parser.add_argument('--min-signal', help="ORFs with profile signal less than this value "
+        "will not be processed.", type=float, default=default_min_signal)
+
 
     parser.add_argument('--fraction', help="The fraction of signal to use in LOWESS", 
         type=float, default=default_fraction)
@@ -122,7 +154,9 @@ def main():
     msg = "Getting ORF lengths"
     logging.info(msg)
 
-    orf_lengths = parallel.apply_parallel(orfs, args.num_procs, bio.get_bed_12_feature_length)
+    orf_lengths = parallel.apply_parallel(orfs, args.num_cpus, 
+        bio.get_bed_12_feature_length, progress_bar=True)
+    orf_lengths = np.array(orf_lengths)
 
     msg = "Reading profiles"
     logging.info(msg)
@@ -152,8 +186,8 @@ def main():
     logging.debug(msg)
 
     smoothed_profiles_list = parallel.apply_parallel_iter(
-        profiles,  args.num_procs, 
-        smooth_profile, args.fraction, args.reweighting_iterations,
+        profiles,  args.num_cpus, 
+        smooth_profile, args,
         progress_bar=True, total=total)
 
     msg = "Converting smoothed profiles into sparse matrix"
