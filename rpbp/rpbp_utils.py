@@ -66,7 +66,7 @@ def get_periodic_lengths_and_offsets(config, name, do_not_call=False):
 
 
 
-default_min_signal = 10
+default_min_signal = None
 default_min_bf_mean = 5
 default_max_bf_var = None
 default_min_bf_likelihood = None
@@ -136,15 +136,23 @@ def get_predicted_orfs(bf, min_signal=default_min_signal,
 
         Imports:
             misc.bio
+            numpy
+            scipy.stats
 
     """
 
     import misc.bio as bio
+    import numpy as np
+    import scipy.stats
 
     msg = "Finding all longest ORFs with signal"
     logging.info(msg)
 
-    m_profile = bf['profile_sum'] > min_signal
+    if min_signal is None:
+        m_profile = bf['profile_sum'] > 0
+    else:
+        m_profile = bf['profile_sum'] > min_signal
+
     m_length = bf['orf_len'] > min_length
     m_x1_gt_x2 = bf['x_1_sum'] > bf['x_2_sum']
     m_x1_gt_x3 = bf['x_1_sum'] > bf['x_3_sum']
@@ -156,20 +164,38 @@ def get_predicted_orfs(bf, min_signal=default_min_signal,
     # create the selected ORFs
 
     # which bf mean/variance filters do we use? 
-    m_bf_mean = bf['bayes_factor_mean'] > min_bf_mean
+    m_bf_mean = True
     m_bf_var = True
     m_bf_likelihood = True
 
     if max_bf_var is not None:
+        m_bf_mean = bf['bayes_factor_mean'] > min_bf_mean
         m_bf_var = bf['bayes_factor_var'] < max_bf_var
     if min_bf_likelihood is not None:
         # first, calculate the likelihood that the true BF is greater than m_bf_mean
 
         # the likelihood that BF>min_mean is 1-cdf(estimated_mean, estimated_var)
-        likelihood = 1-scipy.stats.norm.cdf(min_bf_mean, bf['mean'], bf['std'])
+
+        # scipy parameterizes the normal using the std, so use sqrt(var)
+
+        likelihood = 1-scipy.stats.norm.cdf(min_bf_mean, bf['bayes_factor_mean'], np.sqrt(bf['bayes_factor_var']))
+
+        nans = np.isnan(likelihood)
+        num_nans = sum(nans)
+        num_predictions = len(likelihood)
+
+        msg = "Num nans: {}, num predictions: {}".format(num_nans, num_predictions)
+        logging.debug(msg)
+
+        max_likelihood = max(likelihood[~nans])
+        msg = "Maximum likelihood: {}".format(max_likelihood)
+        logging.debug(msg)
 
         # now filter
         m_bf_likelihood = likelihood > min_bf_likelihood
+
+    if (max_bf_var is None) and (min_bf_likelihood is None):
+        m_bf_mean = bf['bayes_factor_mean'] > min_bf_mean
 
     # apply all the filters
     m_bf_predicted = m_base & m_bf_mean & m_bf_var & m_bf_likelihood

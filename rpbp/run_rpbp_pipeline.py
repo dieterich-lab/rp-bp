@@ -109,13 +109,13 @@ def main():
     if args.tmp is not None:
         tmp_str = "--tmp {}".format(args.tmp)
 
-    cmd = ("create-filtered-genome-profile {} {} {} --num-procs {} {} {} {} {} {}".format(args.raw_data, 
+    cmd = ("create-filtered-genome-profile {} {} {} --num-cpus {} {} {} {} {} {}".format(args.raw_data, 
             args.config, args.name, args.num_cpus, do_not_call_str, overwrite_str, logging_str, star_str, tmp_str))
 
     utils.check_call(cmd)
 
     # then we predict the ORFs
-    cmd = ("predict-translated-orfs {} {} --num-procs {} {} {} {} {}".format(args.config, 
+    cmd = ("predict-translated-orfs {} {} --num-cpus {} {} {} {} {}".format(args.config, 
             args.name, args.num_cpus, tmp_str, do_not_call_str, overwrite_str, logging_str))
     utils.check_call(cmd)
 
