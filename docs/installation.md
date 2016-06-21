@@ -13,7 +13,7 @@ This document describes detailed installation instructions for the Rp-Bp and Rp-
 
 ## Prerequisites
 
-The pipelines make use of a number of standard bioinformatics tools. All of these must be installed and available on the `$PATH` for the pipeline to work correctly. All of the pipeline scripts checks that the required programs are available before executing. If any required programs cannot be found, the script prints an error message about the missing program and does not continue. The versions used during development and testing are specified below. For most of the tools, any recent version should be sufficient. If problems arise, though, please use the version indicated below
+The pipelines make use of a number of standard bioinformatics tools. All of these must be installed and available on the `$PATH` for the pipeline to work correctly. All of the pipeline scripts check that the required programs are available before executing. If any required programs cannot be found, the script prints an error message about the missing program and does not continue. The versions used during development and testing are specified below. For most of the tools, any recent version should be sufficient. If problems arise, though, please use the version indicated below
 
 * [bedtools](http://bedtools.readthedocs.io/en/latest/), version 2.25.0. Importantly, [bedtools intersect](http://bedtools.readthedocs.io/en/latest/content/tools/intersect.html) must accept the `-F` option
 * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml), version 2.2.6
