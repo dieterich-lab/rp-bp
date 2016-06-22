@@ -10,7 +10,7 @@ from Bio.Seq import Seq
 import misc.bio as bio
 import misc.utils as utils
 
-import rpbp.rpbp_utils as rpbp_utils
+import riboutils.ribo_utils as ribo_utils
 
 default_min_bf_mean = 5
 default_min_bf_likelihood = 0.5
@@ -91,7 +91,7 @@ def main():
 
     bayes_factors = bio.read_bed(args.bayes_factors)
 
-    longest_orfs, bf_orfs, chisq_orfs = rpbp_utils.get_predicted_orfs(bayes_factors, 
+    longest_orfs, bf_orfs, chisq_orfs = ribo_utils.get_predicted_orfs(bayes_factors, 
                                                        min_bf_mean=args.min_bf_mean, 
                                                        max_bf_var=args.max_bf_var, 
                                                        min_bf_likelihood=args.min_bf_likelihood,

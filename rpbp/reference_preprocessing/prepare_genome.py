@@ -10,7 +10,7 @@ import misc.bio as bio
 import misc.slurm as slurm
 import misc.utils as utils
 
-import rpbp.filenames as filenames
+import riboutils.ribo_filenames as filenames
 
 default_star_executable = "STAR"
 default_sjdb_overhang = 50

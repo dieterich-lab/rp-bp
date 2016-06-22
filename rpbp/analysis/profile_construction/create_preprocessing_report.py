@@ -8,7 +8,7 @@ import pandas as pd
 
 import misc.latex as latex
 import misc.utils as utils
-import rpbp.filenames as filenames
+import riboutils.ribo_filenames as filenames
 
 default_tmp = None
 default_image_type = 'eps'

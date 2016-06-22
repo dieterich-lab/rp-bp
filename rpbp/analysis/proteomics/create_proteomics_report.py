@@ -8,8 +8,8 @@ import yaml
 import misc.latex as latex
 import misc.utils as utils
 
-import rpbp.rpbp_utils
-import rpbp.filenames as filenames
+import riboutils.ribo_utils
+import riboutils.ribo_filenames as filenames
 
 
 default_tmp = None
@@ -32,7 +32,7 @@ def create_figures(config_file, config, name, args):
     logging.info(msg)
 
     try:
-        lengths, offsets = rpbp.rpbp_utils.get_periodic_lengths_and_offsets(config, name)
+        lengths, offsets = riboutils.ribo_utils.get_periodic_lengths_and_offsets(config, name)
     except FileNotFoundError:
         msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(name)
         logging.error(msg)
@@ -136,7 +136,7 @@ def main():
             latex.subsection(out, title)
 
             try:
-                lengths, offsets = rpbp.rpbp_utils.get_periodic_lengths_and_offsets(config, name)
+                lengths, offsets = riboutils.ribo_utils.get_periodic_lengths_and_offsets(config, name)
             except FileNotFoundError:
                 msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(name)
                 logging.error(msg)

@@ -10,8 +10,8 @@ import yaml
 
 import misc.utils as utils
 
-import rpbp.rpbp_utils
-import rpbp.filenames as filenames
+import riboutils.ribo_utils
+import riboutils.ribo_filenames as filenames
 
 default_num_cpus = 2
 default_tmp = None # utils.abspath('tmp')
@@ -82,7 +82,7 @@ def main():
         overwrite_argument = "--overwrite"
 
     # get the lengths and offsets which meet the required criteria from the config file
-    lengths, offsets = rpbp.rpbp_utils.get_periodic_lengths_and_offsets(config, args.name, args.do_not_call)
+    lengths, offsets = riboutils.ribo_utils.get_periodic_lengths_and_offsets(config, args.name, args.do_not_call)
 
     if len(lengths) == 0:
         msg = ("No periodic read lengths and offsets were found. Try relaxing "
