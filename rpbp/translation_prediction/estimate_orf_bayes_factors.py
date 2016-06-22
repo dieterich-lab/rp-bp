@@ -132,7 +132,7 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
 
     
     # extract the parameters of interest
-    m_translated_ex = [m.extract(pars=['lp__', 'background_location', 'background_scale', 'delta_l', 'delta_h']) 
+    m_translated_ex = [m.extract(pars=['lp__', 'background_location', 'background_scale']) 
         for m in m_translated]
 
     m_background_ex = [m.extract(pars=['lp__', 'background_location', 'background_scale']) 
@@ -168,8 +168,13 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
     ret['background_scale_mean'] = np.mean(m_background_ex['background_scale'])
     ret['background_scale_var'] = np.var(m_background_ex['background_scale'])
 
-    ret['delta_l'] = np.mean(m_translated_ex['delta_l'])
-    ret['delta_h'] = np.mean(m_translated_ex['delta_h'])
+    # these were important for some previous models; the current set of models
+    # do not use these variables, though. This can probably be removed at some
+    # point in the future.
+    if 'delta_l' in m_translated_ex:
+        ret['delta_l'] = np.mean(m_translated_ex['delta_l'])
+    if 'delta_h' in m_translated_ex:
+        ret['delta_h'] = np.mean(m_translated_ex['delta_h'])
 
     # the (log of) the Bayes factor is the difference between two normals:
     # (the best translated model) - (the best background model)
