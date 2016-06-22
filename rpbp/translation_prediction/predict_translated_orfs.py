@@ -138,7 +138,8 @@ def main():
 
     # estimate the bayes factors
     bayes_factors = filenames.get_riboseq_bayes_factors(config['riboseq_data'], args.name, 
-        length=lengths, offset=offsets, is_unique=True, note=note_str)
+        length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
+        fraction=fraction, reweighting_iterations=reweighting_iterations)
     
     # parse out all of the options from the config file, if they are present
     #translated_models_str = utils.get_config_argument(config, 'translated_models')
@@ -177,12 +178,15 @@ def main():
 
     # now, select the ORFs (longest for each stop codon) which pass the prediction filters
     predicted_orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-        args.name, length=lengths, offset=offsets, is_unique=True, note=note_str)
+        args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
+        fraction=fraction, reweighting_iterations=reweighting_iterations)
     predicted_orfs_dna = filenames.get_riboseq_predicted_orfs_dna(config['riboseq_data'], 
-        args.name, length=lengths, offset=offsets, is_unique=True, note=note_str)
+        args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
+        fraction=fraction, reweighting_iterations=reweighting_iterations)
     predicted_orfs_protein = filenames.get_riboseq_predicted_orfs_protein(
         config['riboseq_data'], args.name, length=lengths, offset=offsets, 
-        is_unique=True, note=note_str)
+        is_unique=True, note=note_str, is_smooth=True, 
+        fraction=fraction, reweighting_iterations=reweighting_iterations)
 
     min_bf_mean_str = utils.get_config_argument(config, 'min_bf_mean')
     max_bf_var_str = utils.get_config_argument(config, 'max_bf_var')
@@ -201,12 +205,15 @@ def main():
     
     # finally, repeat the selection step for chi-square
     predicted_orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-        args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, is_chisq=True)
+        args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, is_chisq=True, is_smooth=True, 
+        fraction=fraction, reweighting_iterations=reweighting_iterations)
     predicted_orfs_dna = filenames.get_riboseq_predicted_orfs_dna(config['riboseq_data'], 
-        args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, is_chisq=True)
+        args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, is_chisq=True, is_smooth=True, 
+        fraction=fraction, reweighting_iterations=reweighting_iterations)
     predicted_orfs_protein = filenames.get_riboseq_predicted_orfs_protein(
         config['riboseq_data'], args.name, length=lengths, offset=offsets, 
-        is_unique=True, note=note_str, is_chisq=True)
+        is_unique=True, note=note_str, is_chisq=True, is_smooth=True, 
+        fraction=fraction, reweighting_iterations=reweighting_iterations)
 
     chisq_significance_level_str = utils.get_config_argument(config, 'chisq_significance_level')
     min_profile_str = utils.get_config_argument(config, 'min_signal', 'minimum-profile-sum')
