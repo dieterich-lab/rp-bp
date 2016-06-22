@@ -26,6 +26,7 @@ install_requirements = [
     "pybedtools",
     "pyyaml",
     "git+https://bitbucket.org/bmmalone/misc.git#egg=misc[bio]",
+    "git+https://github.com/dieterich-lab/riboseq-utils.git#egg=riboutils",
     "-e .[analysis]"
 ]
 
@@ -44,6 +45,7 @@ clean_requirements = [
     "pybedtools",
     "pyyaml",
     "misc[bio]",
+    "riboutils",
     "rpbp[analysis]"
 ]
 

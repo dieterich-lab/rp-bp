@@ -26,7 +26,8 @@ setup(name='rpbp',
             'pysam',
             'pyfasta',
             'pystan',
-            'misc[bio]'
+            'misc[bio]',
+            'riboutils'
         ],
         extras_require = {
             'analysis': ['matplotlib', 'matplotlib_venn', 'crimson>=0.1.1']
