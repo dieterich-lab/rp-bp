@@ -170,7 +170,7 @@ def main():
         logging_str, orf_types_str, seed_str, 
         iterations_str, chains_str, chi_square_only_str, args.num_cpus)
     
-    in_files = [profiles_filename, orfs_genomic]
+    in_files = [smooth_profiles, orfs_genomic]
     in_files.extend(translated_models)
     in_files.extend(untranslated_models)
     out_files = [bayes_factors]
