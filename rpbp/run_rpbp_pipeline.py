@@ -113,7 +113,7 @@ def main():
     if args.tmp is not None:
         tmp_str = "--tmp {}".format(args.tmp)
 
-    cmd = ("create-orf-profile {} {} {} --num-cpus {} {} {} {} {} {}".format(args.raw_data, 
+    cmd = ("create-orf-profiles {} {} {} --num-cpus {} {} {} {} {} {}".format(args.raw_data, 
             args.config, args.name, args.num_cpus, do_not_call_str, overwrite_str, 
             logging_str, star_str, tmp_str))
 

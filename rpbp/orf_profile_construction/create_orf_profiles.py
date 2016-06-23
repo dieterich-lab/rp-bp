@@ -10,6 +10,7 @@ import yaml
 
 import misc.utils as utils
 
+import riboutils.ribo_utils as ribo_utils
 import riboutils.ribo_filenames as filenames
 
 default_num_cpus = 1
@@ -181,7 +182,7 @@ def main():
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
     # get the lengths and offsets which meet the required criteria from the config file
-    lengths, offsets = riboutils.ribo_utils.get_periodic_lengths_and_offsets(config, args.name, args.do_not_call)
+    lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, args.name, args.do_not_call)
 
     if len(lengths) == 0:
         msg = ("No periodic read lengths and offsets were found. Try relaxing "
@@ -196,9 +197,11 @@ def main():
     seqname_prefix_str = utils.get_config_argument(config, 'seqname_prefix')
     
     # extract the riboseq profiles for each orf
-    unique_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True, note=note_str)
+    unique_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, 
+        is_unique=True, note=note)
+
     profiles_filename = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
-        length=lengths, offset=offsets, is_unique=True, note=note_str)
+        length=lengths, offset=offsets, is_unique=True, note=note)
 
     
     orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
@@ -225,7 +228,7 @@ def main():
     reweighting_iterations = config.get('smoothing_reweighting_iterations', None)
 
     smooth_profiles = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
-        length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
+        length=lengths, offset=offsets, is_unique=True, note=note, is_smooth=True, 
         fraction=fraction, reweighting_iterations=reweighting_iterations)
 
     cmd = "smooth-orf-profiles {} {} {} {} {} {} {} {} {} --num-cpus {}".format(orfs_genomic, 
