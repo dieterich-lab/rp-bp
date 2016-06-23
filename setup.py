@@ -39,7 +39,7 @@ setup(name='rpbp',
             'console_scripts': [
                                 'extract-orfs=rpbp.reference_preprocessing.extract_orfs:main',
                                 'prepare-genome=rpbp.reference_preprocessing.prepare_genome:main',
-                                'create-filtered-genome-profile=rpbp.genome_profile_construction.create_filtered_genome_profile:main',
+                                'create-orf-profiles=rpbp.genome_profile_construction.create_orf_profiles:main',
                                 'create-base-genome-profile=rpbp.genome_profile_construction.create_base_genome_profile:main',
                                 'remove-multimapping-reads=rpbp.genome_profile_construction.remove_multimapping_reads:main',
                                 'extract-metagene-profiles=rpbp.genome_profile_construction.extract_metagene_profiles:main',

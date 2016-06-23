@@ -47,8 +47,6 @@ def main():
 
     # check that all of the necessary programs are callable
     programs =  [   
-                    'extract-orf-profiles',
-                    'smooth-orf-profiles',
                     'estimate-orf-bayes-factors',
                     'select-final-prediction-set',
                     'bamToBed',
@@ -62,8 +60,6 @@ def main():
                         'genome_base_path',
                         'genome_name',
                         'models_base'
-                        #'translated_models',
-                        #'untranslated_models'
                     ]
     utils.check_keys_exist(config, required_keys)
 
@@ -81,47 +77,22 @@ def main():
     if args.overwrite:
         overwrite_argument = "--overwrite"
 
+    
     # get the lengths and offsets which meet the required criteria from the config file
     lengths, offsets = riboutils.ribo_utils.get_periodic_lengths_and_offsets(config, args.name, args.do_not_call)
 
     if len(lengths) == 0:
         msg = ("No periodic read lengths and offsets were found. Try relaxing "
-            "min_metagene_profile_count, min_metagene_profile_bayes_factor_mean, "
-            "max_metagene_profile_bayes_factor_var. Qutting.")
+            "min_metagene_profile_count, min_metagene_bf_mean, max_metagene_bf_var, "
+            "and/or min_metagene_bf_likelihood. Qutting.")
         logging.critical(msg)
         return
 
-    lengths_str = ' '.join(lengths)
-    offsets_str = ' '.join(offsets)
 
-    seqname_prefix_str = utils.get_config_argument(config, 'seqname_prefix')
-    
-    # extract the riboseq profiles for each orf
-    unique_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True, note=note_str)
-    profiles_filename = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
-        length=lengths, offset=offsets, is_unique=True, note=note_str)
-
-    
     orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
         note=config.get('orf_note'))
 
-    cmd = ("extract-orf-profiles {} {} {} --lengths {} --offsets {} {} {} --num-cpus {} "
-            "--tmp {}".format(unique_filename, orfs_genomic, profiles_filename, lengths_str, 
-            offsets_str, logging_str, seqname_prefix_str, args.num_cpus, args.tmp))
-    in_files = [orfs_genomic, unique_filename]
-    out_files = [profiles_filename]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
-
-    # now, smooth the ORF signal
-    min_length_str = utils.get_config_argument(config, 'min_orf_length', 'min-length')
-    max_length_str = utils.get_config_argument(config, 'max_orf_length', 'max-length')
-    min_signal_str = utils.get_config_argument(config, 'min_signal')
-
-    fraction_str = utils.get_config_argument(config, 'smoothing_fraction', 'fraction')
-    reweighting_iterations_str = utils.get_config_argument(config, 
-        'smoothing_reweighting_iterations', 'reweighting-iterations')
-
-    # we also need the values
+    # prediction starts with the smoothed ORF profiles
     fraction = config.get('smoothing_fraction', None)
     reweighting_iterations = config.get('smoothing_reweighting_iterations', None)
 
@@ -129,21 +100,12 @@ def main():
         length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
         fraction=fraction, reweighting_iterations=reweighting_iterations)
 
-    cmd = "smooth-orf-profiles {} {} {} {} {} {} {} {} {} --num-cpus {}".format(orfs_genomic, 
-        profiles_filename, smooth_profiles, fraction_str, reweighting_iterations_str, 
-        logging_str, min_signal_str, min_length_str, max_length_str, args.num_cpus)
-    in_files = [orfs_genomic, profiles_filename]
-    out_files = [smooth_profiles]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
-
     # estimate the bayes factors
     bayes_factors = filenames.get_riboseq_bayes_factors(config['riboseq_data'], args.name, 
         length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
         fraction=fraction, reweighting_iterations=reweighting_iterations)
     
     # parse out all of the options from the config file, if they are present
-    #translated_models_str = utils.get_config_argument(config, 'translated_models')
-    #untranslated_models_str = utils.get_config_argument(config, 'untranslated_models')
     translated_models = filenames.get_models(config['models_base'], 'translated')
     untranslated_models = filenames.get_models(config['models_base'], 'untranslated')
 

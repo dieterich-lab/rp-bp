@@ -59,6 +59,8 @@ def main():
                     'extract-metagene-profiles',
                     'estimate-metagene-profile-bayes-factors',
                     'select-periodic-offsets',
+                    'extract-orf-profiles',
+                    'smooth-orf-profiles'
                 ]
     utils.check_programs_exist(programs)
 
@@ -69,8 +71,6 @@ def main():
                         'genome_base_path',
                         'genome_name',
                         'models_base'
-                        #'periodic_models',
-                        #'nonperiodic_models'
                     ]
     utils.check_keys_exist(config, required_keys)
 
@@ -172,11 +172,67 @@ def main():
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
     
     # select the best read lengths for constructing the signal
-    periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], args.name, is_unique=True, note=note)
+    periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], 
+        args.name, is_unique=True, note=note)
 
     cmd = "select-periodic-offsets {} {}".format(metagene_profile_bayes_factors, periodic_offsets)
     in_files = [metagene_profile_bayes_factors]
     out_files = [periodic_offsets]
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+
+    # get the lengths and offsets which meet the required criteria from the config file
+    lengths, offsets = riboutils.ribo_utils.get_periodic_lengths_and_offsets(config, args.name, args.do_not_call)
+
+    if len(lengths) == 0:
+        msg = ("No periodic read lengths and offsets were found. Try relaxing "
+            "min_metagene_profile_count, min_metagene_bf_mean, max_metagene_bf_var, "
+            "and/or min_metagene_bf_likelihood. Qutting.")
+        logging.critical(msg)
+        return
+
+    lengths_str = ' '.join(lengths)
+    offsets_str = ' '.join(offsets)
+
+    seqname_prefix_str = utils.get_config_argument(config, 'seqname_prefix')
+    
+    # extract the riboseq profiles for each orf
+    unique_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, is_unique=True, note=note_str)
+    profiles_filename = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
+        length=lengths, offset=offsets, is_unique=True, note=note_str)
+
+    
+    orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
+        note=config.get('orf_note'))
+
+    cmd = ("extract-orf-profiles {} {} {} --lengths {} --offsets {} {} {} --num-cpus {} "
+            "--tmp {}".format(unique_filename, orfs_genomic, profiles_filename, lengths_str, 
+            offsets_str, logging_str, seqname_prefix_str, args.num_cpus, args.tmp))
+    in_files = [orfs_genomic, unique_filename]
+    out_files = [profiles_filename]
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+
+    # now, smooth the ORF signal
+    min_length_str = utils.get_config_argument(config, 'min_orf_length', 'min-length')
+    max_length_str = utils.get_config_argument(config, 'max_orf_length', 'max-length')
+    min_signal_str = utils.get_config_argument(config, 'min_signal')
+
+    fraction_str = utils.get_config_argument(config, 'smoothing_fraction', 'fraction')
+    reweighting_iterations_str = utils.get_config_argument(config, 
+        'smoothing_reweighting_iterations', 'reweighting-iterations')
+
+    # we also need the values
+    fraction = config.get('smoothing_fraction', None)
+    reweighting_iterations = config.get('smoothing_reweighting_iterations', None)
+
+    smooth_profiles = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
+        length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
+        fraction=fraction, reweighting_iterations=reweighting_iterations)
+
+    cmd = "smooth-orf-profiles {} {} {} {} {} {} {} {} {} --num-cpus {}".format(orfs_genomic, 
+        profiles_filename, smooth_profiles, fraction_str, reweighting_iterations_str, 
+        logging_str, min_signal_str, min_length_str, max_length_str, args.num_cpus)
+    in_files = [orfs_genomic, profiles_filename]
+    out_files = [smooth_profiles]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
    
 if __name__ == '__main__':
