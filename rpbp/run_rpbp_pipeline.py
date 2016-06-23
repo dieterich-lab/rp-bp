@@ -33,6 +33,9 @@ def main():
         
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
+
+    parser.add_argument('--profiles-only', help="If this flag is present, then only "
+        "the smoothed ORF profiles will be created", action='store_true')
            
     slurm.add_sbatch_options(parser)
     utils.add_logging_options(parser)
@@ -62,7 +65,7 @@ def main():
                     'smooth-orf-profiles',
                     'estimate-orf-bayes-factors',
                     'select-final-prediction-set',
-                    'create-filtered-genome-profile',
+                    'create-orf-profiles',
                     'predict-translated-orfs'
                 ]
     utils.check_programs_exist(programs)
@@ -93,7 +96,8 @@ def main():
 
     # the first step is the standard riboseq preprocessing
     
-    # handle do_not_call so that we _do_ call the preprocessing script, but that it does not run anything
+    # handle do_not_call so that we _do_ call the preprocessing script, 
+    # but that it does not run anything
     do_not_call_str = ""
     if not call:
         do_not_call_str = "--do-not-call"
@@ -109,10 +113,15 @@ def main():
     if args.tmp is not None:
         tmp_str = "--tmp {}".format(args.tmp)
 
-    cmd = ("create-filtered-genome-profile {} {} {} --num-cpus {} {} {} {} {} {}".format(args.raw_data, 
-            args.config, args.name, args.num_cpus, do_not_call_str, overwrite_str, logging_str, star_str, tmp_str))
+    cmd = ("create-orf-profile {} {} {} --num-cpus {} {} {} {} {} {}".format(args.raw_data, 
+            args.config, args.name, args.num_cpus, do_not_call_str, overwrite_str, 
+            logging_str, star_str, tmp_str))
 
     utils.check_call(cmd)
+
+    # check if we only want to create the profiles
+    if args.profiles_only:
+        return
 
     # then we predict the ORFs
     cmd = ("predict-translated-orfs {} {} --num-cpus {} {} {} {} {}".format(args.config, 
