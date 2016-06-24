@@ -102,7 +102,7 @@ def check_programs_exist(programs, package_name):
         print(msg)
 
 
-def install(openblas_install_path):
+def install():
     global requirements
     
     option = "install --no-binary :all:"
@@ -135,7 +135,7 @@ def install(openblas_install_path):
     programs = ['gffread']
     check_programs_exist(programs, 'cufflinks')
 
-def clean(openblas_install_path):
+def clean():
     global requirements
 
     option = "uninstall --yes"
