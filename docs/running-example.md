@@ -1,11 +1,11 @@
 
 # Running the small example dataset
 
-A small example dataset using _C. elegans_ is available for [download](http://cloud.dieterichlab.org/index.php/s/3cyluM3ZCsvf0PT). Please see [below](#example-dataset-files) for the exact contents of the download.
+A small example dataset using _C. elegans_ is available for [download](http://cloud.dieterichlab.org/index.php/s/3cyluM3ZCsvf0PT/download). Please see [below](#example-dataset-files) for the exact contents of the download, as well as instructions for downloading it from the command line.
 
 Additionally, the expected outputs of the pipeline are included. Due to differences among versions of the external programs used in the pipeline (samtools, etc.), it is unlikely that all intermediate files will match exactly. However, we do include a script to compare the ORFs predicted as translated using the pipeline to those which are expected. If these differ significantly, it suggests something is not working correctly in the pipeline.
 
-If the results differ significantly, please run the pipeline using the "DEBUG" logging level (see the [usage instructions](usage-instructions.md#logging-options)). This causes the scripts to output detailed runtime information which can be helpful for tracking down problems. If the problem is still not clear, please report the problem at the [github bug tracker](https://github.com/dieterich-lab/rp-bp/issues).
+If the results differ significantly, please run the pipeline using the "DEBUG" logging level (see the [usage instructions](usage-instructions.ipynb#logging-options)). This causes the scripts to output detailed runtime information which can be helpful for tracking down problems. If the problem is still not clear, please report the problem at the [github bug tracker](https://github.com/dieterich-lab/rp-bp/issues).
 
 In total, creating the reference index files should take about 5 minutes and running the main pipeline should take an additional 15 to 20 minutes on a commodity laptop.
 
@@ -19,7 +19,7 @@ In total, creating the reference index files should take about 5 minutes and run
 
 ## Example dataset files
 
-The example dataset includes the following files:
+The example dataset is distributed as a .tar.gz file and includes the following:
 * `WBcel235.79.chrI.yaml`. The configuration file for creating the reference index files. It includes all possible options for creating the indices as well as detailed descriptions.
 
 * `WBcel235.dna.toplevel.chrI.fa`. The reference sequence of Chromosome I for _C. elegans_.
@@ -38,6 +38,15 @@ The example dataset includes the following files:
 
 * `c-elegans-test.expected.chisq.predicted-orfs.bed.gz`. The expected predictions using the Rp-chi pipeline.
 
+**Downloading from the command line**
+
+The following `wget` command can be used to download the example .tar.gz file:
+
+
+```python
+wget http://cloud.dieterichlab.org/index.php/s/3cyluM3ZCsvf0PT/download -O c-elegans-chrI-example.tar.gz
+```
+
 [Back to top](#toc)
 
 <a id='creating-reference-indices'></a>
@@ -52,9 +61,9 @@ The example dataset includes the following files:
 * `genome_base_path`
 * `ribosomal_index`
 
-The following command will create the necessary reference files using 2 CPUS and 4GB of RAM for STAR. Please see the [usage instructions](usage-instructions.md#creating-reference-genome-indices) for the expected output files.
+The following command will create the necessary reference files using 2 CPUS and 4GB of RAM for STAR. Please see the [usage instructions](usage-instructions.ipynb#creating-reference-genome-indices) for the expected output files.
 
-The `--use-slurm` and related options can also be used if SLURM is available. Please see the [usage instructions](usage-instructions.md#parallel-processing-options) for more information.
+The `--use-slurm` and related options can also be used if SLURM is available. Please see the [usage instructions](usage-instructions.ipynb#parallel-processing-options) for more information.
 
 N.B. The `--overwrite` flag is given below to ensure all of the files are (re-)created. In typical use cases, if some of the files already exist (e.g., the STAR index), then this flag can be omitted.
 
@@ -87,9 +96,9 @@ Samples and models file paths must also be updated.
 * `models_base`. This shoud point to the `models` folder of the rp-bp installation
 * `adapter_file`
 
-The following command will run the Rp-Bp (and Rp-chi) translation prediction pipelines using 2 CPUS. Please see the [usage instructions](usage-instructions.md#running-pipelines) for the expected output files.
+The following command will run the Rp-Bp (and Rp-chi) translation prediction pipelines using 2 CPUS. Please see the [usage instructions](usage-instructions.ipynb#running-pipelines) for the expected output files.
 
-The `--use-slurm` and related options can also be used if SLURM is available. Please see the [usage instructions](usage-instructions.md#parallel-processing-options) for more information.
+The `--use-slurm` and related options can also be used if SLURM is available. Please see the [usage instructions](usage-instructions.ipynb#parallel-processing-options) for more information.
 
 N.B. The `--overwrite` flag is given below to ensure all of the files are (re-)created. In typical use cases, if some of the files already exist (e.g., the quality-filtered reads), then this flag can be omitted.
 
