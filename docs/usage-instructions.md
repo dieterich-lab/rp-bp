@@ -68,10 +68,10 @@ The required input files are those suggested by the configuration file keys.
 
 ### Output files
 
-* `base_path`/transcript-index/`name`.transcripts.fa
-* `base_path`/transcript-index/`name`.genomic-orfs.`orf_note`.bed.gz
+* `genome_base_path`/transcript-index/`genome_name`.transcripts.fa
+* `genome_base_path`/transcript-index/`genome_name`.genomic-orfs.`orf_note`.bed.gz
 * `ribosomal_index`. The bowtie2 index files (`ribosomal_index`.1.bt2, etc.) for the ribosomal_fasta file
-* `base_path`/STAR/`name`/. The STAR index files (`SA`, `Genome`, etc.) for the `fasta` and annotated transcripts in the `gtf` file
+* `genome_base_path`/STAR/`genome_name`/. The STAR index files (`SA`, `Genome`, etc.) for the `fasta` and annotated transcripts in the `gtf` file
 
 
 ```python
@@ -192,6 +192,43 @@ These options should be exactly the same as those used in the configuration file
 * [`metagene_profile_iterations`]. The number of iterations to use for each chain in the MCMC sampling. The first half of the iterations are discarded as burn-in samples. All of the remaining samples are used to estimate the posterior distributions. That is, we do not use thinning. default: 500
 
 
+#### Periodicity and offset options
+* [`use_fixed_lengths`]. If this variable is present in the config file with any value, then the estimated  periodic read lengths and offsets will not be used. Instead, fixed values given by `lengths` and `offsets` (below) will be used.
+
+* [`lengths`]. A list of read lengths which will be used for creating the profiles if the `use_fixed_lengths` option is given. Presumably, these are lengths that have periodic metagene profiles.
+
+* [`offsets`]. The P-site offset to use for each read length specifed by `--lengths` if the `use_fixed_lengths` option is given. The number of offsets must match the number of lengths, and they are assumed to match. For example `lengths` of 26, 29 with `offsets` 9, 12 means only reads of lengths 26 bp and 29 bp will be used to create the profiles. The 26 bp reads will be shifted by 9 bp in the 5' direction, while reads of length 29 bp will be shifted by 12 bp.
+
+* [`min_metagene_profile_count`]. If fixed lengths are not used: the minimum number of reads for a particular length in the filtered genome profile. Read lengths with fewer than this number of reads will not be used. default: 1000
+
+* [`min_metagene_bf_mean`]. If fixed lengths are not used: if max_metagene_profile_bayes_factor_var is not None, then this is taken as a hard threshold on the estimated Bayes factor mean. 
+
+ If min_metagene_profile_bayes_factor_likelihood is given, then this is taken as the boundary value; that is, a profile is "periodic" if:
+
+       [P(bf > min_metagene_bf_mean)] > min_metagene_bf_likelihood
+
+ If both max_metagene_bf_var and min_metagene_bf_likelihood are None, then this is taken as a hard threshold on the mean for selecting periodic read lengths.
+
+ If both max_metagene_bf_var and min_metagene_bf_likelihood are given, then both filters will be applied and the result will be the intersection. 
+ 
+ default: 5
+
+* [`max_metagene_bf_var`]. If fixed lengths are not used: if given, then this is taken as a hard threshold on the estimated Bayes factor variance. default: None, i.e., this filter is not used. (null in yaml)
+
+* [`min_metagene_bf_likelihood`]: If fixed lengths are not used: if given, then this is taken a threshold on the likelihood of periodicity (see min_metagene_bf_mean description for more details). default: 0.5
+
+#### Smoothing options
+
+* [`smoothing_fraction`]. The fraction of the profile to use for smoothing within LOWESS. default: 0.2
+
+* [`smoothing_reweighting_iterations`]. The number of reweighting iterations to use within LOWESS. Please see the statsmodels documentation for a detailed description of this parameter. default: 0
+
+* [`min_orf_length`]. If this value is greater than 0, then ORFs whose length (in nucleotides) is less than this value will not be smoothed, and neither the Bayes factor estimates nor the chi-square p-value will be calcualted. default: 0
+
+* [`max_orf_length`]. If this value is greater than 0, then ORFs whose length (in nucleotides) is greater than this value will not be smoothed, and neither the Bayes factor estimates nor the chi-square p-value will be calcualted. default: 0
+
+* [`min_signal`]. ORFs for which the number of in-frame reads is less than this value will not be smoothed, and neither the Bayes factor estimates nor the chi-square p-value will be calculated. default: 5
+
 
 #### Shared MCMC options
 These affect the MCMC both for estimating metagene profile periodicity and ORF translation Bayes factors.
@@ -207,26 +244,46 @@ The required input files are only those suggested by the configuration file keys
 * `ribosomal_index`.
 * `gtf`.
 * The STAR index
-* The periodic models, taken as all `.pkl` files located in `models_base/periodic_models`.
-* The nonperiodic models, taken as all `.pkl` files located in `models_base/nonperiodic_models`.
+* The periodic models, taken as all `.pkl` files located in `models_base/periodic`.
+* The nonperiodic models, taken as all `.pkl` files located in `models_base/nonperiodic`.
 
 ### Output files
 
 This script primarily creates the following files. (STAR also creates some temporary and log files.)
-* `riboseq_data`/without-adapters/`sample-name`[.`note`].fastq.gz
-* `riboseq_data`/with-rrna/`sample-name`[.`note`].fastq.gz
-* `riboseq_data`/without-rrna/`sample-name`[.`note`].fastq.gz
-* `riboseq_data`/without-rrna-mapping/`sample-name`[.`note`]Aligned.sortedByCoord.out.bam
-* `riboseq_data`/without-rrna-mapping/`sample-name`[.`note`].bam
-* `riboseq_data`/without-rrna-mapping/`sample-name`[.`note`]-unique.bam
-* `riboseq_data`/without-rrna-mapping/`sample-name`[.`note`]Aligned.toTranscriptome.out.bam
-* `riboseq_data`/without-rrna-mapping/`sample-name`[.`note`].transcriptome.bam
-* `riboseq_data`/without-rrna-mapping/`sample-name`[.`note`].transcriptome-unique.bam
-* `riboseq_data`/without-rrna-mapping/metagene-profiles/`sample-name`[.`note`]-unique.metagene-profile.csv.gz
-* `riboseq_data`/without-rrna-mapping/metagene-profiles/`sample-name`[.`note`]-unique.metagene-periodicity-bayes-factors.csv.gz
-* `riboseq_data`/without-rrna-mapping/metagene-profiles/`sample-name`[.`note`]-unique.periodic-offsets.csv.gz
 
-Indices are also created for the bam files. `sample-name`.bam is a symlink to `sample-name`[.`note`]Aligned.sortedByCoord.out.bam, and `sample-name`.transcriptome.bam is a sorted version of `sample-name`[.`note`]Aligned.toTranscriptome.out.bam. `sample-name`-unique.bam is sorted and does not contain any multimappers.
+* Trimmed and quality filtered reads
+    * **trimmed and filtered reads**. A fastq.gz file containing the reads after removing adapters and low-quality reads. `riboseq_data`/without-adapters/`sample-name`[.`note`].fastq.gz
+    
+* Reads aligning to ribosomal sequences
+    * **discarded reads**. A fastq.gz file containing reads which align to the ribosomal index. They are recorded but not used in later processing. `riboseq_data`/with-rrna/`sample-name`[.`note`].fastq.gz
+    
+* Reads not aligning to ribosomal sequences
+    * **retained reads**. A fastq.gz file containing reads which do not align to the ribosomal index and are used in further processing. `riboseq_data`/without-rrna/`sample-name`[.`note`].fastq.gz
+    
+* Aligned reads
+    * **sorted reads aligned to the genome**. A sorted bam file containing all alignments of reads to the genome. `riboseq_data`/without-rrna-mapping/`sample-name`[.`note`]Aligned.sortedByCoord.out.bam. Additionally, `riboseq_data`/without-rrna-mapping/`sample-name`[.`note`].bam, which is a symlink to the Aligned.sortedByCoord.out.bam file.
+    
+    * **aligned reads which map uniquely to the genome**. A sorted bam file containing all alignments of reads to the genome with multimapping reads filtered out. `riboseq_data`/without-rrna-mapping/`sample-name`[.`note`]-unique.bam
+    
+    * **unsorted reads aligned to the transcriptome**. An unsorted bam file containing all alignments of reads to the transcriptome. That is, the alignments are in "transcript space" coordinates. `riboseq_data`/without-rrna-mapping/`sample-name`[.`note`]Aligned.toTranscriptome.out.bam
+    
+    * **sorted reads aligned to the transcriptome**. A sorted bam file containing all alignments of reads to the transcriptome. That is, the alignments are in "transcript space" coordinates. `riboseq_data`/without-rrna-mapping/`sample-name`[.`note`].transcriptome.bam
+    
+    * **aligned reads which map uniquely to the transcriptome**. A sorted bam file containing all alignments of reads to the transcriptome with multimappers filtered out. That is, the alignments are in "transcript space" coordinates. This file is often not very useful since it filters reads which align to multiple transcripts. `riboseq_data`/without-rrna-mapping/`sample-name`[.`note`].transcriptome-unique.bam
+    
+* Metagene profiles
+    * **metagene profiles**. A gzipped csv file containing the metagene profiles for all read lengths which occur in the uniquely-aligning reads. It includes the metagene profile around both the annotated translation initiation site and translation termination site. `riboseq_data`/metagene-profiles/`sample-name`[.`note`]-unique.metagene-profile.csv.gz
+    
+    * **periodicity estimations**. A gzipped csv file containing the Bayes factor estimates for all P-site offsets specified by the configuration, as well as information about the number of reads in the respective profile. `riboseq_data`/without-rrna-mapping/metagene-profiles/`sample-name`[.`note`]-unique.metagene-periodicity-bayes-factors.csv.gz
+    
+    * **estimated P-site offsets**. A gzipped csv file containing the selected P-site offset for each read length. All read lengths are included, even if the estimates do not meet the criteria specified in the configuration file. (The filtering occurs later.) `riboseq_data`/without-rrna-mapping/metagene-profiles/`sample-name`[.`note`]-unique.periodic-offsets.csv.gz
+
+* ORF profiles
+    * **unsmoothed ORF profiles**. A sparse [matrix market file](http://math.nist.gov/MatrixMarket/formats.html) containing the profiles for all ORFs. **N.B.** The matrix market format uses base-1 indices.  `riboseq_data`/orf-profiles/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.profiles.mtx. 
+    
+    * **smoothed ORF profiles**. A sparse [matrix market file](http://math.nist.gov/MatrixMarket/formats.html) containing the smoothed profiles for all ORFs. **N.B.** The matrix market format uses base-1 indices.  `riboseq_data`/orf-profiles/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.profiles.mtx. 
+
+Indices are also created for the bam files.
 
 ### Difference from paper
 
@@ -235,7 +292,7 @@ The fifth step of creating the base genome profile in the paper is "Everything e
 
 
 ```python
-create-filtered-genome-profile test-chrI.fastq.gz c-elegans-test.yaml c-elegans-chrI --num-cpus 10
+create-orf-profiles test-chrI.fastq.gz c-elegans-test.yaml c-elegans-chrI --num-cpus 10
 ```
 
 [Back to top](#toc)
@@ -271,31 +328,6 @@ These options should be exactly the same as those used in the configuration file
 * `genome_base_path`. The path to the output directory for the transcript fasta and ORFs
 * `genome_name`. A descriptive name to use for the created files
 
-#### Periodicity and offset options
-* [`use_fixed_lengths`]. If this variable is present in the config file with any value, then the estimated  periodic read lengths and offsets will not be used. Instead, fixed values given by `lengths` and `offsets` (below) will be used.
-
-* [`lengths`]. A list of read lengths which will be used for creating the profiles if the `use_fixed_lengths` option is given. Presumably, these are lengths that have periodic metagene profiles.
-
-* [`offsets`]. The P-site offset to use for each read length specifed by `--lengths` if the `use_fixed_lengths` option is given. The number of offsets must match the number of lengths, and they are assumed to match. For example `lengths` of 26, 29 with `offsets` 9, 12 means only reads of lengths 26 bp and 29 bp will be used to create the profiles. The 26 bp reads will be shifted by 9 bp in the 5' direction, while reads of length 29 bp will be shifted by 12 bp.
-
-* [`min_metagene_profile_count`]. If fixed lengths are not used, the minimum number of reads for a particular length in the filtered genome profile. Read lengths with fewer than this number of reads will not be used. default: 1000
-
-* [`min_metagene_profile_bayes_factor_mean`]. If fixed lengths are not used, the minimum mean for the Bayes factor estimate for a metagene profile to consider it as periodic. Only read lengths with profiles which satisfy both this constraint and the `max_metagene_profile_bayes_factor_var` constraint will be used to create the ORF profiles. default: 5
-
-* [`max_metagene_profile_bayes_factor_var`]. If fixed lengths are not used, the maximum variance for the Bayes factor estimate for a metagene profile to consider it as periodic. Only read lengths with profiles which satisfy both this constraint and the `min_metagene_profile_bayes_factor_mean` constraint will be used to create the ORF profiles. default: 5
-
-#### Smoothing options
-
-* [`smoothing_fraction`]. The fraction of the profile to use for smoothing within LOWESS. default: 0.2
-
-* [`smoothing_reweighting_iterations`]. The number of reweighting iterations to use within LOWESS. Please see the statsmodels documentation for a detailed description of this parameter. default: 0
-
-* [`min_orf_length`]. If this value is greater than 0, then ORFs whose length (in nucleotides) is less than this value will not be smoothed, and neither the Bayes factor estimates nor the chi-square p-value will be calcualted. default: 0
-
-* [`max_orf_length`]. If this value is greater than 0, then ORFs whose length (in nucleotides) is greater than this value will not be smoothed, and neither the Bayes factor estimates nor the chi-square p-value will be calcualted. default: 0
-
-* [`min_signal`]. ORFs for which the number of in-frame reads is less than this value will not be smoothed, and neither the Bayes factor estimates nor the chi-square p-value will be calculated. default: 5
-
 #### Bayes factor estimate options
 * [`chi_square_only`]. If this flag is in the config file with any value, then only the Rp-chi pipeline will be performed; namely, the translation models will not be fit to the data, and the posterior distributions will not be estimated.
 
@@ -309,7 +341,7 @@ These options should be exactly the same as those used in the configuration file
 
  If min_bf_likelihood is given, then this is taken as the boundary value; that is, an ORF is selected as "translated" if:
 
-   [P(bf > min_bf_mean)] > min_bf_likelihood
+       [P(bf > min_bf_mean)] > min_bf_likelihood
 
  If both max_bf_var and min_bf_likelihood are None (null in YAML), then this is taken as a hard threshold on the mean for selecting translated ORFs.
 
@@ -323,12 +355,6 @@ These options should be exactly the same as those used in the configuration file
 
 * [`chisq_significance_level`]. For the chi-square test, this value is first Bonferroni corrected based on the number of ORFs which pass the smoothing filters. It is then used as the significance threshold to select translated ORFs. default: 0.01
 
-* [`min_bf_mean`]. The minimum value for the estimated Bayes factor mean to "predict" that an ORF is translated. ORFs must meet both the `min_bf_mean` and `max_bf_var` filters to be predicted. default: 5
-
-* [`max_bf_var`]. The maximum value value for the estimated Bayes factor variance to "predict" that an ORF is translated. ORFs must meet both the `min_bf_mean` and `max_bf_var` filters to be predicted. default: 5
-
-* [`chisq_significance_level`]. For the chi-square test, then this value is first Bonferroni corrected based on the number of ORFs which pass the `min_profile_sum` filter. It is then used as the significance threshold to select translated ORFs. default: 0.01
-
 #### Shared MCMC options
 These affect the MCMC both for estimating metagene profile periodicity and ORF translation Bayes factors.
 * [`seed`]. The random seed for the MCMC sampling. default: 8675309
@@ -336,24 +362,46 @@ These affect the MCMC both for estimating metagene profile periodicity and ORF t
 
 ### Input files
 This script requires several files created during the previous steps in the pipeline, as well as a few external files.
-* `riboseq_data`
-* `fasta`
-* `orfs`
-* `translated_models`
-* `untranslated_models`
-* `riboseq_data`/without-rrna-mapping/bam/`sample-name`-unique.bam
-* `riboseq_data`/without-rrna-mapping/metagene-profiles/`sample-name`-unique.metagene-profile.csv.gz
-* `riboseq_data`/without-rrna-mapping/metagene-profiles/`sample-name`-unique.metagene-periodicity-bayes-factors.csv.gz
-* `riboseq_data`/without-rrna-mapping/metagene-profiles/`sample-name`-unique.periodic-offsets.csv.gz
+
+* External files
+    * **genome fasta file**. The genome fasta file. This is the same file used for `prepare-genome`.
+    * **orfs**. The ORFs (gzipped bed12+ file) created by `prepare-genome`. It must be located at `genome_base_path`/transcript-index/`genome_name`.genomic-orfs.`orf_note`.bed.gz.
+    * **models of translation**. Some compiled, pickled Stan model files must be located in the `models_base`/translated folder.
+    * **models of lack of translation**. Some compiled, pickled Stan model files must be located in the `models_base`/untranslated folder.
+
+
+* Metagene profiles
+    * **metagene profiles**. A gzipped csv file containing the metagene profiles for all read lengths which occur in the uniquely-aligning reads. It includes the metagene profile around both the annotated translation initiation site and translation termination site. `riboseq_data`/metagene-profiles/`sample-name`[.`note`]-unique.metagene-profile.csv.gz
+    
+    * **periodicity estimations**. A gzipped csv file containing the Bayes factor estimates for all P-site offsets specified by the configuration, as well as information about the number of reads in the respective profile. `riboseq_data`/without-rrna-mapping/metagene-profiles/`sample-name`[.`note`]-unique.metagene-periodicity-bayes-factors.csv.gz
+    
+    * **estimated P-site offsets**. A gzipped csv file containing the selected P-site offset for each read length. All read lengths are included, even if the estimates do not meet the criteria specified in the configuration file. (The filtering occurs later.) `riboseq_data`/without-rrna-mapping/metagene-profiles/`sample-name`[.`note`]-unique.periodic-offsets.csv.gz
+
+* ORF profiles
+    * **unsmoothed ORF profiles**. A sparse [matrix market file](http://math.nist.gov/MatrixMarket/formats.html) containing the profiles for all ORFs. **N.B.** The matrix market format uses base-1 indices.  `riboseq_data`/orf-profiles/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.profiles.mtx. 
+    
+    * **smoothed ORF profiles**. A sparse [matrix market file](http://math.nist.gov/MatrixMarket/formats.html) containing the smoothed profiles for all ORFs. **N.B.** The matrix market format uses base-1 indices.  `riboseq_data`/orf-profiles/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.profiles.mtx. 
+
 
 ### Output files
-* `riboseq_data`/without-rrna-mapping/mtx/`sample-name`-unique.length-`lengths`.offset-`offsets`.mtx. A sparse [matrix market file](http://math.nist.gov/MatrixMarket/formats.html) containing the profiles for all ORFs. **N.B.** The matrix market format uses base-1 indices.
-
-* `riboseq_data`/without-rrna-mapping/orf-predictions/`sample-name`-unique.length-`lengths`.offset-`offsets`.bayes-factors.bed.gz. A BED12+ file which contains the estimated values for all ORFs (which pass the thresholds mentioned above). The first 12 columns are valid BED12 entries that are simply copied from the `orfs` BED file.
-
-* `riboseq_data`/without-rrna-mapping/orf-predictions/`sample-name`-unique.length-`lengths`.offset-`offsets`.predicted-orfs.bed.gz. A BED12+ file containing the ORFs in the final prediction set (the longest ORF for each stop codon which meets the filtering criteria).
-* `riboseq_data`/without-rrna-mapping/orf-predictions/`sample-name`-unique.length-`lengths`.offset-`offsets`.predicted-orfs.dna.gz. A fasta file containing the DNA sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files.
-* `riboseq_data`/without-rrna-mapping/orf-predictions/`sample-name`-unique.length-`lengths`.offset-`offsets`.predicted-orfs.protein.gz. A fasta file containing the protein sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files.
+    
+* Estimates
+    * **the Bayes factor estimates**. A BED12+ file which contains the estimated values for all ORFs (which pass the thresholds mentioned above). The first 12 columns are valid BED12 entries that are simply copied from the `orfs` BED file.  `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.bayes-factors.bed.gz. 
+    
+* Predictions
+    * Rp-Bp predictions
+        * **the ORFs**. A BED12+ file containing the ORFs in the final prediction set (the longest ORF for each stop codon which meets the filtering criteria). `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.predicted-orfs.bed.gz. 
+        
+        * **the DNA sequences**. A fasta file containing the DNA sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.predicted-orfs.dna.gz. 
+        
+        * **the protein sequences**. A fasta file containing the protein sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.predicted-orfs.protein.gz. 
+        
+    * Rp-chi predictions
+        * **the ORFs**. A BED12+ file containing the ORFs in the final prediction set (the longest ORF for each stop codon which meets the filtering criteria). `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.chisq.predicted-orfs.bed.gz. 
+        
+        * **the DNA sequences**. A fasta file containing the DNA sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.chisq.predicted-orfs.dna.gz. 
+        
+        * **the protein sequences**. A fasta file containing the protein sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.chisq.predicted-orfs.protein.gz. 
 
 
 ```python
@@ -423,7 +471,6 @@ prepare-genome WBcel235.79.chrI.yaml --num-cpus 10 --mem 100G --use-slurm
 # value, then 5 jobs will be submitted to SLURM, one for each sample.
 
 process-all-samples c-elegans-test.yaml --tmp /home/bmalone/tmp/ --num-cpus 10 --mem 100G --use-slurm --logging-level INFO
-
 ```
 
 [Back to top](#toc)
