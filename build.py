@@ -71,69 +71,6 @@ stan_pickle_files = [
 
 def install(openblas_install_path):
     global requirements
-
-    # first, check to see if OpenBLAS is already installed
-    open_blas_symlink_path = os.path.join(openblas_install_path, 'libopenblas.so')
-    open_blas_0_symlink_path = os.path.join(openblas_install_path, 'libopenblas.so.0')
-
-    if not os.path.exists(open_blas_symlink_path):
-        msg = "The OpenBLAS libraries were not found. They will be downloaded and compiled."
-        logging.info(msg)
-
-        # then download and make OpenBLAS
-        cmd = "git clone https://github.com/xianyi/OpenBLAS"
-        subprocess.call(cmd, shell=True)
-
-        cmd = "cd OpenBLAS && make FC=gfortran"
-        subprocess.call(cmd, shell=True)
-
-        # and create symlinks to the read files to the desired library path
-        open_blas_library_path = os.path.join(os.getcwd(), 'OpenBLAS', "libopenblas.so")
-        open_blas_0_library_path = os.path.join(os.getcwd(), 'OpenBLAS', "libopenblas.so.0")
-
-        msg = "Symlinks will be created to the OpenBLAS libraries."
-        logging.info(msg)
-
-        if os.path.lexists(open_blas_symlink_path):
-            os.remove(open_blas_symlink_path)
-        os.symlink(open_blas_library_path, open_blas_symlink_path)
-
-        if os.path.lexists(open_blas_0_symlink_path):
-            os.remove(open_blas_0_symlink_path)
-        os.symlink(open_blas_0_library_path, open_blas_0_symlink_path)
-
-        
-
-    else:
-        msg = "The OpenBLAS libraries were found and will be used for linking."
-        logging.info(msg)
-
-    # additionally, check if we are working in a virtual environment
-    virtual_env_path = os.getenv('VIRTUAL_ENV')
-    if virtual_env_path is not None:
-        msg = "Symlinks will also be copied to the virtual environment lib directory"
-        logging.info(msg)
-
-        virtual_env_lib_path = os.path.join(virtual_env_path, 'lib', 'libopenblas.so')
-        virtual_env_0_lib_path = os.path.join(virtual_env_path, 'lib', 'libopenblas.so.0')
-        
-        if os.path.lexists(virtual_env_lib_path):
-            os.remove(virtual_env_lib_path)
-        os.symlink(open_blas_symlink_path, virtual_env_lib_path)
-
-        if os.path.lexists(virtual_env_0_lib_path):
-            os.remove(virtual_env_0_lib_path)
-        os.symlink(open_blas_0_symlink_path, virtual_env_0_lib_path)
-
-
-    # either way, make it clear they need to be in a place where the linker can find them
-    msg = ("The OpenBLAS libraries will be used for the python libraries. Please ensure "
-        "the following path is in the LD_LIBRARY_PATH variable (or analog for your "
-        "operating system).\n\n{}\n\nFor bash, this line can be added to the ~/.bashrc "
-        "file to ensure correct compilation:\n\nexport LD_LIBRARY_PATH={}:$LD_LIBRARY_PATH\n\n".format(
-        openblas_install_path, openblas_install_path))
-    logging.info(msg)
-
     
     option = "install --no-binary :all:"
     for r in install_requirements:
@@ -148,45 +85,6 @@ def install(openblas_install_path):
 
 def clean(openblas_install_path):
     global requirements
-
-    # remove OpenBLAS
-    if os.path.exists('OpenBLAS'):
-        msg = "Removing the local OpenBLAS installation"
-        logging.info(msg)
-
-        shutil.rmtree('OpenBLAS')
-
-        msg = "Removing OpenBLAS symlinks"
-        logging.info(msg)
-
-        open_blas_symlink_path = os.path.join(openblas_install_path, 'libopenblas.so')
-        open_blas_0_symlink_path = os.path.join(openblas_install_path, 'libopenblas.so.0')
-
-        if os.path.lexists(open_blas_symlink_path):
-            os.unlink(open_blas_symlink_path)
-        
-        if os.path.lexists(open_blas_0_symlink_path):
-            os.unlink(open_blas_0_symlink_path)
-
-        
-        # additionally, check if we are working in a virtual environment
-        virtual_env_path = os.getenv('VIRTUAL_ENV')
-        if virtual_env_path is not None:
-            msg = "Symlinks will also be removed from the virtual environment lib directory"
-            logging.info(msg)
-        
-            virtual_env_lib_path = os.path.join(virtual_env_path, 'lib', 'libopenblas.so')
-            virtual_env_0_lib_path = os.path.join(virtual_env_path, 'lib', 'libopenblas.so.0')
-            
-            if os.path.lexists(virtual_env_lib_path):
-                os.unlink(virtual_env_lib_path)
-
-            if os.path.lexists(virtual_env_0_lib_path):
-                os.unlink(virtual_env_0_lib_path)
-    else:
-        msg = ("The OpenBLAS libraries appear to have not been installed by this package. "
-            "They will not be removed.")
-        logging.info(msg)
 
     option = "uninstall --yes"
     for r in clean_requirements:

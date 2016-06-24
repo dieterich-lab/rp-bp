@@ -11795,9 +11795,39 @@ div#notebook {
 <li><a href="http://www.htslib.org/">SAMtools</a>, version 1.2</li>
 <li><a href="https://github.com/alexdobin/STAR">STAR</a>, version 2.4.1d</li>
 </ul>
+<h4 id="OpenBlas">OpenBlas<a class="anchor-link" href="#OpenBlas">&#182;</a></h4><p>Additionally, the <a href="http://www.openblas.net/">OpenBLAS</a> library is used for efficiency. This library is installed by default on many versions of Unix. It is also available through many standard package managers. For example:</p>
+<ul>
+<li>Ubuntu: <code>sudo apt-get install libopenblas-dev</code></li>
+<li>CentOS: <code>sudo yum install openblas-devel</code></li>
+</ul>
+<p>If the use of package managers are not an option (for example, because they require root access) or just not desired, then OpenBLAS can be installed locally. The following instructions have been tested extensively on Ubuntu, but they may require modification for other distributions.</p>
+<p>For OSX, a custom installation of numpy linking against the OpenBLAS library is required. We do not officially support this, but <a href="http://dedupe.readthedocs.io/en/latest/OSX-Install-Notes.html">example documentation</a> is available elsewhere on the web.</p>
 
 </div>
 </div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># download the OpenBLAS source</span>
+<span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">xianyi</span><span class="o">/</span><span class="n">OpenBLAS</span>
+    
+<span class="c1"># compile the library</span>
+<span class="n">cd</span> <span class="n">OpenBLAS</span> <span class="o">&amp;&amp;</span> <span class="n">make</span> <span class="n">FC</span><span class="o">=</span><span class="n">gfortran</span>
+
+<span class="c1">### Lines to add to .bashrc</span>
+<span class="c1"># for the OpenBLAS library</span>
+<span class="n">export</span> <span class="n">LD_LIBRARY_PATH</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">OpenBLAS</span><span class="p">:</span><span class="err">$</span><span class="n">LD_LIBRARY_PATH</span>
+    
+<span class="c1"># then, to be safe, close the current terminal and open a new one to install rp-bp</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
 </div>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
@@ -11830,9 +11860,6 @@ This can be accomplished by adding a line like <code>export PATH=$HOME/local/bin
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### Lines to add to .bashrc</span>
 
-<span class="c1"># for the OpenBLAS library</span>
-<span class="n">export</span> <span class="n">LD_LIBRARY_PATH</span><span class="o">=</span><span class="err">$</span><span class="n">HOME</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="p">:</span><span class="err">$</span><span class="n">LD_LIBRARY_PATH</span>
-    
 <span class="c1"># for the installation process</span>
 <span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="err">$</span><span class="n">HOME</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="nb">bin</span><span class="p">:</span><span class="err">$</span><span class="n">PATH</span>
 
@@ -11904,9 +11931,6 @@ This can be accomplished by adding a line like <code>export PATH=$HOME/local/bin
 <span class="c1"># See http://www.simononsoftware.com/virtualenv-tutorial-part-2/ for more details.</span>
 <span class="n">export</span> <span class="n">WORKON_HOME</span><span class="o">=</span><span class="err">$</span><span class="n">HOME</span><span class="o">/.</span><span class="n">virtualenvs</span>
 <span class="n">source</span> <span class="err">$</span><span class="n">HOME</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">virtualenvwrapper_lazy</span><span class="o">.</span><span class="n">sh</span> 
-
-<span class="c1"># for the OpenBLAS library</span>
-<span class="n">export</span> <span class="n">LD_LIBRARY_PATH</span><span class="o">=</span><span class="err">$</span><span class="n">HOME</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="p">:</span><span class="err">$</span><span class="n">LD_LIBRARY_PATH</span>
     
 <span class="c1"># for the installation process</span>
 <span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="err">$</span><span class="n">HOME</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="nb">bin</span><span class="p">:</span><span class="err">$</span><span class="n">PATH</span>
