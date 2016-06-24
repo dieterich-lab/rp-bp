@@ -11,8 +11,8 @@ import scipy.io
 
 import crimson.fastqc
 
-import rpbp.filenames as filenames
-import rpbp.rpbp_utils as rpbp_utils
+import riboutils.ribo_filenames as ribo_filenames
+import riboutils.ribo_utils as ribo_utils
 
 
 import misc.bio as bio
@@ -30,40 +30,40 @@ def get_counts(name_data, config, args):
 
     note = config.get('note', None)
 
-    # first, get the filenames
+    # first, get the ribo_filenames
     raw_data = data
-    without_adapters = filenames.get_without_adapters_fastq(
+    without_adapters = ribo_filenames.get_without_adapters_fastq(
         config['riboseq_data'], name, note=note)
-    with_rrna = filenames.get_with_rrna_fastq(
+    with_rrna = ribo_filenames.get_with_rrna_fastq(
         config['riboseq_data'], name, note=note)
-    without_rrna = filenames.get_without_rrna_fastq(
+    without_rrna = ribo_filenames.get_without_rrna_fastq(
         config['riboseq_data'], name, note=note)
-    genome_bam = filenames.get_riboseq_bam(
+    genome_bam = ribo_filenames.get_riboseq_bam(
         config['riboseq_data'], name, note=note)
-    unique_filename = filenames.get_riboseq_bam(
+    unique_filename = ribo_filenames.get_riboseq_bam(
         config['riboseq_data'], name, is_unique = True, note=note)
 
-    # now, get the fastqc report filenames
-    raw_data_fastqc = filenames.get_raw_data_fastqc_data(
+    # now, get the fastqc report ribo_filenames
+    raw_data_fastqc = ribo_filenames.get_raw_data_fastqc_data(
         config['riboseq_data'], raw_data)
-    without_adapters_fastqc = filenames.get_without_adapters_fastqc_data(
+    without_adapters_fastqc = ribo_filenames.get_without_adapters_fastqc_data(
         config['riboseq_data'], name, note=note)
-    with_rrna_fastqc = filenames.get_with_rrna_fastqc_data(
+    with_rrna_fastqc = ribo_filenames.get_with_rrna_fastqc_data(
         config['riboseq_data'], name, note=note)
-    without_rrna_fastqc = filenames.get_without_rrna_fastqc_data(
+    without_rrna_fastqc = ribo_filenames.get_without_rrna_fastqc_data(
         config['riboseq_data'], name, note=note)
 
-    genome_bam_fastqc = filenames.get_riboseq_bam_fastqc_data(
+    genome_bam_fastqc = ribo_filenames.get_riboseq_bam_fastqc_data(
         config['riboseq_data'], name, note=note)
-    unique_filename_fastqc = filenames.get_riboseq_bam_fastqc_data(
+    unique_filename_fastqc = ribo_filenames.get_riboseq_bam_fastqc_data(
         config['riboseq_data'], name, is_unique=True, note=note)
 
     # create the fastqc reports if they do not exist
-    raw_data_fastqc_path = filenames.get_raw_data_fastqc_path(config['riboseq_data'])
-    without_adapters_fastqc_path = filenames.get_without_adapters_fastqc(config['riboseq_data'])
-    with_rrna_fastqc_path = filenames.get_with_rrna_fastqc(config['riboseq_data'])
-    without_rrna_fastqc_path = filenames.get_without_rrna_fastqc(config['riboseq_data'])
-    without_rrna_mapping_fastqc_path = filenames.get_riboseq_bam_fastqc_path(config['riboseq_data'])
+    raw_data_fastqc_path = ribo_filenames.get_raw_data_fastqc_path(config['riboseq_data'])
+    without_adapters_fastqc_path = ribo_filenames.get_without_adapters_fastqc(config['riboseq_data'])
+    with_rrna_fastqc_path = ribo_filenames.get_with_rrna_fastqc(config['riboseq_data'])
+    without_rrna_fastqc_path = ribo_filenames.get_without_rrna_fastqc(config['riboseq_data'])
+    without_rrna_mapping_fastqc_path = ribo_filenames.get_riboseq_bam_fastqc_path(config['riboseq_data'])
 
     fastqc_tmp_str = ""
     if args.tmp is not None:
@@ -175,7 +175,7 @@ def get_counts(name_data, config, args):
     msg = "{}: counting reads with selected lengths".format(name)
     logging.info(msg)
 
-    lengths, offsets = rpbp_utils.get_periodic_lengths_and_offsets(config, name)
+    lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, name)
 
     # TODO: this is a fairly big hack to make the counting by length work when
     # fastqc groups reads together. It should at least cause an exception if

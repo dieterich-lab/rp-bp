@@ -10,7 +10,7 @@ import yaml
 
 import misc.utils as utils
 
-import rpbp.filenames as filenames
+import riboutils.ribo_filenames as filenames
 
 default_num_cpus = 1
 default_star_executable = "STAR"

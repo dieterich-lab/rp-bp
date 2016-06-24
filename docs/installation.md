@@ -22,6 +22,32 @@ The pipelines make use of a number of standard bioinformatics tools. All of thes
 * [SAMtools](http://www.htslib.org/), version 1.2
 * [STAR](https://github.com/alexdobin/STAR), version 2.4.1d
 
+#### OpenBlas
+
+Additionally, the [OpenBLAS](http://www.openblas.net/) library is used for efficiency. This library is installed by default on many versions of Unix. It is also available through many standard package managers. For example:
+
+* Ubuntu: ``sudo apt-get install libopenblas-dev``
+* CentOS: ``sudo yum install openblas-devel``
+
+If the use of package managers are not an option (for example, because they require root access) or just not desired, then OpenBLAS can be installed locally. The following instructions have been tested extensively on Ubuntu, but they may require modification for other distributions.
+
+For OSX, a custom installation of numpy linking against the OpenBLAS library is required. We do not officially support this, but [example documentation](http://dedupe.readthedocs.io/en/latest/OSX-Install-Notes.html) is available elsewhere on the web.
+
+
+```python
+# download the OpenBLAS source
+git clone https://github.com/xianyi/OpenBLAS
+    
+# compile the library
+cd OpenBLAS && make FC=gfortran
+
+### Lines to add to .bashrc
+# for the OpenBLAS library
+export LD_LIBRARY_PATH=/path/to/OpenBLAS:$LD_LIBRARY_PATH
+    
+# then, to be safe, close the current terminal and open a new one to install rp-bp
+```
+
 [Back to top](#toc)
 
 <a id='simple-installation'></a>
@@ -39,9 +65,6 @@ This can be accomplished by adding a line like `export PATH=$HOME/local/bin:$PAT
 ```python
 ### Lines to add to .bashrc
 
-# for the OpenBLAS library
-export LD_LIBRARY_PATH=$HOME/local/lib:$LD_LIBRARY_PATH
-    
 # for the installation process
 export PATH=$HOME/local/bin:$PATH
 
@@ -86,9 +109,6 @@ This can be accomplished by adding a line like `export PATH=$HOME/local/bin:$PAT
 # See http://www.simononsoftware.com/virtualenv-tutorial-part-2/ for more details.
 export WORKON_HOME=$HOME/.virtualenvs
 source $HOME/local/bin/virtualenvwrapper_lazy.sh 
-
-# for the OpenBLAS library
-export LD_LIBRARY_PATH=$HOME/local/lib:$LD_LIBRARY_PATH
     
 # for the installation process
 export PATH=$HOME/local/bin:$PATH

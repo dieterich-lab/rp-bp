@@ -7,7 +7,7 @@ import shutil
 
 import yaml
 
-import rpbp.filenames as filenames
+import riboutils.ribo_filenames as filenames
 
 import misc.bio as bio
 import misc.utils as utils

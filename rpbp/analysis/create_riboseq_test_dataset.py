@@ -9,7 +9,7 @@ import pysam
 
 import misc.bio as bio
 import misc.utils as utils
-import rpbp.filenames as filenames
+import riboutils.ribo_filenames as filenames
 
 default_reference = 'I'
 default_max_reads = 100000

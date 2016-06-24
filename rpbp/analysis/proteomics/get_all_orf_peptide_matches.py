@@ -7,8 +7,8 @@ import yaml
 import misc.utils as utils
 import misc.slurm as slurm
 
-import rpbp.filenames as filenames
-import rpbp.rpbp_utils
+import riboutils.ribo_filenames as filenames
+import riboutils.ribo_utils
 
 default_num_procs = 2
 default_note = None
@@ -74,7 +74,7 @@ def main():
         logging.debug(msg)
 
         try:
-            lengths, offsets = rpbp.rpbp_utils.get_periodic_lengths_and_offsets(config, name, args.do_not_call)
+            lengths, offsets = riboutils.ribo_utils.get_periodic_lengths_and_offsets(config, name, args.do_not_call)
         except FileNotFoundError:
             msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(name)
             logging.error(msg)
