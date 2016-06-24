@@ -23,7 +23,9 @@ install_requirements = [
     "pystan",
     "pybedtools",
     "pyyaml",
-    "git+https://bitbucket.org/bmmalone/misc.git#egg=misc[bio]",
+    "-e git+https://bitbucket.org/bmmalone/misc.git#egg=misc[bio]", 
+        # the "-e" seems to be necessary to grab subfolders. I do not
+        # understand this, but it seems to work
     "git+https://github.com/dieterich-lab/riboseq-utils.git#egg=riboutils",
     "-e .[analysis]"
 ]
