@@ -17,6 +17,7 @@ import misc.utils as utils
 import riboutils.ribo_filenames as filenames
 
 default_image_type = 'eps'
+default_title = ""
 default_num_cpus = 1
 
 def get_windows(profile):
@@ -109,7 +110,9 @@ def extract_profiles_and_plot(g, profiles, args):
     logging.debug(msg)
 
     out = filenames.get_orf_type_profile_image(args.out, orf_type, args.image_type)
-    plot_windows(windows, orf_type, out)
+
+    title = "{}: {} ({})".format(args.title, orf_type, len(g))
+    plot_windows(windows, title, out)
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -121,6 +124,9 @@ def main():
     parser.add_argument('profiles', help="The (mtx) file containing the ORF profiles")
     parser.add_argument('out', help="The base output name. The output filenames will be of "
         "the form: <out>.<orf-type>.<image-type>.")
+
+    parser.add_argument('--title', help="The prefix to use for the title of the plots",
+        default=default_title)
 
     parser.add_argument('--image-type', help="The type of image files to create. The type "
         "must be recognized by matplotlib.", default=default_image_type)

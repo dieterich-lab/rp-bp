@@ -20,7 +20,7 @@ default_num_cpus = 1
 
 
 def create_figures(config_file, config, name, args):
-    """ This function creates all of the figures in the preprocessing report
+    """ This function creates all of the figures in the proteomics report
         for the given dataset.
     """
 
@@ -93,7 +93,8 @@ def main():
     utils.check_programs_exist(programs)
     
     required_keys = [
-        'riboseq_data'
+        'riboseq_data',
+        'riboseq_samples'
     ]
     utils.check_keys_exist(config, required_keys)
 
