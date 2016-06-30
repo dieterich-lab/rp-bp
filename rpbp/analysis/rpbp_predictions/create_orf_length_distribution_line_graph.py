@@ -43,14 +43,29 @@ def main():
         default=default_title)
 
     
+    parser.add_argument('--use-groups', help="If this flag is given, the the ORFs "
+        "will be grouped", action='store_true')
+    
     args = parser.parse_args()
 
     orfs = bio.read_bed(args.orfs)
-    orf_lengths = [ get_orf_lengths(orfs, ribo_utils.orf_type_labels_mapping[label]) 
-                   for label in ribo_utils.orf_type_labels]
 
-    prediction_labels = [latex.get_latex_safe_string(l) for l in ribo_utils.orf_type_labels]
-    prediction_lengths_list = orf_lengths
+    if args.use_groups:
+        orf_lengths = [ get_orf_lengths(orfs, ribo_utils.orf_type_labels_mapping[label]) 
+                    for label in ribo_utils.orf_type_labels]
+
+        prediction_labels = [latex.get_latex_safe_string(l) 
+                    for l in ribo_utils.orf_type_labels]
+
+        prediction_lengths_list = orf_lengths
+    else:
+        orf_lengths = [ get_orf_lengths(orfs, [orf_type]) 
+                    for orf_type in ribo_utils.orf_types]
+
+        prediction_labels = [latex.get_latex_safe_string(l) 
+                    for l in ribo_utils.orf_types]
+
+        prediction_lengths_list = orf_lengths
 
     if os.path.exists(args.uniprot):
         truth_nt_lengths = bio.get_uniprot_nt_lengths(args.uniprot)
