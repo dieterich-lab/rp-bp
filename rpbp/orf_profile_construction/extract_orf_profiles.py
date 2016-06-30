@@ -121,7 +121,8 @@ def get_p_sites(bam_file, periodic_lengths, offsets):
     logging.info(msg)
     
     map_df.loc[m_positive, 'end'] = map_df.loc[m_positive, 'start'] + 1
-    map_df.loc[m_negative, 'start'] = map_df.loc[m_negative, 'end'] - 1
+    map_df.loc[m_negative, 'start'] = map_df.loc[m_negative, 'end']
+    map_df.loc[m_negative, 'end'] = map_df.loc[m_negative, 'end'] + 1
 
     # now sort everything
     msg = "Sorting reads by coordinates"
