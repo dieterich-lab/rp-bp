@@ -63,7 +63,11 @@ setup(name='rpbp',
                                 'get-all-orf-peptide-matches=rpbp.analysis.proteomics.get_all_orf_peptide_matches:main [analysis]',
                                 'create-orf-peptide-coverage-line-graph=rpbp.analysis.proteomics.create_orf_peptide_coverage_line_graph:main [analysis]',
                                 'create-proteomics-report=rpbp.analysis.proteomics.create_proteomics_report:main [analysis]',
-                                'create-riboseq-test-dataset=rpbp.analysis.create_riboseq_test_dataset:main [analysis]'
+                                'create-riboseq-test-dataset=rpbp.analysis.create_riboseq_test_dataset:main [analysis]',
+                                'visualize-orf-type-metagene-profiles=rpbp.analysis.rpbp_predictions.visualize_orf_type_metagene_profiles:main [analysis]',
+                                'create-orf-types-pie-chart=rpbp.analysis.rpbp_predictions.create_orf_types_pie_chart:main [analysis]',
+                                'create-orf-length-distribution-line-graph=rpbp.analysis.rpbp_predictions.create_orf_length_distribution_line_graph:main [analysis]',
+                                'create-predictions-report=rpbp.analysis.rpbp_predictions.create_predictions_report:main [analysis]'
                                ]
         },
         zip_safe=False
