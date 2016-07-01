@@ -84,7 +84,7 @@ prepare-genome WBcel235.79.chrI.yaml --num-cpus 10 --mem 100G
 
 ## Running Rp-Bp, Rp-chi pipelines
 
-The entire Rp-Bp pipeline can be run on a set of riboseq samples which all use the same genome indices using a sample sheet-like [YAML](http://www.yaml.org/start.html) configuration file with the @process-all-samples@ program. The configuration file respects all of the optional configuration options specified below.
+The entire Rp-Bp pipeline can be run on a set of riboseq samples which all use the same genome indices using a sample sheet-like [YAML](http://www.yaml.org/start.html) configuration file with the `process-all-samples` program. The configuration file respects all of the optional configuration options specified below.
 
 The script accepts a `--tmp <loc>` flag. If this flag is given, then all relevant calls will use `<loc>` as the base temporary directory. Otherwise, the program defaults will be used.
 
@@ -125,9 +125,9 @@ process-all-samples c-elegans-test.yaml --tmp /home/bmalone/tmp/ --num-cpus 10 -
 
 <a id='creating-filtered-genome-profiles'></a>
 
-## Creating filtered genome profiles
+## Creating ORF profiles
 
-The entire profile creation process can be run automatically using the `create-filtered-genome-profile` script. It reads most of the required paths from a [YAML](http://www.yaml.org/start.html) configuration file. Additionally, it automatically creates some of the output paths.
+The entire profile creation process can be run automatically using the `create-orf-profiles` script. It reads most of the required paths from a [YAML](http://www.yaml.org/start.html) configuration file. Additionally, it automatically creates some of the output paths.
 
 The script accepts a `--overwrite` flag. Unless this is given, then steps for which the output file already exists will be skipped.
 
@@ -397,11 +397,14 @@ This script requires several files created during the previous steps in the pipe
         * **the protein sequences**. A fasta file containing the protein sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.predicted-orfs.protein.gz. 
         
     * Rp-chi predictions
-        * **the ORFs**. A BED12+ file containing the ORFs in the final prediction set (the longest ORF for each stop codon which meets the filtering criteria). `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.chisq.predicted-orfs.bed.gz. 
+    
+    Please note that Rp-chi does not use smoothing; therefore, the filenames do not include the smoothing options.
+    
+        * **the ORFs**. A BED12+ file containing the ORFs in the final prediction set (the longest ORF for each stop codon which meets the filtering criteria). `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.chisq.predicted-orfs.bed.gz. 
         
-        * **the DNA sequences**. A fasta file containing the DNA sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.chisq.predicted-orfs.dna.gz. 
+        * **the DNA sequences**. A fasta file containing the DNA sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.chisq.predicted-orfs.dna.gz. 
         
-        * **the protein sequences**. A fasta file containing the protein sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.chisq.predicted-orfs.protein.gz. 
+        * **the protein sequences**. A fasta file containing the protein sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.chisq.predicted-orfs.protein.gz. 
 
 
 ```python

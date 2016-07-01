@@ -11888,7 +11888,7 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Running-Rp-Bp,-Rp-chi-pipelines">Running Rp-Bp, Rp-chi pipelines<a class="anchor-link" href="#Running-Rp-Bp,-Rp-chi-pipelines">&#182;</a></h2><p>The entire Rp-Bp pipeline can be run on a set of riboseq samples which all use the same genome indices using a sample sheet-like <a href="http://www.yaml.org/start.html">YAML</a> configuration file with the @process-all-samples@ program. The configuration file respects all of the optional configuration options specified below.</p>
+<h2 id="Running-Rp-Bp,-Rp-chi-pipelines">Running Rp-Bp, Rp-chi pipelines<a class="anchor-link" href="#Running-Rp-Bp,-Rp-chi-pipelines">&#182;</a></h2><p>The entire Rp-Bp pipeline can be run on a set of riboseq samples which all use the same genome indices using a sample sheet-like <a href="http://www.yaml.org/start.html">YAML</a> configuration file with the <code>process-all-samples</code> program. The configuration file respects all of the optional configuration options specified below.</p>
 <p>The script accepts a <code>--tmp &lt;loc&gt;</code> flag. If this flag is given, then all relevant calls will use <code>&lt;loc&gt;</code> as the base temporary directory. Otherwise, the program defaults will be used.</p>
 <p>The script accepts a <code>--overwrite</code> flag. Unless this is given, then steps for which the output file already exists will be skipped.</p>
 <p><a href="#logging-options">Logging options</a> can be given to this script.</p>
@@ -11944,7 +11944,7 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Creating-filtered-genome-profiles">Creating filtered genome profiles<a class="anchor-link" href="#Creating-filtered-genome-profiles">&#182;</a></h2><p>The entire profile creation process can be run automatically using the <code>create-filtered-genome-profile</code> script. It reads most of the required paths from a <a href="http://www.yaml.org/start.html">YAML</a> configuration file. Additionally, it automatically creates some of the output paths.</p>
+<h2 id="Creating-ORF-profiles">Creating ORF profiles<a class="anchor-link" href="#Creating-ORF-profiles">&#182;</a></h2><p>The entire profile creation process can be run automatically using the <code>create-orf-profiles</code> script. It reads most of the required paths from a <a href="http://www.yaml.org/start.html">YAML</a> configuration file. Additionally, it automatically creates some of the output paths.</p>
 <p>The script accepts a <code>--overwrite</code> flag. Unless this is given, then steps for which the output file already exists will be skipped.</p>
 <p>It also accepts a <code>--do-not-call</code> flag. If this flag is given, then the commands below will be printed but not executed.</p>
 <p><a href="#logging-options">Logging options</a> can also be given to this script.</p>
@@ -12231,12 +12231,13 @@ div#notebook {
 </ul>
 </li>
 <li><p>Rp-chi predictions</p>
+<p>Please note that Rp-chi does not use smoothing; therefore, the filenames do not include the smoothing options.</p>
 <ul>
-<li><p><strong>the ORFs</strong>. A BED12+ file containing the ORFs in the final prediction set (the longest ORF for each stop codon which meets the filtering criteria). <code>riboseq_data</code>/orf-predictions/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.smooth.frac-<code>fraction</code>.rw-<code>reweighting-iterations</code>.chisq.predicted-orfs.bed.gz.</p>
+<li><p><strong>the ORFs</strong>. A BED12+ file containing the ORFs in the final prediction set (the longest ORF for each stop codon which meets the filtering criteria). <code>riboseq_data</code>/orf-predictions/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.chisq.predicted-orfs.bed.gz.</p>
 </li>
-<li><p><strong>the DNA sequences</strong>. A fasta file containing the DNA sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. <code>riboseq_data</code>/orf-predictions/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.smooth.frac-<code>fraction</code>.rw-<code>reweighting-iterations</code>.chisq.predicted-orfs.dna.gz.</p>
+<li><p><strong>the DNA sequences</strong>. A fasta file containing the DNA sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. <code>riboseq_data</code>/orf-predictions/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.chisq.predicted-orfs.dna.gz.</p>
 </li>
-<li><p><strong>the protein sequences</strong>. A fasta file containing the protein sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. <code>riboseq_data</code>/orf-predictions/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.smooth.frac-<code>fraction</code>.rw-<code>reweighting-iterations</code>.chisq.predicted-orfs.protein.gz.</p>
+<li><p><strong>the protein sequences</strong>. A fasta file containing the protein sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. <code>riboseq_data</code>/orf-predictions/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.chisq.predicted-orfs.protein.gz.</p>
 </li>
 </ul>
 </li>
