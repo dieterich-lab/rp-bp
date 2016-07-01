@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 default_num_cpus = 2
 default_tmp = None # utils.abspath('tmp')
 
-def get_smooth_profile(name, config, args):
+def get_profile(name, is_smooth, config, args):
     """ This helper function constructs the name of the smooth profile file
         from the given parameters.
     """
@@ -27,8 +27,14 @@ def get_smooth_profile(name, config, args):
         name, args.do_not_call)
 
     note_str = config.get('note', None)
-    fraction = config.get('smoothing_fraction', None)
-    reweighting_iterations = config.get('smoothing_reweighting_iterations', None)
+
+    # only use the smoothing options if we are actually using smoothing
+    if is_smooth:
+        fraction = config.get('smoothing_fraction', None)
+        reweighting_iterations = config.get('smoothing_reweighting_iterations', None)
+    else:
+        fraction = None
+        reweighting_iterations = None
 
     if len(lengths) == 0:
         msg = ("No periodic read lengths and offsets were found. Try relaxing "
@@ -38,7 +44,7 @@ def get_smooth_profile(name, config, args):
         return
 
     smooth_profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
-        length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
+        length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=is_smooth, 
         fraction=fraction, reweighting_iterations=reweighting_iterations)
 
     return smooth_profiles
@@ -121,8 +127,9 @@ def main():
         riboseq_replicates = ribo_utils.get_riboseq_replicates(config)
 
         # we need all of the replicate smooth profiles
+        is_smooth = True
         smooth_replicate_profiles = [
-            get_smooth_profile(name, config, args) for name in riboseq_replicates[args.name]
+            get_profile(name, is_smooth, config, args) for name in riboseq_replicates[args.name]
         ]
 
         smooth_replicate_profiles_str = ' '.join(smooth_replicate_profiles)
@@ -134,7 +141,7 @@ def main():
 
         # we will call the merged profiles 'smooth_profiles' to match the rest of the pipeline
         smooth_profiles = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
-            length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
+            length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=is_smooth, 
             fraction=fraction, reweighting_iterations=reweighting_iterations)
 
         cmd = "merge-replicate-orf-profiles {} {} {}".format(smooth_replicate_profiles_str,
@@ -143,12 +150,36 @@ def main():
         out_files = [smooth_profiles]
         utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
+        # we will also merge all of unsmoothed profiles
+        
+        is_smooth = False
+        unsmoothed_replicate_profiles = [
+            get_profile(name, is_smooth, config, args) for name in riboseq_replicates[args.name]
+        ]
+
+        unsmoothed_replicate_profiles_str = ' '.join(unsmoothed_replicate_profiles)
+
+        # we will call the merged profiles 'smooth_profiles' to match the rest of the pipeline
+        unsmoothed_profiles = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
+            length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=is_smooth, 
+            fraction=fraction, reweighting_iterations=reweighting_iterations)
+
+        cmd = "merge-replicate-orf-profiles {} {} {}".format(unsmoothed_replicate_profiles_str,
+            unsmoothed_profiles, logging_str)
+        in_files = unsmoothed_replicate_profiles
+        out_files = [unsmoothed_profiles]
+        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+
+
     else:
         # otherwise, just treat things as normal
         # get the lengths and offsets which meet the required criteria from the config file
         lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, 
             args.name, args.do_not_call)
-        smooth_profiles = get_smooth_profile(args.name, config, args)
+        is_smooth = True
+        smooth_profiles = get_profile(args.name, is_smooth, config, args)
+        is_smooth = False
+        unsmoothed_profiles = get_profile(args.name, is_smooth, config, args)
         
     # estimate the bayes factors
     bayes_factors = filenames.get_riboseq_bayes_factors(config['riboseq_data'], args.name, 
@@ -188,6 +219,26 @@ def main():
     out_files = [bayes_factors]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
+    # now, call this again, but use the unsmoothed data, and only use the chisquare test
+
+    # also, do not include the smoothing variables
+    rpchi_pvalues = filenames.get_riboseq_bayes_factors(config['riboseq_data'], args.name, 
+        length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=False)
+    chi_square_only_str = "--chi-square-only"
+
+    cmd = "estimate-orf-bayes-factors {} {} {} {} {} {} {} {} {} {} {} --num-cpus {}".format(
+        unsmoothed_profiles, orfs_genomic, rpchi_pvalues, translated_models_str, untranslated_models_str, 
+        logging_str, orf_types_str, seed_str, 
+        iterations_str, chains_str, chi_square_only_str, args.num_cpus)
+
+    in_files = [unsmoothed_profiles, orfs_genomic]
+    in_files.extend(translated_models)
+    in_files.extend(untranslated_models)
+    out_files = [rpchi_pvalues]
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+
+
+
     # now, select the ORFs (longest for each stop codon) which pass the prediction filters
     predicted_orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
         args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
@@ -216,24 +267,25 @@ def main():
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=predict_call)
     
     # finally, repeat the selection step for chi-square
+
+    # do not include the smoothing options
     predicted_orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-        args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, is_chisq=True, is_smooth=True, 
-        fraction=fraction, reweighting_iterations=reweighting_iterations)
+        args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+        is_chisq=True, is_smooth=False)
     predicted_orfs_dna = filenames.get_riboseq_predicted_orfs_dna(config['riboseq_data'], 
-        args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, is_chisq=True, is_smooth=True, 
-        fraction=fraction, reweighting_iterations=reweighting_iterations)
+        args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+        is_chisq=True, is_smooth=False)
     predicted_orfs_protein = filenames.get_riboseq_predicted_orfs_protein(
         config['riboseq_data'], args.name, length=lengths, offset=offsets, 
-        is_unique=True, note=note_str, is_chisq=True, is_smooth=True, 
-        fraction=fraction, reweighting_iterations=reweighting_iterations)
+        is_unique=True, note=note_str, is_chisq=True, is_smooth=False)
 
     chisq_significance_level_str = utils.get_config_argument(config, 'chisq_significance_level')
     min_profile_str = utils.get_config_argument(config, 'min_signal', 'minimum-profile-sum')
 
-    cmd = "select-final-prediction-set {} {} {} {} {} {} {} --use-chi-square".format(bayes_factors, 
+    cmd = "select-final-prediction-set {} {} {} {} {} {} {} --use-chi-square".format(rpchi_pvalues, 
         config['fasta'], predicted_orfs, predicted_orfs_dna, 
         predicted_orfs_protein, chisq_significance_level_str, logging_str)
-    in_files = [bayes_factors, config['fasta']]
+    in_files = [rpchi_pvalues, config['fasta']]
     out_files = [predicted_orfs, predicted_orfs_dna, predicted_orfs_protein]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
