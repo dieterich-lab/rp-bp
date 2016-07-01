@@ -12,6 +12,7 @@ lowess = sm.nonparametric.lowess
 
 import misc.bio as bio
 import misc.external_sparse_matrix_list as external_sparse_matrix_list
+import misc.math_utils as math_utils
 import misc.parallel as parallel
 import misc.utils as utils
 
@@ -191,7 +192,7 @@ def main():
     msg = "Writing sparse matrix to disk"
     logging.info(msg)
 
-    scipy.io.mmwrite(args.out, smoothed_profiles)
+    math_utils.write_sparse_matrix(args.out, smoothed_profiles)
 
 if __name__ == '__main__':
     main()
