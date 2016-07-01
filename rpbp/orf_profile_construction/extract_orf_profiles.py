@@ -121,7 +121,8 @@ def get_p_sites(bam_file, periodic_lengths, offsets):
     logging.info(msg)
     
     map_df.loc[m_positive, 'end'] = map_df.loc[m_positive, 'start'] + 1
-    map_df.loc[m_negative, 'start'] = map_df.loc[m_negative, 'end'] - 1
+    map_df.loc[m_negative, 'start'] = map_df.loc[m_negative, 'end']
+    map_df.loc[m_negative, 'end'] = map_df.loc[m_negative, 'end'] + 1
 
     # now sort everything
     msg = "Sorting reads by coordinates"
@@ -158,6 +159,13 @@ def get_orf_profile(orf_group):
     strand = orf_group['strand'].iloc[0]
     if strand == '-':
         profile = profile[::-1]
+
+        # HOTFIX: for github issue #5
+        # the negative strand profiles are like:
+        #   zero, h, l, l, h, l, l
+        # so just clip the first base in the profile
+        profile = profile[1:]
+
 
     # sparsify and return
     sparse_profile = scipy.sparse.csr_matrix(profile)
