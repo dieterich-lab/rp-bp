@@ -16,6 +16,7 @@ import pysam
 import tqdm
 
 import misc.bio as bio
+import misc.math_utils as math_utils
 import misc.parallel as parallel
 import misc.utils as utils
 
@@ -286,7 +287,7 @@ def main():
     
     parser.add_argument('bam', help="The bam file including filtered (unique, etc.) alignments")
     parser.add_argument('orfs', help="The (bed12) file containing the ORFs")
-    parser.add_argument('out', help="The (mtx) output file containing the ORF profiles")
+    parser.add_argument('out', help="The (mtx.gz) output file containing the ORF profiles")
 
     parser.add_argument('-l', '--lengths', help="If any values are given, then only reads "
         "which have those lengths will be included in the signal construction.", type=int,
@@ -384,8 +385,8 @@ def main():
     min_cols = max_orf_len + 1
     all_profiles = all_profiles.to_sparse_matrix(min_cols=min_cols)
 
-    logging.info("Writing sparse matrix to disk")
-    scipy.io.mmwrite(args.out, all_profiles)
+    logging.info("Writing gzipped sparse matrix to disk")
+    math_utils.write_sparse_matrix(args.out, all_profiles)
 
 if __name__ == '__main__':
     main()
