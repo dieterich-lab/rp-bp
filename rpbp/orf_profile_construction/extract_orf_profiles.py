@@ -160,6 +160,13 @@ def get_orf_profile(orf_group):
     if strand == '-':
         profile = profile[::-1]
 
+        # HOTFIX: for github issue #5
+        # the negative strand profiles are like:
+        #   zero, h, l, l, h, l, l
+        # so just clip the first base in the profile
+        profile = profile[1:]
+
+
     # sparsify and return
     sparse_profile = scipy.sparse.csr_matrix(profile)
     return (orf_name, sparse_profile)
