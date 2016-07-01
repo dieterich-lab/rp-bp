@@ -18,7 +18,7 @@ import riboutils.ribo_filenames as filenames
 
 default_image_type = 'eps'
 default_title = ""
-default_num_cpus = 1
+default_min_profile = 5
 
 def get_windows(profile):
     
@@ -39,7 +39,7 @@ def get_windows(profile):
     
     return first_window, middle_windows, last_window
 
-def get_profile(orf, profiles):
+def get_profile(orf, profiles, min_profile):
     orf_num = orf['orf_num']
     orf_len = orf['orf_len']
 
@@ -47,6 +47,10 @@ def get_profile(orf, profiles):
         return None
 
     profile = utils.to_dense(profiles, orf_num, length=orf_len)
+
+    if sum(profile) < min_profile:
+        return None
+
     return profile
 
 def plot_windows(windows, title, out):
@@ -90,7 +94,31 @@ def plot_windows(windows, title, out):
     axes[2].set_title('Last 21-bp window')
     fig.suptitle(title)
 
+    msg = "Saving figure to: {}".format(out)
+    logging.debug(msg)
     fig.savefig(out, bbox_inches='tight')
+
+
+def extract_profiles_and_plot_strand(g, profiles, orf_type, strand, args):
+    m_strand = g['strand'] == strand
+
+    msg = "Extracting profiles"
+    logging.debug(msg)
+    g_profiles = parallel.apply_df_simple(g[m_strand], get_profile, profiles, args.min_profile, progress_bar=True)
+    g_profiles = [g_profile for g_profile in g_profiles if g_profile is not None]
+
+    msg = "Slicing the profiles into windows"
+    logging.debug(msg)
+    windows = parallel.apply_iter_simple(g_profiles, get_windows, progress_bar=True)
+    
+    msg = "Plotting the profile statistics"
+    logging.debug(msg)
+
+    out = filenames.get_orf_type_profile_image(args.out, orf_type, strand, args.image_type)
+
+    title = "{}: {}, strand: {} ({})".format(args.title, orf_type, strand, len(g[m_strand]))
+    plot_windows(windows, title, out)
+
 
 def extract_profiles_and_plot(g, profiles, args):
     orf_type = g['orf_type'].iloc[0]
@@ -98,22 +126,19 @@ def extract_profiles_and_plot(g, profiles, args):
     msg = "ORF type: {}".format(orf_type)
     logging.info(msg)
 
-    msg = "Extracting profiles"
-    logging.debug(msg)
-    g_profiles = parallel.apply_df_simple(g, get_profile, profiles, progress_bar=True)
+    msg = "Strand: -"
+    logging.info(msg)
 
-    msg = "Slicing the profiles into windows"
-    logging.debug(msg)
-    windows = parallel.apply_parallel_iter(g_profiles, args.num_cpus, get_windows, progress_bar=True)
+    strand = "-"
+    extract_profiles_and_plot_strand(g, profiles, orf_type, strand, args)
+
+    msg = "Strand: +"
+    logging.info(msg)
+
+    strand = "+"
+    extract_profiles_and_plot_strand(g, profiles, orf_type, strand, args)
+
     
-    msg = "Plotting the profile statistics"
-    logging.debug(msg)
-
-    out = filenames.get_orf_type_profile_image(args.out, orf_type, args.image_type)
-
-    title = "{}: {} ({})".format(args.title, orf_type, len(g))
-    plot_windows(windows, title, out)
-
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="This script visualizes the metagene profiles for each ORF type "
@@ -125,14 +150,14 @@ def main():
     parser.add_argument('out', help="The base output name. The output filenames will be of "
         "the form: <out>.<orf-type>.<image-type>.")
 
+    parser.add_argument('--min-profile', help="The minimum value of the sum over the profile "
+        "to include it in the analysis", type=float, default=default_min_profile)
+
     parser.add_argument('--title', help="The prefix to use for the title of the plots",
         default=default_title)
 
     parser.add_argument('--image-type', help="The type of image files to create. The type "
         "must be recognized by matplotlib.", default=default_image_type)
-
-    parser.add_argument('--num-cpus', help="The number of cores to use", type=int,
-        default=default_num_cpus)
     
     utils.add_logging_options(parser)
     args = parser.parse_args()

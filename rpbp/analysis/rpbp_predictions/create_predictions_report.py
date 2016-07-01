@@ -147,17 +147,24 @@ def create_figures(name, is_replicate, config, args):
             is_smooth=True, fraction=fraction, reweighting_iterations=reweighting_iterations,
             is_chisq=is_chisq)
 
-        orf_type_profiles = [
-            filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, args.image_type)
+        strand = "+"
+        orf_type_profiles_forward = [
+            filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, strand, args.image_type)
+                for orf_type in ribo_utils.orf_types
+        ]
+        
+        strand = "-"
+        orf_type_profiles_reverse = [
+            filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, strand, args.image_type)
                 for orf_type in ribo_utils.orf_types
         ]
 
-        cmd = ("visualize-orf-type-metagene-profiles {} {} {} {} {} {} {}".format(
+        cmd = ("visualize-orf-type-metagene-profiles {} {} {} {} {} {}".format(
             orfs, smooth_profiles, orf_type_profile_base, title_str, 
-            image_type_str, num_cpus_str, logging_str))
+            image_type_str, logging_str))
 
         in_files = [orfs]
-        out_files = orf_type_profiles
+        out_files = orf_type_profiles_forward + orf_type_profiles_reverse
         utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
 
@@ -271,6 +278,8 @@ def main():
             replicate_names = []
         else:
             replicate_names = sorted(ribo_utils.get_riboseq_replicates(config).keys())
+
+        strands = ["+", "-"]
 
 
         for sample_name in sample_names:
@@ -415,18 +424,19 @@ def main():
                 latex.begin_figure(out)
                 i = 0
                 for orf_type in ribo_utils.orf_types:
-                    orf_type_profile = filenames.get_orf_type_profile_image(orf_type_profile_base, 
-                        orf_type, args.image_type)
+                    for strand in strands:
+                        orf_type_profile = filenames.get_orf_type_profile_image(orf_type_profile_base, 
+                            orf_type, args.image_type)
 
-                    if os.path.exists(orf_type_profile):
-                        latex.write_graphics(out, orf_type_profile, height=0.23)
+                        if os.path.exists(orf_type_profile):
+                            latex.write_graphics(out, orf_type_profile, height=0.23)
 
-                    i += 1
-                    if i%4 == 0:
-                        latex.write_caption(out, caption)
-                        latex.end_figure(out)
-                        latex.clearpage(out)
-                        latex.begin_figure(out)
+                        i += 1
+                        if i%4 == 0:
+                            latex.write_caption(out, caption)
+                            latex.end_figure(out)
+                            latex.clearpage(out)
+                            latex.begin_figure(out)
 
                 if i%4 != 0:
                     latex.write_caption(out, caption)
@@ -451,18 +461,19 @@ def main():
                 
                 i = 0
                 for orf_type in ribo_utils.orf_types:
-                    orf_type_profile = filenames.get_orf_type_profile_image(orf_type_profile_base, 
-                        orf_type, args.image_type)
+                    for strand in strands:
+                        orf_type_profile = filenames.get_orf_type_profile_image(orf_type_profile_base, 
+                            orf_type, strand, args.image_type)
 
-                    if os.path.exists(orf_type_profile):
-                        latex.write_graphics(out, orf_type_profile, height=0.23)
+                        if os.path.exists(orf_type_profile):
+                            latex.write_graphics(out, orf_type_profile, height=0.23)
 
-                    i += 1
-                    if i % 4 == 0:
-                        latex.write_caption(out, caption)
-                        latex.end_figure(out)
-                        latex.clearpage(out)
-                        latex.begin_figure(out)
+                        i += 1
+                        if i % 4 == 0:
+                            latex.write_caption(out, caption)
+                            latex.end_figure(out)
+                            latex.clearpage(out)
+                            latex.begin_figure(out)
 
             
                 if i%4 != 0:
