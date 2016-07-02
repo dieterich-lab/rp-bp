@@ -5,6 +5,7 @@ import logging
 import scipy.io
 
 import misc.utils as utils
+import misc.math_utils as math_utils
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ def main():
 
     parser.add_argument('profiles', help="The (mtx) files containing the (smoothed) "
         "ORF profiles", nargs='+')
-    parser.add_argument('out', help="The (mtx) output file containing the merged profiles")
+    parser.add_argument('out', help="The (mtx.gz) output file containing the merged profiles")
     
     utils.add_logging_options(parser)
     args = parser.parse_args()
@@ -40,7 +41,7 @@ def main():
     msg = "Writing merged profiles to disk"
     logger.info(msg)
 
-    scipy.io.mmwrite(args.out, merged_profiles)
+    math_utils.write_sparse_matrix(args.out, merged_profiles)
 
 
 if __name__ == '__main__':
