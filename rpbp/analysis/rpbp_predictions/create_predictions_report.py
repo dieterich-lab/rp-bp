@@ -11,6 +11,8 @@ import misc.utils as utils
 import riboutils.ribo_filenames as filenames
 import riboutils.ribo_utils as ribo_utils
 
+logger = logging.getLogger(__name__)
+
 default_project_name = "riboseq"
 default_note = None
 default_num_cpus = 1
@@ -47,7 +49,7 @@ def create_figures(name, is_replicate, config, args):
             lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, name)
         except FileNotFoundError:
             msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(name)
-            logging.error(msg)
+            logger.error(msg)
             return
 
     rpbp_orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
@@ -57,16 +59,17 @@ def create_figures(name, is_replicate, config, args):
 
     rpchi_orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
         name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
-        is_chisq=True, is_smooth=True, fraction=fraction, 
-        reweighting_iterations=reweighting_iterations)
+        is_chisq=True, is_smooth=False)
 
     smooth_profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
             length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
             fraction=fraction, reweighting_iterations=reweighting_iterations)
-
+        
+    unsmoothed_profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
+            length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=False)
 
     msg = "{}: creating the ORF types pie charts".format(name)
-    logging.info(msg)
+    logger.info(msg)
 
     for is_grouped in [True, False]:
         for is_chisq in [True, False]:
@@ -76,6 +79,13 @@ def create_figures(name, is_replicate, config, args):
             if is_chisq:
                 title_str = "--title \"{}, Rp-$\chi^2$\"".format(name)
                 orfs = rpchi_orfs
+                f = None
+                rw = None
+                is_smooth = False
+            else:
+                f = fraction
+                rw = reweighting_iterations
+                is_smooth = True
 
             use_groups_str = ""
             if is_grouped:
@@ -84,7 +94,7 @@ def create_figures(name, is_replicate, config, args):
             orf_types_pie_chart = filenames.get_orf_types_pie_chart(
                 config['riboseq_data'], name, length=lengths, offset=offsets, 
                 is_unique=True, note=out_note_str, image_type=args.image_type,
-                is_smooth=True, fraction=fraction, reweighting_iterations=reweighting_iterations,
+                is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
                 is_grouped=is_grouped, is_chisq=is_chisq)
 
             cmd = "create-orf-types-pie-chart {} {} {} {}".format(orfs, orf_types_pie_chart,
@@ -95,7 +105,7 @@ def create_figures(name, is_replicate, config, args):
 
     
     msg = "{}: creating the ORF length distributions line graph".format(name)
-    logging.info(msg)
+    logger.info(msg)
 
     uniprot_str = ""
     uniprot_label_str = ""
@@ -111,6 +121,14 @@ def create_figures(name, is_replicate, config, args):
             if is_chisq:
                 title_str = "--title \"{}, Rp-$\chi^2$\"".format(name)
                 orfs = rpchi_orfs
+                f = None
+                rw = None
+                is_smooth = False
+            else:
+                f = fraction
+                rw = reweighting_iterations
+                is_smooth = True
+
 
             use_groups_str = ""
             if is_grouped:
@@ -119,7 +137,7 @@ def create_figures(name, is_replicate, config, args):
             orf_length_line_graph = filenames.get_orf_length_distribution_line_graph(
                 config['riboseq_data'], name, length=lengths, offset=offsets, 
                 is_unique=True, note=out_note_str, image_type=args.image_type,
-                is_smooth=True, fraction=fraction, reweighting_iterations=reweighting_iterations,
+                is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
                 is_grouped=is_grouped, is_chisq=is_chisq)
 
             cmd = ("create-orf-length-distribution-line-graph {} {} {} {} {} {}".format(
@@ -131,7 +149,7 @@ def create_figures(name, is_replicate, config, args):
             utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
     msg = "{}: creating the ORF type metagene profiles".format(name)
-    logging.info(msg)
+    logger.info(msg)
 
     for is_chisq in [True, False]:
         
@@ -140,11 +158,19 @@ def create_figures(name, is_replicate, config, args):
         if is_chisq:
             title_str = "--title \"{}, Rp-$\chi^2$\"".format(name)
             orfs = rpchi_orfs
+            f = None
+            rw = None
+            is_smooth = False
+        else:
+            f = fraction
+            rw = reweighting_iterations
+            is_smooth = True
+
         
         orf_type_profile_base = filenames.get_orf_type_profile_base(
             config['riboseq_data'], name, length=lengths, offset=offsets, 
             is_unique=True, note=out_note_str, 
-            is_smooth=True, fraction=fraction, reweighting_iterations=reweighting_iterations,
+            is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
             is_chisq=is_chisq)
 
         strand = "+"
@@ -288,7 +314,7 @@ def main():
                 lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, sample_name)
             except FileNotFoundError:
                 msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(sample_name)
-                logging.error(msg)
+                logger.error(msg)
                 continue
             
             caption = "ORF types: {}".format(sample_name)
@@ -299,11 +325,20 @@ def main():
             
             for is_grouped in [True, False]:
                 for is_chisq in [True, False]:
+
+                    if is_chisq:
+                        f = None
+                        rw = None
+                        is_smooth = False
+                    else:
+                        f = fraction
+                        rw = reweighting_iterations
+                        is_smooth = True
                     
                     orf_types_pie_chart = filenames.get_orf_types_pie_chart(
                         config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
                         is_unique=True, note=out_note_str, image_type=args.image_type,
-                        is_smooth=True, fraction=fraction, reweighting_iterations=reweighting_iterations,
+                        is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
                         is_grouped=is_grouped, is_chisq=is_chisq)
 
                     if os.path.exists(orf_types_pie_chart):
@@ -326,11 +361,21 @@ def main():
             
             for is_grouped in [True, False]:
                 for is_chisq in [True, False]:
+
+                    if is_chisq:
+                        f = None
+                        rw = None
+                        is_smooth = False
+                    else:
+                        f = fraction
+                        rw = reweighting_iterations
+                        is_smooth = True
+
                     
                     orf_types_pie_chart = filenames.get_orf_types_pie_chart(
                         config['riboseq_data'], replicate_name, length=lengths, offset=offsets, 
                         is_unique=True, note=out_note_str, image_type=args.image_type,
-                        is_smooth=True, fraction=fraction, reweighting_iterations=reweighting_iterations,
+                        is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
                         is_grouped=is_grouped, is_chisq=is_chisq)
 
                     if os.path.exists(orf_types_pie_chart):
@@ -351,7 +396,7 @@ def main():
                 lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, sample_name)
             except FileNotFoundError:
                 msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(sample_name)
-                logging.error(msg)
+                logger.error(msg)
                 continue
             
             caption = "ORF type length distributions: {}".format(sample_name)
@@ -361,10 +406,20 @@ def main():
             
             for is_grouped in [True, False]:
                 for is_chisq in [True, False]:
+
+                    if is_chisq:
+                        f = None
+                        rw = None
+                        is_smooth = False
+                    else:
+                        f = fraction
+                        rw = reweighting_iterations
+                        is_smooth = True
+
                     orf_length_line_graph = filenames.get_orf_length_distribution_line_graph(
                         config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
                         is_unique=True, note=out_note_str, image_type=args.image_type,
-                        is_smooth=True, fraction=fraction, reweighting_iterations=reweighting_iterations,
+                        is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
                         is_grouped=is_grouped, is_chisq=is_chisq)
 
                     if os.path.exists(orf_length_line_graph):
@@ -386,10 +441,20 @@ def main():
             
             for is_grouped in [True, False]:
                 for is_chisq in [True, False]:
+
+                    if is_chisq:
+                        f = None
+                        rw = None
+                        is_smooth = False
+                    else:
+                        f = fraction
+                        rw = reweighting_iterations
+                        is_smooth = True
+
                     orf_length_line_graph = filenames.get_orf_length_distribution_line_graph(
                         config['riboseq_data'], replicate_name, length=lengths, offset=offsets, 
                         is_unique=True, note=out_note_str, image_type=args.image_type,
-                        is_smooth=True, fraction=fraction, reweighting_iterations=reweighting_iterations,
+                        is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
                         is_grouped=is_grouped, is_chisq=is_chisq)
 
                     if os.path.exists(orf_length_line_graph):
@@ -403,83 +468,110 @@ def main():
         title = "Predicted ORF type metagene profiles"
         latex.section(out, title)
         
+        i = 0
         for sample_name in sample_names:
             
             try:
                 lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, sample_name)
             except FileNotFoundError:
                 msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(sample_name)
-                logging.error(msg)
+                logger.error(msg)
                 continue
             
             caption = "ORF type metagene profiles: {}".format(sample_name)
 
             for is_chisq in [True, False]:
+
+                if is_chisq:
+                    f = None
+                    rw = None
+                    is_smooth = False
+                else:
+                    f = fraction
+                    rw = reweighting_iterations
+                    is_smooth = True
+
                 orf_type_profile_base = filenames.get_orf_type_profile_base(
                     config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
-                    is_unique=True, note=out_note_str, 
-                    is_smooth=True, fraction=fraction, reweighting_iterations=reweighting_iterations,
+                    is_unique=True, note=out_note_str,
+                    is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
                     is_chisq=is_chisq)
 
-                latex.begin_figure(out)
-                i = 0
                 for orf_type in ribo_utils.orf_types:
                     for strand in strands:
                         orf_type_profile = filenames.get_orf_type_profile_image(orf_type_profile_base, 
-                            orf_type, args.image_type)
+                            orf_type, strand, args.image_type)
 
+
+                        msg = "Looking for image file: {}".format(orf_type_profile)
+                        logger.debug(msg)
                         if os.path.exists(orf_type_profile):
+            
+                            if i == 0:
+                                latex.begin_figure(out)
+
+                            i += 1
                             latex.write_graphics(out, orf_type_profile, height=0.23)
 
-                        i += 1
-                        if i%4 == 0:
-                            latex.write_caption(out, caption)
-                            latex.end_figure(out)
-                            latex.clearpage(out)
-                            latex.begin_figure(out)
+                            if i%4 == 0:
+                                latex.write_caption(out, caption)
+                                latex.end_figure(out)
+                                latex.clearpage(out)
+                                latex.begin_figure(out)
 
-                if i%4 != 0:
-                    latex.write_caption(out, caption)
-                    latex.end_figure(out)
-                    latex.clearpage(out)
+            if i%4 != 0:
+                latex.write_caption(out, caption)
+                latex.end_figure(out)
+                latex.clearpage(out)
+                latex.begin_figure(out)
 
-            
         for replicate_name in replicate_names:
             lengths = None
             offsets = None
                         
             caption = "ORF type metagene profiles: {}".format(replicate_name)
-
             for is_chisq in [True, False]:
+
+                if is_chisq:
+                    f = None
+                    rw = None
+                    is_smooth = False
+                else:
+                    f = fraction
+                    rw = reweighting_iterations
+                    is_smooth = True
+
                 orf_type_profile_base = filenames.get_orf_type_profile_base(
                     config['riboseq_data'], replicate_name, length=lengths, offset=offsets, 
                     is_unique=True, note=out_note_str, 
-                    is_smooth=True, fraction=fraction, reweighting_iterations=reweighting_iterations,
+                    is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
                     is_chisq=is_chisq)
 
-                latex.begin_figure(out)
                 
-                i = 0
                 for orf_type in ribo_utils.orf_types:
                     for strand in strands:
                         orf_type_profile = filenames.get_orf_type_profile_image(orf_type_profile_base, 
                             orf_type, strand, args.image_type)
 
                         if os.path.exists(orf_type_profile):
+                            
+                            if i == 0:
+                                latex.begin_figure(out)
+
+                            i += 1
                             latex.write_graphics(out, orf_type_profile, height=0.23)
 
-                        i += 1
-                        if i % 4 == 0:
-                            latex.write_caption(out, caption)
-                            latex.end_figure(out)
-                            latex.clearpage(out)
-                            latex.begin_figure(out)
+                            if i % 4 == 0:
+                                latex.write_caption(out, caption)
+                                latex.end_figure(out)
+                                latex.clearpage(out)
+                                latex.begin_figure(out)
 
-            
-                if i%4 != 0:
-                    latex.write_caption(out, caption)
-                    latex.end_figure(out)
-                    latex.clearpage(out)
+        
+        if i%4 != 0:
+            latex.write_caption(out, caption)
+            latex.end_figure(out)
+            latex.clearpage(out)
 
         out.write(footer)
 
