@@ -468,6 +468,7 @@ def main():
         title = "Predicted ORF type metagene profiles"
         latex.section(out, title)
         
+        i = 0
         for sample_name in sample_names:
             
             try:
@@ -479,8 +480,6 @@ def main():
             
             caption = "ORF type metagene profiles: {}".format(sample_name)
 
-            i = 0
-            latex.begin_figure(out)
 
             for is_chisq in [True, False]:
 
@@ -508,6 +507,8 @@ def main():
                         msg = "Looking for image file: {}".format(orf_type_profile)
                         logger.debug(msg)
                         if os.path.exists(orf_type_profile):
+                            if i == 0:
+                                latex.begin_figure(out)
                             i += 1
                             latex.write_graphics(out, orf_type_profile, height=0.23)
 
@@ -552,6 +553,8 @@ def main():
                             orf_type, strand, args.image_type)
 
                         if os.path.exists(orf_type_profile):
+                            if i == 0:
+                                latex.begin_figure(out)
                             i += 1
                             latex.write_graphics(out, orf_type_profile, height=0.23)
 

@@ -5,10 +5,12 @@ matplotlib.use('agg')
 
 import argparse
 import logging
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io
+import tqdm
 
 import misc.bio as bio
 import misc.parallel as parallel
@@ -21,6 +23,7 @@ logger = logging.getLogger(__name__)
 default_image_type = 'eps'
 default_title = ""
 default_min_profile = 5
+default_max_orfs = 10000
 
 def get_windows(profile):
     
@@ -75,6 +78,11 @@ def plot_windows(windows, title, out):
     middle_windows = utils.flatten_lists(middle_windows)
     middle_windows = np.array(middle_windows)
 
+    if (len(last_windows) == 0) or (len(middle_windows) == 0):
+        msg = "No ORFs were long enough to visualize. Skipping."
+        logger.warning(msg)
+        return
+
     ind = np.arange(21)  # the x locations for the groups
     width = 0.5       # the width of the bars
 
@@ -113,9 +121,28 @@ def extract_profiles_and_plot_strand(g, profiles, orf_type, strand, args):
 
     msg = "Extracting profiles"
     logger.debug(msg)
-    g_profiles = parallel.apply_df_simple(g[m_strand], get_profile, profiles, args.min_profile, progress_bar=True)
-    g_profiles = [g_profile for g_profile in g_profiles if g_profile is not None]
 
+    # we will manually build up the list so we can quit as soon as possible
+    df = g[m_strand]
+
+    # quickly figure out which profiles have a sum we can use
+    orf_nums = np.array(df['orf_num'])
+    g_profiles = profiles[orf_nums]
+    s = g_profiles.sum(axis=1)
+    m_sum = np.array(s > args.min_profile)[:,0]
+
+    g_profiles = []
+    df_rows = tqdm.tqdm(df[m_sum].iterrows(), total=len(df[m_sum]), 
+        leave=True, file=sys.stdout)
+
+    for row in df_rows:
+        profile = get_profile(row[1], profiles, args.min_profile)
+        if profile is not None:
+            g_profiles.append(profile)
+
+            if len(g_profiles) >= args.max_orfs:
+                break
+        
     msg = "Slicing the profiles into windows"
     logger.debug(msg)
     windows = parallel.apply_iter_simple(g_profiles, get_windows, progress_bar=True)
@@ -125,7 +152,7 @@ def extract_profiles_and_plot_strand(g, profiles, orf_type, strand, args):
 
     out = filenames.get_orf_type_profile_image(args.out, orf_type, strand, args.image_type)
 
-    title = "{}: {}, strand: {} ({})".format(args.title, orf_type, strand, len(g[m_strand]))
+    title = "{}: {}, strand: {} ({})".format(args.title, orf_type, strand, len(df[m_sum]))
     plot_windows(windows, title, out)
 
 
@@ -161,6 +188,10 @@ def main():
 
     parser.add_argument('--min-profile', help="The minimum value of the sum over the profile "
         "to include it in the analysis", type=float, default=default_min_profile)
+
+    parser.add_argument('--max-orfs', help="At most this many ORFs of each type will be "
+        "used to create the figures. They will be sampled randomly from among those "
+        "which meet the min-profile constraint.", type=int, default=default_max_orfs)
 
     parser.add_argument('--title', help="The prefix to use for the title of the plots",
         default=default_title)

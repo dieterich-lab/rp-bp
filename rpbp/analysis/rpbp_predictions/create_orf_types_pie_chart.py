@@ -68,19 +68,36 @@ def main():
     colors = cmap(np.linspace(0., 1., len(labels[0])))
 
     # forward strand ORFs
-    patches, texts = axes[0].pie(fracs[0], colors=colors)
-    lgd_1 = axes[0].legend(patches, labels[0], loc="center right", bbox_to_anchor=(0,0.5))
-    axes[0].set_title("Strand: {}".format(strands[0]))
+
+    extra_artists = []
+    if sum(fracs[0]) > 0:
+        patches, texts = axes[0].pie(fracs[0], colors=colors)
+        lgd = axes[0].legend(patches, labels[0], loc="center right", bbox_to_anchor=(0,0.5))
+        axes[0].set_title("Strand: {}".format(strands[0]))
+
+        extra_artists.append(lgd)
+    else:
+        title = "Strand: {}. No ORFs".format(strands[0])
+        axes[0].set_title(title)
+        axes[0].set_axis_off()
 
     # reverse strand ORFs
-    patches, texts = axes[1].pie(fracs[1], colors=colors)
-    lgd_2 = axes[1].legend(patches, labels[1], loc="center right", bbox_to_anchor=(2.0,0.5))
-    axes[1].set_title("Strand: {}".format(strands[1]))
+    if sum(fracs[1]) > 0:
+        patches, texts = axes[1].pie(fracs[1], colors=colors)
+        lgd = axes[1].legend(patches, labels[1], loc="center right", bbox_to_anchor=(2.0,0.5))
+        axes[1].set_title("Strand: {}".format(strands[1]))
+        extra_artists.append(lgd)
+    else:
+        title = "Strand: {}. No ORFs".format(strands[1])
+        axes[1].set_title(title)
+        axes[1].set_axis_off()
 
     if len(args.title) > 0:
-        fig.suptitle(args.title)
+        sup = fig.suptitle(args.title)
+        extra_artists.append(sup)
 
-    fig.savefig(args.out, bbox_extra_artists=(lgd_1, lgd_2), bbox_inches='tight')
+
+    fig.savefig(args.out, bbox_extra_artists=extra_artists, bbox_inches='tight')
 
 if __name__ == '__main__':
     main()
