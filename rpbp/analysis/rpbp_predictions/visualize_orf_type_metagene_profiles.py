@@ -125,8 +125,14 @@ def extract_profiles_and_plot_strand(g, profiles, orf_type, strand, args):
     # we will manually build up the list so we can quit as soon as possible
     df = g[m_strand]
 
+    # quickly figure out which profiles have a sum we can use
+    orf_nums = np.array(df['orf_num'])
+    g_profiles = profiles[orf_nums]
+    s = g_profiles.sum(axis=1)
+    m_sum = np.array(s > args.min_profile)[:,0]
+
     g_profiles = []
-    df_rows = tqdm.tqdm(df.iterrows(), total=len(df), 
+    df_rows = tqdm.tqdm(df[m_sum].iterrows(), total=len(df[m_sum]), 
         leave=True, file=sys.stdout)
 
     for row in df_rows:
