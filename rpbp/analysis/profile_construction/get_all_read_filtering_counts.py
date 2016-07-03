@@ -21,7 +21,7 @@ import misc.utils as utils
 
 default_tmp = None
 
-default_num_procs = 2
+default_num_cpus = 2
 
 def get_counts(name_data, config, args):
     name, data = name_data
@@ -233,8 +233,8 @@ def main():
         "crimson python package).")
     parser.add_argument('config', help="The yaml config file")
     parser.add_argument('out', help="The output csv file with the counts")
-    parser.add_argument('-p', '--num-procs', help="The number of processors to use", 
-        type=int, default=default_num_procs)
+    parser.add_argument('-p', '--num-cpus', help="The number of processors to use", 
+        type=int, default=default_num_cpus)
     parser.add_argument('--overwrite', action='store_true')
     parser.add_argument('--tmp', help="Intermediate files (such as fastqc reports when "
         "they are first generated) will be written here", default=default_tmp)
@@ -251,7 +251,7 @@ def main():
     config = yaml.load(open(args.config))
 
     res = parallel.apply_parallel_iter(config['riboseq_samples'].items(), 
-                                        args.num_procs, 
+                                        args.num_cpus, 
                                         get_counts, config, args)
     res = [r for r in res if r is not None]
     res_df = pd.DataFrame(res)

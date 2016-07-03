@@ -152,7 +152,7 @@ def extract_profiles_and_plot_strand(g, profiles, orf_type, strand, args):
 
     out = filenames.get_orf_type_profile_image(args.out, orf_type, strand, args.image_type)
 
-    title = "{}: {}, strand: {} ({})".format(args.title, orf_type, strand, len(g[m_strand]))
+    title = "{}: {}, strand: {} ({})".format(args.title, orf_type, strand, len(df[m_sum]))
     plot_windows(windows, title, out)
 
 

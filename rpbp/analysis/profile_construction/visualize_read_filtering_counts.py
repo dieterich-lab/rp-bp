@@ -107,7 +107,8 @@ def main():
         ylabels = np.arange(0, args.ymax, args.ystep)
         yticks = (ylabels, ylabels)
 
-    edge_colors = [matplotlib.colors.cnames['darkgrey']] * (len(names)+1)
+    #edge_colors = [matplotlib.colors.cnames['darkgrey']] * (len(names)+1)
+    edge_colors = None
 
     lgd = SBG.stackedBarPlot(ax,
                         diff,
