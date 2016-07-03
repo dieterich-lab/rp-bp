@@ -41,35 +41,46 @@ def main():
     args = parser.parse_args()
 
     orfs = bio.read_bed(args.orfs)
-    orf_type_groups = orfs.groupby('orf_type')
-    counts = orf_type_groups.size()
 
-    if args.use_groups:
-        labels = ribo_utils.orf_type_labels
-        fracs = [get_orf_label_counts(counts, l) for l in labels]
-    else:
-        fracs = counts.values
-        labels = np.array(counts.index)
+    strands = ['+', '-']
+    fracs = []
+    labels = []
+    for strand in ['+', '-']:
+        m_strand = orfs['strand'] == strand
+        orf_type_groups = orfs[m_strand].groupby('orf_type')
+        counts = orf_type_groups.size()
 
-    labels = ["{} ({})".format(l,f) for l,f in zip(labels, fracs)]
+        if args.use_groups:
+            lab = ribo_utils.orf_type_labels
+            fr = [get_orf_label_counts(counts, l) for l in lab]
+        else:
+            fr = counts.values
+            lab = np.array(counts.index)
 
-    fig, ax = plt.subplots(figsize=(5,5))
+        lab = ["{} ({})".format(l,f) for l,f in zip(lab, fr)]
+
+        fracs.append(fr)
+        labels.append(lab)
+
+    fig, axes = plt.subplots(ncols=2, figsize=(10,5))
 
     cmap = plt.cm.Blues
-    colors = cmap(np.linspace(0., 1., len(labels)))
+    colors = cmap(np.linspace(0., 1., len(labels[0])))
 
-    #patches, texts, autotexts = ax.pie(fracs, labels=labels, colors=colors, autopct="%.1f%%")
-    patches, texts = ax.pie(fracs, colors=colors)
-    lgd = ax.legend(patches, labels, loc="center right", bbox_to_anchor=(0,0.5))
+    # forward strand ORFs
+    patches, texts = axes[0].pie(fracs[0], colors=colors)
+    lgd_1 = axes[0].legend(patches, labels[0], loc="center right", bbox_to_anchor=(0,0.5))
+    axes[0].set_title("Strand: {}".format(strands[0]))
 
-    #for autotext, count in zip(autotexts, fracs):
-        #autotext.set_text(u"%s (%d)" % (autotext.get_text(), counts))
-        #autotext.set_text("{:.1e}".format(count))
+    # reverse strand ORFs
+    patches, texts = axes[1].pie(fracs[1], colors=colors)
+    lgd_2 = axes[1].legend(patches, labels[1], loc="center right", bbox_to_anchor=(2.0,0.5))
+    axes[1].set_title("Strand: {}".format(strands[1]))
 
     if len(args.title) > 0:
-        ax.set_title(args.title)
+        fig.suptitle(args.title)
 
-    fig.savefig(args.out, bbox_extra_artists=(lgd,), bbox_inches='tight')
+    fig.savefig(args.out, bbox_extra_artists=(lgd_1, lgd_2), bbox_inches='tight')
 
 if __name__ == '__main__':
     main()
