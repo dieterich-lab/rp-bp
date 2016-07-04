@@ -161,10 +161,12 @@ def create_figures(name, is_replicate, config, args):
             f = None
             rw = None
             is_smooth = False
+            profiles = unsmoothed_profiles
         else:
             f = fraction
             rw = reweighting_iterations
             is_smooth = True
+            profiles = smooth_profiles
 
         
         orf_type_profile_base = filenames.get_orf_type_profile_base(
@@ -186,7 +188,7 @@ def create_figures(name, is_replicate, config, args):
         ]
 
         cmd = ("visualize-orf-type-metagene-profiles {} {} {} {} {} {}".format(
-            orfs, smooth_profiles, orf_type_profile_base, title_str, 
+            orfs, profiles, orf_type_profile_base, title_str, 
             image_type_str, logging_str))
 
         in_files = [orfs]
