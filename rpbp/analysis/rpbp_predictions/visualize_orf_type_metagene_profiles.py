@@ -127,12 +127,24 @@ def extract_profiles_and_plot_strand(g, profiles, orf_type, strand, args):
 
     # quickly figure out which profiles have a sum we can use
     orf_nums = np.array(df['orf_num'])
+
+    # we may have only calculated profiles for a few ORFs (using --num-orfs)
+    # so do not keep indices which are too large
+    num_profiles = profiles.shape[0]
+    m_orfs = orf_nums < num_profiles
+    orf_nums = orf_nums[m_orfs]
+
     g_profiles = profiles[orf_nums]
     s = g_profiles.sum(axis=1)
     m_sum = np.array(s > args.min_profile)[:,0]
 
+    # we need to extend m_sum so it is the correct length
+    num_orfs = len(orf_nums)
+    diff = len(m_orfs) - num_orfs
+    m_orfs = np.concatenate([m_sum, np.array([False]*diff)]).astype(bool)
+
     g_profiles = []
-    df_rows = tqdm.tqdm(df[m_sum].iterrows(), total=len(df[m_sum]), 
+    df_rows = tqdm.tqdm(df[m_orfs].iterrows(), total=len(df[m_orfs]), 
         leave=True, file=sys.stdout)
 
     for row in df_rows:
@@ -152,7 +164,7 @@ def extract_profiles_and_plot_strand(g, profiles, orf_type, strand, args):
 
     out = filenames.get_orf_type_profile_image(args.out, orf_type, strand, args.image_type)
 
-    title = "{}: {}, strand: {} ({})".format(args.title, orf_type, strand, len(df[m_sum]))
+    title = "{}: {}, strand: {} ({})".format(args.title, orf_type, strand, len(df[m_orfs]))
     plot_windows(windows, title, out)
 
 
