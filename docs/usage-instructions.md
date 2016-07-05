@@ -94,6 +94,10 @@ The script accepts a `--overwrite` flag. Unless this is given, then steps for wh
 
 [Parallel processing options](#parallel-processing-options) can be given to this script.
 
+**Using replicates**
+
+The Rp-Bp pipeline handles replicates by adding the (smoothed) ORF profiles. The Bayes factors and predictions are then calculated based on the combined profiles. The `--merge-replicates` flag indicates that the replicates should be merged. By default, if the `--merge-replicates` flag is given, then predictions will not be made for the individual datasets. The `--run-replicates` flag can be given to override this and make predictions for both the merged replicates as well as the individual datasets.
+
 ### Configuration file keys
 
 The following keys are read from the configuration file. Their semantics is exactly as described below. (This text is in both places for convenience.)
@@ -116,9 +120,17 @@ These options should be exactly the same as those used in the configuration file
 #### Samples specification
 * `riboseq_samples`. A dictionary in which each entry specifies a sample. The key is an informative name about the sample, and the value gives the complete path to the sequencing file (a fastq or fastq.gz file). The names will be used to construct filenames, so they should not contain spaces or other special characters.
 
+* `riboseq_biological_replicates`. A dictionary in which each entry species one condition and all samples which are replicates of the condition. The key of the dictionary is a string description of the condition, and the value is a list that gives all of the sample replicates which belong to that condition. The names of the sample replicates must match the dataset names specified in `riboseq_samples`.
+
 
 ```python
 process-all-samples c-elegans-test.yaml --tmp /home/bmalone/tmp/ --num-cpus 10 --logging-level INFO
+
+# merging the replicates, do not calculate Bayes factors and make predictions for individual datasets
+process-all-samples c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates
+
+# merging the replicates and calculating Bayes factors and making predictions for individual datasets
+process-all-samples c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates --run-replicates
 ```
 
 [Back to top](#toc)

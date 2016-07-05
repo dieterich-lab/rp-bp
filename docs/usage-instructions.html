@@ -11893,6 +11893,8 @@ div#notebook {
 <p>The script accepts a <code>--overwrite</code> flag. Unless this is given, then steps for which the output file already exists will be skipped.</p>
 <p><a href="#logging-options">Logging options</a> can be given to this script.</p>
 <p><a href="#parallel-processing-options">Parallel processing options</a> can be given to this script.</p>
+<p><strong>Using replicates</strong></p>
+<p>The Rp-Bp pipeline handles replicates by adding the (smoothed) ORF profiles. The Bayes factors and predictions are then calculated based on the combined profiles. The <code>--merge-replicates</code> flag indicates that the replicates should be merged. By default, if the <code>--merge-replicates</code> flag is given, then predictions will not be made for the individual datasets. The <code>--run-replicates</code> flag can be given to override this and make predictions for both the merged replicates as well as the individual datasets.</p>
 <h3 id="Configuration-file-keys">Configuration file keys<a class="anchor-link" href="#Configuration-file-keys">&#182;</a></h3><p>The following keys are read from the configuration file. Their semantics is exactly as described below. (This text is in both places for convenience.)</p>
 <ul>
 <li><code>riboseq_data</code>. The base output location for all created files.</li>
@@ -11909,7 +11911,10 @@ div#notebook {
 <li><code>fasta</code>. The path to the reference genome sequence</li>
 </ul>
 <h4 id="Samples-specification">Samples specification<a class="anchor-link" href="#Samples-specification">&#182;</a></h4><ul>
-<li><code>riboseq_samples</code>. A dictionary in which each entry specifies a sample. The key is an informative name about the sample, and the value gives the complete path to the sequencing file (a fastq or fastq.gz file). The names will be used to construct filenames, so they should not contain spaces or other special characters.</li>
+<li><p><code>riboseq_samples</code>. A dictionary in which each entry specifies a sample. The key is an informative name about the sample, and the value gives the complete path to the sequencing file (a fastq or fastq.gz file). The names will be used to construct filenames, so they should not contain spaces or other special characters.</p>
+</li>
+<li><p><code>riboseq_biological_replicates</code>. A dictionary in which each entry species one condition and all samples which are replicates of the condition. The key of the dictionary is a string description of the condition, and the value is a list that gives all of the sample replicates which belong to that condition. The names of the sample replicates must match the dataset names specified in <code>riboseq_samples</code>.</p>
+</li>
 </ul>
 
 </div>
@@ -11921,6 +11926,12 @@ div#notebook {
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">process</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">samples</span> <span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">test</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">tmp</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">bmalone</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">10</span> <span class="o">--</span><span class="n">logging</span><span class="o">-</span><span class="n">level</span> <span class="n">INFO</span>
+
+<span class="c1"># merging the replicates, do not calculate Bayes factors and make predictions for individual datasets</span>
+<span class="n">process</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">samples</span> <span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">test</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">overwrite</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">2</span> <span class="o">--</span><span class="n">logging</span><span class="o">-</span><span class="n">level</span> <span class="n">INFO</span> <span class="o">--</span><span class="n">merge</span><span class="o">-</span><span class="n">replicates</span>
+
+<span class="c1"># merging the replicates and calculating Bayes factors and making predictions for individual datasets</span>
+<span class="n">process</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">samples</span> <span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">test</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">overwrite</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">2</span> <span class="o">--</span><span class="n">logging</span><span class="o">-</span><span class="n">level</span> <span class="n">INFO</span> <span class="o">--</span><span class="n">merge</span><span class="o">-</span><span class="n">replicates</span> <span class="o">--</span><span class="n">run</span><span class="o">-</span><span class="n">replicates</span>
 </pre></div>
 
 </div>
