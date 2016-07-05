@@ -11753,7 +11753,7 @@ div#notebook {
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Running-the-small-example-dataset">Running the small example dataset<a class="anchor-link" href="#Running-the-small-example-dataset">&#182;</a></h1><p>A small example dataset using <em>C. elegans</em> is available for <a href="http://cloud.dieterichlab.org/index.php/s/3cyluM3ZCsvf0PT/download">download</a>. Please see <a href="#example-dataset-files">below</a> for the exact contents of the download, as well as instructions for downloading it from the command line.</p>
 <p>Additionally, the expected outputs of the pipeline are included. Due to differences among versions of the external programs used in the pipeline (samtools, etc.), it is unlikely that all intermediate files will match exactly. However, we do include a script to compare the ORFs predicted as translated using the pipeline to those which are expected. If these differ significantly, it suggests something is not working correctly in the pipeline.</p>
-<p>If the results differ significantly, please run the pipeline using the "DEBUG" logging level (see the <a href="usage-instructions.ipynb#logging-options">usage instructions</a>). This causes the scripts to output detailed runtime information which can be helpful for tracking down problems. If the problem is still not clear, please report the problem at the <a href="https://github.com/dieterich-lab/rp-bp/issues">github bug tracker</a>.</p>
+<p>If the results differ significantly, please run the pipeline using the "DEBUG" logging level (see the <a href="usage-instructions.html#logging-options">usage instructions</a>). This causes the scripts to output detailed runtime information which can be helpful for tracking down problems. If the problem is still not clear, please report the problem at the <a href="https://github.com/dieterich-lab/rp-bp/issues">github bug tracker</a>.</p>
 <p>In total, creating the reference index files should take about 5 minutes and running the main pipeline should take an additional 15 to 20 minutes on a commodity laptop.</p>
 
 </div>
@@ -11768,7 +11768,8 @@ div#notebook {
 <ul>
 <li><a href="#example-dataset-files">Example dataset files</a></li>
 <li><a href="#creating-reference-indices">Creating the reference index files</a></li>
-<li><a href="#running-rpbp-pipeline">Running the Rp-Bp pipeline</a></li>
+<li><a href="#running-rpbp-pipeline">Running the Rp-Bp pipeline (also with replicates)</a></li>
+<li><a href="#running-rpbp-pipeline-with-replicates">Running the Rp-Bp pipeline, with replicates</a></li>
 <li><a href="#validating-results">Validating the Rp-Bp prediction results</a></li>
 </ul>
 <p><a id="example-dataset-files"></a></p>
@@ -11845,8 +11846,8 @@ div#notebook {
 <li><code>genome_base_path</code></li>
 <li><code>ribosomal_index</code></li>
 </ul>
-<p>The following command will create the necessary reference files using 2 CPUS and 4GB of RAM for STAR. Please see the <a href="usage-instructions.ipynb#creating-reference-genome-indices">usage instructions</a> for the expected output files.</p>
-<p>The <code>--use-slurm</code> and related options can also be used if SLURM is available. Please see the <a href="usage-instructions.ipynb#parallel-processing-options">usage instructions</a> for more information.</p>
+<p>The following command will create the necessary reference files using 2 CPUS and 4GB of RAM for STAR. Please see the <a href="usage-instructions.html#creating-reference-genome-indices">usage instructions</a> for the expected output files.</p>
+<p>The <code>--use-slurm</code> and related options can also be used if SLURM is available. Please see the <a href="usage-instructions.html#parallel-processing-options">usage instructions</a> for more information.</p>
 <p>N.B. The <code>--overwrite</code> flag is given below to ensure all of the files are (re-)created. In typical use cases, if some of the files already exist (e.g., the STAR index), then this flag can be omitted.</p>
 <p>This command should only take about 5 minutes on recent commodity hardware (such as a laptop).</p>
 
@@ -11892,15 +11893,18 @@ div#notebook {
 </ul>
 <p>Samples and models file paths must also be updated.</p>
 <ul>
-<li><code>riboseq_samples/c-elegans-chrI</code></li>
+<li><code>riboseq_samples</code></li>
 <li><code>riboseq_data</code></li>
 <li><code>models_base</code>. This shoud point to the <code>models</code> folder of the rp-bp installation</li>
 <li><code>adapter_file</code></li>
 </ul>
-<p>The following command will run the Rp-Bp (and Rp-chi) translation prediction pipelines using 2 CPUS. Please see the <a href="usage-instructions.ipynb#running-pipelines">usage instructions</a> for the expected output files.</p>
-<p>The <code>--use-slurm</code> and related options can also be used if SLURM is available. Please see the <a href="usage-instructions.ipynb#parallel-processing-options">usage instructions</a> for more information.</p>
+<p>The following command will run the Rp-Bp (and Rp-chi) translation prediction pipelines using 2 CPUS. Please see the <a href="usage-instructions.html#running-pipelines">usage instructions</a> for the expected output files.</p>
+<p>The <code>--use-slurm</code> and related options can also be used if SLURM is available. Please see the <a href="usage-instructions.html#parallel-processing-options">usage instructions</a> for more information.</p>
 <p>N.B. The <code>--overwrite</code> flag is given below to ensure all of the files are (re-)created. In typical use cases, if some of the files already exist (e.g., the quality-filtered reads), then this flag can be omitted.</p>
 <p>N.B. While performing the MCMC sampling, many messages indicating the "Elapsed Time" will be printed. This is a <a href="https://github.com/stan-dev/pystan/issues/98">known issue</a> with pystan. Additionally, many "Informational Message: The current Metropolis proposal is about to be rejected because of the following issue" may also appear. These are also expected and (typically) do not indicate an actual problem.</p>
+<p><strong>Using replicates</strong></p>
+<p>The Rp-Bp pipeline handles replicates by adding the (smoothed) ORF profiles. The Bayes factors and predictions are then calculated based on the combined profiles. The <code>--merge-replicates</code> flag indicates that the replicates should be merged. By default, if the <code>--merge-replicates</code> flag is given, then predictions will not be made for the individual datasets. The <code>--run-replicates</code> flag can be given to override this and make predictions for both the merged replicates as well as the individual datasets.</p>
+<p>The replicates are specified by <code>riboseq_biological_replicates</code> in the configuration file. This value should be a dictionary, where the key of the dictionary is a string description of the condition and the value is a list that gives all of the sample replicates which belong to that condition. The names of the sample replicates must match the dataset names specified in <code>riboseq_samples</code>.</p>
 
 </div>
 </div>
@@ -11910,7 +11914,14 @@ div#notebook {
 <div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">process</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">samples</span> <span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">test</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">overwrite</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">2</span> <span class="o">--</span><span class="n">logging</span><span class="o">-</span><span class="n">level</span> <span class="n">INFO</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># running on each dataset separately</span>
+<span class="n">process</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">samples</span> <span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">test</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">overwrite</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">2</span> <span class="o">--</span><span class="n">logging</span><span class="o">-</span><span class="n">level</span> <span class="n">INFO</span>
+
+<span class="c1"># merging the replicates, do not calculate Bayes factors and make predictions for individual datasets</span>
+<span class="n">process</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">samples</span> <span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">test</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">overwrite</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">2</span> <span class="o">--</span><span class="n">logging</span><span class="o">-</span><span class="n">level</span> <span class="n">INFO</span> <span class="o">--</span><span class="n">merge</span><span class="o">-</span><span class="n">replicates</span>
+
+<span class="c1"># merging the replicates and calculating Bayes factors and making predictions for individual datasets</span>
+<span class="n">process</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">samples</span> <span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">test</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">overwrite</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">2</span> <span class="o">--</span><span class="n">logging</span><span class="o">-</span><span class="n">level</span> <span class="n">INFO</span> <span class="o">--</span><span class="n">merge</span><span class="o">-</span><span class="n">replicates</span> <span class="o">--</span><span class="n">run</span><span class="o">-</span><span class="n">replicates</span>
 </pre></div>
 
 </div>
