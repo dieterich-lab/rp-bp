@@ -153,8 +153,6 @@ def create_figures(name, is_replicate, config, args):
 
     for is_chisq in [True, False]:
         
-        title_str = "--title \"{}, Rp-Bp\"".format(name)
-        orfs = rpbp_orfs
         if is_chisq:
             title_str = "--title \"{}, Rp-$\chi^2$\"".format(name)
             orfs = rpchi_orfs
@@ -163,6 +161,8 @@ def create_figures(name, is_replicate, config, args):
             is_smooth = False
             profiles = unsmoothed_profiles
         else:
+            title_str = "--title \"{}, Rp-Bp\"".format(name)
+            orfs = rpbp_orfs
             f = fraction
             rw = reweighting_iterations
             is_smooth = True
@@ -194,6 +194,29 @@ def create_figures(name, is_replicate, config, args):
         in_files = [orfs]
         out_files = orf_type_profiles_forward + orf_type_profiles_reverse
         utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+
+    msg = "{}: creating the RPKM-BF scatter plots".format(name)
+    logger.info(msg)
+
+    bf_rpkm_scatter_plot = filenames.get_bf_rpkm_scatter_plot(config['riboseq_data'], name, 
+        length=lengths, offset=offsets, 
+        is_unique=True, note=out_note_str, image_type=args.image_type,
+        is_smooth=is_smooth, fraction=f, reweighting_iterations=rw)
+
+    title_str = "--title \"{}, RPKM vs. Bayes factor\"".format(name)
+
+    is_replicate_str = ""
+    if is_replicate:
+        is_replicate_str = "--is-replicate"
+
+    cmd = "create-bf-rpkm-scatter-plot {} {} {} {} {}".format(args.config, name, 
+        bf_rpkm_scatter_plot, is_replicate_str, title_str)
+
+    in_files = [args.config]
+    out_files = [bf_rpkm_scatter_plot]
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+
+
 
 
 
@@ -521,12 +544,12 @@ def main():
                                 latex.clearpage(out)
                                 latex.begin_figure(out)
 
-            if i%4 != 0:
-                latex.write_caption(out, caption)
-                latex.end_figure(out)
-                latex.clearpage(out)
-                latex.begin_figure(out)
+        if i > 0:
+            latex.write_caption(out, caption)
+            latex.end_figure(out)
+            latex.clearpage(out)
 
+        i = 0
         for replicate_name in replicate_names:
             lengths = None
             offsets = None
@@ -569,9 +592,74 @@ def main():
                                 latex.clearpage(out)
                                 latex.begin_figure(out)
 
-        
-        if i%4 != 0:
+            
+        if i > 0:
             latex.write_caption(out, caption)
+            latex.end_figure(out)
+            latex.clearpage(out)
+
+        ### RPKM-BF scatter plots
+        title = "RPKMs vs. Bayes factors"
+        latex.section(out, title)
+
+        i = 0
+        for sample_name in sample_names:
+            
+            try:
+                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, sample_name)
+            except FileNotFoundError:
+                msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(sample_name)
+                logger.error(msg)
+                continue
+            
+            bf_rpkm_scatter_plot = filenames.get_bf_rpkm_scatter_plot(config['riboseq_data'], sample_name, 
+                length=lengths, offset=offsets, 
+                is_unique=True, note=out_note_str, image_type=args.image_type,
+                is_smooth=True, fraction=fraction, reweighting_iterations=reweighting_iterations)
+
+            if os.path.exists(bf_rpkm_scatter_plot):
+                if i == 0:
+                    latex.begin_figure(out)
+                    
+                i += 1
+                latex.write_graphics(out, bf_rpkm_scatter_plot, height=0.23)
+
+                if i % 4 == 0:
+                    latex.end_figure(out)
+                    latex.clearpage(out)
+                    latex.begin_figure(out)
+            
+        if i > 0:
+            latex.end_figure(out)
+            latex.clearpage(out)
+
+        # now, if the config file specifies replicates, create figures for those                
+        for replicate_name in replicate_names:
+            lengths = None
+            offsets = None
+
+            # first, just dump all of the pie charts to the page
+            latex.begin_figure(out)
+
+
+            bf_rpkm_scatter_plot = filenames.get_bf_rpkm_scatter_plot(config['riboseq_data'], replicate_name, 
+                length=lengths, offset=offsets, 
+                is_unique=True, note=out_note_str, image_type=args.image_type,
+                is_smooth=True, fraction=fraction, reweighting_iterations=reweighting_iterations)
+
+            if os.path.exists(bf_rpkm_scatter_plot):
+                if i == 0:
+                    latex.begin_figure(out)
+                    
+                i += 1
+                latex.write_graphics(out, bf_rpkm_scatter_plot, height=0.23)
+
+                if i % 4 == 0:
+                    latex.end_figure(out)
+                    latex.clearpage(out)
+                    latex.begin_figure(out)
+            
+        if i > 0:
             latex.end_figure(out)
             latex.clearpage(out)
 

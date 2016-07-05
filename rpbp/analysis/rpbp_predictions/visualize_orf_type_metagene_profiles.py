@@ -16,6 +16,8 @@ import misc.utils as utils
 
 import riboutils.ribo_filenames as filenames
 
+logger = logging.getLogger(__name__)
+
 default_image_type = 'eps'
 default_title = ""
 default_min_profile = 5
@@ -56,6 +58,12 @@ def get_profile(orf, profiles, min_profile):
 def plot_windows(windows, title, out):
 
     windows_np = np.array(windows)
+
+    if len(windows_np) == 0:
+        msg = "No windows for: {}".format(title)
+        logger.warning(msg)
+        return
+
     first_windows = windows_np[:,0]
 
     last_windows = windows_np[:,2] 
@@ -65,6 +73,11 @@ def plot_windows(windows, title, out):
     middle_windows = [mw for mw in middle_windows if mw is not None]
     middle_windows = utils.flatten_lists(middle_windows)
     middle_windows = np.array(middle_windows)
+
+    if (len(last_windows) == 0) or (len(middle_windows) == 0):
+        msg = "No long ORFs for: {}".format(title)
+        logger.warning(msg)
+        return
 
     ind = np.arange(21)  # the x locations for the groups
     width = 0.5       # the width of the bars
@@ -95,7 +108,7 @@ def plot_windows(windows, title, out):
     fig.suptitle(title)
 
     msg = "Saving figure to: {}".format(out)
-    logging.debug(msg)
+    logger.debug(msg)
     fig.savefig(out, bbox_inches='tight')
 
 
@@ -103,16 +116,16 @@ def extract_profiles_and_plot_strand(g, profiles, orf_type, strand, args):
     m_strand = g['strand'] == strand
 
     msg = "Extracting profiles"
-    logging.debug(msg)
+    logger.debug(msg)
     g_profiles = parallel.apply_df_simple(g[m_strand], get_profile, profiles, args.min_profile, progress_bar=True)
     g_profiles = [g_profile for g_profile in g_profiles if g_profile is not None]
 
     msg = "Slicing the profiles into windows"
-    logging.debug(msg)
+    logger.debug(msg)
     windows = parallel.apply_iter_simple(g_profiles, get_windows, progress_bar=True)
     
     msg = "Plotting the profile statistics"
-    logging.debug(msg)
+    logger.debug(msg)
 
     out = filenames.get_orf_type_profile_image(args.out, orf_type, strand, args.image_type)
 
@@ -124,16 +137,16 @@ def extract_profiles_and_plot(g, profiles, args):
     orf_type = g['orf_type'].iloc[0]
 
     msg = "ORF type: {}".format(orf_type)
-    logging.info(msg)
+    logger.info(msg)
 
     msg = "Strand: -"
-    logging.info(msg)
+    logger.info(msg)
 
     strand = "-"
     extract_profiles_and_plot_strand(g, profiles, orf_type, strand, args)
 
     msg = "Strand: +"
-    logging.info(msg)
+    logger.info(msg)
 
     strand = "+"
     extract_profiles_and_plot_strand(g, profiles, orf_type, strand, args)
@@ -164,21 +177,21 @@ def main():
     utils.update_logging(args)
 
     msg = "Reading ORFs"
-    logging.info(msg)
+    logger.info(msg)
     orfs = bio.read_bed(args.orfs)
 
     msg = "Reading profiles"
-    logging.info(msg)
+    logger.info(msg)
     profiles = scipy.io.mmread(args.profiles).tocsr()
 
     msg = "Extracting the metagene profiles and creating the images"
-    logging.info(msg)
+    logger.info(msg)
 
     orf_type_groups = orfs.groupby('orf_type')
     orf_type_groups.apply(extract_profiles_and_plot, profiles, args)
 
     msg = "Finished"
-    logging.info(msg)
+    logger.info(msg)
 
 if __name__ == '__main__':
     main()
