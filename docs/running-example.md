@@ -5,14 +5,15 @@ A small example dataset using _C. elegans_ is available for [download](http://cl
 
 Additionally, the expected outputs of the pipeline are included. Due to differences among versions of the external programs used in the pipeline (samtools, etc.), it is unlikely that all intermediate files will match exactly. However, we do include a script to compare the ORFs predicted as translated using the pipeline to those which are expected. If these differ significantly, it suggests something is not working correctly in the pipeline.
 
-If the results differ significantly, please run the pipeline using the "DEBUG" logging level (see the [usage instructions](usage-instructions.ipynb#logging-options)). This causes the scripts to output detailed runtime information which can be helpful for tracking down problems. If the problem is still not clear, please report the problem at the [github bug tracker](https://github.com/dieterich-lab/rp-bp/issues).
+If the results differ significantly, please run the pipeline using the "DEBUG" logging level (see the [usage instructions](usage-instructions.md#logging-options)). This causes the scripts to output detailed runtime information which can be helpful for tracking down problems. If the problem is still not clear, please report the problem at the [github bug tracker](https://github.com/dieterich-lab/rp-bp/issues).
 
 In total, creating the reference index files should take about 5 minutes and running the main pipeline should take an additional 15 to 20 minutes on a commodity laptop.
 
 <a id='toc'</a>
 * [Example dataset files](#example-dataset-files)
 * [Creating the reference index files](#creating-reference-indices)
-* [Running the Rp-Bp pipeline](#running-rpbp-pipeline)
+* [Running the Rp-Bp pipeline (also with replicates)](#running-rpbp-pipeline)
+* [Running the Rp-Bp pipeline, with replicates](#running-rpbp-pipeline-with-replicates)
 * [Validating the Rp-Bp prediction results](#validating-results)
 
 <a id="example-dataset-files"></a>
@@ -61,9 +62,9 @@ wget http://cloud.dieterichlab.org/index.php/s/3cyluM3ZCsvf0PT/download -O c-ele
 * `genome_base_path`
 * `ribosomal_index`
 
-The following command will create the necessary reference files using 2 CPUS and 4GB of RAM for STAR. Please see the [usage instructions](usage-instructions.ipynb#creating-reference-genome-indices) for the expected output files.
+The following command will create the necessary reference files using 2 CPUS and 4GB of RAM for STAR. Please see the [usage instructions](usage-instructions.md#creating-reference-genome-indices) for the expected output files.
 
-The `--use-slurm` and related options can also be used if SLURM is available. Please see the [usage instructions](usage-instructions.ipynb#parallel-processing-options) for more information.
+The `--use-slurm` and related options can also be used if SLURM is available. Please see the [usage instructions](usage-instructions.md#parallel-processing-options) for more information.
 
 N.B. The `--overwrite` flag is given below to ensure all of the files are (re-)created. In typical use cases, if some of the files already exist (e.g., the STAR index), then this flag can be omitted.
 
@@ -91,22 +92,35 @@ Reference files and locations should be exactly the same as used in the  `WBcel2
 
 Samples and models file paths must also be updated.
 
-* `riboseq_samples/c-elegans-chrI`
+* `riboseq_samples`
 * `riboseq_data`
 * `models_base`. This shoud point to the `models` folder of the rp-bp installation
 * `adapter_file`
 
-The following command will run the Rp-Bp (and Rp-chi) translation prediction pipelines using 2 CPUS. Please see the [usage instructions](usage-instructions.ipynb#running-pipelines) for the expected output files.
+The following command will run the Rp-Bp (and Rp-chi) translation prediction pipelines using 2 CPUS. Please see the [usage instructions](usage-instructions.md#running-pipelines) for the expected output files.
 
-The `--use-slurm` and related options can also be used if SLURM is available. Please see the [usage instructions](usage-instructions.ipynb#parallel-processing-options) for more information.
+The `--use-slurm` and related options can also be used if SLURM is available. Please see the [usage instructions](usage-instructions.md#parallel-processing-options) for more information.
 
 N.B. The `--overwrite` flag is given below to ensure all of the files are (re-)created. In typical use cases, if some of the files already exist (e.g., the quality-filtered reads), then this flag can be omitted.
 
 N.B. While performing the MCMC sampling, many messages indicating the "Elapsed Time" will be printed. This is a [known issue](https://github.com/stan-dev/pystan/issues/98) with pystan. Additionally, many "Informational Message: The current Metropolis proposal is about to be rejected because of the following issue" may also appear. These are also expected and (typically) do not indicate an actual problem.
 
+**Using replicates**
+
+The Rp-Bp pipeline handles replicates by adding the (smoothed) ORF profiles. The Bayes factors and predictions are then calculated based on the combined profiles. The `--merge-replicates` flag indicates that the replicates should be merged. By default, if the `--merge-replicates` flag is given, then predictions will not be made for the individual datasets. The `--run-replicates` flag can be given to override this and make predictions for both the merged replicates as well as the individual datasets.
+
+The replicates are specified by `riboseq_biological_replicates` in the configuration file. This value should be a dictionary, where the key of the dictionary is a string description of the condition and the value is a list that gives all of the sample replicates which belong to that condition. The names of the sample replicates must match the dataset names specified in `riboseq_samples`.
+
 
 ```python
+# running on each dataset separately
 process-all-samples c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO
+
+# merging the replicates, do not calculate Bayes factors and make predictions for individual datasets
+process-all-samples c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates
+
+# merging the replicates and calculating Bayes factors and making predictions for individual datasets
+process-all-samples c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates --run-replicates
 ```
 
 [Back to top](#toc)

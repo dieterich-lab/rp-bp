@@ -161,10 +161,12 @@ def create_figures(name, is_replicate, config, args):
             f = None
             rw = None
             is_smooth = False
+            profiles = unsmoothed_profiles
         else:
             f = fraction
             rw = reweighting_iterations
             is_smooth = True
+            profiles = smooth_profiles
 
         
         orf_type_profile_base = filenames.get_orf_type_profile_base(
@@ -186,7 +188,7 @@ def create_figures(name, is_replicate, config, args):
         ]
 
         cmd = ("visualize-orf-type-metagene-profiles {} {} {} {} {} {}".format(
-            orfs, smooth_profiles, orf_type_profile_base, title_str, 
+            orfs, profiles, orf_type_profile_base, title_str, 
             image_type_str, logging_str))
 
         in_files = [orfs]
@@ -507,8 +509,10 @@ def main():
                         msg = "Looking for image file: {}".format(orf_type_profile)
                         logger.debug(msg)
                         if os.path.exists(orf_type_profile):
+
                             if i == 0:
                                 latex.begin_figure(out)
+
                             i += 1
                             latex.write_graphics(out, orf_type_profile, height=0.23)
 
@@ -553,8 +557,10 @@ def main():
                             orf_type, strand, args.image_type)
 
                         if os.path.exists(orf_type_profile):
+
                             if i == 0:
                                 latex.begin_figure(out)
+
                             i += 1
                             latex.write_graphics(out, orf_type_profile, height=0.23)
 

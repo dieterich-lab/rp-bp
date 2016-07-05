@@ -67,7 +67,8 @@ setup(name='rpbp',
                                 'visualize-orf-type-metagene-profiles=rpbp.analysis.rpbp_predictions.visualize_orf_type_metagene_profiles:main [analysis]',
                                 'create-orf-types-pie-chart=rpbp.analysis.rpbp_predictions.create_orf_types_pie_chart:main [analysis]',
                                 'create-orf-length-distribution-line-graph=rpbp.analysis.rpbp_predictions.create_orf_length_distribution_line_graph:main [analysis]',
-                                'create-predictions-report=rpbp.analysis.rpbp_predictions.create_predictions_report:main [analysis]'
+                                'create-predictions-report=rpbp.analysis.rpbp_predictions.create_predictions_report:main [analysis]',
+                                'create-bf-rpkm-scatter-plot=rpbp.analysis.rpbp_predictions.create_bf_rpkm_scatter_plot:main [analysis]'
                                ]
         },
         zip_safe=False

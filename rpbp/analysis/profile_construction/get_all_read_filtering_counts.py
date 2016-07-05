@@ -175,22 +175,9 @@ def get_counts(name_data, config, args):
     msg = "{}: counting reads with selected lengths".format(name)
     logging.info(msg)
 
-    lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, name)
-
-    # TODO: this is a fairly big hack to make the counting by length work when
-    # fastqc groups reads together. It should at least cause an exception if
-    # it fails, though.
-    sld = unique_filename_report['Sequence Length Distribution']['contents']
-    length_counts = {}
-    for lc in sld:
-        len_strs = str(lc['Length']).split("-")
-        for l in len_strs:
-            l_int = int(l)
-            count = np.ceil(lc['Count'] / len(len_strs))
-            length_counts[l_int] = count
-
-    
     # now count the unique reads with the appropriate length
+    lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, name)
+    length_counts = bio.get_length_distribution(unique_filename)
     length_count = sum(length_counts[l] for l in length_counts if str(l) in lengths)
     
     lengths_str = ','.join(lengths)
