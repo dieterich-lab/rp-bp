@@ -16,6 +16,8 @@ default_max_rpkm = 5
 default_min_bf = -10000
 default_max_bf = 1000
 
+default_title = ""
+
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="This script plots the (log) Bayes factor against the estimated "
@@ -28,6 +30,8 @@ def main():
     parser.add_argument('-r', '--is-replicate', help="If the name corresponds to one "
         "of the replicates, this flag must be used to ensure the filenames are "
         "handled correctly.", action='store_true')
+
+    parser.add_argument('--title', default=default_title)
 
     parser.add_argument('--min-rpkm', type=float, default=default_min_rpkm)
     parser.add_argument('--max-rpkm', type=float, default=default_max_rpkm)
@@ -102,6 +106,9 @@ def main():
     ax.set_ylabel('log BF')
 
     lgd = ax.legend(loc='center right', bbox_to_anchor=(1.5, 0.5))
+
+    if len(args.title) > 0:
+        ax.set_title(args.title)
 
     fig.savefig(args.out, bbox_inches='tight', bbox_extra_artists=(lgd,))
 

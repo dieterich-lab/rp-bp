@@ -67,7 +67,6 @@ def plot_windows(windows, title, out):
         return
 
     windows_np = np.array(windows)
-    
     first_windows = windows_np[:,0]
 
     last_windows = windows_np[:,2] 
@@ -79,7 +78,7 @@ def plot_windows(windows, title, out):
     middle_windows = np.array(middle_windows)
 
     if (len(last_windows) == 0) or (len(middle_windows) == 0):
-        msg = "No ORFs were long enough to visualize. Skipping."
+        msg = "No long ORFs for: {}".format(title)
         logger.warning(msg)
         return
 
