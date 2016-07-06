@@ -74,6 +74,7 @@ def main():
     required_keys = [   
                         'riboseq_data',
                         'ribosomal_index',
+                        'star_index',
                         'genome_base_path',
                         'genome_name',
                         'fasta',

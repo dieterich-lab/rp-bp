@@ -43,12 +43,12 @@ The following keys are read from the configuration file. Keys with [`brackets`] 
 * `genome_base_path`. The path to the output directory for the transcript fasta and ORFs
 * `genome_name`. A descriptive name to use for the created files
 * `ribosomal_index`. The base output path for the Bowtie2 index of the ribosomal sequence
+* `star_index`. The base output path for the STAR index for the reference genome sequence. This STAR index *does not* include the transcript annotations. They will be incorporated later while running the specific samples.
 
 
 * [`orf_note`]. An additional description used in the filename of the created ORFs
 * [`start_codons`]. A list of strings that will be treated as start codons when searching for ORFs. default: [`ATG`]
 * [`stop_codons`]. A list of strings that will be treated as stop codons when searching for ORFS. default: [`TAA`, `TGA`, `TAG`]
-* [`sjdb_overhang`]. The value to use for splice junction overlaps when constructing the STAR index. default: 50
 
 * [`ignore_parsing_errors`]. If this key is in the config file with any value, then transcript headers which do not parse correctly will be skipped. A warning is printed for each header skipped in this manner. Otherwise, the program will report the parsing error and quit. default: False
 
@@ -71,7 +71,7 @@ The required input files are those suggested by the configuration file keys.
 * `genome_base_path`/transcript-index/`genome_name`.transcripts.fa
 * `genome_base_path`/transcript-index/`genome_name`.genomic-orfs.`orf_note`.bed.gz
 * `ribosomal_index`. The bowtie2 index files (`ribosomal_index`.1.bt2, etc.) for the ribosomal_fasta file
-* `genome_base_path`/STAR/`genome_name`/. The STAR index files (`SA`, `Genome`, etc.) for the `fasta` and annotated transcripts in the `gtf` file
+* `star_index`/. The STAR index files (`SA`, `Genome`, etc.) for the `fasta` file
 
 
 ```python
@@ -114,7 +114,8 @@ These options should be exactly the same as those used in the configuration file
 * `gtf`. The path to the reference annotations
 * `genome_base_path`. The path to the output directory for the transcript fasta and ORFs
 * `genome_name`. A descriptive name to use for the created files
-* `ribosomal_index`. The base output path for the Bowtie2 index of the ribosomal sequence
+* `ribosomal_index`. The base path for the Bowtie2 index of the ribosomal sequence
+* `star_index`. The base path to the STAR index
 * `fasta`. The path to the reference genome sequence
 
 #### Samples specification
@@ -165,7 +166,8 @@ These options should be exactly the same as those used in the configuration file
 * `gtf`. The path to the reference annotations
 * `genome_base_path`. The path to the output directory for the transcript fasta and ORFs
 * `genome_name`. A descriptive name to use for the created files
-* `ribosomal_index`. The base output path for the Bowtie2 index of the ribosomal sequence
+* `ribosomal_index`. The base path for the Bowtie2 index of the ribosomal sequence
+* `star_index`. The base path to the STAR index
 
 
 #### Flexbar options
@@ -183,6 +185,8 @@ These options should be exactly the same as those used in the configuration file
 * [`out_filter_mismatch_n_over_l_max`]. default: 0.04
 * [`out_filter_type`]. default: BySJout
 * [`out_sam_attributes`]. default: AS NH HI nM MD
+* [`sjdb_overhang`]. default: 50
+
 
 #### Metagene periodicity options
 * [`seqids_to_keep`]. If this list is given, then only transcripts appearing on these identifiers will be used to construct the metagene profiles (and other downstream analysis). The identifiers must match exactly (e.g., "2" and "chr2" do not match)
@@ -295,7 +299,7 @@ This script primarily creates the following files. (STAR also creates some tempo
     
     * **smoothed ORF profiles**. A sparse [matrix market file](http://math.nist.gov/MatrixMarket/formats.html) containing the smoothed profiles for all ORFs. **N.B.** The matrix market format uses base-1 indices.  `riboseq_data`/orf-profiles/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.profiles.mtx. 
 
-Indices are also created for the bam files.
+Indices are also created for the bam files. STAR creates parameter files in the location `riboseq_data`/without-rrna-mapping/`sample-name`\_STARgenome.
 
 ### Difference from paper
 

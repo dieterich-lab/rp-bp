@@ -13,7 +13,6 @@ In total, creating the reference index files should take about 5 minutes and run
 * [Example dataset files](#example-dataset-files)
 * [Creating the reference index files](#creating-reference-indices)
 * [Running the Rp-Bp pipeline (also with replicates)](#running-rpbp-pipeline)
-* [Running the Rp-Bp pipeline, with replicates](#running-rpbp-pipeline-with-replicates)
 * [Validating the Rp-Bp prediction results](#validating-results)
 
 <a id="example-dataset-files"></a>
@@ -35,9 +34,9 @@ The example dataset is distributed as a .tar.gz file and includes the following:
 
 * `test-chrI.fastq.gz`. A small test sequencing dataset. It has been constructed to include some reads which uniquely map to the annotated transcripts, some reads which map to ribosomal sequences, some reads which do not uniquely map to the genome and some reads which are filtered due to quality issues.
 
-* `c-elegans-test.expected.predicted-orfs.bed.gz`. The expected predictions using the Rp-Bp pipeline.
+* `c-elegans-test.expected.rpbp.predicted-orfs.bed.gz`. The expected predictions using the Rp-Bp pipeline.
 
-* `c-elegans-test.expected.chisq.predicted-orfs.bed.gz`. The expected predictions using the Rp-chi pipeline.
+* `c-elegans-test.expected.rpchi.predicted-orfs.bed.gz`. The expected predictions using the Rp-chi pipeline.
 
 **Downloading from the command line**
 
@@ -61,6 +60,7 @@ wget http://cloud.dieterichlab.org/index.php/s/3cyluM3ZCsvf0PT/download -O c-ele
 * `ribosomal_fasta`
 * `genome_base_path`
 * `ribosomal_index`
+* `star_index`
 
 The following command will create the necessary reference files using 2 CPUS and 4GB of RAM for STAR. Please see the [usage instructions](usage-instructions.md#creating-reference-genome-indices) for the expected output files.
 
@@ -89,6 +89,7 @@ Reference files and locations should be exactly the same as used in the  `WBcel2
 * `fasta`
 * `genome_base_path`
 * `ribosomal_index`
+* `star_index`
 
 Samples and models file paths must also be updated.
 
@@ -138,10 +139,10 @@ The following command will print the number of unique bases to the predictions a
 
 ```python
 # to check the predictions from Rp-Bp
-calculate-bed-overlap c-elegans-test.expected.predicted-orfs.bed.gz orf-predictions/c-elegans-chrI.test-unique.length-29.offset-12.predicted-orfs.bed.gz
+calculate-bed-overlap c-elegans-test.expected.rpbp.predicted-orfs.bed.gz orf-predictions/c-elegans-chrI.test-unique.length-29.offset-12.predicted-orfs.bed.gz
 
 # to check the predictions from Rp-chi
-calculate-bed-overlap c-elegans-test.expected.chisq.predicted-orfs.bed.gz orf-predictions/c-elegans-chrI.test-unique.length-29.offset-12.chisq.predicted-orfs.bed.gz
+calculate-bed-overlap c-elegans-test.expected.rpchi.predicted-orfs.bed.gz orf-predictions/c-elegans-chrI.test-unique.length-29.offset-12.chisq.predicted-orfs.bed.gz
 ```
 
 [Back to top](#toc)

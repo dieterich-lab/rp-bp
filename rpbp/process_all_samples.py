@@ -71,6 +71,7 @@ def main():
                         'riboseq_data',
                         'riboseq_samples',
                         'ribosomal_index',
+                        'star_index',
                         'genome_base_path',
                         'genome_name',
                         'fasta',

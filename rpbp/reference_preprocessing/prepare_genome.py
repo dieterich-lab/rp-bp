@@ -13,7 +13,6 @@ import misc.utils as utils
 import riboutils.ribo_filenames as filenames
 
 default_star_executable = "STAR"
-default_sjdb_overhang = 50
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -54,6 +53,7 @@ def main():
                         'fasta',
                         'ribosomal_fasta',
                         'ribosomal_index',
+                        'star_index'
                     ]
     utils.check_keys_exist(config, required_keys)
 
@@ -71,16 +71,13 @@ def main():
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
     
     # the STAR index
-    sjdb_overhang_str = utils.get_config_argument(config, 'sjdb_overhang', 'sjdbOverhang', 
-        default=default_sjdb_overhang)
     mem = utils.human2bytes(args.mem)
-    star_index = filenames.get_star_index(config['genome_base_path'], config['genome_name'], is_merged=False)
-    cmd = ("{} --runMode genomeGenerate --genomeDir {} --genomeFastaFiles {} --sjdbGTFfile {} "
-        "{} --runThreadN {} --limitGenomeGenerateRAM {}".format(args.star_executable, 
-        star_index, config['fasta'], config['gtf'], sjdb_overhang_str, args.num_cpus, mem))
+    cmd = ("{} --runMode genomeGenerate --genomeDir {} --genomeFastaFiles {} "
+        "--runThreadN {} --limitGenomeGenerateRAM {}".format(args.star_executable, 
+        config['star_index'], config['fasta'], args.num_cpus, mem))
         
-    in_files = [config['gtf'], config['fasta']]
-    out_files = bio.get_star_index_files(star_index)
+    in_files = [config['fasta']]
+    out_files = bio.get_star_index_files(config['star_index'])
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
     # extract the transcript fasta

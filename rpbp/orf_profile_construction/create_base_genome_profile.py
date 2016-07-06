@@ -20,6 +20,7 @@ default_pre_trim_left = 0
 
 # STAR arguments
 default_star_executable = "STAR"
+default_sjdb_overhang = 50
 
 default_align_intron_min = 20
 default_align_intron_max = 100000
@@ -75,6 +76,7 @@ def main():
 
     required_keys = [   'riboseq_data',
                         'ribosomal_index',
+                        'star_index',
                         'gtf',
                         'genome_base_path',
                         'genome_name'
@@ -82,9 +84,6 @@ def main():
     utils.check_keys_exist(config, required_keys)
 
     note = config.get('note', None)
-
-    star_index = filenames.get_star_index(config['genome_base_path'], 
-        config['genome_name'], is_merged=False)
 
     # Step 0: Running flexbar to remove adapter sequences
 
@@ -129,16 +128,27 @@ def main():
         'alignIntronMin', default=default_align_intron_min)
     align_intron_max_str = utils.get_config_argument(config, 'align_intron_max', 
         'alignIntronMax', default=default_align_intron_max)
-    out_filter_mismatch_n_max_str = utils.get_config_argument(config, 'out_filter_mismatch_n_max', 
-        'outFilterMismatchNmax', default=default_out_filter_mismatch_n_max)
-    out_filter_mismatch_n_over_l_max_str = utils.get_config_argument(config, 'out_filter_mismatch_n_over_l_max',
-        'outFilterMismatchNoverLmax', default=default_out_filter_mismatch_n_over_l_max)
-    out_filter_type_str = utils.get_config_argument(config, 'out_filter_type', 
-        'outFilterType', default=default_out_filter_type)
-    out_filter_intron_motifs_str = utils.get_config_argument(config, 'out_filter_intron_motifs', 
-        'outFilterIntronMotifs', default=default_out_filter_intron_motifs)
-    out_sam_attributes_str = utils.get_config_argument(config, 'out_sam_attributes', 
-        'outSAMattributes', default=default_out_sam_attributes)
+    out_filter_mismatch_n_max_str = utils.get_config_argument(config, 
+        'out_filter_mismatch_n_max', 'outFilterMismatchNmax', 
+        default=default_out_filter_mismatch_n_max)
+
+    out_filter_mismatch_n_over_l_max_str = utils.get_config_argument(config, 
+        'out_filter_mismatch_n_over_l_max', 'outFilterMismatchNoverLmax', 
+        default=default_out_filter_mismatch_n_over_l_max)
+
+    out_filter_type_str = utils.get_config_argument(config, 
+        'out_filter_type', 'outFilterType', default=default_out_filter_type)
+
+    out_filter_intron_motifs_str = utils.get_config_argument(config, 
+        'out_filter_intron_motifs', 'outFilterIntronMotifs', 
+        default=default_out_filter_intron_motifs)
+
+    out_sam_attributes_str = utils.get_config_argument(config, 
+        'out_sam_attributes', 'outSAMattributes', 
+        default=default_out_sam_attributes)
+
+    sjdb_overhang_str = utils.get_config_argument(config, 
+        'sjdb_overhang', 'sjdbOverhang', default=default_sjdb_overhang)
 
     star_tmp_str = ""
     if args.tmp is not None:
@@ -146,15 +156,16 @@ def main():
         star_tmp_dir = bio.create_star_tmp(args.tmp, star_tmp_name)
         star_tmp_str = "--outTmpDir {}".format(star_tmp_dir)
 
-    cmd = ("{} --runThreadN {} {} --genomeDir {} --sjdbGTFfile {} --readFilesIn {} "
+    cmd = ("{} --runThreadN {} {} --genomeDir {} --sjdbGTFfile {} {} --readFilesIn {} "
         "{} {} {} {} {} {} {} {} --outFileNamePrefix {} {} {}".format(args.star_executable,
-        args.num_cpus, star_compression_str, star_index, config['gtf'], without_rrna, 
+        args.num_cpus, star_compression_str, config['star_index'], config['gtf'], 
+        sjdb_overhang_str, without_rrna, 
         align_intron_min_str, align_intron_max_str, out_filter_mismatch_n_max_str, 
         out_filter_type_str, out_filter_intron_motifs_str, quant_mode_str,
         out_filter_mismatch_n_over_l_max_str, out_sam_attributes_str, star_output_prefix,
         star_out_str, star_tmp_str))
     in_files = [without_rrna]
-    in_files.extend(bio.get_star_index_files(star_index))
+    in_files.extend(bio.get_star_index_files(config['star_index']))
     out_files = [transcriptome_bam, genome_star_bam]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 

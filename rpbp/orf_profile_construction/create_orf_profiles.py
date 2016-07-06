@@ -68,6 +68,7 @@ def main():
     
     required_keys = [   'riboseq_data',
                         'ribosomal_index',
+                        'star_index',
                         'gtf',
                         'genome_base_path',
                         'genome_name',
@@ -76,9 +77,6 @@ def main():
     utils.check_keys_exist(config, required_keys)
 
     note = config.get('note', None)
-
-    star_index = filenames.get_star_index(config['genome_base_path'], 
-        config['genome_name'], is_merged=False)
 
     # the first step is the standard riboseq preprocessing
     

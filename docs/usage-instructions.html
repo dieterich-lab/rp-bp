@@ -11827,12 +11827,12 @@ div#notebook {
 <li><code>genome_base_path</code>. The path to the output directory for the transcript fasta and ORFs</li>
 <li><code>genome_name</code>. A descriptive name to use for the created files</li>
 <li><code>ribosomal_index</code>. The base output path for the Bowtie2 index of the ribosomal sequence</li>
+<li><code>star_index</code>. The base output path for the STAR index for the reference genome sequence. This STAR index <em>does not</em> include the transcript annotations. They will be incorporated later while running the specific samples.</li>
 </ul>
 <ul>
 <li>[<code>orf_note</code>]. An additional description used in the filename of the created ORFs</li>
 <li>[<code>start_codons</code>]. A list of strings that will be treated as start codons when searching for ORFs. default: [<code>ATG</code>]</li>
-<li>[<code>stop_codons</code>]. A list of strings that will be treated as stop codons when searching for ORFS. default: [<code>TAA</code>, <code>TGA</code>, <code>TAG</code>]</li>
-<li><p>[<code>sjdb_overhang</code>]. The value to use for splice junction overlaps when constructing the STAR index. default: 50</p>
+<li><p>[<code>stop_codons</code>]. A list of strings that will be treated as stop codons when searching for ORFS. default: [<code>TAA</code>, <code>TGA</code>, <code>TAG</code>]</p>
 </li>
 <li><p>[<code>ignore_parsing_errors</code>]. If this key is in the config file with any value, then transcript headers which do not parse correctly will be skipped. A warning is printed for each header skipped in this manner. Otherwise, the program will report the parsing error and quit. default: False</p>
 </li>
@@ -11853,7 +11853,7 @@ div#notebook {
 <li><code>genome_base_path</code>/transcript-index/<code>genome_name</code>.transcripts.fa</li>
 <li><code>genome_base_path</code>/transcript-index/<code>genome_name</code>.genomic-orfs.<code>orf_note</code>.bed.gz</li>
 <li><code>ribosomal_index</code>. The bowtie2 index files (<code>ribosomal_index</code>.1.bt2, etc.) for the ribosomal_fasta file</li>
-<li><code>genome_base_path</code>/STAR/<code>genome_name</code>/. The STAR index files (<code>SA</code>, <code>Genome</code>, etc.) for the <code>fasta</code> and annotated transcripts in the <code>gtf</code> file</li>
+<li><code>star_index</code>/. The STAR index files (<code>SA</code>, <code>Genome</code>, etc.) for the <code>fasta</code> file</li>
 </ul>
 
 </div>
@@ -11907,7 +11907,8 @@ div#notebook {
 <li><code>gtf</code>. The path to the reference annotations</li>
 <li><code>genome_base_path</code>. The path to the output directory for the transcript fasta and ORFs</li>
 <li><code>genome_name</code>. A descriptive name to use for the created files</li>
-<li><code>ribosomal_index</code>. The base output path for the Bowtie2 index of the ribosomal sequence</li>
+<li><code>ribosomal_index</code>. The base path for the Bowtie2 index of the ribosomal sequence</li>
+<li><code>star_index</code>. The base path to the STAR index</li>
 <li><code>fasta</code>. The path to the reference genome sequence</li>
 </ul>
 <h4 id="Samples-specification">Samples specification<a class="anchor-link" href="#Samples-specification">&#182;</a></h4><ul>
@@ -11972,7 +11973,8 @@ div#notebook {
 <li><code>gtf</code>. The path to the reference annotations</li>
 <li><code>genome_base_path</code>. The path to the output directory for the transcript fasta and ORFs</li>
 <li><code>genome_name</code>. A descriptive name to use for the created files</li>
-<li><code>ribosomal_index</code>. The base output path for the Bowtie2 index of the ribosomal sequence</li>
+<li><code>ribosomal_index</code>. The base path for the Bowtie2 index of the ribosomal sequence</li>
+<li><code>star_index</code>. The base path to the STAR index</li>
 </ul>
 <h4 id="Flexbar-options">Flexbar options<a class="anchor-link" href="#Flexbar-options">&#182;</a></h4><ul>
 <li>[<code>adapter_file</code>]. A fasta file containing a set of adapter sequences used by flexbar. default: None</li>
@@ -11989,6 +11991,7 @@ div#notebook {
 <li>[<code>out_filter_mismatch_n_over_l_max</code>]. default: 0.04</li>
 <li>[<code>out_filter_type</code>]. default: BySJout</li>
 <li>[<code>out_sam_attributes</code>]. default: AS NH HI nM MD</li>
+<li>[<code>sjdb_overhang</code>]. default: 50</li>
 </ul>
 <h4 id="Metagene-periodicity-options">Metagene periodicity options<a class="anchor-link" href="#Metagene-periodicity-options">&#182;</a></h4><ul>
 <li>[<code>seqids_to_keep</code>]. If this list is given, then only transcripts appearing on these identifiers will be used to construct the metagene profiles (and other downstream analysis). The identifiers must match exactly (e.g., "2" and "chr2" do not match)</li>
@@ -12110,7 +12113,7 @@ div#notebook {
 </ul>
 </li>
 </ul>
-<p>Indices are also created for the bam files.</p>
+<p>Indices are also created for the bam files. STAR creates parameter files in the location <code>riboseq_data</code>/without-rrna-mapping/<code>sample-name</code>_STARgenome.</p>
 <h3 id="Difference-from-paper">Difference from paper<a class="anchor-link" href="#Difference-from-paper">&#182;</a></h3><p>The fifth step of creating the base genome profile in the paper is "Everything except the 5' end of the remaining reads is removed." This profile is not explicitly constructed in the pipeline. The <code>sample-name</code>-unique.bam already contains the necessary information.</p>
 
 </div>
