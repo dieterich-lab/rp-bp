@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 
 import argparse
+import logging
+import os
 import yaml
 
 import matplotlib.pyplot as plt
@@ -9,6 +11,8 @@ import misc.bio as bio
 
 import riboutils.ribo_filenames as filenames
 import riboutils.ribo_utils as ribo_utils
+
+logger = logging.getLogger(__name__)
 
 default_min_rpkm = 0
 default_max_rpkm = 5
@@ -57,11 +61,27 @@ def main():
         length=lengths, offset=offsets, is_unique=True, note=note, is_smooth=True,
         fraction=fraction, reweighting_iterations=reweighting_iterations)
 
+    if not os.path.exists(bayes_factors):
+        msg = ("Could not find the Bayes factor file: {}\nIf this is for a particular "
+            "sample and the --merge-replicates option was used, this is not a problem. "
+            "Will not create this scatter plot")
+        logger.info(msg)
+        return
+
     bayes_factors = bio.read_bed(bayes_factors)
 
     # we need these to get the raw counts for calculating RPKM
     rpchi_pvalues = filenames.get_riboseq_bayes_factors(config['riboseq_data'], args.name, 
         length=lengths, offset=offsets, is_unique=True, note=note, is_smooth=False)
+
+    
+    if not os.path.exists(rpchi_pvalues):
+        msg = ("Could not find the Rp-chi pvalues file: {}\nIf this is for a particular "
+            "sample and the --merge-replicates option was used, this is not a problem. "
+            "Will not create this scatter plot")
+        logger.info(msg)
+        return
+
 
     rpchi_pvalues = bio.read_bed(rpchi_pvalues)
 
