@@ -68,7 +68,6 @@ def main():
     
     required_keys = [   'riboseq_data',
                         'ribosomal_index',
-                        'star_index',
                         'gtf',
                         'genome_base_path',
                         'genome_name',
@@ -77,6 +76,9 @@ def main():
     utils.check_keys_exist(config, required_keys)
 
     note = config.get('note', None)
+
+    star_index = filenames.get_star_index(config['genome_base_path'], 
+        config['genome_name'], is_merged=False)
 
     # the first step is the standard riboseq preprocessing
     
@@ -206,8 +208,8 @@ def main():
         note=config.get('orf_note'))
 
     cmd = ("extract-orf-profiles {} {} {} --lengths {} --offsets {} {} {} --num-cpus {} "
-            "--tmp {}".format(unique_filename, orfs_genomic, profiles_filename, lengths_str, 
-            offsets_str, logging_str, seqname_prefix_str, args.num_cpus, args.tmp))
+        "{}".format(unique_filename, orfs_genomic, profiles_filename, lengths_str, 
+            offsets_str, logging_str, seqname_prefix_str, args.num_cpus, tmp_str))
     in_files = [orfs_genomic, unique_filename]
     out_files = [profiles_filename]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
