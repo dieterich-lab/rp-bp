@@ -83,9 +83,6 @@ def main():
 
     note = config.get('note', None)
 
-    star_index = filenames.get_star_index(config['genome_base_path'], 
-        config['genome_name'], is_merged=False)
-
     # Step 0: Running flexbar to remove adapter sequences
 
     raw_data = args.raw_data
@@ -148,13 +145,13 @@ def main():
 
     cmd = ("{} --runThreadN {} {} --genomeDir {} --sjdbGTFfile {} --readFilesIn {} "
         "{} {} {} {} {} {} {} {} --outFileNamePrefix {} {} {}".format(args.star_executable,
-        args.num_cpus, star_compression_str, star_index, config['gtf'], without_rrna, 
+        args.num_cpus, star_compression_str, config['star_index'], config['gtf'], without_rrna, 
         align_intron_min_str, align_intron_max_str, out_filter_mismatch_n_max_str, 
         out_filter_type_str, out_filter_intron_motifs_str, quant_mode_str,
         out_filter_mismatch_n_over_l_max_str, out_sam_attributes_str, star_output_prefix,
         star_out_str, star_tmp_str))
     in_files = [without_rrna]
-    in_files.extend(bio.get_star_index_files(star_index))
+    in_files.extend(bio.get_star_index_files(config['star_index']))
     out_files = [transcriptome_bam, genome_star_bam]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
