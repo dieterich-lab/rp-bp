@@ -12,6 +12,8 @@ import misc.utils as utils
 
 import riboutils.ribo_utils as ribo_utils
 
+logger = logging.getLogger(__name__)
+
 default_min_bf_mean = 5
 default_min_bf_likelihood = 0.5
 default_max_bf_var = None
@@ -23,6 +25,15 @@ default_chi_square_field = 'chi_square_p'
 default_bf_mean_field = 'bayes_factor_mean'
 default_bf_var_field = 'bayes_factor_var'
 default_profile_sum_field = 'profile_sum'
+
+default_filtered_orf_types = []
+non_canonical_overlap_orf_types = [
+    'five_prime_overlap',
+    'suspect_overlap',
+    'three_prime_overlap',
+    'within'
+]
+non_canonical_overlap_orf_types_str = ','.join(non_canonical_overlap_orf_types)
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -77,6 +88,15 @@ def main():
     parser.add_argument('--chisq-significance-level', help="If using chi square, then this "
         "value is Bonferroni corrected and used as the significance cutoff", type=float, 
         default=default_chisq_significance_level)
+
+    parser.add_argument('--filtered-orf-types', help="A list of ORF types which will be "
+        "removed before selecting the final prediction set.", nargs='*', 
+        default=default_filtered_orf_types)
+
+    parser.add_argument('--filter-non-canonical-overlaps', help="If this flag is given, then "
+        "--filtered-orf-types will be extended with the non-canonical overlap types ({})."
+        .format(non_canonical_overlap_orf_types_str), action='store_true')
+        
     
     utils.add_logging_options(parser)
     args = parser.parse_args()
@@ -86,11 +106,23 @@ def main():
     utils.check_programs_exist(programs)
 
     # first, extract all of the predictions which exceed the threshold
-    msg = "Identifying ORFs which meet the prediction thresholds"
-    logging.info(msg)
-
+    msg = "Reading Bayes factor information"
+    logger.info(msg)
+    
     bayes_factors = bio.read_bed(args.bayes_factors)
 
+    if args.filter_non_canonical_overlaps:
+        args.filtered_orf_types.extend(non_canonical_overlap_orf_types)
+
+    if len(args.filtered_orf_types) > 0:
+        filtered_orf_types_str = ','.join(args.filtered_orf_types)
+        msg = "Filtering these ORF types: {}".format(filtered_orf_types_str)
+        logger.info(msg)
+
+        m_filtered_orf_types = bayes_factors['orf_type'].isin(args.filtered_orf_types)
+        bayes_factors = bayes_factors[~m_filtered_orf_types]
+
+    msg = "Identifying ORFs which meet the prediction thresholds"
     longest_orfs, bf_orfs, chisq_orfs = ribo_utils.get_predicted_orfs(bayes_factors, 
                                                        min_bf_mean=args.min_bf_mean, 
                                                        max_bf_var=args.max_bf_var, 
@@ -104,13 +136,13 @@ def main():
         longest_predicted_orfs = bf_orfs
 
     msg = "Number of longest ORFs: {}".format(len(longest_predicted_orfs))
-    logging.info(msg)
+    logger.info(msg)
 
     bio.write_bed(longest_predicted_orfs, args.predicted_orfs)
 
     # now get the sequences
     msg = "Extracting predicted ORFs DNA sequence"
-    logging.info(msg)
+    logger.info(msg)
 
     # first, convert the dataframe to a bedtool
     filtered_predictions_bed = pybedtools.BedTool.from_dataframe(longest_predicted_orfs[bio.bed12_field_names])
@@ -122,7 +154,7 @@ def main():
 
     # translate the remaining ORFs into protein sequences
     msg = "Converting predicted ORF sequences to amino acids"
-    logging.info(msg)
+    logger.info(msg)
 
     records = bio.get_read_iterator(args.predicted_dna_sequences)
     protein_records = {

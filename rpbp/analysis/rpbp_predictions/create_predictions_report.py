@@ -52,15 +52,7 @@ def create_figures(name, is_replicate, config, args):
             logger.error(msg)
             return
 
-    rpbp_orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-        name, length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
-        fraction=fraction, reweighting_iterations=reweighting_iterations)
-
-
-    rpchi_orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-        name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
-        is_chisq=True, is_smooth=False)
-
+    
     smooth_profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
             length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
             fraction=fraction, reweighting_iterations=reweighting_iterations)
@@ -73,35 +65,52 @@ def create_figures(name, is_replicate, config, args):
 
     for is_grouped in [True, False]:
         for is_chisq in [True, False]:
-            
-            title_str = "--title \"{}, Rp-Bp\"".format(name)
-            orfs = rpbp_orfs
-            if is_chisq:
-                title_str = "--title \"{}, Rp-$\chi^2$\"".format(name)
-                orfs = rpchi_orfs
-                f = None
-                rw = None
-                is_smooth = False
-            else:
-                f = fraction
-                rw = reweighting_iterations
-                is_smooth = True
+            for is_filtered in [True, False]:
 
-            use_groups_str = ""
-            if is_grouped:
-                use_groups_str = "--use-groups"
-            
-            orf_types_pie_chart = filenames.get_orf_types_pie_chart(
-                config['riboseq_data'], name, length=lengths, offset=offsets, 
-                is_unique=True, note=out_note_str, image_type=args.image_type,
-                is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
-                is_grouped=is_grouped, is_chisq=is_chisq)
+                is_grouped_str = ""
+                if is_grouped:
+                    is_grouped_str = ", Grouped"
 
-            cmd = "create-orf-types-pie-chart {} {} {} {}".format(orfs, orf_types_pie_chart,
-                title_str, use_groups_str)
-            in_files = [orfs]
-            out_files = [orf_types_pie_chart]
-            utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+                is_filtered_str = ""
+                if is_filtered:
+                    is_filtered_str = ", Filtered"
+                
+                if is_chisq:
+                    title_str = "--title \"{}{}{}, Rp-$\chi^2$\"".format(name, is_grouped_str, is_filtered_str)
+                    f = None
+                    rw = None
+                    is_smooth = False
+
+                    orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
+                        name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+                        is_chisq=True, is_smooth=False, is_filtered=is_filtered)
+
+                else:
+                    title_str = "--title \"{}{}{}, Rp-Bp\"".format(name, is_grouped_str, is_filtered_str)
+                    f = fraction
+                    rw = reweighting_iterations
+                    is_smooth = True
+                    orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
+                        name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+                        is_smooth=True, fraction=f, reweighting_iterations=rw, 
+                        is_filtered=is_filtered)
+
+
+                use_groups_str = ""
+                if is_grouped:
+                    use_groups_str = "--use-groups"
+                
+                orf_types_pie_chart = filenames.get_orf_types_pie_chart(
+                    config['riboseq_data'], name, length=lengths, offset=offsets, 
+                    is_unique=True, note=out_note_str, image_type=args.image_type,
+                    is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
+                    is_grouped=is_grouped, is_chisq=is_chisq, is_filtered=is_filtered)
+
+                cmd = "create-orf-types-pie-chart {} {} {} {}".format(orfs, orf_types_pie_chart,
+                    title_str, use_groups_str)
+                in_files = [orfs]
+                out_files = [orf_types_pie_chart]
+                utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
     
     msg = "{}: creating the ORF length distributions line graph".format(name)
@@ -116,18 +125,25 @@ def create_figures(name, is_replicate, config, args):
     for is_grouped in [True, False]:
         for is_chisq in [True, False]:
             
-            title_str = "--title \"{}, Rp-Bp\"".format(name)
-            orfs = rpbp_orfs
             if is_chisq:
                 title_str = "--title \"{}, Rp-$\chi^2$\"".format(name)
-                orfs = rpchi_orfs
                 f = None
                 rw = None
                 is_smooth = False
+                
+                orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
+                    name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+                    is_chisq=True, is_smooth=False)
+
             else:
+                title_str = "--title \"{}, Rp-Bp\"".format(name)
                 f = fraction
                 rw = reweighting_iterations
                 is_smooth = True
+
+                orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
+                    name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+                    is_smooth=True, fraction=f, reweighting_iterations=rw) 
 
 
             use_groups_str = ""
@@ -155,18 +171,25 @@ def create_figures(name, is_replicate, config, args):
         
         if is_chisq:
             title_str = "--title \"{}, Rp-$\chi^2$\"".format(name)
-            orfs = rpchi_orfs
             f = None
             rw = None
             is_smooth = False
             profiles = unsmoothed_profiles
+    
+            orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
+                name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+                is_chisq=True, is_smooth=False, is_filtered=is_filtered)
+
         else:
             title_str = "--title \"{}, Rp-Bp\"".format(name)
-            orfs = rpbp_orfs
             f = fraction
             rw = reweighting_iterations
             is_smooth = True
             profiles = smooth_profiles
+
+            orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
+                name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+                is_smooth=True, fraction=f, reweighting_iterations=rw) 
 
         
         orf_type_profile_base = filenames.get_orf_type_profile_base(
@@ -333,6 +356,7 @@ def main():
         strands = ["+", "-"]
 
 
+        i = 0
         for sample_name in sample_names:
             
             try:
@@ -346,34 +370,50 @@ def main():
 
             # first, just dump all of the pie charts to the page
             
-            latex.begin_figure(out)
             
             for is_grouped in [True, False]:
                 for is_chisq in [True, False]:
+                    for is_filtered in [True, False]:
 
-                    if is_chisq:
-                        f = None
-                        rw = None
-                        is_smooth = False
-                    else:
-                        f = fraction
-                        rw = reweighting_iterations
-                        is_smooth = True
-                    
-                    orf_types_pie_chart = filenames.get_orf_types_pie_chart(
-                        config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
-                        is_unique=True, note=out_note_str, image_type=args.image_type,
-                        is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
-                        is_grouped=is_grouped, is_chisq=is_chisq)
+                        if is_chisq:
+                            f = None
+                            rw = None
+                            is_smooth = False
+                        else:
+                            f = fraction
+                            rw = reweighting_iterations
+                            is_smooth = True
+                        
+                        orf_types_pie_chart = filenames.get_orf_types_pie_chart(
+                            config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
+                            is_unique=True, note=out_note_str, image_type=args.image_type,
+                            is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
+                            is_grouped=is_grouped, is_chisq=is_chisq, is_filtered=is_filtered)
 
-                    if os.path.exists(orf_types_pie_chart):
-                        latex.write_graphics(out, orf_types_pie_chart, height=0.23)
+                        msg = "looking for image file: {}".format(orf_types_pie_chart)
+                        logger.debug(msg)
 
-            latex.write_caption(out, caption)
-            latex.end_figure(out)
-            latex.clearpage(out)
+                        if os.path.exists(orf_types_pie_chart):
+                            if i%4 == 0:
+                                latex.begin_figure(out)
+                            
+                            i += 1
+                            latex.write_graphics(out, orf_types_pie_chart, height=0.23)
+
+                            if i%4 == 0:
+                                latex.write_caption(out, caption)
+                                latex.end_figure(out)
+                                latex.clearpage(out)
+
+
+
+            if (i > 0) and (i%4) != 0:
+                latex.write_caption(out, caption)
+                latex.end_figure(out)
+                latex.clearpage(out)
 
     
+        i = 0
         # now, if the config file specifies replicates, create figures for those                
         for replicate_name in replicate_names:
             lengths = None
@@ -381,40 +421,56 @@ def main():
 
             caption = "ORF types: {}".format(replicate_name)
 
-            # first, just dump all of the pie charts to the page
-            latex.begin_figure(out)
-            
             for is_grouped in [True, False]:
                 for is_chisq in [True, False]:
+                    for is_filtered in [True, False]:
 
-                    if is_chisq:
-                        f = None
-                        rw = None
-                        is_smooth = False
-                    else:
-                        f = fraction
-                        rw = reweighting_iterations
-                        is_smooth = True
+                        if is_chisq:
+                            f = None
+                            rw = None
+                            is_smooth = False
+                        else:
+                            f = fraction
+                            rw = reweighting_iterations
+                            is_smooth = True
 
-                    
-                    orf_types_pie_chart = filenames.get_orf_types_pie_chart(
-                        config['riboseq_data'], replicate_name, length=lengths, offset=offsets, 
-                        is_unique=True, note=out_note_str, image_type=args.image_type,
-                        is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
-                        is_grouped=is_grouped, is_chisq=is_chisq)
+                        
+                        orf_types_pie_chart = filenames.get_orf_types_pie_chart(
+                            config['riboseq_data'], replicate_name, length=lengths, offset=offsets, 
+                            is_unique=True, note=out_note_str, image_type=args.image_type,
+                            is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
+                            is_grouped=is_grouped, is_chisq=is_chisq, is_filtered=is_filtered)
 
-                    if os.path.exists(orf_types_pie_chart):
-                        latex.write_graphics(out, orf_types_pie_chart, height=0.23)
+                        
+                        msg = "looking for image file: {}".format(orf_types_pie_chart)
+                        logger.debug(msg)
 
-            latex.write_caption(out, caption)
-            latex.end_figure(out)
-            latex.clearpage(out)
+                        
+                        if os.path.exists(orf_types_pie_chart):
+                            if i%4 == 0:
+                                latex.begin_figure(out)
+                            
+                            i += 1
+                            latex.write_graphics(out, orf_types_pie_chart, height=0.23)
+
+                            if i%4 == 0:
+                                latex.write_caption(out, caption)
+                                latex.end_figure(out)
+                                latex.clearpage(out)
+
+
+
+            if (i > 0) and (i%4) != 0:
+                latex.write_caption(out, caption)
+                latex.end_figure(out)
+                latex.clearpage(out)
 
 
         ### ORF type length distributions
         title = "Predicted ORF type length distributions"
         latex.section(out, title)
 
+        i = 0
         for sample_name in sample_names:
             
             try:
@@ -425,9 +481,6 @@ def main():
                 continue
             
             caption = "ORF type length distributions: {}".format(sample_name)
-
-            # first, just dump all of the pie charts to the page
-            latex.begin_figure(out)
             
             for is_grouped in [True, False]:
                 for is_chisq in [True, False]:
@@ -448,21 +501,32 @@ def main():
                         is_grouped=is_grouped, is_chisq=is_chisq)
 
                     if os.path.exists(orf_length_line_graph):
+                
+                        if i%4 == 0:
+                            latex.begin_figure(out)
+                        
+                        i += 1
                         latex.write_graphics(out, orf_length_line_graph, height=0.23)
 
-            latex.write_caption(out, caption)
-            latex.end_figure(out)
-            latex.clearpage(out)
+                        if i%4 == 0:
+                            latex.write_caption(out, caption)
+                            latex.end_figure(out)
+                            latex.clearpage(out)
 
-        # now, if the config file specifies replicates, create figures for those                
+
+
+            if (i > 0) and (i%4) != 0:
+                latex.write_caption(out, caption)
+                latex.end_figure(out)
+                latex.clearpage(out)
+
+        # now, if the config file specifies replicates, create figures for those  
+        i = 0
         for replicate_name in replicate_names:
             lengths = None
             offsets = None
 
             caption = "ORF types: {}".format(replicate_name)
-
-            # first, just dump all of the pie charts to the page
-            latex.begin_figure(out)
             
             for is_grouped in [True, False]:
                 for is_chisq in [True, False]:
@@ -481,13 +545,26 @@ def main():
                         is_unique=True, note=out_note_str, image_type=args.image_type,
                         is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
                         is_grouped=is_grouped, is_chisq=is_chisq)
-
+                    
                     if os.path.exists(orf_length_line_graph):
+                
+                        if i%4 == 0:
+                            latex.begin_figure(out)
+                        
+                        i += 1
                         latex.write_graphics(out, orf_length_line_graph, height=0.23)
 
-            latex.write_caption(out, caption)
-            latex.end_figure(out)
-            latex.clearpage(out)
+                        if i%4 == 0:
+                            latex.write_caption(out, caption)
+                            latex.end_figure(out)
+                            latex.clearpage(out)
+
+
+
+            if (i > 0) and (i%4) != 0:
+                latex.write_caption(out, caption)
+                latex.end_figure(out)
+                latex.clearpage(out)
 
         ### ORF type metagene profiles
         title = "Predicted ORF type metagene profiles"
@@ -533,7 +610,7 @@ def main():
                         logger.debug(msg)
                         if os.path.exists(orf_type_profile):
 
-                            if i == 0:
+                            if i%4 == 0:
                                 latex.begin_figure(out)
 
                             i += 1
@@ -543,9 +620,8 @@ def main():
                                 latex.write_caption(out, caption)
                                 latex.end_figure(out)
                                 latex.clearpage(out)
-                                latex.begin_figure(out)
 
-        if i > 0:
+        if (i > 0) and (i%4 != 0):
             latex.write_caption(out, caption)
             latex.end_figure(out)
             latex.clearpage(out)
@@ -581,7 +657,7 @@ def main():
 
                         if os.path.exists(orf_type_profile):
 
-                            if i == 0:
+                            if i%4 == 0:
                                 latex.begin_figure(out)
 
                             i += 1
@@ -591,10 +667,9 @@ def main():
                                 latex.write_caption(out, caption)
                                 latex.end_figure(out)
                                 latex.clearpage(out)
-                                latex.begin_figure(out)
 
             
-        if i > 0:
+        if (i > 0) and (i%4 != 0):
             latex.write_caption(out, caption)
             latex.end_figure(out)
             latex.clearpage(out)
@@ -619,7 +694,7 @@ def main():
                 is_smooth=True, fraction=fraction, reweighting_iterations=reweighting_iterations)
 
             if os.path.exists(bf_rpkm_scatter_plot):
-                if i == 0:
+                if i%4 == 0:
                     latex.begin_figure(out)
                     
                 i += 1
@@ -628,9 +703,8 @@ def main():
                 if i % 4 == 0:
                     latex.end_figure(out)
                     latex.clearpage(out)
-                    latex.begin_figure(out)
             
-        if i > 0:
+        if (i > 0) and (i%4 != 0):
             latex.end_figure(out)
             latex.clearpage(out)
 
@@ -639,17 +713,13 @@ def main():
             lengths = None
             offsets = None
 
-            # first, just dump all of the pie charts to the page
-            latex.begin_figure(out)
-
-
             bf_rpkm_scatter_plot = filenames.get_bf_rpkm_scatter_plot(config['riboseq_data'], replicate_name, 
                 length=lengths, offset=offsets, 
                 is_unique=True, note=out_note_str, image_type=args.image_type,
                 is_smooth=True, fraction=fraction, reweighting_iterations=reweighting_iterations)
 
             if os.path.exists(bf_rpkm_scatter_plot):
-                if i == 0:
+                if i%4 == 0:
                     latex.begin_figure(out)
                     
                 i += 1
@@ -658,9 +728,8 @@ def main():
                 if i % 4 == 0:
                     latex.end_figure(out)
                     latex.clearpage(out)
-                    latex.begin_figure(out)
             
-        if i > 0:
+        if (i > 0) and (i%4 != 0):
             latex.end_figure(out)
             latex.clearpage(out)
 
