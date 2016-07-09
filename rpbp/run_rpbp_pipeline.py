@@ -10,6 +10,7 @@ import yaml
 import misc.slurm as slurm
 import misc.utils as utils
 
+logger = logging.getLogger(__name__)
 
 default_num_procs = 1
 default_tmp = None # utils.abspath('tmp')
@@ -78,15 +79,14 @@ def main():
                         'genome_base_path',
                         'genome_name',
                         'fasta',
-                        'gtf',
-                        'models_base'
+                        'gtf'
                     ]
     utils.check_keys_exist(config, required_keys)
 
     
     # now, check if we want to use slurm
     msg = "use_slurm: {}".format(args.use_slurm)
-    logging.debug(msg)
+    logger.debug(msg)
 
     if args.use_slurm:
         cmd = ' '.join(sys.argv)

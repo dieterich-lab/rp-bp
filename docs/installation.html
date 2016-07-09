@@ -11802,6 +11802,7 @@ div#notebook {
 </ul>
 <p>If the use of package managers are not an option (for example, because they require root access) or just not desired, then OpenBLAS can be installed locally. The following instructions have been tested extensively on Ubuntu, but they may require modification for other distributions.</p>
 <p>For OSX, a custom installation of numpy linking against the OpenBLAS library is required. We do not officially support this, but <a href="http://dedupe.readthedocs.io/en/latest/OSX-Install-Notes.html">example documentation</a> is available elsewhere on the web.</p>
+<p>N.B. In principle, any BLAS and ATLAS library, such as <a href="https://software.intel.com/en-us/intel-mkl">Intel's Math Kernel Library</a>, can be used. This has not been tested and is not supported, though.</p>
 
 </div>
 </div>
@@ -11820,6 +11821,8 @@ div#notebook {
 <span class="c1">### Lines to add to .bashrc</span>
 <span class="c1"># for the OpenBLAS library</span>
 <span class="n">export</span> <span class="n">LD_LIBRARY_PATH</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">OpenBLAS</span><span class="p">:</span><span class="err">$</span><span class="n">LD_LIBRARY_PATH</span>
+<span class="n">export</span> <span class="n">BLAS</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">libopenblas</span><span class="o">.</span><span class="n">a</span>
+<span class="n">export</span> <span class="n">ATLAS</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">libopenblas</span><span class="o">.</span><span class="n">a</span>
     
 <span class="c1"># then, to be safe, close the current terminal and open a new one to install rp-bp</span>
 </pre></div>
@@ -11849,6 +11852,8 @@ div#notebook {
 <p>The commands below are presumably executed in a directory like <code>$HOME/install</code>. They install the python executables into <code>$HOME/local/bin</code> (or wherever the <code>prefix</code> option is located).
 So that directory must be in the <code>$PATH</code>.
 This can be accomplished by adding a line like <code>export PATH=$HOME/local/bin:$PATH</code> in the file <code>.bashrc</code> on Ubuntu.</p>
+<p><strong>N.B. It is very important that pip and wheel are upgraded!</strong></p>
+<p>N.B. The <code>--user</code> option can also be given to pip3 for installation within the user's home directory. The installation is then compatible with system-wide python3 installations without requiring sudo access.</p>
 
 </div>
 </div>
@@ -11869,13 +11874,16 @@ This can be accomplished by adding a line like <code>export PATH=$HOME/local/bin
 <span class="n">wget</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">ftp</span><span class="o">/</span><span class="n">python</span><span class="o">/</span><span class="mf">3.5</span><span class="o">.</span><span class="mi">1</span><span class="o">/</span><span class="n">Python</span><span class="o">-</span><span class="mf">3.5</span><span class="o">.</span><span class="mf">1.</span><span class="n">tgz</span> <span class="o">&amp;&amp;</span> <span class="n">tar</span> <span class="o">-</span><span class="n">xvf</span> <span class="n">Python</span><span class="o">-</span><span class="mf">3.5</span><span class="o">.</span><span class="mf">1.</span><span class="n">tgz</span> <span class="o">&amp;&amp;</span> <span class="n">cd</span> <span class="n">Python</span><span class="o">-</span><span class="mf">3.5</span><span class="o">.</span><span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="o">./</span><span class="n">configure</span> <span class="o">--</span><span class="n">prefix</span><span class="o">=</span><span class="err">$</span><span class="n">HOME</span><span class="o">/</span><span class="n">local</span> <span class="o">--</span><span class="k">with</span><span class="o">-</span><span class="n">ensurepip</span><span class="o">=</span><span class="n">upgrade</span> <span class="o">&amp;&amp;</span> <span class="n">make</span> <span class="o">&amp;&amp;</span> <span class="n">make</span> <span class="n">install</span> <span class="o">&amp;&amp;</span> <span class="n">cd</span> <span class="o">..</span>
 
 <span class="c1"># Upgrade pip. </span>
-<span class="n">pip3</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span>
+<span class="n">pip3</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span> <span class="n">wheel</span>
 
 <span class="c1"># Clone the git repository. </span>
 <span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">dieterich</span><span class="o">-</span><span class="n">lab</span><span class="o">/</span><span class="n">rp</span><span class="o">-</span><span class="n">bp</span><span class="o">.</span><span class="n">git</span>
     
 <span class="c1"># Change into the rp-bp directory and build the package. </span>
-<span class="n">cd</span> <span class="n">rp</span><span class="o">-</span><span class="n">bp</span> <span class="o">&amp;&amp;</span> <span class="n">make</span>
+<span class="n">cd</span> <span class="n">rp</span><span class="o">-</span><span class="n">bp</span> <span class="o">&amp;&amp;</span> <span class="n">pip3</span> <span class="n">install</span> <span class="o">--</span><span class="n">verbose</span> <span class="o">.</span>
+
+<span class="c1"># or install the package in the user&#39;s home directory</span>
+<span class="n">cd</span> <span class="n">rp</span><span class="o">-</span><span class="n">bp</span> <span class="o">&amp;&amp;</span> <span class="n">pip3</span> <span class="n">install</span> <span class="o">--</span><span class="n">verbose</span> <span class="o">--</span><span class="n">user</span> <span class="o">.</span>
 </pre></div>
 
 </div>
@@ -11944,7 +11952,7 @@ This can be accomplished by adding a line like <code>export PATH=$HOME/local/bin
 <span class="n">wget</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">ftp</span><span class="o">/</span><span class="n">python</span><span class="o">/</span><span class="mf">3.5</span><span class="o">.</span><span class="mi">1</span><span class="o">/</span><span class="n">Python</span><span class="o">-</span><span class="mf">3.5</span><span class="o">.</span><span class="mf">1.</span><span class="n">tgz</span> <span class="o">&amp;&amp;</span> <span class="n">tar</span> <span class="o">-</span><span class="n">xvf</span> <span class="n">Python</span><span class="o">-</span><span class="mf">3.5</span><span class="o">.</span><span class="mf">1.</span><span class="n">tgz</span> <span class="o">&amp;&amp;</span> <span class="n">cd</span> <span class="n">Python</span><span class="o">-</span><span class="mf">3.5</span><span class="o">.</span><span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="o">./</span><span class="n">configure</span> <span class="o">--</span><span class="n">prefix</span><span class="o">=</span><span class="err">$</span><span class="n">HOME</span><span class="o">/</span><span class="n">local</span> <span class="o">--</span><span class="k">with</span><span class="o">-</span><span class="n">ensurepip</span><span class="o">=</span><span class="n">upgrade</span> <span class="o">&amp;&amp;</span> <span class="n">make</span> <span class="o">&amp;&amp;</span> <span class="n">make</span> <span class="n">install</span> <span class="o">&amp;&amp;</span> <span class="n">cd</span> <span class="o">..</span>
 
 <span class="c1"># Upgrade both versions of pip. </span>
-<span class="n">pip2</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span> <span class="o">&amp;&amp;</span> <span class="n">pip3</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span>
+<span class="n">pip2</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span> <span class="o">&amp;&amp;</span> <span class="n">pip3</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span> <span class="n">wheel</span>
 
 <span class="c1"># Install the virtual environment wrapper for Python 2. </span>
 <span class="n">pip2</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">virtualenvwrapper</span>
@@ -11959,7 +11967,7 @@ This can be accomplished by adding a line like <code>export PATH=$HOME/local/bin
 <span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">dieterich</span><span class="o">-</span><span class="n">lab</span><span class="o">/</span><span class="n">rp</span><span class="o">-</span><span class="n">bp</span><span class="o">.</span><span class="n">git</span>
 
 <span class="c1"># Change into the rp-bp directory and build the package. </span>
-<span class="n">cd</span> <span class="n">rp</span><span class="o">-</span><span class="n">bp</span> <span class="o">&amp;&amp;</span> <span class="n">make</span>
+<span class="n">cd</span> <span class="n">rp</span><span class="o">-</span><span class="n">bp</span> <span class="o">&amp;&amp;</span> <span class="n">pip3</span> <span class="n">install</span> <span class="o">--</span><span class="n">verbose</span> <span class="o">.</span>
 </pre></div>
 
 </div>

@@ -15,6 +15,8 @@ import riboutils.ribo_filenames as filenames
 
 logger = logging.getLogger(__name__)
 
+default_models_base = filenames.get_default_models_base()
+
 default_num_cpus = 2
 default_tmp = None # utils.abspath('tmp')
 
@@ -98,10 +100,11 @@ def main():
     required_keys = [   'riboseq_data',
                         'fasta',
                         'genome_base_path',
-                        'genome_name',
-                        'models_base'
+                        'genome_name'
                     ]
     utils.check_keys_exist(config, required_keys)
+
+    models_base = config.get('models_base', default_models_base)
 
     note_str = config.get('note', None)
 
@@ -186,8 +189,8 @@ def main():
         fraction=fraction, reweighting_iterations=reweighting_iterations)
     
     # parse out all of the options from the config file, if they are present
-    translated_models = filenames.get_models(config['models_base'], 'translated')
-    untranslated_models = filenames.get_models(config['models_base'], 'untranslated')
+    translated_models = filenames.get_models(models_base, 'translated')
+    untranslated_models = filenames.get_models(models_base, 'untranslated')
 
     translated_models_str = ' '.join(translated_models)
     untranslated_models_str = ' '.join(untranslated_models)

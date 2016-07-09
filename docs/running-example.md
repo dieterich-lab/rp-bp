@@ -91,11 +91,10 @@ Reference files and locations should be exactly the same as used in the  `WBcel2
 * `ribosomal_index`
 * `star_index`
 
-Samples and models file paths must also be updated.
+The sample and output file paths must also be updated.
 
 * `riboseq_samples`
 * `riboseq_data`
-* `models_base`. This shoud point to the `models` folder of the rp-bp installation
 * `adapter_file`
 
 The following command will run the Rp-Bp (and Rp-chi) translation prediction pipelines using 2 CPUS. Please see the [usage instructions](usage-instructions.md#running-pipelines) for the expected output files.

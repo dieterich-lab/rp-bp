@@ -104,9 +104,7 @@ The following keys are read from the configuration file. Their semantics is exac
 
 * `riboseq_data`. The base output location for all created files.
 * [`note`]. An optional string which will be added to all filenames. It should not contain spaces or any other special characters.
-* `models_base`. The base path to the compiled models.
-
-**N.B.** The models specified in the paper are included with the source distribution and compiled/pickled as part of the installation process. They are in the folders `/path/to/rp-bp/models/periodic` and `/path/to/rp-bp/models/nonperiodic`. For a standard installation, the `models_base` should be `/path/to/rp-bp/models`.
+* [`models_base`]. The base path to the compiled models,  the base path to the compiled models. The models specified in the paper are included with the source distribution and compiled/pickled as part of the installation process. They are installed in an operating system-specific location (in particular, `user_data_dir` from the [appdirs package](https://pypi.python.org/pypi/appdirs). This location is determined during installation and does not normally need to be changed. For development, they may be in some alternative location.
 
 #### Reference genome options
 These options should be exactly the same as those used in the configuration file used to create the reference indices.
@@ -156,9 +154,7 @@ The following keys are read from the configuration file. Keys with [`brackets`] 
 
 * `riboseq_data`. The base output location for all created files.
 * [`note`]. An optional string which will be added to all filenames. It should not contain spaces or any other special characters.
-* `models_base`. The base path to the compiled models.
-
-**N.B.** The models specified in the paper are included with the source distribution and compiled/pickled as part of the installation process. They are in the folders `/path/to/rp-bp/models/periodic` and `/path/to/rp-bp/models/nonperiodic`. For a standard installation, the `models_base` should be `/path/to/rp-bp/models`.
+* [`models_base`]. The base path to the compiled models,  the base path to the compiled models. The models specified in the paper are included with the source distribution and compiled/pickled as part of the installation process. They are installed in an operating system-specific location (in particular, `user_data_dir` from the [appdirs package](https://pypi.python.org/pypi/appdirs). This location is determined during installation and does not normally need to be changed. For development, they may be in some alternative location.
 
 #### Reference genome options
 These options should be exactly the same as those used in the configuration file used to create the reference indices.
@@ -333,9 +329,7 @@ The following keys are read from the configuration file. Keys with [`brackets`] 
 
 * `riboseq_data`. The base output location for all created files
 * [`note`]. An optional string which will be added to all filenames. It should not contain spaces or any other special characters.
-* `models_base`. The base path to the compiled models.
-
-**N.B.** The models specified in the paper are included with the source distribution and compiled/pickled as part of the installation process. They are in the folders `/path/to/rp-bp/models/translated` and `/path/to/rp-bp/models/untranslated`. For a standard installation, the `models_base` should be `/path/to/rp-bp/models`.
+* [`models_base`]. The base path to the compiled models,  the base path to the compiled models. The models specified in the paper are included with the source distribution and compiled/pickled as part of the installation process. They are installed in an operating system-specific location (in particular, `user_data_dir` from the [appdirs package](https://pypi.python.org/pypi/appdirs). This location is determined during installation and does not normally need to be changed. For development, they may be in some alternative location.
 
 #### Reference genome options
 These options should be exactly the same as those used in the configuration file used to create the reference indices.

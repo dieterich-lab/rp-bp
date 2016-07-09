@@ -33,6 +33,8 @@ If the use of package managers are not an option (for example, because they requ
 
 For OSX, a custom installation of numpy linking against the OpenBLAS library is required. We do not officially support this, but [example documentation](http://dedupe.readthedocs.io/en/latest/OSX-Install-Notes.html) is available elsewhere on the web.
 
+N.B. In principle, any BLAS and ATLAS library, such as [Intel's Math Kernel Library](https://software.intel.com/en-us/intel-mkl), can be used. This has not been tested and is not supported, though.
+
 
 ```python
 # download the OpenBLAS source
@@ -44,6 +46,8 @@ cd OpenBLAS && make FC=gfortran
 ### Lines to add to .bashrc
 # for the OpenBLAS library
 export LD_LIBRARY_PATH=/path/to/OpenBLAS:$LD_LIBRARY_PATH
+export BLAS=/path/to/libopenblas.a
+export ATLAS=/path/to/libopenblas.a
     
 # then, to be safe, close the current terminal and open a new one to install rp-bp
 ```
@@ -61,6 +65,10 @@ The commands below are presumably executed in a directory like `$HOME/install`. 
 So that directory must be in the `$PATH`.
 This can be accomplished by adding a line like `export PATH=$HOME/local/bin:$PATH` in the file `.bashrc` on Ubuntu.
 
+**N.B. It is very important that pip and wheel are upgraded!**
+
+N.B. The `--user` option can also be given to pip3 for installation within the user's home directory. The installation is then compatible with system-wide python3 installations without requiring sudo access.
+
 
 ```python
 ### Lines to add to .bashrc
@@ -74,13 +82,16 @@ export PATH=$HOME/local/bin:$PATH
 wget https://www.python.org/ftp/python/3.5.1/Python-3.5.1.tgz && tar -xvf Python-3.5.1.tgz && cd Python-3.5.1 && ./configure --prefix=$HOME/local --with-ensurepip=upgrade && make && make install && cd ..
 
 # Upgrade pip. 
-pip3 install --upgrade pip
+pip3 install --upgrade pip wheel
 
 # Clone the git repository. 
 git clone git@github.com:dieterich-lab/rp-bp.git
     
 # Change into the rp-bp directory and build the package. 
-cd rp-bp && make
+cd rp-bp && pip3 install --verbose .
+
+# or install the package in the user's home directory
+cd rp-bp && pip3 install --verbose --user .
 ```
 
 The build process includes compiling several libraries for optimized numerical calculations. Due to the optimized nature of these libraries, the initial installation can take up to an hour.
@@ -122,7 +133,7 @@ wget https://www.python.org/ftp/python/2.7.11/Python-2.7.11.tgz && tar -xvf Pyth
 wget https://www.python.org/ftp/python/3.5.1/Python-3.5.1.tgz && tar -xvf Python-3.5.1.tgz && cd Python-3.5.1 && ./configure --prefix=$HOME/local --with-ensurepip=upgrade && make && make install && cd ..
 
 # Upgrade both versions of pip. 
-pip2 install --upgrade pip && pip3 install --upgrade pip
+pip2 install --upgrade pip && pip3 install --upgrade pip wheel
 
 # Install the virtual environment wrapper for Python 2. 
 pip2 install --upgrade virtualenvwrapper
@@ -137,7 +148,7 @@ workon rpbp
 git clone git@github.com:dieterich-lab/rp-bp.git
 
 # Change into the rp-bp directory and build the package. 
-cd rp-bp && make
+cd rp-bp && pip3 install --verbose .
 ```
 
 The build process includes compiling several libraries for optimized numerical calculations. Due to the optimized nature of these libraries, the initial installation can take up to an hour.

@@ -1,4 +1,181 @@
-from setuptools import setup
+from setuptools import find_packages, setup
+from setuptools.command.install import install as _install
+from setuptools.command.develop import develop as _develop
+
+import importlib
+import logging
+import os
+import shutil
+import subprocess
+
+logger = logging.getLogger(__name__)
+
+###
+#   If you receive an error like: NameError: name 'install' is not defined
+#   Please make sure the most recent version of pip is installed
+###
+
+###
+#   Most of this is taken from a template at:
+#       http://diffbrent.ghost.io/correctly-adding-nltk-to-your-python-package-using-setup-py-post-install-commands/
+###
+
+external_requirements =  [
+    'cython',
+    'numpy',
+    'scipy',
+    'pandas',
+    'joblib',
+    'docopt',
+    'tqdm',
+    'statsmodels',
+    'pysam',
+    'pyfasta',
+    'pystan',
+    'pybedtools',
+    'pyyaml'
+]
+
+internal_requirements = [
+    "misc[bio]",
+    "riboutils"
+]
+
+# there is probably some better way to handle this...
+internal_requirements_install = [
+    "-e git+https://bitbucket.org/bmmalone/misc.git#egg=misc[bio]", 
+        # the "-e" seems to be necessary to grab subfolders. I do not
+        # understand this, but it seems to work
+    "git+https://github.com/dieterich-lab/riboseq-utils.git#egg=riboutils"
+]
+
+stan_model_files = [
+    os.path.join("nonperiodic", "no-periodicity.stan"),
+    os.path.join("nonperiodic", "start-high-high-low.stan"),
+    os.path.join("nonperiodic", "start-high-low-high.stan"),
+    os.path.join("periodic", "start-high-low-low.stan"),
+    os.path.join("untranslated", "gaussian-naive-bayes.stan"),
+    os.path.join("translated", "periodic-gaussian-mixture.stan")
+    #os.path.join("translated", "periodic-cauchy-mixture.stan"),
+    #os.path.join("translated", "zero-inflated-periodic-cauchy-mixture.stan")
+]
+
+stan_pickle_files = [
+    os.path.join("nonperiodic", "no-periodicity.pkl"),
+    os.path.join("nonperiodic", "start-high-high-low.pkl"),
+    os.path.join("nonperiodic", "start-high-low-high.pkl"),
+    os.path.join("periodic", "start-high-low-low.pkl"),
+    os.path.join("untranslated", "gaussian-naive-bayes.pkl"),
+    os.path.join("translated", "periodic-gaussian-mixture.pkl")
+    #os.path.join("translated", "periodic-cauchy-mixture.pkl"),
+    #os.path.join("translated", "zero-inflated-periodic-cauchy-mixture.pkl")
+]
+
+
+def check_programs_exist(programs, package_name):
+    """ This function checks that all of the programs in the list cam be
+        called from python. After checking all of the programs, a message 
+        is printed saying which programs could not be found and the package
+        where they should be located.
+
+        Internally, this program uses shutil.which, so see the documentation
+        for more information about the semantics of calling.
+
+        Arguments:
+            programs (list of string): a list of programs to check
+
+        Returns:
+            None
+    """
+
+    missing_programs = []
+    for program in programs:
+        exe_path = shutil.which(program)
+
+        if exe_path is None:
+            missing_programs.append(program)
+
+    if len(missing_programs) > 0:
+        missing_programs_str = ' '.join(missing_programs)
+        msg = "Could not find the following programs: {}".format(missing_programs_str)
+        logger.warning(msg)
+
+        msg = ("Please ensure the {} package is installed before using the Rp-Bp "
+            "pipeline.".format(package_name))
+        logger.warning(msg)
+
+
+def _post_install(self):
+    import site
+    importlib.reload(site)
+    
+    import riboutils.ribo_filenames as filenames
+    
+    smf = [os.path.join("rpbp_models", s) for s in stan_model_files]
+
+    models_base = filenames.get_default_models_base()
+    spf = [os.path.join(models_base, s) for s in stan_pickle_files]
+
+    # compile and pickle the stans models
+    for stan, pickle in zip(smf, spf):
+        # make sure the path exists
+        dirname = os.path.dirname(pickle)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+
+        cmd = "pickle-stan {} {}".format(stan, pickle)
+        logging.info(cmd)
+        subprocess.call(cmd, shell=True)
+
+    # check for the prerequisite programs
+    programs = ['flexbar']
+    check_programs_exist(programs, 'flexbar')
+
+    programs = ['STAR']
+    check_programs_exist(programs, 'STAR')
+
+    programs = ['bowtie2', 'bowtie2-build-s']
+    check_programs_exist(programs, 'bowtie2')
+
+    programs = ['intersectBed', 'bedToBam', 'fastaFromBed']
+    check_programs_exist(programs, 'bedtools')
+
+    programs = ['samtools']
+    check_programs_exist(programs, 'SAMtools')
+
+    programs = ['gffread']
+    check_programs_exist(programs, 'cufflinks')
+
+def install_requirements(is_user):
+    
+    is_user_str = ""
+    if is_user:
+        is_user_str = "--user"
+
+    option = "install {}".format(is_user_str)
+    for r in internal_requirements_install:
+        cmd = "pip3 {} {}".format(option, r)
+        subprocess.call(cmd, shell=True)
+
+class my_install(_install):
+    def run(self):
+        level = logging.getLevelName("INFO")
+        logging.basicConfig(level=level,
+            format='%(levelname)-8s : %(message)s')
+
+        _install.run(self)
+        install_requirements(self.user)
+        _post_install(self)
+
+class my_develop(_develop):  
+    def run(self):
+        level = logging.getLevelName("INFO")
+        logging.basicConfig(level=level,
+            format='%(levelname)-8s : %(message)s')
+
+        _develop.run(self)
+        install_requirements(self.user)
+        _post_install(self)
 
 def readme():
     with open('README.md') as f:
@@ -13,25 +190,15 @@ setup(name='rpbp',
         author="Brandon Malone",
         author_email="bmmalone@gmail.com",
         license='MIT',
-        packages=['rpbp'],
-        install_requires = [
-            'cython',
-            'numpy',
-            'scipy',
-            'pandas',
-            'joblib',
-            'docopt',
-            'tqdm',
-            'statsmodels',
-            'pysam',
-            'pyfasta',
-            'pystan',
-            'misc[bio]',
-            'riboutils'
-        ],
+        packages=find_packages(),
+        install_requires = [external_requirements], # + internal_requirements,
         extras_require = {
             'analysis': ['matplotlib', 'matplotlib_venn', 'crimson>=0.1.1']
         },
+        cmdclass={'install': my_install,  # override install
+                  'develop': my_develop   # develop is used for pip install -e .
+        },  
+
         include_package_data=True,
         test_suite='nose.collector',
         tests_require=['nose'],
