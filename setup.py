@@ -118,6 +118,11 @@ def _post_install(self):
 
     # compile and pickle the stans models
     for stan, pickle in zip(smf, spf):
+        if os.path.exists(pickle):
+            msg = "A model alread exists at: {}. Skipping.".format(pickle)
+            logging.warning(msg)
+            continue
+
         # make sure the path exists
         dirname = os.path.dirname(pickle)
         if not os.path.exists(dirname):
@@ -235,7 +240,8 @@ setup(name='rpbp',
                                 'create-orf-types-pie-chart=rpbp.analysis.rpbp_predictions.create_orf_types_pie_chart:main [analysis]',
                                 'create-orf-length-distribution-line-graph=rpbp.analysis.rpbp_predictions.create_orf_length_distribution_line_graph:main [analysis]',
                                 'create-predictions-report=rpbp.analysis.rpbp_predictions.create_predictions_report:main [analysis]',
-                                'create-bf-rpkm-scatter-plot=rpbp.analysis.rpbp_predictions.create_bf_rpkm_scatter_plot:main [analysis]'
+                                'create-bf-rpkm-scatter-plot=rpbp.analysis.rpbp_predictions.create_bf_rpkm_scatter_plot:main [analysis]',
+                                'match-orfs-with-qti-seq-peaks=rpbp.analysis.qti_seq.match_orfs_with_qti_seq_peaks:main [analysis]'
                                ]
         },
         zip_safe=False
