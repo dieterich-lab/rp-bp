@@ -64,8 +64,7 @@ def main():
                     'extract-metagene-profiles',
                     'estimate-metagene-profile-bayes-factors',
                     'select-periodic-offsets',
-                    'extract-orf-profiles',
-                    'smooth-orf-profiles'
+                    'extract-orf-profiles'
                 ]
     utils.check_programs_exist(programs)
 
@@ -228,31 +227,6 @@ def main():
             offsets_str, logging_str, seqname_prefix_str, args.num_cpus, tmp_str))
     in_files = [orfs_genomic, unique_filename]
     out_files = [profiles_filename]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        overwrite=args.overwrite, call=call)
-
-    # now, smooth the ORF signal
-    min_length_str = utils.get_config_argument(config, 'min_orf_length', 'min-length')
-    max_length_str = utils.get_config_argument(config, 'max_orf_length', 'max-length')
-    min_signal_str = utils.get_config_argument(config, 'min_signal')
-
-    fraction_str = utils.get_config_argument(config, 'smoothing_fraction', 'fraction')
-    reweighting_iterations_str = utils.get_config_argument(config, 
-        'smoothing_reweighting_iterations', 'reweighting-iterations')
-
-    # we also need the values
-    fraction = config.get('smoothing_fraction', None)
-    reweighting_iterations = config.get('smoothing_reweighting_iterations', None)
-
-    smooth_profiles = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
-        length=lengths, offset=offsets, is_unique=True, note=note, is_smooth=True, 
-        fraction=fraction, reweighting_iterations=reweighting_iterations)
-
-    cmd = "smooth-orf-profiles {} {} {} {} {} {} {} {} {} --num-cpus {}".format(orfs_genomic, 
-        profiles_filename, smooth_profiles, fraction_str, reweighting_iterations_str, 
-        logging_str, min_signal_str, min_length_str, max_length_str, args.num_cpus)
-    in_files = [orfs_genomic, profiles_filename]
-    out_files = [smooth_profiles]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         overwrite=args.overwrite, call=call)
    

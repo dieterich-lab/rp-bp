@@ -301,8 +301,8 @@ def create_figures(config_file, config, name, offsets_df, args):
     orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
         note=config.get('orf_note'))
          
-    unsmoothed_profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
-            length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=False)
+    profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
+            length=lengths, offset=offsets, is_unique=True, note=note_str)
 
     title_str = "--title \"{}, ORF-type periodicity\"".format(name)
     
@@ -323,10 +323,10 @@ def create_figures(config_file, config, name, offsets_df, args):
     ]
 
     cmd = ("visualize-orf-type-metagene-profiles {} {} {} {} {} {}".format(
-        orfs_genomic, unsmoothed_profiles, orf_type_profile_base, title_str, 
+        orfs_genomic, profiles, orf_type_profile_base, title_str, 
         image_type_str, logging_str))
 
-    in_files = [orfs_genomic, unsmoothed_profiles]
+    in_files = [orfs_genomic, profiles]
     out_files = orf_type_profiles_forward + orf_type_profiles_reverse
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
@@ -494,6 +494,9 @@ def main():
             unique_read_length_distribution_image = filenames.get_riboseq_read_length_distribution_image(
                 config['riboseq_data'], name, is_unique=True, note=note, image_type=args.image_type)
 
+            msg = "Looking for image file: {}".format(read_length_distribution_image)
+            logger.debug(msg)
+
             if os.path.exists(read_length_distribution_image):
                 if i%4 == 0:
                     latex.begin_figure(out)
@@ -504,6 +507,9 @@ def main():
                 if i%4 == 0:
                     latex.end_figure(out)
                     latex.clearpage(out)
+
+            msg = "Looking for image file: {}".format(unique_read_length_distribution_image)
+            logger.debug(msg)
 
             if os.path.exists(unique_read_length_distribution_image):
                 if i%4 == 0:
@@ -609,8 +615,8 @@ def main():
             latex.end_figure(out)
             latex.clearpage(out)
 
-                ### ORF type metagene profiles
-        title = "Predicted ORF type metagene profiles"
+        ### ORF type metagene profiles
+        title = "ORF type metagene profiles"
         latex.section(out, title)
         
         strands = ['+', '-']

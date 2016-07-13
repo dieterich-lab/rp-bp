@@ -15,7 +15,7 @@ def main():
         "each file corresponds to one replicate from a condition). The script keeps the "
         "profiles in sparse matrix format, so it is fairly efficient.")
 
-    parser.add_argument('profiles', help="The (mtx) files containing the (smoothed) "
+    parser.add_argument('profiles', help="The (mtx) files containing the "
         "ORF profiles", nargs='+')
     parser.add_argument('out', help="The (mtx.gz) output file containing the merged profiles")
     

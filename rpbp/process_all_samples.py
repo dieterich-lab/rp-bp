@@ -57,7 +57,6 @@ def main():
                     'estimate-metagene-profile-bayes-factors',
                     'select-periodic-offsets',
                     'extract-orf-profiles',
-                    'smooth-orf-profiles',
                     'estimate-orf-bayes-factors',
                     'select-final-prediction-set',
                     'create-orf-profiles',
@@ -105,15 +104,18 @@ def main():
     # collect the job_ids in case we are using slurm and need to merge replicates
     job_ids = []
 
-    for name, data in config['riboseq_samples'].items():
+    sample_names = sorted(config['riboseq_samples'].keys())
+
+    for sample_name in sample_names:
+        data = config['riboseq_samples'][sample_name]
 
         tmp_str = ""
         if args.tmp is not None:
-            tmp = os.path.join(args.tmp, "{}_{}_rpbp".format(name, note))
+            tmp = os.path.join(args.tmp, "{}_{}_rpbp".format(sample_name, note))
             tmp_str = "--tmp {}".format(tmp)
 
         cmd = "run-rpbp-pipeline {} {} {} --num-cpus {} {} {} {} {} {} {}".format(data, 
-                args.config, name, args.num_cpus, tmp_str, do_not_call_str, 
+                args.config, sample_name, args.num_cpus, tmp_str, do_not_call_str, 
                 overwrite_str, logging_str, star_str, profiles_only_str)
 
         job_id = slurm.check_sbatch(cmd, args=args)
@@ -128,7 +130,7 @@ def main():
     riboseq_replicates = ribo_utils.get_riboseq_replicates(config)
     merge_replicates_str = "--merge-replicates"
 
-    for condition_name in riboseq_replicates.keys():
+    for condition_name in sorted(riboseq_replicates.keys()):
             
         # then we predict the ORFs
         cmd = ("predict-translated-orfs {} {} --num-cpus {} {} {} {} {} {}".format(args.config, 

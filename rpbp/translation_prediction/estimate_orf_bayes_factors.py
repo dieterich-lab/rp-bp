@@ -15,10 +15,19 @@ import misc.bio as bio
 import misc.parallel as parallel
 import misc.utils as utils
 
+import riboutils.ribo_utils as ribo_utils
+
 default_orf_num_field = 'orf_num'
 default_orf_type_field = 'orf_type'
 
 default_orf_types = []
+
+default_min_length = 0
+default_max_length = 0
+default_min_profile = 5
+
+default_fraction = 0.2
+default_reweighting_iterations = 0
 
 default_num_orfs = 0
 default_num_cpus = 1
@@ -65,7 +74,6 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
     x_2 = profile[1::3]
     x_3 = profile[2::3]
     T = len(x_1)
-    nonzero_x_1 = np.count_nonzero(x_1)
    
     x_1_sum = sum(x_1)
     x_2_sum = sum(x_2)
@@ -96,11 +104,16 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
     }
     ret = pd.Series(ret)
 
-    # first, make sure this profile was not filtered during smoothing
-    if profile_sum == 0:
+    # check if something odd happens with the length
+    # this should already be checked before calling the function.
+    if (T != len(x_2)) or (T != len(x_3)):
         return ret
 
      
+    # and make sure we have more reads in x_1 than the others combined
+    if x_1_sum < (x_2_sum + x_3_sum):
+        return ret
+
     # chi-square values
     f_obs = [x_1_sum, x_2_sum, x_3_sum]
     chisq, chi_square_p = scipy.stats.chisquare(f_obs)
@@ -109,11 +122,16 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
     # check if we only wanted the chi square value
     if args.chi_square_only:
         return ret
-      
-    # check if something odd happens with the length
-    # this should already be checked before calling the function.
-    if (T != len(x_2)) or (T != len(x_3)):
-        return ret
+     
+    # now, smooth the signals
+    smoothed_profile = ribo_utils.smooth_profile(profile, 
+        reweighting_iterations=args.reweighting_iterations, fraction=args.fraction)
+
+    # split the signal based on frame
+    x_1 = smoothed_profile[0::3]
+    x_2 = smoothed_profile[1::3]
+    x_3 = smoothed_profile[2::3]
+    nonzero_x_1 = np.count_nonzero(x_1)
 
     # construct the input for Stan
     data = {
@@ -241,7 +259,9 @@ def main():
             (2) a "translated" model which gives the probability that a region is translated
             (3) an "untranslated" model which gives the probability that a region is not translated
 
-            The script calculates both the Bayes' factor and \chi^2 value for each ORF.
+            The script first smoothes the profiles using LOWESS. It then calculates
+            both the Bayes' factor (using the smoothed profile) and \chi^2 value
+            (using the raw counts) for each ORF.
         """
         )
 
@@ -257,11 +277,29 @@ def main():
     
     parser.add_argument('--translated-models', help="The models to use as H_t (pkl)", nargs='+')
     parser.add_argument('--untranslated-models', help="The models to use as H_u (pkl)", nargs='+')
-    
+
+    ### filtering options
     parser.add_argument('--orf-types', help="If values are given, then only orfs with "
         "those types are processed.", nargs='*', default=default_orf_types)
     parser.add_argument('--orf-type-field', default=default_orf_type_field)
 
+    parser.add_argument('--min-length', help="ORFs with length less than this value will not "
+        "be processed", type=int, default=default_min_length)
+    parser.add_argument('--max-length', help="ORFs with length greater than this value will not "
+        "be processed", type=int, default=default_max_length)
+    parser.add_argument('--min-profile', help="ORFs with profile sum (i.e., number "
+        "of reads) less than this value will not be processed.", type=float, 
+        default=default_min_profile)
+
+    ### smoothing options
+    parser.add_argument('--fraction', help="The fraction of signal to use in LOWESS", 
+        type=float, default=default_fraction)
+
+    parser.add_argument('--reweighting-iterations', help="The number of reweighting "
+        "iterations to use in LOWESS. Please see the statsmodels documentation for a "
+        "detailed description of this parameter.", type=int, default=default_reweighting_iterations)
+
+    ### MCMC options
     parser.add_argument('-s', '--seed', help="The random seeds to use for inference",
         type=int, default=default_seed)
     parser.add_argument('-c', '--chains', help="The number of MCMC chains to use", type=int,
@@ -269,6 +307,7 @@ def main():
     parser.add_argument('-i', '--iterations', help="The number of MCMC iterations to use for "
         "each chain", type=int, default=default_iterations)
     
+    ### behavior options
     parser.add_argument('--num-orfs', help="If n>0, then only this many ORFs will be processed",
         type=int, default=default_num_orfs)
     parser.add_argument('--orf-num-field', default=default_orf_num_field)
@@ -290,14 +329,35 @@ def main():
     msg = "Reading and filtering ORFs"
     logging.info(msg)
     regions = bio.read_bed(args.regions)
-    
-    if args.num_orfs > 0:
-        mask_orfs = regions[args.orf_num_field] < args.num_orfs
-        regions = regions[mask_orfs]
+
+    # by default, keep everything
+    m_filters = np.array([True] * len(regions))
 
     if len(args.orf_types) > 0:
-        mask_a = regions[args.orf_type_field].isin(args.orf_types)
-        regions = regions[mask_a]
+        m_orf_type = regions[args.orf_type_field].isin(args.orf_types)
+        m_filters = m_orf_type & m_filters
+
+    # min length
+    if args.min_length > 0:
+        m_min_length = regions['orf_len'] >= args.min_length
+        m_filters = m_min_length & m_filters
+
+    # max length
+    if args.max_length > 0:
+        m_max_length = regions['orf_len'] <= args.max_length
+        m_filters = m_max_length & m_filters
+
+    # min profile
+    profiles = scipy.io.mmread(args.profiles).tocsr()
+    profiles_sums = profiles.sum(axis=1)
+    m_profile = profiles_sums >= args.min_profile
+    m_profile = m_profile.A1
+    m_filters = m_profile & m_filters
+
+    regions = regions[m_filters]
+    
+    if args.num_orfs > 0:
+        regions = regions.head(args.num_orfs)
 
     regions = regions.reset_index(drop=True)
 

@@ -36,7 +36,7 @@ def main():
         "will be overwritten.", action='store_true')
 
     parser.add_argument('--profiles-only', help="If this flag is present, then only "
-        "the smoothed ORF profiles will be created", action='store_true')
+        "the ORF profiles will be created", action='store_true')
            
     slurm.add_sbatch_options(parser)
     utils.add_logging_options(parser)
@@ -63,7 +63,6 @@ def main():
                     'estimate-metagene-profile-bayes-factors',
                     'select-periodic-offsets',
                     'extract-orf-profiles',
-                    'smooth-orf-profiles',
                     'estimate-orf-bayes-factors',
                     'select-final-prediction-set',
                     'create-orf-profiles',
