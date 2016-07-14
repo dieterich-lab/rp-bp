@@ -5,7 +5,12 @@ import json
 import pickle
 import logging
 
+import ctypes
+import multiprocessing
+
 import time
+
+import psutil
 
 import numpy as np
 import pandas as pd
@@ -16,6 +21,21 @@ import misc.parallel as parallel
 import misc.utils as utils
 
 import riboutils.ribo_utils as ribo_utils
+
+logger = logging.getLogger(__name__)
+
+# we will use global variables to share the (read-only) scipy.sparse.csr_matrix
+# across the child processes.
+
+# see: http://stackoverflow.com/questions/1675766/how-to-combine-pool-map-with-array-shared-memory-in-python-multiprocessing
+profiles_data = 0
+profiles_indices = 0
+profiles_indptr = 0
+profiles_shape = 0
+
+translated_models = 0
+untranslated_models = 0
+args = 0
 
 default_orf_num_field = 'orf_num'
 default_orf_type_field = 'orf_type'
@@ -220,14 +240,18 @@ def get_all_bayes_factors(orfs, args):
     """
 
     # read in the signals and sequences
-    logging.debug("Reading profiles")
+    logger.debug("Reading profiles")
     profiles = scipy.io.mmread(args.profiles).tocsr()
     
-    logging.debug("Reading models")
+    logger.debug("Reading models")
     translated_models = [pickle.load(open(tm, 'rb')) for tm in args.translated_models]
     untranslated_models = [pickle.load(open(bm, 'rb')) for bm in args.untranslated_models]
 
-    logging.debug("Applying on regions")
+    mem = psutil.virtual_memory()
+    msg = "After reading in get_all_bayes_factors. Available memory: {}".format(mem.available)
+    logger.debug(msg)
+
+    logger.debug("Applying on regions")
     bfs = []
     for idx, row in orfs.iterrows():
         orf_num = row[args.orf_num_field]
@@ -236,7 +260,7 @@ def get_all_bayes_factors(orfs, args):
         # sometimes the orf_len is off...
         if orf_len % 3 != 0:
             msg = "Found an ORF whose length was not 0 mod 3. Skipping. orf_id: {}".format(row['id'])
-            logging.warn(msg)
+            logger.warn(msg)
             continue
 
         profile = utils.to_dense(profiles, orf_num, float, length=orf_len)
@@ -247,9 +271,106 @@ def get_all_bayes_factors(orfs, args):
         bfs.append(row)
 
     bfs = pd.DataFrame(bfs)
+    
+    mem = psutil.virtual_memory()
+    msg = "End of get_all_bayes_factors. Available memory: {}".format(mem.available)
+    logger.debug(msg)
+
     return bfs
 
+def get_all_bayes_factors_args(orfs):
+
+    """ This function calculates the Bayes' factor term for each region in regions. See the
+        description of the script for the Bayes' factor calculations.
+
+        Args:
+            orfs (pd.DataFrame) : a set of orfs. The columns must include:
+                orf_num
+                exon_lengths
+
+            args (namespace) : a namespace containing the models and profiles filenames
+            
+        Returns:
+            pandas.Series: the Bayes' factors (and other estimated quantities) for each region
+    """
+
+    # read in the signals and sequences
+    #logger.debug("Reading profiles")
+    #profiles = scipy.io.mmread(args.profiles).tocsr()
+    
+    #logger.debug("Reading models")
+    #translated_models = [pickle.load(open(tm, 'rb')) for tm in args.translated_models]
+    #untranslated_models = [pickle.load(open(bm, 'rb')) for bm in args.untranslated_models]
+
+    # this is code to initialize a csc matrix using the internal numpy arrays
+    # csr is basically the same
+    #b = scipy.sparse.csc_matrix((a.data, a.indices, a.indptr), shape=a.shape, copy=False)
+    profiles = scipy.sparse.csr_matrix((profiles_data, profiles_indices, profiles_indptr), 
+        shape=profiles_shape, copy=False)
+
+    mem = psutil.virtual_memory()
+    msg = "After starting starmap get_all_bayes_factors. Available memory: {}".format(mem.available)
+    logger.debug(msg)
+
+    logger.debug("Applying on regions")
+    bfs = []
+    for idx, row in orfs.iterrows():
+        orf_num = row[args.orf_num_field]
+        orf_len = row['orf_len']
+
+        # sometimes the orf_len is off...
+        if orf_len % 3 != 0:
+            msg = "Found an ORF whose length was not 0 mod 3. Skipping. orf_id: {}".format(row['id'])
+            logger.warn(msg)
+            continue
+
+        profile = utils.to_dense(profiles, orf_num, float, length=orf_len)
+
+        row_bf = get_bayes_factor(profile, translated_models, untranslated_models, args)
+        row = row.append(row_bf)
+
+        bfs.append(row)
+
+    bfs = pd.DataFrame(bfs)
+    
+    mem = psutil.virtual_memory()
+    msg = "End of get_all_bayes_factors. Available memory: {}".format(mem.available)
+    logger.debug(msg)
+
+    return bfs
+
+
+
+def apply_starmap_groups(groups, num_cpus, func, *args):
+    if len(groups) == 0:
+        return []
+
+    # create the worker pool
+    pool = multiprocessing.Pool(processes = num_cpus)
+
+    starmap_args = [
+        (group, *args) for name, group in groups
+    ]
+
+    results = pool.starmap(func, starmap_args)
+
+    return results
+
+def apply_starmap_split(data_frame, num_cpus, func, *args, num_groups=None):
+    
+    if num_groups is None:
+        num_groups = num_cpus
+
+    parallel_indices = np.arange(len(data_frame)) // (len(data_frame) / num_groups)
+    split_groups = data_frame.groupby(parallel_indices)
+    res = apply_starmap_groups(split_groups, num_cpus, func, *args)
+    return res
+
 def main():
+    global profiles_data, profiles_indices, profiles_indptr, profiles_shape
+    global translated_models, untranslated_models
+    global args
+
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="""
             This script uses Hamiltonian MCMC with Stan to estimate translation parameters
@@ -327,7 +448,7 @@ def main():
 
     # read in the regions and apply the filters
     msg = "Reading and filtering ORFs"
-    logging.info(msg)
+    logger.info(msg)
     regions = bio.read_bed(args.regions)
 
     # by default, keep everything
@@ -347,6 +468,12 @@ def main():
         m_max_length = regions['orf_len'] <= args.max_length
         m_filters = m_max_length & m_filters
 
+    
+    mem = psutil.virtual_memory()
+    msg = "Before reading profiles. Available memory: {}".format(mem.available)
+    logger.debug(msg)
+
+
     # min profile
     profiles = scipy.io.mmread(args.profiles).tocsr()
     profiles_sums = profiles.sum(axis=1)
@@ -362,17 +489,48 @@ def main():
     regions = regions.reset_index(drop=True)
 
     msg = "Number of regions after filtering: {}".format(len(regions))
-    logging.info(msg)
+    logger.info(msg)
 
     # read in everything else in the parallel call
 
+
+    mem = psutil.virtual_memory()
+    msg = "Before reading models. Available memory: {}".format(mem.available)
+    logger.debug(msg)
+
+
+    logger.debug("Reading models")
+    translated_models = [pickle.load(open(tm, 'rb')) for tm in args.translated_models]
+    untranslated_models = [pickle.load(open(bm, 'rb')) for bm in args.untranslated_models]
+    
+    mem = psutil.virtual_memory()
+    msg = "Before parallel call. Available memory: {}".format(mem.available)
+    logger.debug(msg)
+
     # calculate the bayes' factor for each region
-    bfs_l = parallel.apply_parallel_split(regions, args.num_cpus, get_all_bayes_factors, args,
-        num_groups=args.num_groups, progress_bar=True)
+    #bfs_l = parallel.apply_parallel_split(regions, args.num_cpus, get_all_bayes_factors, args,
+    #    num_groups=args.num_groups, progress_bar=True)
+    
+    # this still seems to create copies of profiles
+    #bfs_l = apply_starmap_split(regions, args.num_cpus,
+    #    get_all_bayes_factors_args, profiles, translated_models, untranslated_models, args,
+    #    num_groups=args.num_groups)
+
+    profiles_data = multiprocessing.RawArray(ctypes.c_double, profiles.data.flat)
+    profiles_indices = multiprocessing.RawArray(ctypes.c_int, profiles.indices)
+    profiles_indptr = multiprocessing.RawArray(ctypes.c_int, profiles.indptr)
+    profiles_shape = multiprocessing.RawArray(ctypes.c_int, profiles.shape)
+
+    bfs_l = apply_starmap_split(regions, args.num_cpus,
+        get_all_bayes_factors_args, num_groups=args.num_groups)
+
+    # try passing the three internal arrays that scipy.csr uses
+    # they need to be 
     bfs = pd.concat(bfs_l)
 
     # write the results as a bed12+ file
     bio.write_bed(bfs, args.out)
+
 
 if __name__ == '__main__':
     main()
