@@ -242,7 +242,8 @@ setup(name='rpbp',
                                 'create-predictions-report=rpbp.analysis.rpbp_predictions.create_predictions_report:main [analysis]',
                                 'create-bf-rpkm-scatter-plot=rpbp.analysis.rpbp_predictions.create_bf_rpkm_scatter_plot:main [analysis]',
                                 'match-orfs-with-qti-seq-peaks=rpbp.analysis.qti_seq.match_orfs_with_qti_seq_peaks:main [analysis]',
-                                'match-orfs-with-mackowiak-sorfs=rpbp.analysis.conservation.match_orfs_with_mackowiak_sorfs:main [analysis]'
+                                'match-orfs-with-mackowiak-sorfs=rpbp.analysis.conservation.match_orfs_with_mackowiak_sorfs:main [analysis]',
+                                'perform-mackowiak-permutation-test=rpbp.analysis.conservation.perform_mackowiak_permutation_test:main [analysis]'
                                ]
         },
         zip_safe=False
