@@ -28,6 +28,8 @@ default_min_profile = 5
 
 default_seqname_prefix = ""
 
+default_tmp = None
+
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -92,9 +94,18 @@ def main():
         "on the likelihood of translation (use --help for more details)", 
         type=float, default=default_min_bf_likelihood)
 
+    parser.add_argument('--tmp', help="The temp directory for pybedtools", default=default_tmp)
+
     utils.add_logging_options(parser)
     args = parser.parse_args()
     utils.update_logging(args)
+
+    programs = ['intersectBed']
+    utils.check_programs_exist(programs)
+
+    if args.tmp is not None:
+        os.makedirs(args.tmp, exist_ok=True)
+        pybedtools.helpers.set_tempdir(args.tmp)
 
     np.random.seed(args.seed)
 
