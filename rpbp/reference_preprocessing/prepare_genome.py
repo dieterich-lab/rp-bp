@@ -42,6 +42,7 @@ def main():
                  'bowtie2-build-s',
                  'gffread',
                  'intersectBed',
+                 'split-bed12-blocks',
                  args.star_executable
                 ]
     utils.check_programs_exist(programs)
@@ -103,6 +104,15 @@ def main():
         logging_str, args.num_cpus, start_codons_str, stop_codons_str, novel_id_str, ignore_parsing_errors_str))
     in_files = [transcript_fasta]
     out_files = [orfs_genomic]
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+
+    exons_file = filenames.get_exons(config['genome_base_path'], config['genome_name'],
+        note=config.get('orf_note'))
+
+    cmd = ("split-bed12-blocks {} {} --num-cpus {} {}".format(orfs_genomic, 
+        exons_file, args.num_cpus, logging_str))
+    in_files = [orfs_genomic]
+    out_files = [exons_file]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
 if __name__ == '__main__':
