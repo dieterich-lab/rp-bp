@@ -12,6 +12,7 @@ import pyfasta
 import pybedtools
 
 import misc.bio as bio
+import misc.gffread_utils as gffread_utils
 import misc.parallel as parallel
 import misc.utils as utils
 
@@ -20,116 +21,6 @@ default_stop_codons = ['TAA', 'TGA', 'TAG']
 
 default_num_cpus = 1
 default_num_transcripts = 0
-
-# build up the header regular expression
-transcript_id_re = r'(?P<transcript_id>\S+)'
-gene_re = r"(?:gene=(?P<gene>\S+))?"
-cds_re = r"(?:CDS=(?P<cds>\S+))?"
-loc_re = r"loc:(?P<seqname>\S+)\|(?P<seq_pos>\S+)\|(?P<strand>[+-])"
-exons_re = r"exons:(?P<exons>\S*)"
-segs_re = r"segs:(?P<segs>\S*)"
-
-# there is no need for the initial ">" because pyfasta strips it
-header_re = r"{}\s*{}\s*{}\s*{}\s*{}\s*{}".format(transcript_id_re,
-                                                  gene_re,
-                                                  cds_re,
-                                                  loc_re,
-                                                  exons_re,
-                                                  segs_re)
-
-header_re = re.compile(header_re)
-
-default_novel_id_re = ""
-
-fasta_header = collections.namedtuple(
-        "fasta_header",
-        "transcript_id,gene,cds_start,cds_end,seqname,strand,exon_starts,exon_ends,seg_starts,seg_ends"
-)
-
-def get_starts_ends(coords):
-    """ This function parses gffread-style coordinate strings into a pair of arrays.
-        The first array contains all of the start positions, and the second contains
-        all of the ends.
-
-        Args:
-            coords (string) : a string of coordinate pairs. For example:
-                1-56,57-261,262-543
-
-        Returns:
-            np.array : the first coordinate in each pair
-            np.array : the second coordinate in each pair
-    """
-    s = re.split('-|,', coords)
-    starts = np.array(s[0::2], dtype=int)
-    ends = np.array(s[1::2], dtype=int)
-    return starts, ends
-
-def parse_header(header, header_re):
-    """ This function parses out the exon (genomic) and segment (relative) coordinates
-        from the gffread-style fasta header.
-
-        Args:
-            header (string) : a gffread-style header. For example:
-                >ENST00000621500 gene=GPHB5 CDS=58-447 loc:14|63312835-63318879|- exons:63312835-63313116,63317646-63317850,63318824-63318879 segs:1-56,57-261,262-543
-
-            exons_segs_re (compiled reg ex) : a compiled regular expression which
-                parses the exons as the first "group" and the segments as the 
-                second "group"
-
-        Returns:
-            fasta_header namedtuple, with the following fields:
-                transcript_id (str, "ENST00000621500")
-                gene (str, "GPHB5")
-                cds_start (int, 58)
-                cds_end (int, 447)
-                seqname (str, "14")
-                strand (str, "-")
-                exon_starts (np.array of ints, the first (absolute) coordinate in each exon)
-                exon_ends (np.array of ints, the second (absolute) coordinate in each exon)
-                seg_starts (np.array of ints, the first (relative) coordinate in each exon)
-                seg_ends (np.array of ints, the second (relative) coordinate in each exon)
-
-    """
-    
-    m = header_re.match(header)
-
-    if m is None:
-        msg = "Failed parsing header. Header: '{}'".format(header)
-        raise ValueError(msg)
-
-    transcript_id = m.group('transcript_id')
-    gene = m.group('gene')
-    strand = m.group('strand')
-    seqname = m.group('seqname')
-    cds = m.group('cds')
-
-    exons = m.group('exons')
-    segs = m.group('segs')
-    
-    cds_start = None
-    cds_end = None
-    if cds is not None:
-        cds_start, cds_end = get_starts_ends(cds)
-        cds_start = cds_start[0]
-        cds_end = cds_end[0]
-    
-    exon_starts, exon_ends = get_starts_ends(exons)
-    seg_starts, seg_ends = get_starts_ends(segs)
-    
-    h = fasta_header(
-        transcript_id=transcript_id,
-        gene=gene,
-        cds_start=cds_start,
-        cds_end=cds_end,
-        seqname=seqname,
-        strand=strand,
-        exon_starts=exon_starts,
-        exon_ends=exon_ends,
-        seg_starts=seg_starts,
-        seg_ends=seg_ends
-    )
-    
-    return h
 
 def get_reverse_exon_index_gen_pos(rel_pos, exon_starts, exon_ends, seg_starts, seg_ends):
     """ This function converts a position in relative (i.e., transcript) coordinate into
@@ -472,7 +363,7 @@ def extract_orfs(header_seq, header_re, start_codons_re, stop_codons_re, ignore_
     seq = str(seq)
 
     try:
-        h = parse_header(header, header_re)
+        h = gffread_utils.parse_header(header, header_re)
     except ValueError as ve:
         if ignore_parsing_errors:
             msg = "Could not parse header: '{}'".format(header)
