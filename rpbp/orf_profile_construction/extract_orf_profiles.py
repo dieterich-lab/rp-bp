@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 
+import argparse
 import functools
+import logging
 import sys
 import numpy as np
 import pandas as pd
@@ -9,11 +11,15 @@ import tqdm
 import yaml
 
 import misc.bio as bio
-<<<<<<< HEAD
 import misc.math_utils as math_utils
 import misc.parallel as parallel
-=======
->>>>>>> remove-bedtools-from-profiles
+import misc.utils as utils
+
+import riboutils.ribo_utils as ribo_utils
+
+logger = logging.getLogger(__name__)
+
+import misc.math_utils as math_utils
 import misc.utils as utils
 import misc.parallel as parallel
 
@@ -45,6 +51,7 @@ def get_p_site_intersections(seqname, strand, p_sites, exons_df):
     p_site_positions = np.array(p_site_positions)
     exon_starts = np.array(exon_starts)
     exon_ends = np.array(exon_ends)
+
     exon_info_fields = ['transcript_start', 'orf_num']
     exon_info = np.array(exons_df.loc[m_exons_seqname & m_exons_strand, exon_info_fields])
     
@@ -151,12 +158,12 @@ def main():
         
     sum_profiles = parallel.apply_parallel_split(
         exons_orfs,
-        num_cpus,
+        args.num_cpus,
         get_all_p_site_intersections,
         p_sites,
         num_orfs,
         max_orf_len,
-        num_groups=num_groups,
+        num_groups=args.num_groups,
         progress_bar=True
     )
 

@@ -218,7 +218,6 @@ def main():
     profiles_filename = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
         length=lengths, offset=offsets, is_unique=True, note=note)
 
-    
     orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
         note=config.get('orf_note'))
 
