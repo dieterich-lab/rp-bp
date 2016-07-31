@@ -2,8 +2,11 @@
 
 import argparse
 import logging
+import os
 import numpy as np
 import pandas as pd
+
+import pybedtools
 
 import misc.bio as bio
 import misc.parallel as parallel
