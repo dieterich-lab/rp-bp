@@ -222,10 +222,13 @@ def main():
     orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
         note=config.get('orf_note'))
 
-    cmd = ("extract-orf-profiles {} {} {} --lengths {} --offsets {} {} {} --num-cpus {} "
-        "{}".format(unique_filename, orfs_genomic, profiles_filename, lengths_str, 
+    exons_file = filenames.get_exons(config['genome_base_path'], config['genome_name'],
+        note=config.get('orf_note'))
+
+    cmd = ("extract-orf-profiles {} {} {} {} --lengths {} --offsets {} {} {} --num-cpus {} "
+            "{}".format(unique_filename, orfs_genomic, exons_file, profiles_filename, lengths_str, 
             offsets_str, logging_str, seqname_prefix_str, args.num_cpus, tmp_str))
-    in_files = [orfs_genomic, unique_filename]
+    in_files = [orfs_genomic, exons_file, unique_filename]
     out_files = [profiles_filename]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         overwrite=args.overwrite, call=call)
