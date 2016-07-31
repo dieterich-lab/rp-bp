@@ -16,6 +16,8 @@ import misc.gffread_utils as gffread_utils
 import misc.parallel as parallel
 import misc.utils as utils
 
+default_novel_id_re = ""
+
 default_start_codons = ['ATG']
 default_stop_codons = ['TAA', 'TGA', 'TAG']
 
@@ -358,12 +360,12 @@ def get_orfs_rel_pos(seq, start_codons_re, stop_codons_re):
     filtered_orfs = list(filter(lambda x: x[1] is not None, orfs))
     return np.asarray(filtered_orfs)
 
-def extract_orfs(header_seq, header_re, start_codons_re, stop_codons_re, ignore_parsing_errors):
+def extract_orfs(header_seq, start_codons_re, stop_codons_re, ignore_parsing_errors):
     header, seq = header_seq
     seq = str(seq)
 
     try:
-        h = gffread_utils.parse_header(header, header_re)
+        h = gffread_utils.parse_header(header)
     except ValueError as ve:
         if ignore_parsing_errors:
             msg = "Could not parse header: '{}'".format(header)
@@ -388,7 +390,7 @@ def extract_orfs(header_seq, header_re, start_codons_re, stop_codons_re, ignore_
 
 
 
-def extract_canonical_orf(header_seq, header_re, start_codons_re, stop_codons_re, ignore_parsing_errors):
+def extract_canonical_orf(header_seq, start_codons_re, stop_codons_re, ignore_parsing_errors):
     """ This function checks if the given header includes an annotated CDS. If so,
         it extracts the information for that ORF.
 
@@ -397,9 +399,6 @@ def extract_canonical_orf(header_seq, header_re, start_codons_re, stop_codons_re
                 (without the ">"), and the second item is the pyfasta sequence object.
                 The argument is given this way to make it easy to use this function
                 while iterating through the pyfasta file.
-
-            header_re (compiled re) : a compiled reg_ex object which is used to
-                parse the relevant information out of the header
 
             start_codons_re, stop_codons_re (compiled re) : compiled reg_ex
                 objects used to locate start and stop codons, respectively
@@ -416,7 +415,7 @@ def extract_canonical_orf(header_seq, header_re, start_codons_re, stop_codons_re
 
     
     try:
-        h = parse_header(header, header_re)
+        h = gffread_utils.parse_header(header)
     except ValueError as ve:
         if ignore_parsing_errors:
             msg = "Could not parse header: '{}'".format(header)
@@ -539,7 +538,7 @@ def main():
     logging.info(msg)
 
     orfs = parallel.apply_parallel_iter(transcripts, args.num_cpus, extract_orfs,
-                                     header_re, start_codons_re, stop_codons_re,
+                                     start_codons_re, stop_codons_re,
                                      args.ignore_parsing_errors,
                                      progress_bar=True, total=total)
 
@@ -568,7 +567,7 @@ def main():
 
     # extract the canonical ORFs based on the annotation
     canonical_orfs = parallel.apply_parallel_iter(transcripts, args.num_cpus,
-                                               extract_canonical_orf, header_re, 
+                                               extract_canonical_orf, 
                                                start_codons_re, stop_codons_re,
                                                args.ignore_parsing_errors,
                                                progress_bar=True, total=total)
