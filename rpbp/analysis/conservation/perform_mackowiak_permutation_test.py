@@ -97,18 +97,9 @@ def main():
         "on the likelihood of translation (use --help for more details)", 
         type=float, default=default_min_bf_likelihood)
 
-    parser.add_argument('--tmp', help="The temp directory for pybedtools", default=default_tmp)
-
     utils.add_logging_options(parser)
     args = parser.parse_args()
     utils.update_logging(args)
-
-    programs = ['intersectBed']
-    utils.check_programs_exist(programs)
-
-    if args.tmp is not None:
-        os.makedirs(args.tmp, exist_ok=True)
-        pybedtools.helpers.set_tempdir(args.tmp)
 
     np.random.seed(args.seed)
 
@@ -116,6 +107,9 @@ def main():
     logger.info(msg)
 
     bf = bio.read_bed(args.bf)
+
+    if len(args.seqname_prefix) > 0:
+        bf['seqname'] = args.seqname_prefix + bf['seqname']
 
     msg = "Getting the filters"
     logger.info(msg)
@@ -151,7 +145,7 @@ def main():
         args.num_cpus,
         ribo_utils.get_mackowiak_background,
         samples_per_group, bf_background, num_predicted_orfs,
-        args.mackowiak_orfs, args.seqname_prefix,
+        args.mackowiak_orfs,
         progress_bar=True, num_groups=args.num_groups)
 
     all_samples = np.concatenate(samples_l)
