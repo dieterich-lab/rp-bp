@@ -143,7 +143,7 @@ def main():
         exons = exons.head(args.num_exons)
 
         
-    num_orfs = orfs['orf_num'].max()
+    num_orfs = orfs['orf_num'].max() + 1
     max_orf_len = orfs['orf_len'].max()
 
     msg = "Adding the ORF index to the exons"
