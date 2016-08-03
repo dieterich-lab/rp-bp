@@ -9,7 +9,7 @@ import misc.bio as bio
 import misc.parallel as parallel
 import misc.utils as utils
 
-default_num_procs = 2
+default_num_cpus = 2
 
 default_num_groups = 100
 
@@ -87,8 +87,8 @@ def main():
     parser.add_argument('out', help="The output (csv.gz) file containing the predicted "
         "ORFs and their coverage")
     
-    parser.add_argument('--num-procs', help="The number of CPUs to use for searching",
-        type=int, default=default_num_procs)
+    parser.add_argument('--num-cpus', help="The number of CPUs to use for searching",
+        type=int, default=default_num_cpus)
 
     parser.add_argument('--peptide-filter-field', help="The field to use for filtering "
         "the peptides from MaxQuant", default=default_peptide_filter_field)
@@ -143,7 +143,7 @@ def main():
     msg = "Searching for matching peptides"
     logging.info(msg)
 
-    peptide_matches = parallel.apply_parallel_split(peptide_sequences, args.num_procs, 
+    peptide_matches = parallel.apply_parallel_split(peptide_sequences, args.num_cpus, 
         find_matching_orfs_group, predicted_orfs_df, progress_bar=True, num_groups=args.num_groups)
 
     # filter out the Nones to avoid DataFrame conversion problems
@@ -160,7 +160,7 @@ def main():
     # first, count the matches for each ORF
     peptide_matches_groups = peptide_matches.groupby('orf_id')
 
-    orf_matches = parallel.apply_parallel_groups(peptide_matches_groups, args.num_procs, 
+    orf_matches = parallel.apply_parallel_groups(peptide_matches_groups, args.num_cpus, 
         count_matches, progress_bar=True)
     orf_matches = pd.DataFrame(orf_matches)
 
