@@ -5,10 +5,12 @@ import logging
 import pandas as pd
 
 import pybedtools
-from Bio.Seq import Seq
+import Bio.Seq
 
 import misc.bio as bio
+import misc.bio_utils.bed_utils as bed_utils
 import misc.utils as utils
+import misc.parallel as parallel
 
 import riboutils.ribo_utils as ribo_utils
 
@@ -34,6 +36,17 @@ non_canonical_overlap_orf_types = [
     'within'
 ]
 non_canonical_overlap_orf_types_str = ','.join(non_canonical_overlap_orf_types)
+
+def get_best_overlapping_orf(merged_ids, predicted_orfs):
+    if len(merged_ids) == 1:
+        m_id = predicted_orfs['id'] == merged_ids[0]
+        return predicted_orfs[m_id].iloc[0]
+    
+    m_orfs = predicted_orfs['id'].isin(merged_ids)
+    
+    sorted_orfs = predicted_orfs[m_orfs].sort_values('bayes_factor_mean', ascending=False)
+    best_overlapping_orf_id = sorted_orfs.iloc[0]
+    return best_overlapping_orf_id
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -109,7 +122,7 @@ def main():
     msg = "Reading Bayes factor information"
     logger.info(msg)
     
-    bayes_factors = bio.read_bed(args.bayes_factors)
+    bayes_factors = bed_utils.read_bed(args.bayes_factors)
 
     if args.filter_non_canonical_overlaps:
         args.filtered_orf_types.extend(non_canonical_overlap_orf_types)
@@ -138,14 +151,26 @@ def main():
     msg = "Number of longest ORFs: {}".format(len(longest_predicted_orfs))
     logger.info(msg)
 
-    bio.write_bed(longest_predicted_orfs, args.predicted_orfs)
+    msg = "Finding overlapping ORFs"
+    logger.info(msg)
+
+    merged_intervals = bed_utils.merge_all_intervals(longest_predicted_orfs)
+
+    msg = "Selecting best among overlapping ORFs"
+    logger.info(msg)
+
+    best_overlapping_orfs = parallel.apply_iter_simple(merged_intervals['merged_ids'], 
+        get_best_overlapping_orf, longest_predicted_orfs, progress_bar=True)
+    best_overlapping_orfs = pd.DataFrame(best_overlapping_orfs)
+
+    bed_utils.write_bed(best_overlapping_orfs, args.predicted_orfs)
 
     # now get the sequences
     msg = "Extracting predicted ORFs DNA sequence"
     logger.info(msg)
 
     # first, convert the dataframe to a bedtool
-    filtered_predictions_bed = pybedtools.BedTool.from_dataframe(longest_predicted_orfs[bio.bed12_field_names])
+    filtered_predictions_bed = pybedtools.BedTool.from_dataframe(best_overlapping_orfs[bio.bed12_field_names])
 
     # now, pull out the sequences
     predicted_dna_sequences = filtered_predictions_bed.sequence(fi=args.fasta, 
@@ -158,7 +183,7 @@ def main():
 
     records = bio.get_read_iterator(args.predicted_dna_sequences)
     protein_records = {
-        r[0]: str(Seq(r[1]).translate()) for r in records
+        r[0]: Bio.Seq.translate(r[1]) for r in records
     }
     bio.write_fasta(protein_records, args.predicted_protein_sequences, compress=False)
 

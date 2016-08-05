@@ -130,8 +130,8 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
         return ret
 
      
-    # and make sure we have more reads in x_1 than the others combined
-    if x_1_sum < (x_2_sum + x_3_sum):
+    # and make sure we have more reads in x_1 than each of the others
+    if (x_1_sum < x_2_sum) or (x_1_sum < x_3_sum):
         return ret
 
     # chi-square values
