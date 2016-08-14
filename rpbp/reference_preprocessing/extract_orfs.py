@@ -12,7 +12,7 @@ import pyfasta
 import pybedtools
 
 import misc.bio as bio
-import misc.gffread_utils as gffread_utils
+import misc.bio_utils.gffread_utils as gffread_utils
 import misc.logging_utils as logging_utils
 import misc.parallel as parallel
 import misc.utils as utils
