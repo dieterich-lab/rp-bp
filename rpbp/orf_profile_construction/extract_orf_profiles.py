@@ -11,6 +11,7 @@ import tqdm
 import yaml
 
 import misc.bio as bio
+import misc.logging_utils as logging_utils
 import misc.math_utils as math_utils
 import misc.parallel as parallel
 import misc.utils as utils
@@ -114,9 +115,9 @@ def main():
     parser.add_argument('--seqname-prefix', help="If present, this string will be prepended "
         "to the seqname field of the ORFs.", default=default_seqname_prefix)
         
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
     
     # make sure the number of lengths and offsets match
     if len(args.lengths) != len(args.offsets):

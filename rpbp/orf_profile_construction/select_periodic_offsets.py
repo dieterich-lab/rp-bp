@@ -1,9 +1,13 @@
 #! /usr/bin/env python3
 
 import argparse
+import logging
 import pandas as pd
 
+import misc.logging_utils as logging_utils
 import misc.utils as utils
+
+logger = logging.getLogger(__name__)
 
 def get_most_periodic_offset(profile_df):
     
@@ -55,7 +59,10 @@ def main():
     parser.add_argument('profile_bayes_factors', help="The (csv) file containing the Bayes' "
         "factors for periodicity at each length")
     parser.add_argument('out', help="The output (csv.gz) file")
+
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
+    logging_utils.update_logging(args)
 
     # read in the Bayes' factors and profiles
     bayes_factors_df = pd.read_csv(args.profile_bayes_factors)

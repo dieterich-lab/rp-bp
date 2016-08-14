@@ -8,6 +8,7 @@ import pandas as pd
 
 import yaml
 
+import misc.logging_utils as logging_utils
 import misc.utils as utils
 
 import riboutils.ribo_utils as ribo_utils
@@ -45,9 +46,9 @@ def main():
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
             
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     logging_str = utils.get_logging_options_string(args)
 

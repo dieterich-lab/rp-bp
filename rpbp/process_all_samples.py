@@ -4,10 +4,13 @@ import argparse
 import os
 import yaml
 
+import misc.logging_utils as logging_utils
 import misc.slurm as slurm
 import misc.utils as utils
 
 import riboutils.ribo_utils as ribo_utils
+
+logger = logging.getLogger(__name__)
 
 default_num_procs = 1
 default_tmp = None # utils.abspath('tmp')
@@ -34,9 +37,9 @@ def main():
         "predictions", action='store_true')
     
     slurm.add_sbatch_options(parser)
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     logging_str = utils.get_logging_options_string(args)
 

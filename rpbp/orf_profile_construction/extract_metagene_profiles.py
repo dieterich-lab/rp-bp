@@ -10,8 +10,11 @@ import tqdm
 import pysam
 
 import misc.bio as bio
+import misc.logging_utils as logging_utils
 import misc.parallel as parallel
 import misc.utils as utils
+
+logger = logging.getLogger(__name__)
 
 
 default_num_cpus = 1
@@ -64,7 +67,7 @@ def find_reverse_last_matching_read_positions(cds_region, reads):
 def get_metagene_profile(length_alignment_df, args):
     length, alignment_df = length_alignment_df
     
-    logging.debug("Getting annotated start and end regions...")
+    logger.debug("Getting annotated start and end regions...")
     # pull out the canonical CDS regions
     orfs = bio.read_bed(args.orfs)
 
@@ -78,7 +81,7 @@ def get_metagene_profile(length_alignment_df, args):
     m_canonical_reverse = m_canonical & m_reverse
 
     msg = "Found {} forward canonical and {} reverse canonical ORFs".format(sum(m_canonical_forward), sum(m_canonical_reverse))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # start and end already contain the boundaries of the ORF
 
@@ -121,7 +124,7 @@ def get_metagene_profile(length_alignment_df, args):
 
     for seqname in seqnames:
         msg = "seqname: {}".format(seqname)
-        logging.debug(msg)
+        logger.debug(msg)
         
         mask_reads_seq = alignment_df['seqname'] == seqname
         reads_region = alignment_df[mask_reads_seq]
@@ -129,7 +132,7 @@ def get_metagene_profile(length_alignment_df, args):
         m_orf_seq = orfs['seqname'] == seqname
         
         # first, handle the forward, first CDS reads
-        logging.debug("ff...")
+        logger.debug("ff...")
         #mask_ff_seq = orfs['seqname'] == seqname
         #forward_seq_df = canonical_forward_df[mask_ff_seq]
         forward_seq_df = orfs[m_orf_seq & m_canonical_forward]
@@ -141,10 +144,10 @@ def get_metagene_profile(length_alignment_df, args):
             forward_first_cds_count[i] += 1
 
         msg = "Found {} reads in region".format(len(res))
-        logging.debug(msg)
+        logger.debug(msg)
             
         # the forward, last CDS reads
-        logging.debug("fl...")
+        logger.debug("fl...")
         res = parallel.apply_df_simple(forward_seq_df, find_forward_last_matching_read_positions, reads_region)
         if len(res) > 0:
             res = np.concatenate(res)
@@ -152,10 +155,10 @@ def get_metagene_profile(length_alignment_df, args):
             forward_last_cds_count[i] += 1
 
         msg = "Found {} reads in region".format(len(res))
-        logging.debug(msg)
+        logger.debug(msg)
             
         # reverse, first CDS reads
-        logging.debug("rf...")
+        logger.debug("rf...")
         #m_rf_seq = canonical_reverse_df['seqname'] == seqname
         #reverse_seq_df = canonical_reverse_df[mask_rf_seq]
         reverse_seq_df = orfs[m_orf_seq & m_canonical_reverse]
@@ -166,10 +169,10 @@ def get_metagene_profile(length_alignment_df, args):
             reverse_first_cds_count[i] += 1
 
         msg = "Found {} reads in region".format(len(res))
-        logging.debug(msg)
+        logger.debug(msg)
             
         # reverse, last CDS reads
-        logging.debug("rl...")
+        logger.debug("rl...")
         res = parallel.apply_df_simple(reverse_seq_df, find_reverse_last_matching_read_positions, reads_region)
         if len(res) > 0:
             res = np.concatenate(res)
@@ -177,7 +180,7 @@ def get_metagene_profile(length_alignment_df, args):
             reverse_last_cds_count[i] += 1
 
         msg = "Found {} reads in region".format(len(res))
-        logging.debug(msg)
+        logger.debug(msg)
 
     # we need to reverse the "reverse" counts so they match the forward strand counts
     reverse_first_cds_count_r = reverse_first_cds_count[::-1]
@@ -189,8 +192,8 @@ def get_metagene_profile(length_alignment_df, args):
     start_positions = range(-1*args.start_upstream, args.start_downstream + 1)
     end_positions = range(-1*args.end_upstream, args.end_downstream + 1)
 
-    logging.debug("len(start_positions): {}".format(len(start_positions)))
-    logging.debug("len(start_counts): {}".format(len(start_counts)))
+    logger.debug("len(start_positions): {}".format(len(start_positions)))
+    logger.debug("len(start_counts): {}".format(len(start_counts)))
 
     # now, we need to dump this signal out
     start_df = pd.DataFrame()
@@ -249,16 +252,16 @@ def main():
         help="The number of bases downstream of the translation termination site to end "
         "the metagene profile.")
 
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     if args.is_sam:
         bam = pysam.AlignmentFile(args.bam, 'r')
     else:
         bam = pysam.AlignmentFile(args.bam, 'rb')
 
-    logging.info("Processing alignments...")
+    logger.info("Processing alignments...")
 
     if args.num_alignments != default_num_alignments:
         alignments = bam.head(args.num_alignments)
@@ -285,14 +288,14 @@ def main():
     alignment_df['seqname'] = seqs
     
     msg = "Reads remaining after filtering: {}".format(len(alignment_df))
-    logging.info(msg)
+    logger.info(msg)
 
     if len(args.lengths) == 0:
         args.lengths = list(alignment_df['length'].unique())
 
     length_str = ','.join(str(int(l)) for l in args.lengths)
     msg = "Profiles will be created for lengths: {}".format(length_str)
-    logging.info(msg)
+    logger.info(msg)
 
 
     # now, split out the individual length dfs

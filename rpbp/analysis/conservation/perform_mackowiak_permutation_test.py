@@ -8,7 +8,7 @@ import pandas as pd
 
 import pybedtools
 
-import misc.bio as bio
+import misc.bio_utils.bed_utils as bed_utils
 import misc.parallel as parallel
 import misc.utils as utils
 
@@ -106,7 +106,7 @@ def main():
     msg = "Reading the Bayes factor file"
     logger.info(msg)
 
-    bf = bio.read_bed(args.bf)
+    bf = bed_utils.read_bed(args.bf)
 
     if len(args.seqname_prefix) > 0:
         bf['seqname'] = args.seqname_prefix + bf['seqname']

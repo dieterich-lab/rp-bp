@@ -9,9 +9,11 @@ import sys
 import numpy as np
 import pandas as pd
 
+import misc.logging_utils as logging_utils
 import misc.parallel as parallel
 import misc.utils as utils
 
+logger = logging.getLogger(__name__)
 
 default_num_cpus = 1
 
@@ -89,7 +91,7 @@ def estimate_profile_bayes_factors(profile, args):
         offset = start_positions[i]
 
         msg = "Length: {}, Offset: {}".format(length, offset)
-        logging.debug(msg)
+        logger.debug(msg)
 
         # pull out the signal for this offset
         signal = start_counts[i:i+args.metagene_profile_length]
@@ -181,9 +183,9 @@ def main():
     parser.add_argument('--count-field', default=default_count_field)
     parser.add_argument('--position-field', default=default_position_field)
 
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     # we will parallelize based on the lengths. So we need to know which lengths
     # are present in the metagene profiles file
@@ -192,12 +194,13 @@ def main():
 
     length_str = ','.join(str(int(l)) for l in lengths)
     msg = "Profiles will be created for lengths: {}".format(length_str)
-    logging.info(msg)
+    logger.info(msg)
 
     length_groups = metagene_profiles.groupby('length')
 
-    # this is not wonderful, but a hack to redirect sys.stderr to devnull to
-    # had pystan output
+    # this does not seem to work
+    # it is an attempt to redirect stderr to /dev/null so we don't
+    # see the useless Stan output
     temp = sys.stderr
     f = open(os.devnull, 'w')
     sys.stderr = f

@@ -13,8 +13,11 @@ import pybedtools
 
 import misc.bio as bio
 import misc.gffread_utils as gffread_utils
+import misc.logging_utils as logging_utils
 import misc.parallel as parallel
 import misc.utils as utils
+
+logger = logging.getLogger(__name__)
 
 default_novel_id_re = ""
 
@@ -369,7 +372,7 @@ def extract_orfs(header_seq, start_codons_re, stop_codons_re, ignore_parsing_err
     except ValueError as ve:
         if ignore_parsing_errors:
             msg = "Could not parse header: '{}'".format(header)
-            logging.warning(msg)
+            logger.warning(msg)
             return None
         else:
             raise
@@ -419,7 +422,7 @@ def extract_canonical_orf(header_seq, start_codons_re, stop_codons_re, ignore_pa
     except ValueError as ve:
         if ignore_parsing_errors:
             msg = "Could not parse header: '{}'".format(header)
-            logging.warning(msg)
+            logger.warning(msg)
             return None
         else:
             raise
@@ -438,7 +441,7 @@ def extract_canonical_orf(header_seq, start_codons_re, stop_codons_re, ignore_pa
                 "if the canonical ORF uses an alternative start codon. The codon at the "
                 "annotated start position is '{}'. Header: '{}'".format(possible_start, 
                 header))
-        logging.error(msg)
+        logger.error(msg)
         return None
 
     # and pull the actual index out of the np.where result
@@ -454,7 +457,7 @@ def extract_canonical_orf(header_seq, start_codons_re, stop_codons_re, ignore_pa
                 "if the canonical ORF uses an alternative start codon. The codon at the "
                 "annotated start position is '{}'. Header: '{}'".format(possible_start, 
                 header))
-        logging.error(msg)
+        logger.error(msg)
         return None
 
     r = r[0]
@@ -501,15 +504,15 @@ def main():
     parser.add_argument('--num-transcripts', help="If n>0, then only the first n "
         "transcripts will be processed.", type=int, default=default_num_transcripts)
 
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     programs = ['intersectBed']
     utils.check_programs_exist(programs)
 
     msg = "Compiling the start and stop codon regular expressions"
-    logging.info(msg)
+    logger.info(msg)
     
     start_codons_re = '|'.join(args.start_codons)
     stop_codons_re = '|'.join(args.stop_codons)
@@ -518,7 +521,7 @@ def main():
     stop_codons_re = re.compile(stop_codons_re)
 
     msg = "Reading the transcript sequences"
-    logging.info(msg)
+    logger.info(msg)
 
     #transcript_fasta = pyfasta.Fasta(args.transcript_fasta)
     transcript_fasta = bio.get_read_iterator(args.transcript_fasta)
@@ -535,7 +538,7 @@ def main():
         total = len(transcripts)
 
     msg = "Extracting ORFs"
-    logging.info(msg)
+    logger.info(msg)
 
     orfs = parallel.apply_parallel_iter(transcripts, args.num_cpus, extract_orfs,
                                      start_codons_re, stop_codons_re,
@@ -547,23 +550,23 @@ def main():
     orfs = [o for o in orfs if o is not None]
 
     msg = "Combining ORFs into large data frame"
-    logging.info(msg)
+    logger.info(msg)
     orfs = pd.concat(orfs)
 
     msg = "Sorting ORFs"
-    logging.info(msg)
+    logger.info(msg)
     orfs = orfs.sort_values(['seqname', 'start'])
 
     msg = "Removing duplicate ORFs"
-    logging.info(msg)
+    logger.info(msg)
     duplicate_fields = ['seqname', 'start', 'end', 'strand', 'num_exons']
     orfs = orfs.drop_duplicates(subset=duplicate_fields)
 
     msg = "Found {} unique ORFs".format(len(orfs))
-    logging.info(msg)
+    logger.info(msg)
 
     msg = "Extracting canonical ORFs"
-    logging.info(msg)
+    logger.info(msg)
 
     # extract the canonical ORFs based on the annotation
     canonical_orfs = parallel.apply_parallel_iter(transcripts, args.num_cpus,
@@ -590,14 +593,14 @@ def main():
     ### canonical
 
     msg = "Labeling canonical, annotated CDSs"
-    logging.info(msg)
+    logger.info(msg)
 
     # pull out the unannotated orfs
     m_remaining = orfs['orf_type'].isnull()
     orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bio.bed12_field_names])
 
     msg = "Number of BED records: {}".format(len(orfs_bed))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # intersect with the canonical ORFs
     # split: include BED12 information (i.e., split the exons)
@@ -611,7 +614,7 @@ def main():
     pybedtools.helpers.close_or_delete(i_canonical)
 
     msg = "Found {} intersecting records".format(len(i_canonical_df))
-    logging.debug(msg)
+    logger.debug(msg)
     
     # pull out the orf_ids of everything with a match
     i_ids = i_canonical_df['id']
@@ -621,19 +624,19 @@ def main():
     orfs.loc[m_canonical, 'orf_type'] = 'canonical'
 
     msg = "Found {} canonical ORFs".format(sum(m_canonical))
-    logging.info(msg)
+    logger.info(msg)
     
     ### canonical_extended
     
     msg = "Finding \"extended\" canonical ORFs, which completely cover annotated CDSs"
-    logging.info(msg)
+    logger.info(msg)
 
     # pull out the remaining unannotated orfs
     m_remaining = orfs['orf_type'].isnull()
     orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bio.bed12_field_names])
     
     msg = "Number of BED records: {}".format(len(orfs_bed))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # intersect with canonical ORFs
     # split: include BED12 information (i.e., split the exons)
@@ -653,7 +656,7 @@ def main():
     pybedtools.helpers.close_or_delete(i_canonical_extended)
 
     msg = "Found {} intersecting records".format(len(i_canonical_extended_df))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # pull out the orf_ids of everything with a match
     i_ids = i_canonical_extended_df['id']
@@ -663,18 +666,18 @@ def main():
     orfs.loc[m_canonical_extended, 'orf_type'] = 'canonical_extended'
 
     msg = "Found {} canonical_extended ORFs".format(sum(m_canonical_extended))
-    logging.info(msg)
+    logger.info(msg)
 
     ### canonical_truncated
     msg = "Finding \"canonical_truncated\" and \"within\" ORFs"
-    logging.info(msg)
+    logger.info(msg)
 
     # pull out the remaining unannotated orfs
     m_remaining = orfs['orf_type'].isnull()
     orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bio.bed12_field_names])
 
     msg = "Number of BED records: {}".format(len(orfs_bed))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # intersect with the canonical ORFs
     # split: include BED12 information (i.e., split the exons)
@@ -691,7 +694,7 @@ def main():
     pybedtools.helpers.close_or_delete(i_canonical_truncated)
 
     msg = "Found {} intersecting records".format(len(i_canonical_truncated_df))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # truncated ORFs on the positive strand have the same end as the canonical ORF
     # while those on the negative strand have the same "start" (really end, but 
@@ -720,21 +723,21 @@ def main():
     orfs.loc[m_ct, 'orf_type'] = 'canonical_truncated'
 
     msg = "Found {} \"within\" ORFs".format(sum(m_within & ~m_canonical_truncated))
-    logging.info(msg)
+    logger.info(msg)
 
     msg = "Found {} \"canonical_truncated\" ORFs".format(sum(m_canonical_truncated))
-    logging.info(msg)
+    logger.info(msg)
 
     ### leader/trailer overlaps
     msg = "Finding out-of-frame ORFs which overlap canonical CDSs"
-    logging.info(msg)
+    logger.info(msg)
 
     # pull out the remaining orfs
     m_remaining = orfs['orf_type'].isnull()
     orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bio.bed12_field_names])
     
     msg = "Number of BED records: {}".format(len(orfs_bed))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # find ORFs which have some overlap with the canonical CDS regions
     i_utr_overlap = orfs_bed.intersect(canonical_orfs_bed, split=True, s=True, wo=True)
@@ -743,7 +746,7 @@ def main():
     pybedtools.helpers.close_or_delete(i_utr_overlap)
 
     msg = "Found {} intersecting records".format(len(i_utr_overlap_df))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # here, we have 4 cases:
     #   forward strand, 5' overlap : start < canonical_start
@@ -769,21 +772,21 @@ def main():
     orfs.loc[m_tp, 'orf_type'] = 'three_prime_overlap'
 
     msg = "Found {} \"five_prime_overlap\" ORFs".format(sum(m_five_prime_overlap))
-    logging.info(msg)
+    logger.info(msg)
 
     msg = "Found {} \"three_prime_overlap\" ORFs".format(sum(m_three_prime_overlap))
-    logging.info(msg)
+    logger.info(msg)
 
 
     ### leader/trailer ORFs
     msg = "Finding ORFs entirely in the 5' leaders and 3' trailers, and noncoding ORFs"
-    logging.info(msg)
+    logger.info(msg)
 
     m_remaining = orfs['orf_type'].isnull()
     orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bio.bed12_field_names])
 
     msg = "Number of BED records: {}".format(len(orfs_bed))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # for closest to work, we have to split the "B" file (canonical orfs) into separate exons
     # I cannot find documentation for why...
@@ -800,7 +803,7 @@ def main():
     pybedtools.helpers.close_or_delete(closest)
 
     msg = "Found {} intersecting records".format(len(closest_df))
-    logging.debug(msg)
+    logger.debug(msg)
 
     m_overlap = closest_df['distance'] == 0
     m_three_prime = closest_df['distance'] > 0
@@ -837,31 +840,31 @@ def main():
     orfs.loc[m_o & ~m_novel, 'orf_type'] = 'suspect_overlap'
 
     msg = "Found {} \"five_prime\" ORFs".format(sum(m_fp & ~m_no_cds))
-    logging.info(msg)
+    logger.info(msg)
 
     msg = "Found {} \"three_prime\" ORFs".format(sum(m_tp & ~m_no_cds))
-    logging.info(msg)
+    logger.info(msg)
 
     msg = "Found {} \"suspect_overlap\" ORFs".format(sum(m_o))
-    logging.info(msg)
+    logger.info(msg)
 
     num_noncoding = sum(m_tp & m_no_cds) + sum(m_fp & m_no_cds)
     msg = "Found {} \"noncoding\" ORFs".format(num_noncoding)
-    logging.info(msg)
+    logger.info(msg)
 
 
     m_remaining = orfs['orf_type'].isnull()
     msg = "{} ORFs are unlabeled".format(sum(m_remaining))
-    logging.info(msg)
+    logger.info(msg)
 
     msg = "Sorting labeled ORFs"
-    logging.info(msg)
+    logger.info(msg)
 
     orfs = orfs.sort_values(['seqname', 'start'])
 
     # now, get the lengths of all of the ORFs
     msg = "Getting ORF lengths"
-    logging.info(msg)
+    logger.info(msg)
 
     orf_lengths = parallel.apply_parallel(orfs, args.num_cpus, 
         bio.get_bed_12_feature_length, progress_bar=True)
@@ -870,7 +873,7 @@ def main():
 
 
     msg = "Writing ORFs as BED"
-    logging.info(msg)
+    logger.info(msg)
 
     # also, add a numeric index field
     orfs['orf_num'] = range(len(orfs))

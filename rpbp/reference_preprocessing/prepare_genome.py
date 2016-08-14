@@ -7,10 +7,13 @@ import sys
 
 import yaml
 import misc.bio as bio
+import misc.logging_utils as logging_utils
 import misc.slurm as slurm
 import misc.utils as utils
 
 import riboutils.ribo_filenames as filenames
+
+logger = logging.getLogger(__name__)
 
 default_star_executable = "STAR"
 
@@ -27,9 +30,9 @@ def main():
         "will be overwritten.", action='store_true')
     
     slurm.add_sbatch_options(parser)
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     logging_str = utils.get_logging_options_string(args)
 

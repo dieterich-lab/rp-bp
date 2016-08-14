@@ -1,9 +1,13 @@
 #! /usr/bin/env python3
 
 import argparse
+import logging
 import os
 
+import misc.logging_utils as logging_utils
 import misc.utils as utils
+
+logger = logging.getLogger(__name__)
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -16,7 +20,10 @@ def main():
     parser.add_argument('--do-not-index', help="If this flag is present, then the index WILL "
         "NOT be created.", action='store_true')
     parser.add_argument('--do-not-call', action='store_true')
+
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
+    logging_utils.update_logging(args)
 
     programs = ['samtools']
     utils.check_programs_exist(programs)

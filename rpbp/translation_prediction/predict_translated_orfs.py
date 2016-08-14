@@ -8,6 +8,7 @@ import pandas as pd
 
 import yaml
 
+import misc.logging_utils as logging_utils
 import misc.utils as utils
 
 import riboutils.ribo_utils as ribo_utils
@@ -69,9 +70,9 @@ def main():
         "of the individual replicates.\n\nN.B. If this flag is is present, the --overwrite "
         "flag will automatically be set!", action='store_true')
         
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     logging_str = utils.get_logging_options_string(args)
 

@@ -10,7 +10,10 @@ import yaml
 import riboutils.ribo_filenames as filenames
 
 import misc.bio as bio
+import misc.logging_utils as logging_utils
 import misc.utils as utils
+
+logger = logging.getLogger(__name__)
 
 default_num_cpus = 1
 
@@ -57,9 +60,9 @@ def main():
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
     
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     config = yaml.load(open(args.config))
     call = not args.do_not_call
@@ -164,7 +167,7 @@ def main():
     else:
         msg = ("Could not find the STAR genome bam alignment file. Unless "
         "--do-not-call was given, this is a problem.")
-        logging.warning(msg)
+        logger.warning(msg)
 
     # sort the transcriptome bam file
     transcriptome_sorted_bam = filenames.get_riboseq_bam(
@@ -193,15 +196,15 @@ def main():
     if call:
         if args.overwrite or not os.path.exists(unique_genome_filename):
             msg = "Removing multimapping reads from: '{}'".format(genome_sorted_bam)
-            logging.info(msg)
+            logger.info(msg)
             bio.remove_multimapping_reads(genome_sorted_bam, unique_genome_filename, tmp=args.tmp)
         else:
             msg = "The unique genome file already exists: '{}'".format(unique_genome_filename)
-            logging.warning(msg)
+            logger.warning(msg)
     else:
         msg = ("The --do-not-call flag was given, NOT removing multimapping "
             "reads from: '{}'".format(genome_sorted_bam))
-        logging.warning(msg)
+        logger.warning(msg)
 
     # remove multimapping reads from the transcriptome file
     unique_transcriptome_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, 
@@ -210,15 +213,15 @@ def main():
     if call:
         if args.overwrite or not os.path.exists(unique_transcriptome_filename):
             msg = "Removing multimapping reads from: '{}'".format(transcriptome_sorted_bam)
-            logging.info(msg)
+            logger.info(msg)
             bio.remove_multimapping_reads(transcriptome_sorted_bam, unique_transcriptome_filename, tmp=args.tmp)
         else:
             msg = "The unique transcriptome file already exists: '{}'".format(unique_transcriptome_filename)
-            logging.warning(msg)
+            logger.warning(msg)
     else:
         msg = ("The --do-not-call flag was given, NOT removing multimapping "
             "reads from: '{}'".format(transcriptome_sorted_bam))
-        logging.warning(msg)
+        logger.warning(msg)
 
    
 if __name__ == '__main__':

@@ -17,6 +17,7 @@ import pandas as pd
 import scipy.io
 
 import misc.bio as bio
+import misc.logging_utils as logging_utils
 import misc.parallel as parallel
 import misc.utils as utils
 
@@ -442,9 +443,9 @@ def main():
         "the ORFs. More groups means the progress bar is updated more frequently but incurs "
         "more overhead because of the parallel calls.", type=int, default=default_num_groups)
 
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     # read in the regions and apply the filters
     msg = "Reading and filtering ORFs"

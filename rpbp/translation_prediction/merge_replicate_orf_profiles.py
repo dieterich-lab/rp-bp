@@ -4,6 +4,7 @@ import argparse
 import logging
 import scipy.io
 
+import misc.logging_utils as logging_utils
 import misc.utils as utils
 import misc.math_utils as math_utils
 
@@ -19,9 +20,9 @@ def main():
         "ORF profiles", nargs='+')
     parser.add_argument('out', help="The (mtx.gz) output file containing the merged profiles")
     
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     msg = "Reading first ORF profile"
     logger.info(msg)

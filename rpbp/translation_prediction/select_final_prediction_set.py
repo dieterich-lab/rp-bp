@@ -9,6 +9,7 @@ import Bio.Seq
 
 import misc.bio as bio
 import misc.bio_utils.bed_utils as bed_utils
+import misc.logging_utils as logging_utils
 import misc.utils as utils
 import misc.parallel as parallel
 
@@ -121,9 +122,9 @@ def main():
         .format(non_canonical_overlap_orf_types_str), action='store_true')
         
     
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     programs = ['fastaFromBed']
     utils.check_programs_exist(programs)
@@ -176,6 +177,11 @@ def main():
         predicted_orfs = parallel.apply_iter_simple(merged_intervals['merged_ids'], 
             get_best_overlapping_orf, predicted_orfs, progress_bar=True)
         predicted_orfs = pd.DataFrame(predicted_orfs)
+
+    msg = "Sorting selected ORFs"
+    logger.info(msg)
+
+    predicted_orfs = bed_utils.sort(predicted_orfs)
 
     msg = "Writing selected ORFs to disk"
     logger.info(msg)
