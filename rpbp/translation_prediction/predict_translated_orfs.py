@@ -209,7 +209,7 @@ def main():
 
             filtered_str = ""
             if is_filtered:
-                filtered_str = "--filter-non-canonical-overlaps"
+                filtered_str = "--select-longest-by-stop --select-best-overlapping"
                 
             if is_chisq:
                 chisq_str = "--use-chi-square"

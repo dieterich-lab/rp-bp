@@ -81,6 +81,16 @@ def main():
     parser.add_argument('predicted_protein_sequences', help="The (output) fasta file "
         "containing the predicted ORF sequences, as protein sequences")
 
+    parser.add_argument('--select-longest-by-stop', help="If this flag is given, then "
+        "the selected ORFs will be merged based on stop codons. In particular, only the "
+        "longest translated ORF at each stop codon will be selected.", action='store_true')
+
+    parser.add_argument('--select-best-overlapping', help="If this flag is given, then "
+        "only the ORF with the highest estimated Bayes factor will be kept among each "
+        "set of overlapping ORFs. N.B. This filter is applied *AFTER* selecting the "
+        "longest ORF at each stop codon, if the --select-longest-by-stop flag is "
+        "given.", action='store_true')
+
     parser.add_argument('--min-length', help="The minimum length to predict an ORF "
         "as translated", type=int, default=default_min_length)
     
@@ -136,44 +146,50 @@ def main():
         bayes_factors = bayes_factors[~m_filtered_orf_types]
 
     msg = "Identifying ORFs which meet the prediction thresholds"
-    longest_orfs, bf_orfs, chisq_orfs = ribo_utils.get_predicted_orfs(bayes_factors, 
+    all_orfs, bf_orfs, chisq_orfs = ribo_utils.get_predicted_orfs(bayes_factors, 
                                                        min_bf_mean=args.min_bf_mean, 
                                                        max_bf_var=args.max_bf_var, 
                                                        min_bf_likelihood=args.min_bf_likelihood,
                                                        min_length=args.min_length,
-                                                       chisq_alpha=args.chisq_significance_level)
+                                                       chisq_alpha=args.chisq_significance_level,
+                                                       select_longest_by_stop=args.select_longest_by_stop
+                                                       )
     
     if args.use_chi_square:
-        longest_predicted_orfs = chisq_orfs
+        predicted_orfs = chisq_orfs
     else:
-        longest_predicted_orfs = bf_orfs
+        predicted_orfs = bf_orfs
 
-    msg = "Number of longest ORFs: {}".format(len(longest_predicted_orfs))
+    msg = "Number of selected ORFs: {}".format(len(predicted_orfs))
     logger.info(msg)
 
-    msg = "Finding overlapping ORFs"
+    if args.select_best_overlapping:
+
+        msg = "Finding overlapping ORFs"
+        logger.info(msg)
+
+        merged_intervals = bed_utils.merge_all_intervals(predicted_orfs)
+
+        msg = "Selecting best among overlapping ORFs"
+        logger.info(msg)
+
+        predicted_orfs = parallel.apply_iter_simple(merged_intervals['merged_ids'], 
+            get_best_overlapping_orf, predicted_orfs, progress_bar=True)
+        predicted_orfs = pd.DataFrame(predicted_orfs)
+
+    msg = "Writing selected ORFs to disk"
     logger.info(msg)
-
-    merged_intervals = bed_utils.merge_all_intervals(longest_predicted_orfs)
-
-    msg = "Selecting best among overlapping ORFs"
-    logger.info(msg)
-
-    best_overlapping_orfs = parallel.apply_iter_simple(merged_intervals['merged_ids'], 
-        get_best_overlapping_orf, longest_predicted_orfs, progress_bar=True)
-    best_overlapping_orfs = pd.DataFrame(best_overlapping_orfs)
-
-    bed_utils.write_bed(best_overlapping_orfs, args.predicted_orfs)
+    bed_utils.write_bed(predicted_orfs, args.predicted_orfs)
 
     # now get the sequences
     msg = "Extracting predicted ORFs DNA sequence"
     logger.info(msg)
 
     # first, convert the dataframe to a bedtool
-    filtered_predictions_bed = pybedtools.BedTool.from_dataframe(best_overlapping_orfs[bio.bed12_field_names])
+    predicted_orfs_bed = pybedtools.BedTool.from_dataframe(predicted_orfs[bio.bed12_field_names])
 
     # now, pull out the sequences
-    predicted_dna_sequences = filtered_predictions_bed.sequence(fi=args.fasta, 
+    predicted_dna_sequences = predicted_orfs_bed.sequence(fi=args.fasta, 
             split=True, s=True, name=True)
     predicted_dna_sequences.save_seqs(args.predicted_dna_sequences)
 
