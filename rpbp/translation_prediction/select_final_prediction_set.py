@@ -126,9 +126,6 @@ def main():
     args = parser.parse_args()
     logging_utils.update_logging(args)
 
-    programs = ['fastaFromBed']
-    utils.check_programs_exist(programs)
-
     # first, extract all of the predictions which exceed the threshold
     msg = "Reading Bayes factor information"
     logger.info(msg)
@@ -191,13 +188,9 @@ def main():
     msg = "Extracting predicted ORFs DNA sequence"
     logger.info(msg)
 
-    # first, convert the dataframe to a bedtool
-    predicted_orfs_bed = pybedtools.BedTool.from_dataframe(predicted_orfs[bio.bed12_field_names])
-
-    # now, pull out the sequences
-    predicted_dna_sequences = predicted_orfs_bed.sequence(fi=args.fasta, 
-            split=True, s=True, name=True)
-    predicted_dna_sequences.save_seqs(args.predicted_dna_sequences)
+    split_exons = True
+    transcript_sequences = bed_utils.get_all_bed_sequences(predicted_orfs, args.fasta, split_exons)
+    bio.write_fasta(transcript_sequences, args.predicted_dna_sequences, compress=False)
 
     # translate the remaining ORFs into protein sequences
     msg = "Converting predicted ORF sequences to amino acids"
@@ -207,7 +200,7 @@ def main():
     protein_records = {
         r[0]: Bio.Seq.translate(r[1]) for r in records
     }
-    bio.write_fasta(protein_records, args.predicted_protein_sequences, compress=False)
+    bio.write_fasta(protein_records.items(), args.predicted_protein_sequences, compress=False)
 
 if __name__ == '__main__':
     main()
