@@ -36,18 +36,12 @@ external_requirements =  [
     'pyyaml'
 ]
 
-internal_requirements = [
-    "misc[bio]",
-    "riboutils"
-]
-
-# there is probably some better way to handle this...
-internal_requirements_install = [
-    "-e git+https://bitbucket.org/bmmalone/misc.git#egg=misc[bio]", 
-        # the "-e" seems to be necessary to grab subfolders. I do not
-        # understand this, but it seems to work
-    "git+https://github.com/dieterich-lab/riboseq-utils.git#egg=riboutils"
-]
+internal_requirements = {
+    "misc[bio]":"-e git+https://bitbucket.org/bmmalone/misc.git#egg=misc[bio]",
+     # the "-e" seems to be necessary to grab subfolders. I do not
+     # understand this, but it seems to work
+    "riboutils": "git+https://github.com/dieterich-lab/riboseq-utils.git#egg=riboutils"
+}
 
 stan_model_files = [
     os.path.join("nonperiodic", "no-periodicity.stan"),
@@ -72,44 +66,12 @@ stan_pickle_files = [
 ]
 
 
-def check_programs_exist(programs, package_name):
-    """ This function checks that all of the programs in the list cam be
-        called from python. After checking all of the programs, a message 
-        is printed saying which programs could not be found and the package
-        where they should be located.
-
-        Internally, this program uses shutil.which, so see the documentation
-        for more information about the semantics of calling.
-
-        Arguments:
-            programs (list of string): a list of programs to check
-
-        Returns:
-            None
-    """
-
-    missing_programs = []
-    for program in programs:
-        exe_path = shutil.which(program)
-
-        if exe_path is None:
-            missing_programs.append(program)
-
-    if len(missing_programs) > 0:
-        missing_programs_str = ' '.join(missing_programs)
-        msg = "Could not find the following programs: {}".format(missing_programs_str)
-        logger.warning(msg)
-
-        msg = ("Please ensure the {} package is installed before using the Rp-Bp "
-            "pipeline.".format(package_name))
-        logger.warning(msg)
-
-
 def _post_install(self):
     import site
     importlib.reload(site)
     
     import riboutils.ribo_filenames as filenames
+    import misc.utils as utils
     
     smf = [os.path.join("rpbp_models", s) for s in stan_model_files]
 
@@ -134,22 +96,28 @@ def _post_install(self):
 
     # check for the prerequisite programs
     programs = ['flexbar']
-    check_programs_exist(programs, 'flexbar')
-
+    utils.check_programs_exist(programs, raise_on_error=False, 
+        package_name='flexbar', logger=logger)
+        
     programs = ['STAR']
-    check_programs_exist(programs, 'STAR')
+    check_programs_exist(programs, raise_on_error=False, 
+        package_name='STAR', logger=logger)
 
     programs = ['bowtie2', 'bowtie2-build-s']
-    check_programs_exist(programs, 'bowtie2')
+    check_programs_exist(programs, raise_on_error=False, 
+        package_name='bowtie2', logger=logger)
 
-    programs = ['intersectBed', 'bedToBam', 'fastaFromBed']
-    check_programs_exist(programs, 'bedtools')
+    programs = ['intersectBed', 'bedToBam']
+    check_programs_exist(programs, raise_on_error=False, 
+        package_name='bedtools', logger=logger)
 
     programs = ['samtools']
-    check_programs_exist(programs, 'SAMtools')
+    check_programs_exist(programs, raise_on_error=False, 
+        package_name='SAMtools', logger=logger)
 
     programs = ['gffread']
-    check_programs_exist(programs, 'cufflinks')
+    check_programs_exist(programs, raise_on_error=False, 
+        package_name='cufflinks', logger=logger)
 
 def install_requirements(is_user):
     
@@ -158,9 +126,15 @@ def install_requirements(is_user):
         is_user_str = "--user"
 
     option = "install {}".format(is_user_str)
-    for r in internal_requirements_install:
-        cmd = "pip3 {} {}".format(option, r)
-        subprocess.call(cmd, shell=True)
+    for package_name, location in internal_requirements.items():
+        # check if this package is already installed
+        package_spec = importlib.util.find_spec(package_name)
+        found = package_spec is not None
+
+        if not found:
+            cmd = "pip3 {} {}".format(option, location)
+            subprocess.call(cmd, shell=True)
+    
 
 class my_install(_install):
     def run(self):
