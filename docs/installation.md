@@ -22,12 +22,12 @@ The pipelines make use of a number of standard bioinformatics tools. All of thes
 * [SAMtools](http://www.htslib.org/), version 1.2
 * [STAR](https://github.com/alexdobin/STAR), version 2.4.1d
 
-#### OpenBlas
+#### BLAS
 
-Additionally, the [OpenBLAS](http://www.openblas.net/) library is used for efficiency. This library is installed by default on many versions of Unix. It is also available through many standard package managers. For example:
+Additionally, a BLAS library, such as [OpenBLAS](http://www.openblas.net/), is used for efficiency. This library is installed by default on many versions of Unix. It is also available through many standard package managers. For example:
 
-* Ubuntu: ``sudo apt-get install libopenblas-dev``
-* CentOS: ``sudo yum install openblas-devel``
+* Ubuntu: ``sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran``
+* CentOS: ``sudo yum install atlas-devel lapack-devel blas-devel libgfortran``
 
 If the use of package managers are not an option (for example, because they require root access) or just not desired, then OpenBLAS can be installed locally. The following instructions have been tested extensively on Ubuntu, but they may require modification for other distributions.
 
