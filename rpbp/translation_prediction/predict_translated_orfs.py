@@ -82,9 +82,7 @@ def main():
     # check that all of the necessary programs are callable
     programs =  [   
                     'estimate-orf-bayes-factors',
-                    'select-final-prediction-set',
-                    'bamToBed',
-                    'fastaFromBed'
+                    'select-final-prediction-set'
                 ]
     utils.check_programs_exist(programs)
 

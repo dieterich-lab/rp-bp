@@ -53,8 +53,6 @@ def main():
                     args.star_executable,
                     'samtools',
                     'bowtie2',
-                    'bamToBed',
-                    'fastaFromBed',
                     'create-base-genome-profile',
                     'remove-multimapping-reads',
                     'extract-metagene-profiles',
