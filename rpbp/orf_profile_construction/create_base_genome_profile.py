@@ -10,6 +10,8 @@ import yaml
 import riboutils.ribo_filenames as filenames
 
 import misc.bio as bio
+import misc.bio_utils.bam_utils as bam_utils
+import misc.bio_utils.fastx_utils as fastx_utils
 import misc.logging_utils as logging_utils
 import misc.utils as utils
 
@@ -105,7 +107,10 @@ def main():
         raw_data, flexbar_target, pre_trim_left_str)
     in_files = [raw_data]
     out_files = [without_adapters]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+    file_checkers = {
+        without_adapters: fastx_utils.check_fastq_file
+    }
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, file_checkers=file_checkers, overwrite=args.overwrite, call=call)
 
     # Step 1: Running bowtie2 to remove rRNA alignments
     out = utils.abspath("dev","null") # we do not care about the alignments
@@ -118,7 +123,10 @@ def main():
     in_files = [without_adapters]
     in_files.extend(bio.get_bowtie2_index_files(config['ribosomal_index']))
     out_files = [without_rrna, with_rrna]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+    file_checkers = {
+        without_rrna: fastx_utils.check_fastq_file
+    }
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, file_checkers=file_checkers, overwrite=args.overwrite, call=call)
 
     # Step 2: Running STAR to align rRNA-depleted reads to genome
     star_output_prefix = filenames.get_riboseq_bam_base(config['riboseq_data'], args.name, note=note)
@@ -156,7 +164,11 @@ def main():
     in_files = [without_rrna]
     in_files.extend(bio.get_star_index_files(config['star_index']))
     out_files = [transcriptome_bam, genome_star_bam]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+    file_checkers = {
+        transcriptome_bam: bam_utils.check_bam_file,
+        genome_star_bam: bam_utils.check_bam_file
+    }
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, file_checkers=file_checkers, overwrite=args.overwrite, call=call)
 
     
     # now, we need to symlink the (genome) STAR output to that expected by the rest of the pipeline
@@ -181,6 +193,9 @@ def main():
         transcriptome_sorted_bam, sam_tmp_str)
     in_files = [transcriptome_bam]
     out_files = [transcriptome_sorted_bam]
+    file_checkers = {
+        transcriptome_sorted_bam: bam_utils.check_bam_file
+    }
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
     # Creating bam index file for transcriptome alignments
