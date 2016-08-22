@@ -8,6 +8,7 @@ import pandas as pd
 
 import yaml
 
+import misc.bio_utils.bam_utils as bam_utils
 import misc.logging_utils as logging_utils
 import misc.utils as utils
 
@@ -120,10 +121,13 @@ def main():
     #in_files = [riboseq_raw_data]
     in_files = []
     out_files = [riboseq_bam_filename]
+    file_checkers = {
+        riboseq_bam_filename: bam_utils.check_bam_file
+    }
 
     # we always call this, and pass --do-not-call through
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        overwrite=args.overwrite, call=True) 
+        file_checkers=file_checkers, overwrite=args.overwrite, call=True) 
 
     # create the metagene profiles
     metagene_profiles = filenames.get_metagene_profiles(config['riboseq_data'], 
@@ -146,8 +150,11 @@ def main():
 
     in_files = [riboseq_bam_filename, orfs_genomic]
     out_files = [metagene_profiles]
+    file_checkers = {
+        metagene_profiles: utils.check_gzip_file
+    }
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        overwrite=args.overwrite, call=call)
+        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
 
     # estimate the periodicity for each offset for all read lengths
     metagene_profile_bayes_factors = filenames.get_metagene_profiles_bayes_factors(
@@ -182,8 +189,11 @@ def main():
     in_files.extend(periodic_models)
     in_files.extend(non_periodic_models)
     out_files = [metagene_profile_bayes_factors]
+    file_checkers = {
+        metagene_profile_bayes_factors: utils.check_gzip_file
+    }
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        overwrite=args.overwrite, call=call)
+        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
     
     # select the best read lengths for constructing the signal
     periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], 
@@ -193,8 +203,11 @@ def main():
         periodic_offsets)
     in_files = [metagene_profile_bayes_factors]
     out_files = [periodic_offsets]
+    file_checkers = {
+        periodic_offsets: utils.check_gzip_file
+    }
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        overwrite=args.overwrite, call=call)
+        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
 
     # get the lengths and offsets which meet the required criteria from the config file
     lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, 
@@ -230,6 +243,8 @@ def main():
             offsets_str, logging_str, seqname_prefix_str, args.num_cpus))
     in_files = [orfs_genomic, exons_file, unique_filename]
     out_files = [profiles_filename]
+
+    #todo: implement a file checker for mtx files
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         overwrite=args.overwrite, call=call)
    

@@ -137,6 +137,8 @@ def main():
             profiles, logging_str)
         in_files = replicate_profiles
         out_files = [profiles]
+
+        # todo: implement file checker for mtx files
         utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
 
@@ -196,9 +198,13 @@ def main():
     in_files.extend(translated_models)
     in_files.extend(untranslated_models)
     out_files = [bayes_factors]
+    file_checkers = {
+        bayes_factors: utils.check_gzip_file
+    }
     msg = "estimate-bayes-factors in_files: {}".format(in_files)
     logger.debug(msg)
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
 
     is_chisq_values = [True, False]
     if chi_square_only:
@@ -246,7 +252,13 @@ def main():
             in_files = [bayes_factors, config['fasta']]
             out_files = [predicted_orfs, predicted_orfs_dna, predicted_orfs_protein]
 
-            utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+            file_checkers = {
+                predicted_orfs: utils.check_gzip_file
+            }
+
+            # todo: implement file checker for fasta files
+            utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+                file_checkers=file_checkers, overwrite=args.overwrite, call=call)
     
 
 if __name__ == '__main__':
