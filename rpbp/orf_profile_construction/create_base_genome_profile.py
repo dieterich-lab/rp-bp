@@ -200,7 +200,7 @@ def main():
         transcriptome_sorted_bam: bam_utils.check_bam_file
     }
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        file_checekers=file_checkers, overwrite=args.overwrite, call=call)
+        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
 
     # Creating bam index file for transcriptome alignments
     transcriptome_sorted_bai = transcriptome_sorted_bam + ".bai"
