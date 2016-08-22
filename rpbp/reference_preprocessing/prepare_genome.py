@@ -46,6 +46,7 @@ def main():
                  'gffread',
                  'intersectBed',
                  'split-bed12-blocks',
+                 'gtf-to-bed12',
                  args.star_executable
                 ]
     utils.check_programs_exist(programs)
@@ -66,6 +67,9 @@ def main():
         cmd = ' '.join(sys.argv)
         slurm.check_sbatch(cmd, args=args)
         return
+    
+    chr_name_file = os.path.join(config['star_index'], 'chrName.txt')
+    chr_name_str = "--chr-name-file {}".format(chr_name_file)
    
     # the rrna index
     cmd = "bowtie2-build-s {} {}".format(config['ribosomal_fasta'], config['ribosomal_index'])
@@ -83,6 +87,18 @@ def main():
     in_files = [config['fasta']]
     out_files = bio.get_star_index_files(config['star_index'])
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+
+    # extract a bed12 of the canonical ORFs
+    transcript_bed = filenames.get_bed(config['genome_base_path'], 
+        config['genome_name'], is_merged=True)
+    
+    cmd = ("gtf-to-bed12 {} {} --num-cpus {} {} {}".format(config['gtf'], 
+        transcript_bed, args.num_cpus, chr_name_str, logging_str))
+    in_files = [merged_gtf]
+    out_files = [merged_bed]
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+        overwrite=args.overwrite, call=call)
+
 
     # extract the transcript fasta
     transcript_fasta = filenames.get_transcript_fasta(config['genome_base_path'], config['genome_name'])
@@ -117,6 +133,7 @@ def main():
     in_files = [orfs_genomic]
     out_files = [exons_file]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+
 
 if __name__ == '__main__':
     main()
