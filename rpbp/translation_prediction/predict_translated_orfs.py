@@ -34,7 +34,7 @@ def get_profile(name, config, args):
     if len(lengths) == 0:
         msg = ("No periodic read lengths and offsets were found. Try relaxing "
             "min_metagene_profile_count, min_metagene_bf_mean, max_metagene_bf_var, "
-            "and/or min_metagene_bf_likelihood. Qutting.")
+            "and/or min_metagene_bf_likelihood.")
         logger.critical(msg)
         return
 
@@ -196,6 +196,8 @@ def main():
     in_files.extend(translated_models)
     in_files.extend(untranslated_models)
     out_files = [bayes_factors]
+    msg = "estimate-bayes-factors in_files: {}".format(in_files)
+    logger.debug(msg)
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
     is_chisq_values = [True, False]
