@@ -34,7 +34,7 @@ def main():
     args = parser.parse_args()
     logging_utils.update_logging(args)
 
-    logging_str = utils.get_logging_options_string(args)
+    logging_str = logging_utils.get_logging_options_string(args)
 
     config = yaml.load(open(args.config))
     call = not args.do_not_call
@@ -90,12 +90,12 @@ def main():
 
     # extract a bed12 of the canonical ORFs
     transcript_bed = filenames.get_bed(config['genome_base_path'], 
-        config['genome_name'], is_merged=True)
+        config['genome_name'], is_merged=False)
     
     cmd = ("gtf-to-bed12 {} {} --num-cpus {} {} {}".format(config['gtf'], 
         transcript_bed, args.num_cpus, chr_name_str, logging_str))
-    in_files = [merged_gtf]
-    out_files = [merged_bed]
+    in_files = [config['gtf']]
+    out_files = [transcript_bed]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         overwrite=args.overwrite, call=call)
 

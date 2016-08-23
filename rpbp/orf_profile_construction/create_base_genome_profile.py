@@ -211,7 +211,6 @@ def main():
 #    out_files = [transcriptome_sorted_bai]
 #    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
 #        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
-
     
     # remove multimapping reads from the genome file
     tmp_str = ""
