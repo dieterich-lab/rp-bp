@@ -100,23 +100,23 @@ def _post_install(self):
         package_name='flexbar', logger=logger)
         
     programs = ['STAR']
-    check_programs_exist(programs, raise_on_error=False, 
+    utils.check_programs_exist(programs, raise_on_error=False, 
         package_name='STAR', logger=logger)
 
     programs = ['bowtie2', 'bowtie2-build-s']
-    check_programs_exist(programs, raise_on_error=False, 
+    utils.check_programs_exist(programs, raise_on_error=False, 
         package_name='bowtie2', logger=logger)
 
     programs = ['intersectBed', 'bedToBam']
-    check_programs_exist(programs, raise_on_error=False, 
+    utils.check_programs_exist(programs, raise_on_error=False, 
         package_name='bedtools', logger=logger)
 
     programs = ['samtools']
-    check_programs_exist(programs, raise_on_error=False, 
+    utils.check_programs_exist(programs, raise_on_error=False, 
         package_name='SAMtools', logger=logger)
 
     programs = ['gffread']
-    check_programs_exist(programs, raise_on_error=False, 
+    utils.check_programs_exist(programs, raise_on_error=False, 
         package_name='cufflinks', logger=logger)
 
 def install_requirements(is_user):
@@ -213,7 +213,8 @@ setup(name='rpbp',
                                 'create-bf-rpkm-scatter-plot=rpbp.analysis.rpbp_predictions.create_bf_rpkm_scatter_plot:main [analysis]',
                                 'match-orfs-with-qti-seq-peaks=rpbp.analysis.qti_seq.match_orfs_with_qti_seq_peaks:main [analysis]',
                                 'match-orfs-with-mackowiak-sorfs=rpbp.analysis.conservation.match_orfs_with_mackowiak_sorfs:main [analysis]',
-                                'perform-mackowiak-permutation-test=rpbp.analysis.conservation.perform_mackowiak_permutation_test:main [analysis]'
+                                'perform-mackowiak-permutation-test=rpbp.analysis.conservation.perform_mackowiak_permutation_test:main [analysis]',
+                                'filter-nonunique-peptide-matches=rpbp.analysis.proteomics.filter_nonunique_peptide_matches:main [analysis]'
                                ]
         },
         zip_safe=False
