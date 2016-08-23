@@ -35,7 +35,9 @@ default_out_filter_intron_motifs = "RemoveNoncanonicalUnannotated"
 default_out_sam_attributes = ["AS", "NH", "HI", "nM", "MD"]
 
 flexbar_compression_str = "--zip-output GZ"
-quant_mode_str = '--quantMode TranscriptomeSAM'
+
+# the Rp-Bp pipeline does not use the transcript alignments, so do not create them
+quant_mode_str = "" # '--quantMode TranscriptomeSAM'
 star_compression_str = "--readFilesCommand zcat"
 star_out_str = "--outSAMtype BAM SortedByCoordinate"
 
@@ -132,7 +134,7 @@ def main():
 
     # Step 2: Running STAR to align rRNA-depleted reads to genome
     star_output_prefix = filenames.get_riboseq_bam_base(config['riboseq_data'], args.name, note=note)
-    transcriptome_bam = "{}{}".format(star_output_prefix, "Aligned.toTranscriptome.out.bam")
+    #transcriptome_bam = "{}{}".format(star_output_prefix, "Aligned.toTranscriptome.out.bam")
     genome_star_bam = "{}{}".format(star_output_prefix, "Aligned.sortedByCoord.out.bam")
 
     align_intron_min_str = utils.get_config_argument(config, 'align_intron_min', 
@@ -165,14 +167,14 @@ def main():
         star_out_str, star_tmp_str))
     in_files = [without_rrna]
     in_files.extend(bio.get_star_index_files(config['star_index']))
-    out_files = [transcriptome_bam, genome_star_bam]
+    #out_files = [transcriptome_bam, genome_star_bam]
+    out_files = [genome_star_bam]
     file_checkers = {
-        transcriptome_bam: bam_utils.check_bam_file,
+        #transcriptome_bam: bam_utils.check_bam_file,
         genome_star_bam: bam_utils.check_bam_file
     }
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         file_checkers=file_checkers, overwrite=args.overwrite, call=call)
-
     
     # now, we need to symlink the (genome) STAR output to that expected by the rest of the pipeline
     genome_sorted_bam = filenames.get_riboseq_bam(config['riboseq_data'], args.name, note=note)
@@ -185,30 +187,30 @@ def main():
         logger.warning(msg)
 
     # sort the transcriptome bam file
-    transcriptome_sorted_bam = filenames.get_riboseq_bam(
-        config['riboseq_data'], args.name, is_transcriptome=True, note=note)
+    #transcriptome_sorted_bam = filenames.get_riboseq_bam(
+    #    config['riboseq_data'], args.name, is_transcriptome=True, note=note)
 
-    sam_tmp_str = ""
-    if args.tmp is not None:
-        sam_tmp_str = "-T {}".format(args.tmp)
+    #sam_tmp_str = ""
+    #if args.tmp is not None:
+    #    sam_tmp_str = "-T {}".format(args.tmp)
 
-    cmd = "samtools sort {} -@{} -o {} {}".format(transcriptome_bam, args.num_cpus, 
-        transcriptome_sorted_bam, sam_tmp_str)
-    in_files = [transcriptome_bam]
-    out_files = [transcriptome_sorted_bam]
-    file_checkers = {
-        transcriptome_sorted_bam: bam_utils.check_bam_file
-    }
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        file_checekers=file_checkers, overwrite=args.overwrite, call=call)
+    #cmd = "samtools sort {} -@{} -o {} {}".format(transcriptome_bam, args.num_cpus, 
+    #    transcriptome_sorted_bam, sam_tmp_str)
+    #in_files = [transcriptome_bam]
+    #out_files = [transcriptome_sorted_bam]
+    #file_checkers = {
+    #    transcriptome_sorted_bam: bam_utils.check_bam_file
+    #}
+    #utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    #    file_checekers=file_checkers, overwrite=args.overwrite, call=call)
 
-    # Creating bam index file for transcriptome alignments
-    transcriptome_sorted_bai = transcriptome_sorted_bam + ".bai"
-    cmd = "samtools index -b {} {}".format(transcriptome_sorted_bam, transcriptome_sorted_bai)
-    in_files = [transcriptome_sorted_bam]
-    out_files = [transcriptome_sorted_bai]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
+#    # Creating bam index file for transcriptome alignments
+#    transcriptome_sorted_bai = transcriptome_sorted_bam + ".bai"
+#    cmd = "samtools index -b {} {}".format(transcriptome_sorted_bam, transcriptome_sorted_bai)
+#    in_files = [transcriptome_sorted_bam]
+#    out_files = [transcriptome_sorted_bai]
+#    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+#        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
 
     
     # remove multimapping reads from the genome file
@@ -229,22 +231,22 @@ def main():
     }
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         file_checkers=file_checkers, overwrite=args.overwrite, call=call)
-
-    # remove multimapping reads from the transcriptome file
-    unique_transcriptome_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, 
-        is_unique=True, is_transcriptome=True, note=note)
-
-    
-    cmd = "remove-multimapping-reads {} {} {}".format(transcriptome_sorted_bam, 
-        unique_transcriptome_filename, tmp_str)
-
-    in_files = [genome_sorted_bam]
-    out_files = [unique_genome_filename]
-    file_checkers = {
-        unique_genome_filename: bam_utils.check_bam_file
-    }
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
+#
+#    # remove multimapping reads from the transcriptome file
+#    unique_transcriptome_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, 
+#        is_unique=True, is_transcriptome=True, note=note)
+#
+#    
+#    cmd = "remove-multimapping-reads {} {} {}".format(transcriptome_sorted_bam, 
+#        unique_transcriptome_filename, tmp_str)
+#
+#    in_files = [genome_sorted_bam]
+#    out_files = [unique_genome_filename]
+#    file_checkers = {
+#        unique_transcriptome_filename: bam_utils.check_bam_file
+#    }
+#    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+#        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
    
 if __name__ == '__main__':
     main()
