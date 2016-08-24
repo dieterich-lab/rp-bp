@@ -123,7 +123,7 @@ def main():
     out_files = [riboseq_bam_filename]
     # we always call this, and pass --do-not-call through
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        file_checkers=file_checkers, overwrite=args.overwrite, call=True) 
+        overwrite=args.overwrite, call=True) 
 
     # create the metagene profiles
     metagene_profiles = filenames.get_metagene_profiles(config['riboseq_data'], 
