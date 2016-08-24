@@ -121,10 +121,6 @@ def main():
     #in_files = [riboseq_raw_data]
     in_files = []
     out_files = [riboseq_bam_filename]
-    file_checkers = {
-        riboseq_bam_filename: bam_utils.check_bam_file
-    }
-
     # we always call this, and pass --do-not-call through
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         file_checkers=file_checkers, overwrite=args.overwrite, call=True) 
