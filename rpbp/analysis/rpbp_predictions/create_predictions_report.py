@@ -6,6 +6,7 @@ import os
 import yaml
 
 import misc.latex as latex
+import misc.logging_utils as logging_utils
 import misc.utils as utils
 
 import riboutils.ribo_filenames as filenames
@@ -32,7 +33,7 @@ def create_figures(name, is_replicate, config, args):
     if args.show_chisq:
         chisq_values = [True, False]
 
-    logging_str = utils.get_logging_options_string(args)
+    logging_str = logging_utils.get_logging_options_string(args)
 
     note_str = config.get('note', None)
     out_note_str = config.get('note', None)
@@ -182,8 +183,8 @@ def create_figures(name, is_replicate, config, args):
             title_str = "--title \"{}, Rp-Bp\"".format(name)
             f = fraction
             rw = reweighting_iterations
-            is_smooth = True
-            profiles = smooth_profiles
+            is_smooth = False
+            profiles = unsmoothed_profiles
 
             orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
                 name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
@@ -289,9 +290,9 @@ def main():
         "results from Rp-chi will be included in the document; otherwise, they "
         "will not be created or shown.", action='store_true')
 
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     config = yaml.load(open(args.config))
     
