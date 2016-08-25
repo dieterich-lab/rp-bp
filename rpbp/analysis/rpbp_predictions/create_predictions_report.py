@@ -27,6 +27,11 @@ def create_figures(name, is_replicate, config, args):
         for the given dataset.
     """
 
+    # by default, we will not include chisq
+    chisq_values = [False]
+    if args.show_chisq:
+        chisq_values = [True, False]
+
     logging_str = utils.get_logging_options_string(args)
 
     note_str = config.get('note', None)
@@ -51,20 +56,17 @@ def create_figures(name, is_replicate, config, args):
             msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(name)
             logger.error(msg)
             return
-
-    
-    smooth_profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
-            length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
-            fraction=fraction, reweighting_iterations=reweighting_iterations)
         
     unsmoothed_profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
             length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=False)
+
+
 
     msg = "{}: creating the ORF types pie charts".format(name)
     logger.info(msg)
 
     for is_grouped in [True, False]:
-        for is_chisq in [True, False]:
+        for is_chisq in chisq_values:
             for is_filtered in [True, False]:
 
                 is_grouped_str = ""
@@ -79,20 +81,18 @@ def create_figures(name, is_replicate, config, args):
                     title_str = "--title \"{}{}{}, Rp-$\chi^2$\"".format(name, is_grouped_str, is_filtered_str)
                     f = None
                     rw = None
-                    is_smooth = False
 
                     orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
                         name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
-                        is_chisq=True, is_smooth=False, is_filtered=is_filtered)
+                        is_chisq=True, is_filtered=is_filtered)
 
                 else:
                     title_str = "--title \"{}{}{}, Rp-Bp\"".format(name, is_grouped_str, is_filtered_str)
                     f = fraction
                     rw = reweighting_iterations
-                    is_smooth = True
                     orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
                         name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
-                        is_smooth=True, fraction=f, reweighting_iterations=rw, 
+                        fraction=f, reweighting_iterations=rw, 
                         is_filtered=is_filtered)
 
 
@@ -103,7 +103,7 @@ def create_figures(name, is_replicate, config, args):
                 orf_types_pie_chart = filenames.get_orf_types_pie_chart(
                     config['riboseq_data'], name, length=lengths, offset=offsets, 
                     is_unique=True, note=out_note_str, image_type=args.image_type,
-                    is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
+                    fraction=f, reweighting_iterations=rw,
                     is_grouped=is_grouped, is_chisq=is_chisq, is_filtered=is_filtered)
 
                 cmd = "create-orf-types-pie-chart {} {} {} {}".format(orfs, orf_types_pie_chart,
@@ -123,27 +123,25 @@ def create_figures(name, is_replicate, config, args):
         uniprot_label_str = "--uniprot-label \"{}\"".format(args.uniprot_label)
 
     for is_grouped in [True, False]:
-        for is_chisq in [True, False]:
+        for is_chisq in chisq_values:
             
             if is_chisq:
                 title_str = "--title \"{}, Rp-$\chi^2$\"".format(name)
                 f = None
                 rw = None
-                is_smooth = False
                 
                 orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
                     name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
-                    is_chisq=True, is_smooth=False)
+                    is_chisq=True)
 
             else:
                 title_str = "--title \"{}, Rp-Bp\"".format(name)
                 f = fraction
                 rw = reweighting_iterations
-                is_smooth = True
 
                 orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
                     name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
-                    is_smooth=True, fraction=f, reweighting_iterations=rw) 
+                    fraction=f, reweighting_iterations=rw) 
 
 
             use_groups_str = ""
@@ -153,7 +151,7 @@ def create_figures(name, is_replicate, config, args):
             orf_length_line_graph = filenames.get_orf_length_distribution_line_graph(
                 config['riboseq_data'], name, length=lengths, offset=offsets, 
                 is_unique=True, note=out_note_str, image_type=args.image_type,
-                is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
+                fraction=f, reweighting_iterations=rw,
                 is_grouped=is_grouped, is_chisq=is_chisq)
 
             cmd = ("create-orf-length-distribution-line-graph {} {} {} {} {} {}".format(
@@ -167,7 +165,7 @@ def create_figures(name, is_replicate, config, args):
     msg = "{}: creating the ORF type metagene profiles".format(name)
     logger.info(msg)
 
-    for is_chisq in [True, False]:
+    for is_chisq in chisq_values:
         
         if is_chisq:
             title_str = "--title \"{}, Rp-$\chi^2$\"".format(name)
@@ -178,7 +176,7 @@ def create_figures(name, is_replicate, config, args):
     
             orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
                 name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
-                is_chisq=True, is_smooth=False, is_filtered=is_filtered)
+                is_chisq=True, is_filtered=is_filtered)
 
         else:
             title_str = "--title \"{}, Rp-Bp\"".format(name)
@@ -189,13 +187,13 @@ def create_figures(name, is_replicate, config, args):
 
             orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
                 name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
-                is_smooth=True, fraction=f, reweighting_iterations=rw) 
+                fraction=f, reweighting_iterations=rw) 
 
         
         orf_type_profile_base = filenames.get_orf_type_profile_base(
             config['riboseq_data'], name, length=lengths, offset=offsets, 
             is_unique=True, note=out_note_str, 
-            is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
+            fraction=f, reweighting_iterations=rw,
             is_chisq=is_chisq)
 
         strand = "+"
@@ -224,7 +222,7 @@ def create_figures(name, is_replicate, config, args):
     bf_rpkm_scatter_plot = filenames.get_bf_rpkm_scatter_plot(config['riboseq_data'], name, 
         length=lengths, offset=offsets, 
         is_unique=True, note=out_note_str, image_type=args.image_type,
-        is_smooth=is_smooth, fraction=f, reweighting_iterations=rw)
+        fraction=f, reweighting_iterations=rw)
 
     title_str = "--title \"{}, RPKM vs. Bayes factor\"".format(name)
 
@@ -262,9 +260,6 @@ def create_all_figures(config, args):
         create_figures(replicate_name, is_replicate, config, args)
 
 
-
-
-
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="This script creates the plots which detail the basic characteristics "
@@ -290,6 +285,10 @@ def main():
     parser.add_argument('--note', help="If this option is given, it will be used in the "
         "filenames.\n\nN.B. This REPLACES the note in the config file.", default=default_note)
 
+    parser.add_argument('--show-chisq', help="If this flag is given, then the "
+        "results from Rp-chi will be included in the document; otherwise, they "
+        "will not be created or shown.", action='store_true')
+
     utils.add_logging_options(parser)
     args = parser.parse_args()
     utils.update_logging(args)
@@ -309,6 +308,10 @@ def main():
     ]
     utils.check_keys_exist(config, required_keys)
 
+    # by default, we will not include chisq
+    chisq_values = [False]
+    if args.show_chisq:
+        chisq_values = [True, False]
     
     # make sure the path to the output file exists
     os.makedirs(args.out, exist_ok=True)
@@ -372,22 +375,20 @@ def main():
             
             
             for is_grouped in [True, False]:
-                for is_chisq in [True, False]:
+                for is_chisq in chisq_values:
                     for is_filtered in [True, False]:
 
                         if is_chisq:
                             f = None
                             rw = None
-                            is_smooth = False
                         else:
                             f = fraction
                             rw = reweighting_iterations
-                            is_smooth = True
                         
                         orf_types_pie_chart = filenames.get_orf_types_pie_chart(
                             config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
                             is_unique=True, note=out_note_str, image_type=args.image_type,
-                            is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
+                            fraction=f, reweighting_iterations=rw,
                             is_grouped=is_grouped, is_chisq=is_chisq, is_filtered=is_filtered)
 
                         msg = "looking for image file: {}".format(orf_types_pie_chart)
@@ -422,23 +423,21 @@ def main():
             caption = "ORF types: {}".format(replicate_name)
 
             for is_grouped in [True, False]:
-                for is_chisq in [True, False]:
+                for is_chisq in chisq_values:
                     for is_filtered in [True, False]:
 
                         if is_chisq:
                             f = None
                             rw = None
-                            is_smooth = False
                         else:
                             f = fraction
                             rw = reweighting_iterations
-                            is_smooth = True
 
                         
                         orf_types_pie_chart = filenames.get_orf_types_pie_chart(
                             config['riboseq_data'], replicate_name, length=lengths, offset=offsets, 
                             is_unique=True, note=out_note_str, image_type=args.image_type,
-                            is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
+                            fraction=f, reweighting_iterations=rw,
                             is_grouped=is_grouped, is_chisq=is_chisq, is_filtered=is_filtered)
 
                         
@@ -483,21 +482,19 @@ def main():
             caption = "ORF type length distributions: {}".format(sample_name)
             
             for is_grouped in [True, False]:
-                for is_chisq in [True, False]:
+                for is_chisq in chisq_values:
 
                     if is_chisq:
                         f = None
                         rw = None
-                        is_smooth = False
                     else:
                         f = fraction
                         rw = reweighting_iterations
-                        is_smooth = True
 
                     orf_length_line_graph = filenames.get_orf_length_distribution_line_graph(
                         config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
                         is_unique=True, note=out_note_str, image_type=args.image_type,
-                        is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
+                        fraction=f, reweighting_iterations=rw,
                         is_grouped=is_grouped, is_chisq=is_chisq)
 
                     if os.path.exists(orf_length_line_graph):
@@ -529,21 +526,19 @@ def main():
             caption = "ORF types: {}".format(replicate_name)
             
             for is_grouped in [True, False]:
-                for is_chisq in [True, False]:
+                for is_chisq in chisq_values:
 
                     if is_chisq:
                         f = None
                         rw = None
-                        is_smooth = False
                     else:
                         f = fraction
                         rw = reweighting_iterations
-                        is_smooth = True
 
                     orf_length_line_graph = filenames.get_orf_length_distribution_line_graph(
                         config['riboseq_data'], replicate_name, length=lengths, offset=offsets, 
                         is_unique=True, note=out_note_str, image_type=args.image_type,
-                        is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
+                        fraction=f, reweighting_iterations=rw,
                         is_grouped=is_grouped, is_chisq=is_chisq)
                     
                     if os.path.exists(orf_length_line_graph):
@@ -583,21 +578,19 @@ def main():
             caption = "ORF type metagene profiles: {}".format(sample_name)
 
 
-            for is_chisq in [True, False]:
+            for is_chisq in chisq_values:
 
                 if is_chisq:
                     f = None
                     rw = None
-                    is_smooth = False
                 else:
                     f = fraction
                     rw = reweighting_iterations
-                    is_smooth = True
 
                 orf_type_profile_base = filenames.get_orf_type_profile_base(
                     config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
                     is_unique=True, note=out_note_str,
-                    is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
+                    fraction=f, reweighting_iterations=rw,
                     is_chisq=is_chisq)
 
                 for orf_type in ribo_utils.orf_types:
@@ -632,21 +625,19 @@ def main():
             offsets = None
                         
             caption = "ORF type metagene profiles: {}".format(replicate_name)
-            for is_chisq in [True, False]:
+            for is_chisq in chisq_values:
 
                 if is_chisq:
                     f = None
                     rw = None
-                    is_smooth = False
                 else:
                     f = fraction
                     rw = reweighting_iterations
-                    is_smooth = True
 
                 orf_type_profile_base = filenames.get_orf_type_profile_base(
                     config['riboseq_data'], replicate_name, length=lengths, offset=offsets, 
                     is_unique=True, note=out_note_str, 
-                    is_smooth=is_smooth, fraction=f, reweighting_iterations=rw,
+                    fraction=f, reweighting_iterations=rw,
                     is_chisq=is_chisq)
 
                 
