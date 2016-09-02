@@ -467,11 +467,11 @@ def main():
         # the read filtering figures
 
         read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(
-            config['riboseq_data'], note=note)
+            config['riboseq_data'], note=note, image_type=args.image_type)
     
         n = "no-rrna-{}".format(note)
         no_rrna_read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(
-            config['riboseq_data'], note=n)
+            config['riboseq_data'], note=n, image_type=args.image_type)
 
         latex.begin_figure(out)
         latex.write_graphics(out, read_filtering_image, width=0.75)
@@ -529,6 +529,7 @@ def main():
 
         latex.section(out, "Periodicity", label=periodicity_label)
 
+        i = 0
         for name in sample_names:
             data = config['riboseq_samples'][name]
 
@@ -547,7 +548,6 @@ def main():
             create_figures(args.config, config, name, offsets_df, args)
 
 
-            i = 0
             for length in range(min_read_length, max_read_length + 1):
                 msg = "Processing length: {}".format(length)
                 logger.info(msg)
@@ -597,10 +597,10 @@ def main():
                 out.write("\n\n")
 
                 metagene_profile_image = filenames.get_riboseq_metagene_profile_image(
-                    config['riboseq_data'], name, image_type='eps', is_unique=True, length=length, note=note)
+                    config['riboseq_data'], name, image_type=args.image_type, is_unique=True, length=length, note=note)
                 
                 bayes_factor_image = filenames.get_metagene_profile_bayes_factor_image(
-                    config['riboseq_data'], name, image_type='eps', is_unique=True, length=length, note=note)
+                    config['riboseq_data'], name, image_type=args.image_type, is_unique=True, length=length, note=note)
 
                 latex.write_graphics(out, metagene_profile_image, width=0.6)
                 latex.write_graphics(out, bayes_factor_image, width=0.39)
@@ -637,7 +637,7 @@ def main():
             for orf_type in ribo_utils.orf_types:
                 for strand in strands:
                     orf_type_profile = filenames.get_orf_type_profile_image(orf_type_profile_base, 
-                        orf_type, strand, args.image_type)
+                        orf_type, strand, image_type=args.image_type)
 
 
                     msg = "Looking for image file: {}".format(orf_type_profile)
