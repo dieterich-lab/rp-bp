@@ -9,6 +9,7 @@ import Bio.Seq
 
 import misc.bio as bio
 import misc.bio_utils.bed_utils as bed_utils
+import misc.bio_utils.fastx_utils as fastx_utils
 import misc.logging_utils as logging_utils
 import misc.utils as utils
 import misc.parallel as parallel
@@ -190,17 +191,17 @@ def main():
 
     split_exons = True
     transcript_sequences = bed_utils.get_all_bed_sequences(predicted_orfs, args.fasta, split_exons)
-    bio.write_fasta(transcript_sequences, args.predicted_dna_sequences, compress=False)
+    fastx_utils.write_fasta(transcript_sequences, args.predicted_dna_sequences, compress=False)
 
     # translate the remaining ORFs into protein sequences
     msg = "Converting predicted ORF sequences to amino acids"
     logger.info(msg)
 
-    records = bio.get_read_iterator(args.predicted_dna_sequences)
+    records = fastx_utils.get_read_iterator(args.predicted_dna_sequences)
     protein_records = {
         r[0]: Bio.Seq.translate(r[1]) for r in records
     }
-    bio.write_fasta(protein_records.items(), args.predicted_protein_sequences, compress=False)
+    fastx_utils.write_fasta(protein_records.items(), args.predicted_protein_sequences, compress=False)
 
 if __name__ == '__main__':
     main()

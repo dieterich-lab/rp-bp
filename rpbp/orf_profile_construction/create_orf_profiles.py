@@ -18,6 +18,7 @@ import riboutils.ribo_filenames as filenames
 logger = logging.getLogger(__name__)
 
 default_num_cpus = 1
+default_flexbar_format_option = None
 default_star_executable = "STAR"
 default_tmp = None # utils.abspath("tmp")
 
@@ -41,6 +42,11 @@ def main():
 
     parser.add_argument('--star-executable', help="The name of the STAR executable",
         default=default_star_executable)
+        
+    parser.add_argument('--flexbar-format-option', help="The name of the \"format\" "
+        "option for flexbar. This changed from \"format\" to \"qtrim-format\" in "
+        "version 2.7.", default=default_flexbar_format_option)
+
     parser.add_argument('--tmp', help="The location for temp files", default=default_tmp)
 
     parser.add_argument('--do-not-call', action='store_true')
@@ -108,12 +114,20 @@ def main():
     if args.tmp is not None:
         tmp_str = "--tmp {}".format(args.tmp)
 
+    
+    flexbar_format_option_str = ""
+    if args.flexbar_format_option is not None:
+        flexbar_format_option_str = "--flexbar-format-option {}".format(
+            args.flexbar_format_option)
+
+
     riboseq_raw_data = args.raw_data
     riboseq_bam_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, 
         is_unique=True, note=note)
-    cmd = ("create-base-genome-profile {} {} {} --num-cpus {} {} {} {} {} {}"
+    cmd = ("create-base-genome-profile {} {} {} --num-cpus {} {} {} {} {} {} {}"
         .format(riboseq_raw_data, args.config, args.name, args.num_cpus, 
-        do_not_call_argument, overwrite_argument, logging_str, star_str, tmp_str))
+        do_not_call_argument, overwrite_argument, logging_str, star_str, tmp_str,
+        flexbar_format_option_str))
 
     # There could be cases where we start somewhere in the middle of creating
     # the base genome profile. So even if the "raw data" is not available, 
@@ -140,7 +154,7 @@ def main():
         'metagene_profile_end_downstream', 'end-downstream')
 
     transcript_bed = filenames.get_bed(config['genome_base_path'], 
-        config['genome_name'], is_merged=True)
+        config['genome_name'], is_merged=False)
 
     cmd = ("extract-metagene-profiles {} {} {} --num-cpus {} {} {} {} {} {} {}"
         .format(riboseq_bam_filename, transcript_bed, metagene_profiles, 

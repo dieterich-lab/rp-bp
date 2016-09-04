@@ -72,11 +72,13 @@ def main():
     chr_name_str = "--chr-name-file {}".format(chr_name_file)
    
     # the rrna index
-    cmd = "bowtie2-build-s {} {}".format(config['ribosomal_fasta'], config['ribosomal_index'])
+    cmd = "bowtie2-build-s {} {}".format(config['ribosomal_fasta'], 
+        config['ribosomal_index'])
 
     in_files = [config['ribosomal_fasta']]
     out_files = bio.get_bowtie2_index_files(config['ribosomal_index'])
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+        overwrite=args.overwrite, call=call)
     
     # the STAR index
     mem = utils.human2bytes(args.mem)
@@ -86,7 +88,8 @@ def main():
         
     in_files = [config['fasta']]
     out_files = bio.get_star_index_files(config['star_index'])
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+        overwrite=args.overwrite, call=call)
 
     # extract a bed12 of the canonical ORFs
     transcript_bed = filenames.get_bed(config['genome_base_path'], 
@@ -99,9 +102,17 @@ def main():
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         overwrite=args.overwrite, call=call)
 
-
     # extract the transcript fasta
-    transcript_fasta = filenames.get_transcript_fasta(config['genome_base_path'], config['genome_name'])
+    transcript_fasta = filenames.get_transcript_fasta(config['genome_base_path'], 
+        config['genome_name'])
+
+    cmd = ("extract-bed-sequences {} {} {} {}".format(transcript_bed, 
+        config['fasta'], transcript_fasta, logging_str))
+    in_files = [transcript_bed, config['fasta']]
+    out_files = [transcript_fasta]
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+        overwrite=args.overwrite, call=call)
+
     
     cmd = "gffread -W -w {} -g {} {}".format(transcript_fasta, config['fasta'], config['gtf'])
     in_files = [config['gtf'], config['fasta']]

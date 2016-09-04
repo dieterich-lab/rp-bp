@@ -10,7 +10,7 @@ import scipy.sparse
 import tqdm
 import yaml
 
-import misc.bio as bio
+import misc.bio_utils.bed_utils as bed_utils
 import misc.logging_utils as logging_utils
 import misc.math_utils as math_utils
 import misc.parallel as parallel
@@ -56,7 +56,7 @@ def get_p_site_intersections(seqname, strand, p_sites, exons_df):
     exon_info_fields = ['transcript_start', 'orf_num']
     exon_info = np.array(exons_df.loc[m_exons_seqname & m_exons_strand, exon_info_fields])
     
-    intersections = bio.get_position_intersections(p_site_positions, exon_starts, exon_ends, exon_info)
+    intersections = bed_utils.get_position_intersections(p_site_positions, exon_starts, exon_ends, exon_info)
     
     return intersections
 
@@ -129,12 +129,12 @@ def main():
     # we do not need the data frame anymore, so save some memory
     msg = "Reading exons"
     logger.info(msg)
-    exons = bio.read_bed(args.exons)
+    exons = bed_utils.read_bed(args.exons)
 
     msg = "Reading ORFs"
     logger.info(msg)
 
-    orfs = bio.read_bed(args.orfs)
+    orfs = bed_utils.read_bed(args.orfs)
 
     if len(args.seqname_prefix) > 0:
         orfs['seqname'] = args.seqname_prefix + orfs['seqname']

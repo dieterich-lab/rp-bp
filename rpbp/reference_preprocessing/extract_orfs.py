@@ -8,10 +8,11 @@ import re
 import numpy as np
 import pandas as pd
 
-import pyfasta
 import pybedtools
 
 import misc.bio as bio
+import misc.bio_utils.bed_utils as bed_utils
+import misc.bio_utils.fastx_utils as fastx_utils
 import misc.bio_utils.gffread_utils as gffread_utils
 import misc.logging_utils as logging_utils
 import misc.parallel as parallel
@@ -399,9 +400,9 @@ def extract_canonical_orf(header_seq, start_codons_re, stop_codons_re, ignore_pa
 
         Args:
             header_seq (tuple) : the first item of the tuple is the fasta header
-                (without the ">"), and the second item is the pyfasta sequence object.
+                (without the ">"), and the second item is the sequence object.
                 The argument is given this way to make it easy to use this function
-                while iterating through the pyfasta file.
+                while iterating through the sequences.
 
             start_codons_re, stop_codons_re (compiled re) : compiled reg_ex
                 objects used to locate start and stop codons, respectively
@@ -523,8 +524,7 @@ def main():
     msg = "Reading the transcript sequences"
     logger.info(msg)
 
-    #transcript_fasta = pyfasta.Fasta(args.transcript_fasta)
-    transcript_fasta = bio.get_read_iterator(args.transcript_fasta)
+    transcript_fasta = fastx_utils.get_read_iterator(args.transcript_fasta)
 
     # check if we only want to process a few of the transcripts
 
@@ -580,12 +580,12 @@ def main():
     canonical_orfs = canonical_orfs.sort_values(['seqname', 'start'])
 
     # update the field names so we can distinguish between the ORFs after bedutils/join
-    canonical_orfs = (canonical_orfs[bio.bed12_field_names]).copy()
-    canonical_orfs.columns = ['canonical_{}'.format(c) for c in bio.bed12_field_names]
+    canonical_orfs = (canonical_orfs[bed_utils.bed12_field_names]).copy()
+    canonical_orfs.columns = ['canonical_{}'.format(c) for c in bed_utils.bed12_field_names]
     canonical_orfs_bed = pybedtools.BedTool.from_dataframe(canonical_orfs)
 
     # and extract field names for parsing
-    intersect_fields = bio.bed12_field_names + list(canonical_orfs.columns) + ['overlap']
+    intersect_fields = bed_utils.bed12_field_names + list(canonical_orfs.columns) + ['overlap']
 
     orfs['orf_type'] = None
 
@@ -597,7 +597,7 @@ def main():
 
     # pull out the unannotated orfs
     m_remaining = orfs['orf_type'].isnull()
-    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bio.bed12_field_names])
+    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bed_utils.bed12_field_names])
 
     msg = "Number of BED records: {}".format(len(orfs_bed))
     logger.debug(msg)
@@ -633,7 +633,7 @@ def main():
 
     # pull out the remaining unannotated orfs
     m_remaining = orfs['orf_type'].isnull()
-    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bio.bed12_field_names])
+    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bed_utils.bed12_field_names])
     
     msg = "Number of BED records: {}".format(len(orfs_bed))
     logger.debug(msg)
@@ -674,7 +674,7 @@ def main():
 
     # pull out the remaining unannotated orfs
     m_remaining = orfs['orf_type'].isnull()
-    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bio.bed12_field_names])
+    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bed_utils.bed12_field_names])
 
     msg = "Number of BED records: {}".format(len(orfs_bed))
     logger.debug(msg)
@@ -734,7 +734,7 @@ def main():
 
     # pull out the remaining orfs
     m_remaining = orfs['orf_type'].isnull()
-    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bio.bed12_field_names])
+    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bed_utils.bed12_field_names])
     
     msg = "Number of BED records: {}".format(len(orfs_bed))
     logger.debug(msg)
@@ -783,7 +783,7 @@ def main():
     logger.info(msg)
 
     m_remaining = orfs['orf_type'].isnull()
-    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bio.bed12_field_names])
+    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bed_utils.bed12_field_names])
 
     msg = "Number of BED records: {}".format(len(orfs_bed))
     logger.debug(msg)
@@ -792,8 +792,8 @@ def main():
     # I cannot find documentation for why...
     canonical_orfs_bed6 = canonical_orfs_bed.bed6()
     canonical_orfs_bed6_sorted = canonical_orfs_bed6.sort()
-    canonical_bed6_fields = ['canonical_{}'.format(c) for c in bio.bed6_field_names]
-    bed6_closest_fields = bio.bed12_field_names + canonical_bed6_fields + ['distance']
+    canonical_bed6_fields = ['canonical_{}'.format(c) for c in bed_utils.bed6_field_names]
+    bed6_closest_fields = bed_utils.bed12_field_names + canonical_bed6_fields + ['distance']
 
     # now, find the relationship of the remaining ORFs to the annotated CDS regions
     # based on those, label the ORFs as either 5' or 3'
@@ -867,7 +867,7 @@ def main():
     logger.info(msg)
 
     orf_lengths = parallel.apply_parallel(orfs, args.num_cpus, 
-        bio.get_bed_12_feature_length, progress_bar=True)
+        bed_utils.get_bed_12_feature_length, progress_bar=True)
     orf_lengths = np.array(orf_lengths) 
     orfs['orf_len'] = orf_lengths
 
@@ -878,8 +878,8 @@ def main():
     # also, add a numeric index field
     orfs['orf_num'] = range(len(orfs))
 
-    output_fields = bio.bed12_field_names + ['orf_type', 'orf_len', 'orf_num']
-    bio.write_bed(orfs[output_fields], args.out)
+    output_fields = bed_utils.bed12_field_names + ['orf_type', 'orf_len', 'orf_num']
+    bed_utils.write_bed(orfs[output_fields], args.out)
 
 if __name__ == '__main__':
     main()

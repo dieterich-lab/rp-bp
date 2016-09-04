@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 default_num_cpus = 1
 
+default_flexbar_format_option = "format"
 default_quality_format = 'sanger'
 default_max_uncalled = 1
 default_pre_trim_left = 0
@@ -56,6 +57,10 @@ def main():
         
     parser.add_argument('--star-executable', help="The name of the STAR executable",
         default=default_star_executable)
+
+    parser.add_argument('--flexbar-format-option', help="The name of the \"format\" "
+        "option for flexbar. This changed from \"format\" to \"qtrim-format\" in "
+        "version 2.7.", default=default_flexbar_format_option)
 
     parser.add_argument('-t', '--tmp', help="The location for temporary files. If not "
             "specified, program-specific temp locations are used.", default=default_tmp)
@@ -99,7 +104,7 @@ def main():
     adapter_seq_str = utils.get_config_argument(config, 'adapter_sequence', 'adapter-seq')
     adapter_file_str = utils.get_config_argument(config, 'adapter_file', 'adapters')
 
-    quality_format_str = utils.get_config_argument(config, 'quality_format', 'format', 
+    quality_format_str = utils.get_config_argument(config, 'quality_format', args.flexbar_format_option, 
         default=default_quality_format)
     max_uncalled_str = utils.get_config_argument(config, 'max_uncalled', default=default_max_uncalled)
     pre_trim_left_str = utils.get_config_argument(config, 'pre_trim_left', default=default_pre_trim_left)

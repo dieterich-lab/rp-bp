@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 default_num_procs = 1
 default_tmp = None # utils.abspath('tmp')
+default_flexbar_format_option = None
 default_star_executable = "STAR"
 
 def main():
@@ -30,12 +31,21 @@ def main():
     parser.add_argument('--star-executable', help="The name of the STAR executable",
         default=default_star_executable)
 
+    parser.add_argument('--flexbar-format-option', help="The name of the \"format\" "
+        "option for flexbar. This changed from \"format\" to \"qtrim-format\" in "
+        "version 2.7.", default=default_flexbar_format_option)
+
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
 
     parser.add_argument('--merge-replicates', help="If this flag is present, then "
         "the ORF profiles from the replicates will be merged before making the final "
         "predictions", action='store_true')
+
+    parser.add_argument('--run-replicates', help="If this flag is given with the "
+        "--merge-replicates flag, then both the replicates *and* the individual "
+        "samples will be run. This flag has no effect if --merge-replicates is not "
+        "given.", action='store_true')
     
     slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)
@@ -95,13 +105,24 @@ def main():
     # if we merge the replicates, then we only use the rpbp script to create
     # the ORF profiles
     profiles_only_str = ""
-    if args.merge_replicates:
+    if args.merge_replicates and not args.run_replicates:
         profiles_only_str = "--profiles-only"
+
+    if args.run_replicates and not args.merge_replicates:
+        msg = ("The --run-replicates option was given with the --merge-replicates "
+            "option. It will be ignored.")
+        logger.warning(msg)
     
     star_str = "--star-executable {}".format(args.star_executable)
     tmp_str = ""
     if args.tmp is not None:
         tmp_str = "--tmp {}".format(args.tmp)
+    
+    flexbar_format_option_str = ""
+    if args.flexbar_format_option is not None:
+        flexbar_format_option_str = "--flexbar-format-option {}".format(
+            args.flexbar_format_option)
+
     
     # collect the job_ids in case we are using slurm and need to merge replicates
     job_ids = []
@@ -116,9 +137,10 @@ def main():
             tmp = os.path.join(args.tmp, "{}_{}_rpbp".format(sample_name, note))
             tmp_str = "--tmp {}".format(tmp)
 
-        cmd = "run-rpbp-pipeline {} {} {} --num-cpus {} {} {} {} {} {} {}".format(data, 
+        cmd = "run-rpbp-pipeline {} {} {} --num-cpus {} {} {} {} {} {} {} {}".format(data, 
                 args.config, sample_name, args.num_cpus, tmp_str, do_not_call_str, 
-                overwrite_str, logging_str, star_str, profiles_only_str)
+                overwrite_str, logging_str, star_str, profiles_only_str,
+                flexbar_format_option_str)
 
         job_id = slurm.check_sbatch(cmd, args=args)
 

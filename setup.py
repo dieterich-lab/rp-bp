@@ -214,7 +214,8 @@ setup(name='rpbp',
                                 'match-orfs-with-qti-seq-peaks=rpbp.analysis.qti_seq.match_orfs_with_qti_seq_peaks:main [analysis]',
                                 'match-orfs-with-mackowiak-sorfs=rpbp.analysis.conservation.match_orfs_with_mackowiak_sorfs:main [analysis]',
                                 'perform-mackowiak-permutation-test=rpbp.analysis.conservation.perform_mackowiak_permutation_test:main [analysis]',
-                                'filter-nonunique-peptide-matches=rpbp.analysis.proteomics.filter_nonunique_peptide_matches:main [analysis]'
+                                'filter-nonunique-peptide-matches=rpbp.analysis.proteomics.filter_nonunique_peptide_matches:main [analysis]',
+                                'add-mygene-info-to-orfs=rpbp.analysis.rpbp_predictions.add_mygene_info_to_orfs:main [analysis]'
                                ]
         },
         zip_safe=False
