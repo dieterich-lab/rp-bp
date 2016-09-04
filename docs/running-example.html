@@ -11753,7 +11753,7 @@ div#notebook {
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Running-the-small-example-dataset">Running the small example dataset<a class="anchor-link" href="#Running-the-small-example-dataset">&#182;</a></h1><p>A small example dataset using <em>C. elegans</em> is available for <a href="http://cloud.dieterichlab.org/index.php/s/3cyluM3ZCsvf0PT/download">download</a>. Please see <a href="#example-dataset-files">below</a> for the exact contents of the download, as well as instructions for downloading it from the command line.</p>
 <p>Additionally, the expected outputs of the pipeline are included. Due to differences among versions of the external programs used in the pipeline (samtools, etc.), it is unlikely that all intermediate files will match exactly. However, we do include a script to compare the ORFs predicted as translated using the pipeline to those which are expected. If these differ significantly, it suggests something is not working correctly in the pipeline.</p>
-<p>If the results differ significantly, please run the pipeline using the "DEBUG" logging level (see the <a href="usage-instructions.html#logging-options">usage instructions</a>). This causes the scripts to output detailed runtime information which can be helpful for tracking down problems. If the problem is still not clear, please report the problem at the <a href="https://github.com/dieterich-lab/rp-bp/issues">github bug tracker</a>.</p>
+<p>If the results differ significantly, please run the pipeline using the "DEBUG" logging level (see the <a href="usage-instructions.ipynb#logging-options">usage instructions</a>). This causes the scripts to output detailed runtime information which can be helpful for tracking down problems. If the problem is still not clear, please report the problem at the <a href="https://github.com/dieterich-lab/rp-bp/issues">github bug tracker</a>.</p>
 <p>In total, creating the reference index files should take about 5 minutes and running the main pipeline should take an additional 15 to 20 minutes on a commodity laptop.</p>
 
 </div>
@@ -11795,11 +11795,11 @@ div#notebook {
 </li>
 <li><p><code>riboseq-adapters.fa</code>. An example adapter file for use with <code>flexbar</code>. It includes typical TruSeq and ArtSeq adapters, as well as a few adapters from the literature. It also includes a custom adapter used to create the sample dataset.</p>
 </li>
-<li><p><code>test-chrI.fastq.gz</code>. A small test sequencing dataset. It has been constructed to include some reads which uniquely map to the annotated transcripts, some reads which map to ribosomal sequences, some reads which do not uniquely map to the genome and some reads which are filtered due to quality issues.</p>
+<li><p><code>c-elegans.test-chrI.rep-1.fastq.gz</code>. A small test sequencing dataset. It has been constructed to include some reads which uniquely map to the annotated transcripts, some reads which map to ribosomal sequences, some reads which do not uniquely map to the genome and some reads which are filtered due to quality issues.</p>
 </li>
-<li><p><code>c-elegans-test.expected.rpbp.predicted-orfs.bed.gz</code>. The expected predictions using the Rp-Bp pipeline.</p>
+<li><p><code>c-elegans.test-chrI.rep-2.fastq.gz</code>. Another small test sequencing dataset.</p>
 </li>
-<li><p><code>c-elegans-test.expected.rpchi.predicted-orfs.bed.gz</code>. The expected predictions using the Rp-chi pipeline.</p>
+<li><p><code>expected-orf-predictions</code>. The expected predictions and sequence files for each replicate (c-elegans-rep-1 and c-elegans-rep-2 files) and the merged replicates (c-elegans-test files). Please see the <a href="usage-instructions.ipynb#logging-options">usage instructions</a> for the meaning of each of the files.</p>
 </li>
 </ul>
 <p><strong>Downloading from the command line</strong></p>
@@ -11846,8 +11846,8 @@ div#notebook {
 <li><code>ribosomal_index</code></li>
 <li><code>star_index</code></li>
 </ul>
-<p>The following command will create the necessary reference files using 2 CPUS and 4GB of RAM for STAR. Please see the <a href="usage-instructions.html#creating-reference-genome-indices">usage instructions</a> for the expected output files.</p>
-<p>The <code>--use-slurm</code> and related options can also be used if SLURM is available. Please see the <a href="usage-instructions.html#parallel-processing-options">usage instructions</a> for more information.</p>
+<p>The following command will create the necessary reference files using 2 CPUS and 4GB of RAM for STAR. Please see the <a href="usage-instructions.ipynb#creating-reference-genome-indices">usage instructions</a> for the expected output files.</p>
+<p>The <code>--use-slurm</code> and related options can also be used if SLURM is available. Please see the <a href="usage-instructions.ipynb#parallel-processing-options">usage instructions</a> for more information.</p>
 <p>N.B. The <code>--overwrite</code> flag is given below to ensure all of the files are (re-)created. In typical use cases, if some of the files already exist (e.g., the STAR index), then this flag can be omitted.</p>
 <p>This command should only take about 5 minutes on recent commodity hardware (such as a laptop).</p>
 
@@ -11898,8 +11898,8 @@ div#notebook {
 <li><code>riboseq_data</code></li>
 <li><code>adapter_file</code></li>
 </ul>
-<p>The following command will run the Rp-Bp (and Rp-chi) translation prediction pipelines using 2 CPUS. Please see the <a href="usage-instructions.html#running-pipelines">usage instructions</a> for the expected output files.</p>
-<p>The <code>--use-slurm</code> and related options can also be used if SLURM is available. Please see the <a href="usage-instructions.html#parallel-processing-options">usage instructions</a> for more information.</p>
+<p>The following command will run the Rp-Bp (and Rp-chi) translation prediction pipelines using 2 CPUS. Please see the <a href="usage-instructions.ipynb#running-pipelines">usage instructions</a> for the expected output files.</p>
+<p>The <code>--use-slurm</code> and related options can also be used if SLURM is available. Please see the <a href="usage-instructions.ipynb#parallel-processing-options">usage instructions</a> for more information.</p>
 <p>N.B. The <code>--overwrite</code> flag is given below to ensure all of the files are (re-)created. In typical use cases, if some of the files already exist (e.g., the quality-filtered reads), then this flag can be omitted.</p>
 <p>N.B. While performing the MCMC sampling, many messages indicating the "Elapsed Time" will be printed. This is a <a href="https://github.com/stan-dev/pystan/issues/98">known issue</a> with pystan. Additionally, many "Informational Message: The current Metropolis proposal is about to be rejected because of the following issue" may also appear. These are also expected and (typically) do not indicate an actual problem.</p>
 <p><strong>Using replicates</strong></p>

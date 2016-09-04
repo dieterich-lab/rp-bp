@@ -75,8 +75,9 @@ The required input files are those suggested by the configuration file keys.
 * `star_index`/. The STAR index files (`SA`, `Genome`, etc.) for the `fasta` file
 
 
+
 ```python
-prepare-genome WBcel235.79.chrI.yaml --num-cpus 2 --mem 6G --logging-level INFO
+prepare-genome WBcel235.79.chrI.yaml --num-cpus 10 --mem 100G
 ```
 
 [Back to top](#toc)
@@ -105,7 +106,7 @@ The following keys are read from the configuration file. Their semantics is exac
 
 * `riboseq_data`. The base output location for all created files.
 * [`note`]. An optional string which will be added to all filenames. It should not contain spaces or any other special characters.
-* [`models_base`]. The base path to the compiled models,  the base path to the compiled models. The models specified in the paper are included with the source distribution and compiled/pickled as part of the installation process. They are installed in an operating system-specific location, in particular, `user_data_dir` from the [appdirs package](https://pypi.python.org/pypi/appdirs). This location is determined during installation and does not normally need to be changed. For development, they may be in some alternative location.
+* [`models_base`]. The base path to the compiled models,  the base path to the compiled models. The models specified in the paper are included with the source distribution and compiled/pickled as part of the installation process. They are installed in an operating system-specific location (in particular, `user_data_dir` from the [appdirs package](https://pypi.python.org/pypi/appdirs). This location is determined during installation and does not normally need to be changed. For development, they may be in some alternative location.
 
 #### Reference genome options
 These options should be exactly the same as those used in the configuration file used to create the reference indices.
@@ -120,11 +121,11 @@ These options should be exactly the same as those used in the configuration file
 #### Samples specification
 * `riboseq_samples`. A dictionary in which each entry specifies a sample. The key is an informative name about the sample, and the value gives the complete path to the sequencing file (a fastq or fastq.gz file). The names will be used to construct filenames, so they should not contain spaces or other special characters.
 
-* `riboseq_biological_replicates`. A dictionary in which each entry specifies one condition and all samples which are replicates of the condition. The key of the dictionary is a string description of the condition, and the value is a list that gives all of the sample replicates which belong to that condition. The names of the sample replicates must match the dataset names specified in `riboseq_samples`.
+* `riboseq_biological_replicates`. A dictionary in which each entry species one condition and all samples which are replicates of the condition. The key of the dictionary is a string description of the condition, and the value is a list that gives all of the sample replicates which belong to that condition. The names of the sample replicates must match the dataset names specified in `riboseq_samples`.
 
 
 ```python
-process-all-samples c-elegans-test.yaml --overwrite --tmp /home/bmalone/tmp/ --num-cpus 2 --logging-level INFO
+process-all-samples c-elegans-test.yaml --tmp /home/bmalone/tmp/ --num-cpus 10 --logging-level INFO
 
 # merging the replicates, do not calculate Bayes factors and make predictions for individual datasets
 process-all-samples c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates
@@ -288,7 +289,7 @@ This script primarily creates the following files. (STAR also creates some tempo
 * ORF profiles
     * **unsmoothed ORF profiles**. A sparse [matrix market file](http://math.nist.gov/MatrixMarket/formats.html) containing the profiles for all ORFs. **N.B.** The matrix market format uses base-1 indices.  `riboseq_data`/orf-profiles/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.profiles.mtx. 
     
-    * **smoothed ORF profiles**. The smoothed profiles are not explicitly stored.
+    * **smoothed ORF profiles**. The smoothed profiles are not explicitly stored. 
 
 Indices are also created for the bam files. STAR creates parameter files in the location `riboseq_data`/without-rrna-mapping/`sample-name`\_STARgenome.
 
@@ -387,6 +388,7 @@ This script requires several files created during the previous steps in the pipe
     
 
 ### Output files
+    
 
 If replicates are merged, then these files will be created for each condition. Otherwise, they will be created for each sample (or both if the appropriate options are given).
     
@@ -410,8 +412,10 @@ If replicates are merged, then these files will be created for each condition. O
         * **the DNA sequences**. A fasta file containing the DNA sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.chisq.predicted-orfs.dna.gz. 
         
         * **the protein sequences**. A fasta file containing the protein sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.chisq.predicted-orfs.protein.gz. 
+        
 
 Furthermore, there are "unfiltered" and "filtered" versions of the files. The "filtered" versions result from performing the filtering described n the paper (taking the longest predicted ORF for each stop codon, and then selecting the ORF with the highest expected Bayes factor among each group of overlapping ORFs). The "unfiltered" version contains all predictions.
+
 
 
 ```python
@@ -458,9 +462,9 @@ All of the scripts accept options for running code in parallel. Furthermore, the
 
 * [`--use-slurm`]. If this flag is present, then the commands will be submitted to SLURM via sbatch. default: By default, each command is executed sequentially within the current terminal.
 
-* [`--time`]. The amount of time to request. This will be translated into an sbatch request like: "--time &lt;time&gt;. default: None
+* [`--time`]. The amount of time to request. This will be translated into an sbatch request like: "--time &lt;time&gt;. default: 0-05:59
 
-* [`--partitions`]. The partitions to request. This will be translated into an sbatch request like: "-p &lt;partitions&gt;". default: general (N.B. This value should be a comma-separated list with no spaces, for example: `--partitions general,long`). default: None
+* [`--partitions`]. The partitions to request. This will be translated into an sbatch request like: "-p &lt;partitions&gt;". default: general (N.B. This value should be a comma-separated list with no spaces, for example: `--partitions general,long`)
 
 * [`--no-output`]. If this flag is present, stdout will be redirected to /dev/null. This will be translated into an sbatch request like: "--output=/dev/null". default: If the flag is not present, then stdout will be directed to a log file with the job number. This corresponds to "--output=slurm-%J.out" in the sbatch call.
 
@@ -473,7 +477,6 @@ All of the scripts accept options for running code in parallel. Furthermore, the
 * [`--mail-type`]. When to send an email notifcation of the job status. See official documentation for a description of the values. If a mail-user is not specified, this will revert to 'None'. Defaut: FAIL TIME_LIMIT
 
 * [`--mail-user`]. To whom an email will be sent, in accordance with mail-type. default: None
-
 
 
 ```python

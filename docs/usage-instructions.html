@@ -11850,8 +11850,9 @@ div#notebook {
 <li><code>ribosomal_fasta</code>. The ribosomal DNA sequence is typically repeated many times throughout the genome. Consequently, it can be difficult to include in the genome assembly and is often omitted. Therefore, a separate fasta file is required for these sequences (which are later used to filter reads). </li>
 </ul>
 <h3 id="Output-files">Output files<a class="anchor-link" href="#Output-files">&#182;</a></h3><ul>
-<li><code>genome_base_path</code>/transcript-index/<code>genome_name</code>.transcripts.fa</li>
-<li><code>genome_base_path</code>/transcript-index/<code>genome_name</code>.genomic-orfs.<code>orf_note</code>.bed.gz</li>
+<li><code>genome_base_path</code>/<code>genome_name</code>.bed.gz. A bed12 file containing all transcripts. For coding transcripts, the thick_start and thick_end columns give the start and end of the coding region; the start codon <em>is</em> included in the thick region, but the stop codon <em>is not</em>. For noncoding transcripts, thick_start and thick_end are both -1. This seems to behave as expected in IGV.</li>
+<li><code>genome_base_path</code>/transcript-index/<code>genome_name</code>.transcripts.fa. The sequences of all transcripts.</li>
+<li><code>genome_base_path</code>/transcript-index/<code>genome_name</code>.genomic-orfs.<code>orf_note</code>.bed.gz. A bed12+ file containing all ORFs. Besides the standard bed12 columns, this file includes columns giving the orf_type, orf_length, and orf<em>num. The ORF ids are of the form: <code>transcript</code></em><code>seqname</code>:<code>start</code>-<code>end</code>:<code>strand</code>. The start codon <em>is</em> included in the ORF, but the stop codon <em>is not</em>. The thick_start and thick_end are always the same as start and end.</li>
 <li><code>ribosomal_index</code>. The bowtie2 index files (<code>ribosomal_index</code>.1.bt2, etc.) for the ribosomal_fasta file</li>
 <li><code>star_index</code>/. The STAR index files (<code>SA</code>, <code>Genome</code>, etc.) for the <code>fasta</code> file</li>
 </ul>
@@ -11888,7 +11889,7 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Running-Rp-Bp,-Rp-chi-pipelines">Running Rp-Bp, Rp-chi pipelines<a class="anchor-link" href="#Running-Rp-Bp,-Rp-chi-pipelines">&#182;</a></h2><p>The entire Rp-Bp pipeline can be run on a set of riboseq samples which all use the same genome indices using a sample sheet-like <a href="http://www.yaml.org/start.html">YAML</a> configuration file with the <code>process-all-samples</code> program. The configuration file respects all of the optional configuration options specified below.</p>
+<h2 id="Running-the-Rp-Bp-and-Rp-chi-pipelines">Running the Rp-Bp and Rp-chi pipelines<a class="anchor-link" href="#Running-the-Rp-Bp-and-Rp-chi-pipelines">&#182;</a></h2><p>The entire Rp-Bp pipeline can be run on a set of riboseq samples which all use the same genome indices using a sample sheet-like <a href="http://www.yaml.org/start.html">YAML</a> configuration file with the <code>process-all-samples</code> program. The configuration file respects all of the optional configuration options specified below.</p>
 <p>The script accepts a <code>--tmp &lt;loc&gt;</code> flag. If this flag is given, then all relevant calls will use <code>&lt;loc&gt;</code> as the base temporary directory. Otherwise, the program defaults will be used.</p>
 <p>The script accepts a <code>--overwrite</code> flag. Unless this is given, then steps for which the output file already exists will be skipped.</p>
 <p><a href="#logging-options">Logging options</a> can be given to this script.</p>
@@ -12084,12 +12085,6 @@ div#notebook {
 </li>
 <li><p><strong>aligned reads which map uniquely to the genome</strong>. A sorted bam file containing all alignments of reads to the genome with multimapping reads filtered out. <code>riboseq_data</code>/without-rrna-mapping/<code>sample-name</code>[.<code>note</code>]-unique.bam</p>
 </li>
-<li><p><strong>unsorted reads aligned to the transcriptome</strong>. An unsorted bam file containing all alignments of reads to the transcriptome. That is, the alignments are in "transcript space" coordinates. <code>riboseq_data</code>/without-rrna-mapping/<code>sample-name</code>[.<code>note</code>]Aligned.toTranscriptome.out.bam</p>
-</li>
-<li><p><strong>sorted reads aligned to the transcriptome</strong>. A sorted bam file containing all alignments of reads to the transcriptome. That is, the alignments are in "transcript space" coordinates. <code>riboseq_data</code>/without-rrna-mapping/<code>sample-name</code>[.<code>note</code>].transcriptome.bam</p>
-</li>
-<li><p><strong>aligned reads which map uniquely to the transcriptome</strong>. A sorted bam file containing all alignments of reads to the transcriptome with multimappers filtered out. That is, the alignments are in "transcript space" coordinates. This file is often not very useful since it filters reads which align to multiple transcripts. <code>riboseq_data</code>/without-rrna-mapping/<code>sample-name</code>[.<code>note</code>].transcriptome-unique.bam</p>
-</li>
 </ul>
 </li>
 <li><p>Metagene profiles</p>
@@ -12106,7 +12101,7 @@ div#notebook {
 <ul>
 <li><p><strong>unsmoothed ORF profiles</strong>. A sparse <a href="http://math.nist.gov/MatrixMarket/formats.html">matrix market file</a> containing the profiles for all ORFs. <strong>N.B.</strong> The matrix market format uses base-1 indices.  <code>riboseq_data</code>/orf-profiles/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.profiles.mtx.</p>
 </li>
-<li><p><strong>smoothed ORF profiles</strong>. A sparse <a href="http://math.nist.gov/MatrixMarket/formats.html">matrix market file</a> containing the smoothed profiles for all ORFs. <strong>N.B.</strong> The matrix market format uses base-1 indices.  <code>riboseq_data</code>/orf-profiles/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.smooth.frac-<code>fraction</code>.rw-<code>reweighting-iterations</code>.profiles.mtx.</p>
+<li><p><strong>smoothed ORF profiles</strong>. The smoothed profiles are not explicitly stored.</p>
 </li>
 </ul>
 </li>
@@ -12216,14 +12211,12 @@ div#notebook {
 </li>
 <li><p>ORF profiles</p>
 <ul>
-<li><p><strong>unsmoothed ORF profiles</strong>. A sparse <a href="http://math.nist.gov/MatrixMarket/formats.html">matrix market file</a> containing the profiles for all ORFs. <strong>N.B.</strong> The matrix market format uses base-1 indices.  <code>riboseq_data</code>/orf-profiles/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.profiles.mtx.</p>
-</li>
-<li><p><strong>smoothed ORF profiles</strong>. A sparse <a href="http://math.nist.gov/MatrixMarket/formats.html">matrix market file</a> containing the smoothed profiles for all ORFs. <strong>N.B.</strong> The matrix market format uses base-1 indices.  <code>riboseq_data</code>/orf-profiles/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.smooth.frac-<code>fraction</code>.rw-<code>reweighting-iterations</code>.profiles.mtx.</p>
-</li>
+<li><strong>unsmoothed ORF profiles</strong>. A sparse <a href="http://math.nist.gov/MatrixMarket/formats.html">matrix market file</a> containing the profiles for all ORFs. <strong>N.B.</strong> The matrix market format uses base-1 indices.  <code>riboseq_data</code>/orf-profiles/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.profiles.mtx. </li>
 </ul>
 </li>
 </ul>
-<h3 id="Output-files">Output files<a class="anchor-link" href="#Output-files">&#182;</a></h3><ul>
+<h3 id="Output-files">Output files<a class="anchor-link" href="#Output-files">&#182;</a></h3><p>If replicates are merged, then these files will be created for each condition. Otherwise, they will be created for each sample (or both if the appropriate options are given).</p>
+<ul>
 <li><p>Estimates</p>
 <ul>
 <li><strong>the Bayes factor estimates</strong>. A BED12+ file which contains the estimated values for all ORFs (which pass the thresholds mentioned above). The first 12 columns are valid BED12 entries that are simply copied from the <code>orfs</code> BED file.  <code>riboseq_data</code>/orf-predictions/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.smooth.frac-<code>fraction</code>.rw-<code>reweighting-iterations</code>.bayes-factors.bed.gz. </li>
@@ -12233,7 +12226,7 @@ div#notebook {
 <ul>
 <li><p>Rp-Bp predictions</p>
 <ul>
-<li><p><strong>the ORFs</strong>. A BED12+ file containing the ORFs in the final prediction set (the longest ORF for each stop codon which meets the filtering criteria). <code>riboseq_data</code>/orf-predictions/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.smooth.frac-<code>fraction</code>.rw-<code>reweighting-iterations</code>.predicted-orfs.bed.gz.</p>
+<li><p><strong>the ORFs</strong>. A BED12+ file containing the ORFs in the final prediction set. <code>riboseq_data</code>/orf-predictions/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.smooth.frac-<code>fraction</code>.rw-<code>reweighting-iterations</code>.predicted-orfs.bed.gz.</p>
 </li>
 <li><p><strong>the DNA sequences</strong>. A fasta file containing the DNA sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. <code>riboseq_data</code>/orf-predictions/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.smooth.frac-<code>fraction</code>.rw-<code>reweighting-iterations</code>.predicted-orfs.dna.gz.</p>
 </li>
@@ -12244,7 +12237,7 @@ div#notebook {
 <li><p>Rp-chi predictions</p>
 <p>Please note that Rp-chi does not use smoothing; therefore, the filenames do not include the smoothing options.</p>
 <ul>
-<li><p><strong>the ORFs</strong>. A BED12+ file containing the ORFs in the final prediction set (the longest ORF for each stop codon which meets the filtering criteria). <code>riboseq_data</code>/orf-predictions/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.chisq.predicted-orfs.bed.gz.</p>
+<li><p><strong>the ORFs</strong>. A BED12+ file containing the ORFs in the final prediction set. <code>riboseq_data</code>/orf-predictions/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.chisq.predicted-orfs.bed.gz.</p>
 </li>
 <li><p><strong>the DNA sequences</strong>. A fasta file containing the DNA sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. <code>riboseq_data</code>/orf-predictions/<code>sample-name</code>[.<code>note</code>]-unique.length-<code>lengths</code>.offset-<code>offsets</code>.chisq.predicted-orfs.dna.gz.</p>
 </li>
@@ -12255,6 +12248,7 @@ div#notebook {
 </ul>
 </li>
 </ul>
+<p>Furthermore, there are "unfiltered" and "filtered" versions of the files. The "filtered" versions result from performing the filtering described n the paper (taking the longest predicted ORF for each stop codon, and then selecting the ORF with the highest expected Bayes factor among each group of overlapping ORFs). The "unfiltered" version contains all predictions.</p>
 
 </div>
 </div>
@@ -12343,6 +12337,14 @@ div#notebook {
 <li><p>[<code>--no-output</code>]. If this flag is present, stdout will be redirected to /dev/null. This will be translated into an sbatch request like: "--output=/dev/null". default: If the flag is not present, then stdout will be directed to a log file with the job number. This corresponds to "--output=slurm-%J.out" in the sbatch call.</p>
 </li>
 <li><p>[<code>--no-error</code>]. If this flag is present, stderr will be redirected to /dev/null. This will be translated into an sbatch request like: "--error=/dev/null". default: If the flag is not present, then stderr will be directed to a log file with the job number. This corresponds to "--error=slurm-%J.err" in the sbatch call.</p>
+</li>
+<li><p>[<code>--stdout-file</code>]. If this is present and the --no-output flag is not given, then stdout will be directed to this file. This corresponds to "--output=<code>stdout-file</code>" in the sbatch call. default: slurm-%J.out</p>
+</li>
+<li><p>[<code>--stderr-file</code>]. If this is present and the --no-error flag is not given, then stderr will be directed to this file. This corresponds to "--error=<code>stderr-file</code>" in the sbatch call. default: slurm-%J.err</p>
+</li>
+<li><p>[<code>--mail-type</code>]. When to send an email notifcation of the job status. See official documentation for a description of the values. If a mail-user is not specified, this will revert to 'None'. Defaut: FAIL TIME_LIMIT</p>
+</li>
+<li><p>[<code>--mail-user</code>]. To whom an email will be sent, in accordance with mail-type. default: None</p>
 </li>
 </ul>
 

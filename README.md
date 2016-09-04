@@ -6,7 +6,7 @@ This package is written in python3. Internally, pip3 is used to install the pyth
 
 Installation is managed through pip3. The required privileges are determined by the installation location of pip3. In particular, if pip3 does not require sudo access, then none of the installation process requires sudo access; this is the case within a virtual environment, for example.
 
-Installation requires running make:
+Installation requires running pip:
 
 ``pip3 install --verbose .``
 
