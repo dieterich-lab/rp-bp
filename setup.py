@@ -33,7 +33,9 @@ external_requirements =  [
     'pyfasta',
     'pystan',
     'pybedtools',
-    'pyyaml'
+    'pyyaml',
+    'psutil',
+    'patsy' # no idea what this is for...
 ]
 
 internal_requirements = {
