@@ -12,6 +12,8 @@ lowess = sm.nonparametric.lowess
 
 import misc.bio as bio
 import misc.external_sparse_matrix_list as external_sparse_matrix_list
+import misc.logging_utils as logging_utils
+import misc.math_utils as math_utils
 import misc.parallel as parallel
 import misc.utils as utils
 
@@ -24,6 +26,8 @@ default_reweighting_iterations = 0
 
 default_num_cpus = 1
 default_num_orfs = 0
+
+logger = logging.getLogger(__name__)
 
 def smooth_profile(profile, args):
 
@@ -46,7 +50,7 @@ def smooth_profile(profile, args):
     smoothed_profile = np.zeros_like(profile)
 
     msg = "Length of profile: {}".format(len(profile))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # make sure the length is okay
     if (args.min_length > 0) and (neg_index < args.min_length):
@@ -134,13 +138,13 @@ def main():
     parser.add_argument('-k', '--num-orfs', help="If  n>0, then only the first n orfs "
         "will be processed.", type=int, default=default_num_orfs)
 
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     # read in the regions and apply the filters
     msg = "Reading ORFs"
-    logging.info(msg)
+    logger.info(msg)
 
     orfs = bio.read_bed(args.orfs)
     
@@ -151,7 +155,7 @@ def main():
     orfs = orfs.sort_values('orf_num')
     
     msg = "Reading profiles"
-    logging.info(msg)
+    logger.info(msg)
 
     profiles = scipy.io.mmread(args.profiles).tolil()
 
@@ -159,10 +163,10 @@ def main():
         profiles = profiles[:args.num_orfs]
 
         msg = "Only using first {} ORF profiles".format(args.num_orfs)
-        logging.debug(msg)
+        logger.debug(msg)
 
     msg = "Adding end-of-ORF marker to all ORFs"
-    logging.info(msg)
+    logger.info(msg)
 
     orf_lengths = np.array(orfs['orf_len'])
     for i in range(profiles.shape[0]):
@@ -172,11 +176,11 @@ def main():
     profiles = profiles.tocsr()
     
     msg = "Smoothing profiles"
-    logging.info(msg)
+    logger.info(msg)
 
     total = profiles.shape[0]
     msg = "Number of sparse row vectors: {}".format(total)
-    logging.debug(msg)
+    logger.debug(msg)
 
     smoothed_profiles_list = parallel.apply_parallel_iter(
         profiles,  args.num_cpus, 
@@ -184,14 +188,14 @@ def main():
         progress_bar=True, total=total)
 
     msg = "Converting smoothed profiles into sparse matrix"
-    logging.info(msg)
+    logger.info(msg)
 
     smoothed_profiles = external_sparse_matrix_list.to_sparse_matrix(smoothed_profiles_list)
 
     msg = "Writing sparse matrix to disk"
-    logging.info(msg)
+    logger.info(msg)
 
-    scipy.io.mmwrite(args.out, smoothed_profiles)
+    math_utils.write_sparse_matrix(args.out, smoothed_profiles)
 
 if __name__ == '__main__':
     main()

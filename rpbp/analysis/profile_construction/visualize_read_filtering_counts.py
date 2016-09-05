@@ -107,9 +107,10 @@ def main():
         ylabels = np.arange(0, args.ymax, args.ystep)
         yticks = (ylabels, ylabels)
 
-    edge_colors = [matplotlib.colors.cnames['darkgrey']] * (len(names)+1)
+    #edge_colors = [matplotlib.colors.cnames['darkgrey']] * (len(names)+1)
+    edge_colors = None
 
-    lgd = SBG.stackedBarPlot(ax,
+    bars = SBG.stackedBarPlot(ax,
                         diff,
                         colors,
                         edgeCols=edge_colors,
@@ -126,6 +127,7 @@ def main():
                         legend_ncol=2,
                         font_size=args.font_size
                         )
+    lgd = ax.get_legend()
     ltext = lgd.get_texts()
     plt.setp(ltext, fontsize=20)
     lgd.set_title("Filter reason")

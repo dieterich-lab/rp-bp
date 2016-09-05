@@ -12,7 +12,7 @@ In total, creating the reference index files should take about 5 minutes and run
 <a id='toc'</a>
 * [Example dataset files](#example-dataset-files)
 * [Creating the reference index files](#creating-reference-indices)
-* [Running the Rp-Bp pipeline](#running-rpbp-pipeline)
+* [Running the Rp-Bp pipeline (also with replicates)](#running-rpbp-pipeline)
 * [Validating the Rp-Bp prediction results](#validating-results)
 
 <a id="example-dataset-files"></a>
@@ -32,11 +32,11 @@ The example dataset is distributed as a .tar.gz file and includes the following:
 
 * `riboseq-adapters.fa`. An example adapter file for use with `flexbar`. It includes typical TruSeq and ArtSeq adapters, as well as a few adapters from the literature. It also includes a custom adapter used to create the sample dataset.
 
-* `test-chrI.fastq.gz`. A small test sequencing dataset. It has been constructed to include some reads which uniquely map to the annotated transcripts, some reads which map to ribosomal sequences, some reads which do not uniquely map to the genome and some reads which are filtered due to quality issues.
+* `c-elegans.test-chrI.rep-1.fastq.gz`. A small test sequencing dataset. It has been constructed to include some reads which uniquely map to the annotated transcripts, some reads which map to ribosomal sequences, some reads which do not uniquely map to the genome and some reads which are filtered due to quality issues.
 
-* `c-elegans-test.expected.predicted-orfs.bed.gz`. The expected predictions using the Rp-Bp pipeline.
+* `c-elegans.test-chrI.rep-2.fastq.gz`. Another small test sequencing dataset.
 
-* `c-elegans-test.expected.chisq.predicted-orfs.bed.gz`. The expected predictions using the Rp-chi pipeline.
+* `expected-orf-predictions`. The expected predictions and sequence files for each replicate (c-elegans-rep-1 and c-elegans-rep-2 files) and the merged replicates (c-elegans-test files). Please see the [usage instructions](usage-instructions.ipynb#logging-options) for the meaning of each of the files.
 
 **Downloading from the command line**
 
@@ -60,6 +60,7 @@ wget http://cloud.dieterichlab.org/index.php/s/3cyluM3ZCsvf0PT/download -O c-ele
 * `ribosomal_fasta`
 * `genome_base_path`
 * `ribosomal_index`
+* `star_index`
 
 The following command will create the necessary reference files using 2 CPUS and 4GB of RAM for STAR. Please see the [usage instructions](usage-instructions.ipynb#creating-reference-genome-indices) for the expected output files.
 
@@ -88,12 +89,12 @@ Reference files and locations should be exactly the same as used in the  `WBcel2
 * `fasta`
 * `genome_base_path`
 * `ribosomal_index`
+* `star_index`
 
-Samples and models file paths must also be updated.
+The sample and output file paths must also be updated.
 
-* `riboseq_samples/c-elegans-chrI`
+* `riboseq_samples`
 * `riboseq_data`
-* `models_base`. This shoud point to the `models` folder of the rp-bp installation
 * `adapter_file`
 
 The following command will run the Rp-Bp (and Rp-chi) translation prediction pipelines using 2 CPUS. Please see the [usage instructions](usage-instructions.ipynb#running-pipelines) for the expected output files.
@@ -104,9 +105,22 @@ N.B. The `--overwrite` flag is given below to ensure all of the files are (re-)c
 
 N.B. While performing the MCMC sampling, many messages indicating the "Elapsed Time" will be printed. This is a [known issue](https://github.com/stan-dev/pystan/issues/98) with pystan. Additionally, many "Informational Message: The current Metropolis proposal is about to be rejected because of the following issue" may also appear. These are also expected and (typically) do not indicate an actual problem.
 
+**Using replicates**
+
+The Rp-Bp pipeline handles replicates by adding the (smoothed) ORF profiles. The Bayes factors and predictions are then calculated based on the combined profiles. The `--merge-replicates` flag indicates that the replicates should be merged. By default, if the `--merge-replicates` flag is given, then predictions will not be made for the individual datasets. The `--run-replicates` flag can be given to override this and make predictions for both the merged replicates as well as the individual datasets.
+
+The replicates are specified by `riboseq_biological_replicates` in the configuration file. This value should be a dictionary, where the key of the dictionary is a string description of the condition and the value is a list that gives all of the sample replicates which belong to that condition. The names of the sample replicates must match the dataset names specified in `riboseq_samples`.
+
 
 ```python
+# running on each dataset separately
 process-all-samples c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO
+
+# merging the replicates, do not calculate Bayes factors and make predictions for individual datasets
+process-all-samples c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates
+
+# merging the replicates and calculating Bayes factors and making predictions for individual datasets
+process-all-samples c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates --run-replicates
 ```
 
 [Back to top](#toc)
@@ -124,10 +138,10 @@ The following command will print the number of unique bases to the predictions a
 
 ```python
 # to check the predictions from Rp-Bp
-calculate-bed-overlap c-elegans-test.expected.predicted-orfs.bed.gz orf-predictions/c-elegans-chrI.test-unique.length-29.offset-12.predicted-orfs.bed.gz
+calculate-bed-overlap c-elegans-test.expected.rpbp.predicted-orfs.bed.gz orf-predictions/c-elegans-chrI.test-unique.length-29.offset-12.predicted-orfs.bed.gz
 
 # to check the predictions from Rp-chi
-calculate-bed-overlap c-elegans-test.expected.chisq.predicted-orfs.bed.gz orf-predictions/c-elegans-chrI.test-unique.length-29.offset-12.chisq.predicted-orfs.bed.gz
+calculate-bed-overlap c-elegans-test.expected.rpchi.predicted-orfs.bed.gz orf-predictions/c-elegans-chrI.test-unique.length-29.offset-12.chisq.predicted-orfs.bed.gz
 ```
 
 [Back to top](#toc)

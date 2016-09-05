@@ -7,12 +7,15 @@ import sys
 
 import yaml
 
+import misc.logging_utils as logging_utils
 import misc.slurm as slurm
 import misc.utils as utils
 
+logger = logging.getLogger(__name__)
 
 default_num_procs = 1
 default_tmp = None # utils.abspath('tmp')
+default_flexbar_format_option = None
 default_star_executable = "STAR"
 
 
@@ -30,19 +33,23 @@ def main():
 
     parser.add_argument('--star-executable', help="The name of the STAR executable",
         default=default_star_executable)
-        
+    
+    parser.add_argument('--flexbar-format-option', help="The name of the \"format\" "
+        "option for flexbar. This changed from \"format\" to \"qtrim-format\" in "
+        "version 2.7.", default=default_flexbar_format_option)
+    
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
 
     parser.add_argument('--profiles-only', help="If this flag is present, then only "
-        "the smoothed ORF profiles will be created", action='store_true')
+        "the ORF profiles will be created", action='store_true')
            
     slurm.add_sbatch_options(parser)
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
-    logging_str = utils.get_logging_options_string(args)
+    logging_str = logging_utils.get_logging_options_string(args)
 
     config = yaml.load(open(args.config))
     call = not args.do_not_call
@@ -54,15 +61,12 @@ def main():
                     args.star_executable,
                     'samtools',
                     'bowtie2',
-                    'bamToBed',
-                    'fastaFromBed',
                     'create-base-genome-profile',
                     'remove-multimapping-reads',
                     'extract-metagene-profiles',
                     'estimate-metagene-profile-bayes-factors',
                     'select-periodic-offsets',
                     'extract-orf-profiles',
-                    'smooth-orf-profiles',
                     'estimate-orf-bayes-factors',
                     'select-final-prediction-set',
                     'create-orf-profiles',
@@ -74,18 +78,18 @@ def main():
     required_keys = [   
                         'riboseq_data',
                         'ribosomal_index',
+                        'star_index',
                         'genome_base_path',
                         'genome_name',
                         'fasta',
-                        'gtf',
-                        'models_base'
+                        'gtf'
                     ]
     utils.check_keys_exist(config, required_keys)
 
     
     # now, check if we want to use slurm
     msg = "use_slurm: {}".format(args.use_slurm)
-    logging.debug(msg)
+    logger.debug(msg)
 
     if args.use_slurm:
         cmd = ' '.join(sys.argv)
@@ -113,9 +117,14 @@ def main():
     if args.tmp is not None:
         tmp_str = "--tmp {}".format(args.tmp)
 
-    cmd = ("create-orf-profiles {} {} {} --num-cpus {} {} {} {} {} {}".format(args.raw_data, 
+    flexbar_format_option_str = ""
+    if args.flexbar_format_option is not None:
+        flexbar_format_option_str = "--flexbar-format-option {}".format(
+            args.flexbar_format_option)
+
+    cmd = ("create-orf-profiles {} {} {} --num-cpus {} {} {} {} {} {} {}".format(args.raw_data, 
             args.config, args.name, args.num_cpus, do_not_call_str, overwrite_str, 
-            logging_str, star_str, tmp_str))
+            logging_str, star_str, tmp_str, flexbar_format_option_str))
 
     utils.check_call(cmd)
 

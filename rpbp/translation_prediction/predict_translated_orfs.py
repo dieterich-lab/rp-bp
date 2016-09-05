@@ -8,6 +8,7 @@ import pandas as pd
 
 import yaml
 
+import misc.logging_utils as logging_utils
 import misc.utils as utils
 
 import riboutils.ribo_utils as ribo_utils
@@ -15,10 +16,12 @@ import riboutils.ribo_filenames as filenames
 
 logger = logging.getLogger(__name__)
 
+default_models_base = filenames.get_default_models_base()
+
 default_num_cpus = 2
 default_tmp = None # utils.abspath('tmp')
 
-def get_smooth_profile(name, config, args):
+def get_profile(name, config, args):
     """ This helper function constructs the name of the smooth profile file
         from the given parameters.
     """
@@ -27,21 +30,18 @@ def get_smooth_profile(name, config, args):
         name, args.do_not_call)
 
     note_str = config.get('note', None)
-    fraction = config.get('smoothing_fraction', None)
-    reweighting_iterations = config.get('smoothing_reweighting_iterations', None)
-
+    
     if len(lengths) == 0:
         msg = ("No periodic read lengths and offsets were found. Try relaxing "
             "min_metagene_profile_count, min_metagene_bf_mean, max_metagene_bf_var, "
-            "and/or min_metagene_bf_likelihood. Qutting.")
+            "and/or min_metagene_bf_likelihood.")
         logger.critical(msg)
         return
 
-    smooth_profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
-        length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
-        fraction=fraction, reweighting_iterations=reweighting_iterations)
+    profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
+        length=lengths, offset=offsets, is_unique=True, note=note_str)
 
-    return smooth_profiles
+    return profiles
 
 
 def main():
@@ -70,11 +70,11 @@ def main():
         "of the individual replicates.\n\nN.B. If this flag is is present, the --overwrite "
         "flag will automatically be set!", action='store_true')
         
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
-    logging_str = utils.get_logging_options_string(args)
+    logging_str = logging_utils.get_logging_options_string(args)
 
     config = yaml.load(open(args.config))
     call = not args.do_not_call
@@ -82,9 +82,7 @@ def main():
     # check that all of the necessary programs are callable
     programs =  [   
                     'estimate-orf-bayes-factors',
-                    'select-final-prediction-set',
-                    'bamToBed',
-                    'fastaFromBed'
+                    'select-final-prediction-set'
                 ]
     utils.check_programs_exist(programs)
 
@@ -92,10 +90,11 @@ def main():
     required_keys = [   'riboseq_data',
                         'fasta',
                         'genome_base_path',
-                        'genome_name',
-                        'models_base'
+                        'genome_name'
                     ]
     utils.check_keys_exist(config, required_keys)
+
+    models_base = config.get('models_base', default_models_base)
 
     note_str = config.get('note', None)
 
@@ -120,44 +119,54 @@ def main():
         # now, actually merge the replicates
         riboseq_replicates = ribo_utils.get_riboseq_replicates(config)
 
-        # we need all of the replicate smooth profiles
-        smooth_replicate_profiles = [
-            get_smooth_profile(name, config, args) for name in riboseq_replicates[args.name]
-        ]
-
-        smooth_replicate_profiles_str = ' '.join(smooth_replicate_profiles)
-
-
         # we will not use the lengths and offsets in the filenames
         lengths = None
         offsets = None
 
-        # we will call the merged profiles 'smooth_profiles' to match the rest of the pipeline
-        smooth_profiles = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
-            length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
-            fraction=fraction, reweighting_iterations=reweighting_iterations)
+        # we will also merge all of unsmoothed profiles
+        replicate_profiles = [
+            get_profile(name, config, args) for name in riboseq_replicates[args.name]
+        ]
 
-        cmd = "merge-replicate-orf-profiles {} {} {}".format(smooth_replicate_profiles_str,
-            smooth_profiles, logging_str)
-        in_files = smooth_replicate_profiles
-        out_files = [smooth_profiles]
+        replicate_profiles_str = ' '.join(replicate_profiles)
+
+        profiles = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
+            length=lengths, offset=offsets, is_unique=True, note=note_str)
+
+        cmd = "merge-replicate-orf-profiles {} {} {}".format(replicate_profiles_str,
+            profiles, logging_str)
+        in_files = replicate_profiles
+        out_files = [profiles]
+
+        # todo: implement file checker for mtx files
         utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+
 
     else:
         # otherwise, just treat things as normal
         # get the lengths and offsets which meet the required criteria from the config file
         lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, 
             args.name, args.do_not_call)
-        smooth_profiles = get_smooth_profile(args.name, config, args)
+        
+        profiles = get_profile(args.name, config, args)
         
     # estimate the bayes factors
     bayes_factors = filenames.get_riboseq_bayes_factors(config['riboseq_data'], args.name, 
-        length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
+        length=lengths, offset=offsets, is_unique=True, note=note_str, 
         fraction=fraction, reweighting_iterations=reweighting_iterations)
+
+    # the smoothing options
+    min_length_str = utils.get_config_argument(config, 'min_orf_length', 'min-length')
+    max_length_str = utils.get_config_argument(config, 'max_orf_length', 'max-length')
+    min_profile_str = utils.get_config_argument(config, 'min_signal', 'min-profile')
+
+    fraction_str = utils.get_config_argument(config, 'smoothing_fraction', 'fraction')
+    reweighting_iterations_str = utils.get_config_argument(config, 
+        'smoothing_reweighting_iterations', 'reweighting-iterations')
     
     # parse out all of the options from the config file, if they are present
-    translated_models = filenames.get_models(config['models_base'], 'translated')
-    untranslated_models = filenames.get_models(config['models_base'], 'untranslated')
+    translated_models = filenames.get_models(models_base, 'translated')
+    untranslated_models = filenames.get_models(models_base, 'untranslated')
 
     translated_models_str = ' '.join(translated_models)
     untranslated_models_str = ' '.join(untranslated_models)
@@ -177,65 +186,80 @@ def main():
         chi_square_only = True
         chi_square_only_str = "--chi-square-only"
 
-    cmd = "estimate-orf-bayes-factors {} {} {} {} {} {} {} {} {} {} {} --num-cpus {}".format(
-        smooth_profiles, orfs_genomic, bayes_factors, translated_models_str, untranslated_models_str, 
-        logging_str, orf_types_str, seed_str, 
-        iterations_str, chains_str, chi_square_only_str, args.num_cpus)
+    cmd = ("estimate-orf-bayes-factors {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} "
+        "--num-cpus {}".format(
+        profiles, orfs_genomic, bayes_factors, translated_models_str, untranslated_models_str, 
+        logging_str, 
+        orf_types_str, min_length_str, max_length_str, min_profile_str, 
+        fraction_str, reweighting_iterations_str,
+        seed_str, iterations_str, chains_str, chi_square_only_str, args.num_cpus))
     
-    in_files = [smooth_profiles, orfs_genomic]
+    in_files = [profiles, orfs_genomic]
     in_files.extend(translated_models)
     in_files.extend(untranslated_models)
     out_files = [bayes_factors]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+    file_checkers = {
+        bayes_factors: utils.check_gzip_file
+    }
+    msg = "estimate-bayes-factors in_files: {}".format(in_files)
+    logger.debug(msg)
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
 
-    # now, select the ORFs (longest for each stop codon) which pass the prediction filters
-    predicted_orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-        args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
-        fraction=fraction, reweighting_iterations=reweighting_iterations)
-    predicted_orfs_dna = filenames.get_riboseq_predicted_orfs_dna(config['riboseq_data'], 
-        args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=True, 
-        fraction=fraction, reweighting_iterations=reweighting_iterations)
-    predicted_orfs_protein = filenames.get_riboseq_predicted_orfs_protein(
-        config['riboseq_data'], args.name, length=lengths, offset=offsets, 
-        is_unique=True, note=note_str, is_smooth=True, 
-        fraction=fraction, reweighting_iterations=reweighting_iterations)
+    is_chisq_values = [True, False]
+    if chi_square_only:
+        is_chisq_values = [True]
 
-    min_bf_mean_str = utils.get_config_argument(config, 'min_bf_mean')
-    max_bf_var_str = utils.get_config_argument(config, 'max_bf_var')
-    min_bf_likelihood_str = utils.get_config_argument(config, 'min_bf_likelihood')
+    for is_filtered in [True, False]:
+            
+        for is_chisq in is_chisq_values:
 
-    cmd = "select-final-prediction-set {} {} {} {} {} {} {} {} {}".format(bayes_factors, 
-        config['fasta'], predicted_orfs, predicted_orfs_dna, 
-        predicted_orfs_protein, min_bf_mean_str, max_bf_var_str, 
-        min_bf_likelihood_str, logging_str)
-    in_files = [bayes_factors, config['fasta']]
-    out_files = [predicted_orfs, predicted_orfs_dna, predicted_orfs_protein]
+            filtered_str = ""
+            if is_filtered:
+                filtered_str = "--select-longest-by-stop --select-best-overlapping"
+                
+            if is_chisq:
+                chisq_str = "--use-chi-square"
+            else:
+                chisq_str = ""
+
+            # now, select the ORFs (longest for each stop codon) which pass the prediction filters
+            predicted_orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
+                args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+                fraction=fraction, reweighting_iterations=reweighting_iterations,
+                is_filtered=is_filtered, is_chisq=is_chisq)
+            predicted_orfs_dna = filenames.get_riboseq_predicted_orfs_dna(config['riboseq_data'], 
+                args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+                fraction=fraction, reweighting_iterations=reweighting_iterations,
+                is_filtered=is_filtered, is_chisq=is_chisq)
+            predicted_orfs_protein = filenames.get_riboseq_predicted_orfs_protein(
+                config['riboseq_data'], args.name, length=lengths, offset=offsets, 
+                is_unique=True, note=note_str,
+                fraction=fraction, reweighting_iterations=reweighting_iterations,
+                is_filtered=is_filtered, is_chisq=is_chisq)
+
+            min_bf_mean_str = utils.get_config_argument(config, 'min_bf_mean')
+            max_bf_var_str = utils.get_config_argument(config, 'max_bf_var')
+            min_bf_likelihood_str = utils.get_config_argument(config, 'min_bf_likelihood')
+        
+            chisq_significance_level_str = utils.get_config_argument(config, 'chisq_significance_level')
+            min_profile_str = utils.get_config_argument(config, 'min_signal', 'minimum-profile-sum')
+
+            cmd = "select-final-prediction-set {} {} {} {} {} {} {} {} {} {} {}".format(bayes_factors, 
+                config['fasta'], predicted_orfs, predicted_orfs_dna, 
+                predicted_orfs_protein, min_bf_mean_str, max_bf_var_str, 
+                min_bf_likelihood_str, logging_str, chisq_str, filtered_str)
+            in_files = [bayes_factors, config['fasta']]
+            out_files = [predicted_orfs, predicted_orfs_dna, predicted_orfs_protein]
+
+            file_checkers = {
+                predicted_orfs: utils.check_gzip_file
+            }
+
+            # todo: implement file checker for fasta files
+            utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+                file_checkers=file_checkers, overwrite=args.overwrite, call=call)
     
-    # do not make the call if we want chisq only
-    predict_call = call and not chi_square_only
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=predict_call)
-    
-    # finally, repeat the selection step for chi-square
-    predicted_orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-        args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, is_chisq=True, is_smooth=True, 
-        fraction=fraction, reweighting_iterations=reweighting_iterations)
-    predicted_orfs_dna = filenames.get_riboseq_predicted_orfs_dna(config['riboseq_data'], 
-        args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, is_chisq=True, is_smooth=True, 
-        fraction=fraction, reweighting_iterations=reweighting_iterations)
-    predicted_orfs_protein = filenames.get_riboseq_predicted_orfs_protein(
-        config['riboseq_data'], args.name, length=lengths, offset=offsets, 
-        is_unique=True, note=note_str, is_chisq=True, is_smooth=True, 
-        fraction=fraction, reweighting_iterations=reweighting_iterations)
-
-    chisq_significance_level_str = utils.get_config_argument(config, 'chisq_significance_level')
-    min_profile_str = utils.get_config_argument(config, 'min_signal', 'minimum-profile-sum')
-
-    cmd = "select-final-prediction-set {} {} {} {} {} {} {} --use-chi-square".format(bayes_factors, 
-        config['fasta'], predicted_orfs, predicted_orfs_dna, 
-        predicted_orfs_protein, chisq_significance_level_str, logging_str)
-    in_files = [bayes_factors, config['fasta']]
-    out_files = [predicted_orfs, predicted_orfs_dna, predicted_orfs_protein]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
 if __name__ == '__main__':
     main()

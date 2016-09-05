@@ -8,6 +8,11 @@ __pycache__
 *log
 *converted-to.pdf
 *vim
+*swp
+
+scratch*ipynb
+
+*bak
 
 old
 src

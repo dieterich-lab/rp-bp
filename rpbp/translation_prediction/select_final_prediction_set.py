@@ -5,12 +5,18 @@ import logging
 import pandas as pd
 
 import pybedtools
-from Bio.Seq import Seq
+import Bio.Seq
 
 import misc.bio as bio
+import misc.bio_utils.bed_utils as bed_utils
+import misc.bio_utils.fastx_utils as fastx_utils
+import misc.logging_utils as logging_utils
 import misc.utils as utils
+import misc.parallel as parallel
 
 import riboutils.ribo_utils as ribo_utils
+
+logger = logging.getLogger(__name__)
 
 default_min_bf_mean = 5
 default_min_bf_likelihood = 0.5
@@ -23,6 +29,26 @@ default_chi_square_field = 'chi_square_p'
 default_bf_mean_field = 'bayes_factor_mean'
 default_bf_var_field = 'bayes_factor_var'
 default_profile_sum_field = 'profile_sum'
+
+default_filtered_orf_types = []
+non_canonical_overlap_orf_types = [
+    'five_prime_overlap',
+    'suspect_overlap',
+    'three_prime_overlap',
+    'within'
+]
+non_canonical_overlap_orf_types_str = ','.join(non_canonical_overlap_orf_types)
+
+def get_best_overlapping_orf(merged_ids, predicted_orfs):
+    if len(merged_ids) == 1:
+        m_id = predicted_orfs['id'] == merged_ids[0]
+        return predicted_orfs[m_id].iloc[0]
+    
+    m_orfs = predicted_orfs['id'].isin(merged_ids)
+    
+    sorted_orfs = predicted_orfs[m_orfs].sort_values('bayes_factor_mean', ascending=False)
+    best_overlapping_orf_id = sorted_orfs.iloc[0]
+    return best_overlapping_orf_id
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -57,6 +83,16 @@ def main():
     parser.add_argument('predicted_protein_sequences', help="The (output) fasta file "
         "containing the predicted ORF sequences, as protein sequences")
 
+    parser.add_argument('--select-longest-by-stop', help="If this flag is given, then "
+        "the selected ORFs will be merged based on stop codons. In particular, only the "
+        "longest translated ORF at each stop codon will be selected.", action='store_true')
+
+    parser.add_argument('--select-best-overlapping', help="If this flag is given, then "
+        "only the ORF with the highest estimated Bayes factor will be kept among each "
+        "set of overlapping ORFs. N.B. This filter is applied *AFTER* selecting the "
+        "longest ORF at each stop codon, if the --select-longest-by-stop flag is "
+        "given.", action='store_true')
+
     parser.add_argument('--min-length', help="The minimum length to predict an ORF "
         "as translated", type=int, default=default_min_length)
     
@@ -77,58 +113,95 @@ def main():
     parser.add_argument('--chisq-significance-level', help="If using chi square, then this "
         "value is Bonferroni corrected and used as the significance cutoff", type=float, 
         default=default_chisq_significance_level)
-    
-    utils.add_logging_options(parser)
-    args = parser.parse_args()
-    utils.update_logging(args)
 
-    programs = ['fastaFromBed']
-    utils.check_programs_exist(programs)
+    parser.add_argument('--filtered-orf-types', help="A list of ORF types which will be "
+        "removed before selecting the final prediction set.", nargs='*', 
+        default=default_filtered_orf_types)
+
+    parser.add_argument('--filter-non-canonical-overlaps', help="If this flag is given, then "
+        "--filtered-orf-types will be extended with the non-canonical overlap types ({})."
+        .format(non_canonical_overlap_orf_types_str), action='store_true')
+        
+    
+    logging_utils.add_logging_options(parser)
+    args = parser.parse_args()
+    logging_utils.update_logging(args)
 
     # first, extract all of the predictions which exceed the threshold
+    msg = "Reading Bayes factor information"
+    logger.info(msg)
+    
+    bayes_factors = bed_utils.read_bed(args.bayes_factors)
+
+    if args.filter_non_canonical_overlaps:
+        args.filtered_orf_types.extend(non_canonical_overlap_orf_types)
+
+    if len(args.filtered_orf_types) > 0:
+        filtered_orf_types_str = ','.join(args.filtered_orf_types)
+        msg = "Filtering these ORF types: {}".format(filtered_orf_types_str)
+        logger.info(msg)
+
+        m_filtered_orf_types = bayes_factors['orf_type'].isin(args.filtered_orf_types)
+        bayes_factors = bayes_factors[~m_filtered_orf_types]
+
     msg = "Identifying ORFs which meet the prediction thresholds"
-    logging.info(msg)
-
-    bayes_factors = bio.read_bed(args.bayes_factors)
-
-    longest_orfs, bf_orfs, chisq_orfs = ribo_utils.get_predicted_orfs(bayes_factors, 
+    all_orfs, bf_orfs, chisq_orfs = ribo_utils.get_predicted_orfs(bayes_factors, 
                                                        min_bf_mean=args.min_bf_mean, 
                                                        max_bf_var=args.max_bf_var, 
                                                        min_bf_likelihood=args.min_bf_likelihood,
                                                        min_length=args.min_length,
-                                                       chisq_alpha=args.chisq_significance_level)
+                                                       chisq_alpha=args.chisq_significance_level,
+                                                       select_longest_by_stop=args.select_longest_by_stop
+                                                       )
     
     if args.use_chi_square:
-        longest_predicted_orfs = chisq_orfs
+        predicted_orfs = chisq_orfs
     else:
-        longest_predicted_orfs = bf_orfs
+        predicted_orfs = bf_orfs
 
-    msg = "Number of longest ORFs: {}".format(len(longest_predicted_orfs))
-    logging.info(msg)
+    msg = "Number of selected ORFs: {}".format(len(predicted_orfs))
+    logger.info(msg)
 
-    bio.write_bed(longest_predicted_orfs, args.predicted_orfs)
+    if args.select_best_overlapping:
+
+        msg = "Finding overlapping ORFs"
+        logger.info(msg)
+
+        merged_intervals = bed_utils.merge_all_intervals(predicted_orfs)
+
+        msg = "Selecting best among overlapping ORFs"
+        logger.info(msg)
+
+        predicted_orfs = parallel.apply_iter_simple(merged_intervals['merged_ids'], 
+            get_best_overlapping_orf, predicted_orfs, progress_bar=True)
+        predicted_orfs = pd.DataFrame(predicted_orfs)
+
+    msg = "Sorting selected ORFs"
+    logger.info(msg)
+
+    predicted_orfs = bed_utils.sort(predicted_orfs)
+
+    msg = "Writing selected ORFs to disk"
+    logger.info(msg)
+    bed_utils.write_bed(predicted_orfs, args.predicted_orfs)
 
     # now get the sequences
     msg = "Extracting predicted ORFs DNA sequence"
-    logging.info(msg)
+    logger.info(msg)
 
-    # first, convert the dataframe to a bedtool
-    filtered_predictions_bed = pybedtools.BedTool.from_dataframe(longest_predicted_orfs[bio.bed12_field_names])
-
-    # now, pull out the sequences
-    predicted_dna_sequences = filtered_predictions_bed.sequence(fi=args.fasta, 
-            split=True, s=True, name=True)
-    predicted_dna_sequences.save_seqs(args.predicted_dna_sequences)
+    split_exons = True
+    transcript_sequences = bed_utils.get_all_bed_sequences(predicted_orfs, args.fasta, split_exons)
+    fastx_utils.write_fasta(transcript_sequences, args.predicted_dna_sequences, compress=False)
 
     # translate the remaining ORFs into protein sequences
     msg = "Converting predicted ORF sequences to amino acids"
-    logging.info(msg)
+    logger.info(msg)
 
-    records = bio.get_read_iterator(args.predicted_dna_sequences)
+    records = fastx_utils.get_read_iterator(args.predicted_dna_sequences)
     protein_records = {
-        r[0]: str(Seq(r[1]).translate()) for r in records
+        r[0]: Bio.Seq.translate(r[1]) for r in records
     }
-    bio.write_fasta(protein_records, args.predicted_protein_sequences, compress=False)
+    fastx_utils.write_fasta(protein_records.items(), args.predicted_protein_sequences, compress=False)
 
 if __name__ == '__main__':
     main()

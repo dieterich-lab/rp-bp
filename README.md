@@ -4,11 +4,11 @@ This project contains scripts for running the Rp-Bp and Rp-chi translation predi
 
 This package is written in python3. Internally, pip3 is used to install the python dependencies. It has a number of external dependencies, mostly standard bioinformatics tools. Please see [docs/usage-instructions.md](docs/usage-instructions.md#prerequisites). (Locally, ``docs/usage-instructions.html`` may be easier to view.)
 
-Installation is managed through the included makefile. The required privileges are determined by the installation location of pip3. In particular, if pip3 does not require sudo access, then none of the installation process requires sudo access; this is the case within a virtual environment, for example.
+Installation is managed through pip3. The required privileges are determined by the installation location of pip3. In particular, if pip3 does not require sudo access, then none of the installation process requires sudo access; this is the case within a virtual environment, for example.
 
-Installation requires running make:
+Installation requires running pip:
 
-``make``
+``pip3 install --verbose .``
 
 
 If possible, we recommend installing inside a virtual environment.
@@ -17,16 +17,9 @@ Please see [docs/installation.md](docs/installation.md) for more detailed instal
 
 #Uninstallation instruction
 
-The python packages can also be removed with make.
-
-**This will uninstall all of the required packages (e.g., numpy, pandas, etc.) as well as rp-bp. It will also delete the compiled Stan models.**
-
-``make clean``
-
-The rp-bp packages (only) can be uninstalled with pip3.
+The rp-bp python packages can also be removed with pip.
 
 ``pip3 uninstall misc riboutils rpbp``
-
 
 
 #Usage instructions

@@ -8,128 +8,25 @@ import re
 import numpy as np
 import pandas as pd
 
-import pyfasta
 import pybedtools
 
 import misc.bio as bio
+import misc.bio_utils.bed_utils as bed_utils
+import misc.bio_utils.fastx_utils as fastx_utils
+import misc.bio_utils.gffread_utils as gffread_utils
+import misc.logging_utils as logging_utils
 import misc.parallel as parallel
 import misc.utils as utils
+
+logger = logging.getLogger(__name__)
+
+default_novel_id_re = ""
 
 default_start_codons = ['ATG']
 default_stop_codons = ['TAA', 'TGA', 'TAG']
 
 default_num_cpus = 1
 default_num_transcripts = 0
-
-# build up the header regular expression
-transcript_id_re = r'(?P<transcript_id>\S+)'
-gene_re = r"(?:gene=(?P<gene>\S+))?"
-cds_re = r"(?:CDS=(?P<cds>\S+))?"
-loc_re = r"loc:(?P<seqname>\S+)\|(?P<seq_pos>\S+)\|(?P<strand>[+-])"
-exons_re = r"exons:(?P<exons>\S*)"
-segs_re = r"segs:(?P<segs>\S*)"
-
-# there is no need for the initial ">" because pyfasta strips it
-header_re = r"{}\s*{}\s*{}\s*{}\s*{}\s*{}".format(transcript_id_re,
-                                                  gene_re,
-                                                  cds_re,
-                                                  loc_re,
-                                                  exons_re,
-                                                  segs_re)
-
-header_re = re.compile(header_re)
-
-default_novel_id_re = ""
-
-fasta_header = collections.namedtuple(
-        "fasta_header",
-        "transcript_id,gene,cds_start,cds_end,seqname,strand,exon_starts,exon_ends,seg_starts,seg_ends"
-)
-
-def get_starts_ends(coords):
-    """ This function parses gffread-style coordinate strings into a pair of arrays.
-        The first array contains all of the start positions, and the second contains
-        all of the ends.
-
-        Args:
-            coords (string) : a string of coordinate pairs. For example:
-                1-56,57-261,262-543
-
-        Returns:
-            np.array : the first coordinate in each pair
-            np.array : the second coordinate in each pair
-    """
-    s = re.split('-|,', coords)
-    starts = np.array(s[0::2], dtype=int)
-    ends = np.array(s[1::2], dtype=int)
-    return starts, ends
-
-def parse_header(header, header_re):
-    """ This function parses out the exon (genomic) and segment (relative) coordinates
-        from the gffread-style fasta header.
-
-        Args:
-            header (string) : a gffread-style header. For example:
-                >ENST00000621500 gene=GPHB5 CDS=58-447 loc:14|63312835-63318879|- exons:63312835-63313116,63317646-63317850,63318824-63318879 segs:1-56,57-261,262-543
-
-            exons_segs_re (compiled reg ex) : a compiled regular expression which
-                parses the exons as the first "group" and the segments as the 
-                second "group"
-
-        Returns:
-            fasta_header namedtuple, with the following fields:
-                transcript_id (str, "ENST00000621500")
-                gene (str, "GPHB5")
-                cds_start (int, 58)
-                cds_end (int, 447)
-                seqname (str, "14")
-                strand (str, "-")
-                exon_starts (np.array of ints, the first (absolute) coordinate in each exon)
-                exon_ends (np.array of ints, the second (absolute) coordinate in each exon)
-                seg_starts (np.array of ints, the first (relative) coordinate in each exon)
-                seg_ends (np.array of ints, the second (relative) coordinate in each exon)
-
-    """
-    
-    m = header_re.match(header)
-
-    if m is None:
-        msg = "Failed parsing header. Header: '{}'".format(header)
-        raise ValueError(msg)
-
-    transcript_id = m.group('transcript_id')
-    gene = m.group('gene')
-    strand = m.group('strand')
-    seqname = m.group('seqname')
-    cds = m.group('cds')
-
-    exons = m.group('exons')
-    segs = m.group('segs')
-    
-    cds_start = None
-    cds_end = None
-    if cds is not None:
-        cds_start, cds_end = get_starts_ends(cds)
-        cds_start = cds_start[0]
-        cds_end = cds_end[0]
-    
-    exon_starts, exon_ends = get_starts_ends(exons)
-    seg_starts, seg_ends = get_starts_ends(segs)
-    
-    h = fasta_header(
-        transcript_id=transcript_id,
-        gene=gene,
-        cds_start=cds_start,
-        cds_end=cds_end,
-        seqname=seqname,
-        strand=strand,
-        exon_starts=exon_starts,
-        exon_ends=exon_ends,
-        seg_starts=seg_starts,
-        seg_ends=seg_ends
-    )
-    
-    return h
 
 def get_reverse_exon_index_gen_pos(rel_pos, exon_starts, exon_ends, seg_starts, seg_ends):
     """ This function converts a position in relative (i.e., transcript) coordinate into
@@ -467,16 +364,16 @@ def get_orfs_rel_pos(seq, start_codons_re, stop_codons_re):
     filtered_orfs = list(filter(lambda x: x[1] is not None, orfs))
     return np.asarray(filtered_orfs)
 
-def extract_orfs(header_seq, header_re, start_codons_re, stop_codons_re, ignore_parsing_errors):
+def extract_orfs(header_seq, start_codons_re, stop_codons_re, ignore_parsing_errors):
     header, seq = header_seq
     seq = str(seq)
 
     try:
-        h = parse_header(header, header_re)
+        h = gffread_utils.parse_header(header)
     except ValueError as ve:
         if ignore_parsing_errors:
             msg = "Could not parse header: '{}'".format(header)
-            logging.warning(msg)
+            logger.warning(msg)
             return None
         else:
             raise
@@ -497,18 +394,15 @@ def extract_orfs(header_seq, header_re, start_codons_re, stop_codons_re, ignore_
 
 
 
-def extract_canonical_orf(header_seq, header_re, start_codons_re, stop_codons_re, ignore_parsing_errors):
+def extract_canonical_orf(header_seq, start_codons_re, stop_codons_re, ignore_parsing_errors):
     """ This function checks if the given header includes an annotated CDS. If so,
         it extracts the information for that ORF.
 
         Args:
             header_seq (tuple) : the first item of the tuple is the fasta header
-                (without the ">"), and the second item is the pyfasta sequence object.
+                (without the ">"), and the second item is the sequence object.
                 The argument is given this way to make it easy to use this function
-                while iterating through the pyfasta file.
-
-            header_re (compiled re) : a compiled reg_ex object which is used to
-                parse the relevant information out of the header
+                while iterating through the sequences.
 
             start_codons_re, stop_codons_re (compiled re) : compiled reg_ex
                 objects used to locate start and stop codons, respectively
@@ -525,11 +419,11 @@ def extract_canonical_orf(header_seq, header_re, start_codons_re, stop_codons_re
 
     
     try:
-        h = parse_header(header, header_re)
+        h = gffread_utils.parse_header(header)
     except ValueError as ve:
         if ignore_parsing_errors:
             msg = "Could not parse header: '{}'".format(header)
-            logging.warning(msg)
+            logger.warning(msg)
             return None
         else:
             raise
@@ -548,7 +442,7 @@ def extract_canonical_orf(header_seq, header_re, start_codons_re, stop_codons_re
                 "if the canonical ORF uses an alternative start codon. The codon at the "
                 "annotated start position is '{}'. Header: '{}'".format(possible_start, 
                 header))
-        logging.error(msg)
+        logger.error(msg)
         return None
 
     # and pull the actual index out of the np.where result
@@ -564,7 +458,7 @@ def extract_canonical_orf(header_seq, header_re, start_codons_re, stop_codons_re
                 "if the canonical ORF uses an alternative start codon. The codon at the "
                 "annotated start position is '{}'. Header: '{}'".format(possible_start, 
                 header))
-        logging.error(msg)
+        logger.error(msg)
         return None
 
     r = r[0]
@@ -611,15 +505,15 @@ def main():
     parser.add_argument('--num-transcripts', help="If n>0, then only the first n "
         "transcripts will be processed.", type=int, default=default_num_transcripts)
 
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     programs = ['intersectBed']
     utils.check_programs_exist(programs)
 
     msg = "Compiling the start and stop codon regular expressions"
-    logging.info(msg)
+    logger.info(msg)
     
     start_codons_re = '|'.join(args.start_codons)
     stop_codons_re = '|'.join(args.stop_codons)
@@ -628,10 +522,9 @@ def main():
     stop_codons_re = re.compile(stop_codons_re)
 
     msg = "Reading the transcript sequences"
-    logging.info(msg)
+    logger.info(msg)
 
-    #transcript_fasta = pyfasta.Fasta(args.transcript_fasta)
-    transcript_fasta = bio.get_read_iterator(args.transcript_fasta)
+    transcript_fasta = fastx_utils.get_read_iterator(args.transcript_fasta)
 
     # check if we only want to process a few of the transcripts
 
@@ -645,10 +538,10 @@ def main():
         total = len(transcripts)
 
     msg = "Extracting ORFs"
-    logging.info(msg)
+    logger.info(msg)
 
     orfs = parallel.apply_parallel_iter(transcripts, args.num_cpus, extract_orfs,
-                                     header_re, start_codons_re, stop_codons_re,
+                                     start_codons_re, stop_codons_re,
                                      args.ignore_parsing_errors,
                                      progress_bar=True, total=total)
 
@@ -657,27 +550,27 @@ def main():
     orfs = [o for o in orfs if o is not None]
 
     msg = "Combining ORFs into large data frame"
-    logging.info(msg)
+    logger.info(msg)
     orfs = pd.concat(orfs)
 
     msg = "Sorting ORFs"
-    logging.info(msg)
+    logger.info(msg)
     orfs = orfs.sort_values(['seqname', 'start'])
 
     msg = "Removing duplicate ORFs"
-    logging.info(msg)
+    logger.info(msg)
     duplicate_fields = ['seqname', 'start', 'end', 'strand', 'num_exons']
     orfs = orfs.drop_duplicates(subset=duplicate_fields)
 
     msg = "Found {} unique ORFs".format(len(orfs))
-    logging.info(msg)
+    logger.info(msg)
 
     msg = "Extracting canonical ORFs"
-    logging.info(msg)
+    logger.info(msg)
 
     # extract the canonical ORFs based on the annotation
     canonical_orfs = parallel.apply_parallel_iter(transcripts, args.num_cpus,
-                                               extract_canonical_orf, header_re, 
+                                               extract_canonical_orf, 
                                                start_codons_re, stop_codons_re,
                                                args.ignore_parsing_errors,
                                                progress_bar=True, total=total)
@@ -687,12 +580,12 @@ def main():
     canonical_orfs = canonical_orfs.sort_values(['seqname', 'start'])
 
     # update the field names so we can distinguish between the ORFs after bedutils/join
-    canonical_orfs = (canonical_orfs[bio.bed12_field_names]).copy()
-    canonical_orfs.columns = ['canonical_{}'.format(c) for c in bio.bed12_field_names]
+    canonical_orfs = (canonical_orfs[bed_utils.bed12_field_names]).copy()
+    canonical_orfs.columns = ['canonical_{}'.format(c) for c in bed_utils.bed12_field_names]
     canonical_orfs_bed = pybedtools.BedTool.from_dataframe(canonical_orfs)
 
     # and extract field names for parsing
-    intersect_fields = bio.bed12_field_names + list(canonical_orfs.columns) + ['overlap']
+    intersect_fields = bed_utils.bed12_field_names + list(canonical_orfs.columns) + ['overlap']
 
     orfs['orf_type'] = None
 
@@ -700,14 +593,14 @@ def main():
     ### canonical
 
     msg = "Labeling canonical, annotated CDSs"
-    logging.info(msg)
+    logger.info(msg)
 
     # pull out the unannotated orfs
     m_remaining = orfs['orf_type'].isnull()
-    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bio.bed12_field_names])
+    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bed_utils.bed12_field_names])
 
     msg = "Number of BED records: {}".format(len(orfs_bed))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # intersect with the canonical ORFs
     # split: include BED12 information (i.e., split the exons)
@@ -721,7 +614,7 @@ def main():
     pybedtools.helpers.close_or_delete(i_canonical)
 
     msg = "Found {} intersecting records".format(len(i_canonical_df))
-    logging.debug(msg)
+    logger.debug(msg)
     
     # pull out the orf_ids of everything with a match
     i_ids = i_canonical_df['id']
@@ -731,19 +624,19 @@ def main():
     orfs.loc[m_canonical, 'orf_type'] = 'canonical'
 
     msg = "Found {} canonical ORFs".format(sum(m_canonical))
-    logging.info(msg)
+    logger.info(msg)
     
     ### canonical_extended
     
     msg = "Finding \"extended\" canonical ORFs, which completely cover annotated CDSs"
-    logging.info(msg)
+    logger.info(msg)
 
     # pull out the remaining unannotated orfs
     m_remaining = orfs['orf_type'].isnull()
-    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bio.bed12_field_names])
+    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bed_utils.bed12_field_names])
     
     msg = "Number of BED records: {}".format(len(orfs_bed))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # intersect with canonical ORFs
     # split: include BED12 information (i.e., split the exons)
@@ -763,7 +656,7 @@ def main():
     pybedtools.helpers.close_or_delete(i_canonical_extended)
 
     msg = "Found {} intersecting records".format(len(i_canonical_extended_df))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # pull out the orf_ids of everything with a match
     i_ids = i_canonical_extended_df['id']
@@ -773,18 +666,18 @@ def main():
     orfs.loc[m_canonical_extended, 'orf_type'] = 'canonical_extended'
 
     msg = "Found {} canonical_extended ORFs".format(sum(m_canonical_extended))
-    logging.info(msg)
+    logger.info(msg)
 
     ### canonical_truncated
     msg = "Finding \"canonical_truncated\" and \"within\" ORFs"
-    logging.info(msg)
+    logger.info(msg)
 
     # pull out the remaining unannotated orfs
     m_remaining = orfs['orf_type'].isnull()
-    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bio.bed12_field_names])
+    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bed_utils.bed12_field_names])
 
     msg = "Number of BED records: {}".format(len(orfs_bed))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # intersect with the canonical ORFs
     # split: include BED12 information (i.e., split the exons)
@@ -801,7 +694,7 @@ def main():
     pybedtools.helpers.close_or_delete(i_canonical_truncated)
 
     msg = "Found {} intersecting records".format(len(i_canonical_truncated_df))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # truncated ORFs on the positive strand have the same end as the canonical ORF
     # while those on the negative strand have the same "start" (really end, but 
@@ -830,21 +723,21 @@ def main():
     orfs.loc[m_ct, 'orf_type'] = 'canonical_truncated'
 
     msg = "Found {} \"within\" ORFs".format(sum(m_within & ~m_canonical_truncated))
-    logging.info(msg)
+    logger.info(msg)
 
     msg = "Found {} \"canonical_truncated\" ORFs".format(sum(m_canonical_truncated))
-    logging.info(msg)
+    logger.info(msg)
 
     ### leader/trailer overlaps
     msg = "Finding out-of-frame ORFs which overlap canonical CDSs"
-    logging.info(msg)
+    logger.info(msg)
 
     # pull out the remaining orfs
     m_remaining = orfs['orf_type'].isnull()
-    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bio.bed12_field_names])
+    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bed_utils.bed12_field_names])
     
     msg = "Number of BED records: {}".format(len(orfs_bed))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # find ORFs which have some overlap with the canonical CDS regions
     i_utr_overlap = orfs_bed.intersect(canonical_orfs_bed, split=True, s=True, wo=True)
@@ -853,7 +746,7 @@ def main():
     pybedtools.helpers.close_or_delete(i_utr_overlap)
 
     msg = "Found {} intersecting records".format(len(i_utr_overlap_df))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # here, we have 4 cases:
     #   forward strand, 5' overlap : start < canonical_start
@@ -879,28 +772,28 @@ def main():
     orfs.loc[m_tp, 'orf_type'] = 'three_prime_overlap'
 
     msg = "Found {} \"five_prime_overlap\" ORFs".format(sum(m_five_prime_overlap))
-    logging.info(msg)
+    logger.info(msg)
 
     msg = "Found {} \"three_prime_overlap\" ORFs".format(sum(m_three_prime_overlap))
-    logging.info(msg)
+    logger.info(msg)
 
 
     ### leader/trailer ORFs
     msg = "Finding ORFs entirely in the 5' leaders and 3' trailers, and noncoding ORFs"
-    logging.info(msg)
+    logger.info(msg)
 
     m_remaining = orfs['orf_type'].isnull()
-    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bio.bed12_field_names])
+    orfs_bed = pybedtools.BedTool.from_dataframe(orfs.loc[m_remaining, bed_utils.bed12_field_names])
 
     msg = "Number of BED records: {}".format(len(orfs_bed))
-    logging.debug(msg)
+    logger.debug(msg)
 
     # for closest to work, we have to split the "B" file (canonical orfs) into separate exons
     # I cannot find documentation for why...
     canonical_orfs_bed6 = canonical_orfs_bed.bed6()
     canonical_orfs_bed6_sorted = canonical_orfs_bed6.sort()
-    canonical_bed6_fields = ['canonical_{}'.format(c) for c in bio.bed6_field_names]
-    bed6_closest_fields = bio.bed12_field_names + canonical_bed6_fields + ['distance']
+    canonical_bed6_fields = ['canonical_{}'.format(c) for c in bed_utils.bed6_field_names]
+    bed6_closest_fields = bed_utils.bed12_field_names + canonical_bed6_fields + ['distance']
 
     # now, find the relationship of the remaining ORFs to the annotated CDS regions
     # based on those, label the ORFs as either 5' or 3'
@@ -910,7 +803,7 @@ def main():
     pybedtools.helpers.close_or_delete(closest)
 
     msg = "Found {} intersecting records".format(len(closest_df))
-    logging.debug(msg)
+    logger.debug(msg)
 
     m_overlap = closest_df['distance'] == 0
     m_three_prime = closest_df['distance'] > 0
@@ -947,46 +840,46 @@ def main():
     orfs.loc[m_o & ~m_novel, 'orf_type'] = 'suspect_overlap'
 
     msg = "Found {} \"five_prime\" ORFs".format(sum(m_fp & ~m_no_cds))
-    logging.info(msg)
+    logger.info(msg)
 
     msg = "Found {} \"three_prime\" ORFs".format(sum(m_tp & ~m_no_cds))
-    logging.info(msg)
+    logger.info(msg)
 
     msg = "Found {} \"suspect_overlap\" ORFs".format(sum(m_o))
-    logging.info(msg)
+    logger.info(msg)
 
     num_noncoding = sum(m_tp & m_no_cds) + sum(m_fp & m_no_cds)
     msg = "Found {} \"noncoding\" ORFs".format(num_noncoding)
-    logging.info(msg)
+    logger.info(msg)
 
 
     m_remaining = orfs['orf_type'].isnull()
     msg = "{} ORFs are unlabeled".format(sum(m_remaining))
-    logging.info(msg)
+    logger.info(msg)
 
     msg = "Sorting labeled ORFs"
-    logging.info(msg)
+    logger.info(msg)
 
     orfs = orfs.sort_values(['seqname', 'start'])
 
     # now, get the lengths of all of the ORFs
     msg = "Getting ORF lengths"
-    logging.info(msg)
+    logger.info(msg)
 
     orf_lengths = parallel.apply_parallel(orfs, args.num_cpus, 
-        bio.get_bed_12_feature_length, progress_bar=True)
+        bed_utils.get_bed_12_feature_length, progress_bar=True)
     orf_lengths = np.array(orf_lengths) 
     orfs['orf_len'] = orf_lengths
 
 
     msg = "Writing ORFs as BED"
-    logging.info(msg)
+    logger.info(msg)
 
     # also, add a numeric index field
     orfs['orf_num'] = range(len(orfs))
 
-    output_fields = bio.bed12_field_names + ['orf_type', 'orf_len', 'orf_num']
-    bio.write_bed(orfs[output_fields], args.out)
+    output_fields = bed_utils.bed12_field_names + ['orf_type', 'orf_len', 'orf_num']
+    bed_utils.write_bed(orfs[output_fields], args.out)
 
 if __name__ == '__main__':
     main()

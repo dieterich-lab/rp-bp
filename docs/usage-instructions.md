@@ -43,12 +43,12 @@ The following keys are read from the configuration file. Keys with [`brackets`] 
 * `genome_base_path`. The path to the output directory for the transcript fasta and ORFs
 * `genome_name`. A descriptive name to use for the created files
 * `ribosomal_index`. The base output path for the Bowtie2 index of the ribosomal sequence
+* `star_index`. The base output path for the STAR index for the reference genome sequence. This STAR index *does not* include the transcript annotations. They will be incorporated later while running the specific samples.
 
 
 * [`orf_note`]. An additional description used in the filename of the created ORFs
 * [`start_codons`]. A list of strings that will be treated as start codons when searching for ORFs. default: [`ATG`]
 * [`stop_codons`]. A list of strings that will be treated as stop codons when searching for ORFS. default: [`TAA`, `TGA`, `TAG`]
-* [`sjdb_overhang`]. The value to use for splice junction overlaps when constructing the STAR index. default: 50
 
 * [`ignore_parsing_errors`]. If this key is in the config file with any value, then transcript headers which do not parse correctly will be skipped. A warning is printed for each header skipped in this manner. Otherwise, the program will report the parsing error and quit. default: False
 
@@ -68,10 +68,12 @@ The required input files are those suggested by the configuration file keys.
 
 ### Output files
 
-* `genome_base_path`/transcript-index/`genome_name`.transcripts.fa
-* `genome_base_path`/transcript-index/`genome_name`.genomic-orfs.`orf_note`.bed.gz
+* `genome_base_path`/`genome_name`.bed.gz. A bed12 file containing all transcripts. For coding transcripts, the thick_start and thick_end columns give the start and end of the coding region; the start codon _is_ included in the thick region, but the stop codon _is not_. For noncoding transcripts, thick_start and thick_end are both -1. This seems to behave as expected in IGV.
+* `genome_base_path`/transcript-index/`genome_name`.transcripts.fa. The sequences of all transcripts.
+* `genome_base_path`/transcript-index/`genome_name`.genomic-orfs.`orf_note`.bed.gz. A bed12+ file containing all ORFs. Besides the standard bed12 columns, this file includes columns giving the orf_type, orf_length, and orf_num. The ORF ids are of the form: `transcript`_`seqname`:`start`-`end`:`strand`. The start codon _is_ included in the ORF, but the stop codon _is not_. The thick_start and thick_end are always the same as start and end.
 * `ribosomal_index`. The bowtie2 index files (`ribosomal_index`.1.bt2, etc.) for the ribosomal_fasta file
-* `genome_base_path`/STAR/`genome_name`/. The STAR index files (`SA`, `Genome`, etc.) for the `fasta` and annotated transcripts in the `gtf` file
+* `star_index`/. The STAR index files (`SA`, `Genome`, etc.) for the `fasta` file
+
 
 
 ```python
@@ -82,9 +84,9 @@ prepare-genome WBcel235.79.chrI.yaml --num-cpus 10 --mem 100G
 
 <a id='running-pipelines'></a>
 
-## Running Rp-Bp, Rp-chi pipelines
+## Running the Rp-Bp and Rp-chi pipelines
 
-The entire Rp-Bp pipeline can be run on a set of riboseq samples which all use the same genome indices using a sample sheet-like [YAML](http://www.yaml.org/start.html) configuration file with the @process-all-samples@ program. The configuration file respects all of the optional configuration options specified below.
+The entire Rp-Bp pipeline can be run on a set of riboseq samples which all use the same genome indices using a sample sheet-like [YAML](http://www.yaml.org/start.html) configuration file with the `process-all-samples` program. The configuration file respects all of the optional configuration options specified below.
 
 The script accepts a `--tmp <loc>` flag. If this flag is given, then all relevant calls will use `<loc>` as the base temporary directory. Otherwise, the program defaults will be used.
 
@@ -94,15 +96,17 @@ The script accepts a `--overwrite` flag. Unless this is given, then steps for wh
 
 [Parallel processing options](#parallel-processing-options) can be given to this script.
 
+**Using replicates**
+
+The Rp-Bp pipeline handles replicates by adding the (smoothed) ORF profiles. The Bayes factors and predictions are then calculated based on the combined profiles. The `--merge-replicates` flag indicates that the replicates should be merged. By default, if the `--merge-replicates` flag is given, then predictions will not be made for the individual datasets. The `--run-replicates` flag can be given to override this and make predictions for both the merged replicates as well as the individual datasets.
+
 ### Configuration file keys
 
 The following keys are read from the configuration file. Their semantics is exactly as described below. (This text is in both places for convenience.)
 
 * `riboseq_data`. The base output location for all created files.
 * [`note`]. An optional string which will be added to all filenames. It should not contain spaces or any other special characters.
-* `models_base`. The base path to the compiled models.
-
-**N.B.** The models specified in the paper are included with the source distribution and compiled/pickled as part of the installation process. They are in the folders `/path/to/rp-bp/models/periodic` and `/path/to/rp-bp/models/nonperiodic`. For a standard installation, the `models_base` should be `/path/to/rp-bp/models`.
+* [`models_base`]. The base path to the compiled models,  the base path to the compiled models. The models specified in the paper are included with the source distribution and compiled/pickled as part of the installation process. They are installed in an operating system-specific location (in particular, `user_data_dir` from the [appdirs package](https://pypi.python.org/pypi/appdirs). This location is determined during installation and does not normally need to be changed. For development, they may be in some alternative location.
 
 #### Reference genome options
 These options should be exactly the same as those used in the configuration file used to create the reference indices.
@@ -110,24 +114,33 @@ These options should be exactly the same as those used in the configuration file
 * `gtf`. The path to the reference annotations
 * `genome_base_path`. The path to the output directory for the transcript fasta and ORFs
 * `genome_name`. A descriptive name to use for the created files
-* `ribosomal_index`. The base output path for the Bowtie2 index of the ribosomal sequence
+* `ribosomal_index`. The base path for the Bowtie2 index of the ribosomal sequence
+* `star_index`. The base path to the STAR index
 * `fasta`. The path to the reference genome sequence
 
 #### Samples specification
 * `riboseq_samples`. A dictionary in which each entry specifies a sample. The key is an informative name about the sample, and the value gives the complete path to the sequencing file (a fastq or fastq.gz file). The names will be used to construct filenames, so they should not contain spaces or other special characters.
 
+* `riboseq_biological_replicates`. A dictionary in which each entry species one condition and all samples which are replicates of the condition. The key of the dictionary is a string description of the condition, and the value is a list that gives all of the sample replicates which belong to that condition. The names of the sample replicates must match the dataset names specified in `riboseq_samples`.
+
 
 ```python
 process-all-samples c-elegans-test.yaml --tmp /home/bmalone/tmp/ --num-cpus 10 --logging-level INFO
+
+# merging the replicates, do not calculate Bayes factors and make predictions for individual datasets
+process-all-samples c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates
+
+# merging the replicates and calculating Bayes factors and making predictions for individual datasets
+process-all-samples c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates --run-replicates
 ```
 
 [Back to top](#toc)
 
 <a id='creating-filtered-genome-profiles'></a>
 
-## Creating filtered genome profiles
+## Creating ORF profiles
 
-The entire profile creation process can be run automatically using the `create-filtered-genome-profile` script. It reads most of the required paths from a [YAML](http://www.yaml.org/start.html) configuration file. Additionally, it automatically creates some of the output paths.
+The entire profile creation process can be run automatically using the `create-orf-profiles` script. It reads most of the required paths from a [YAML](http://www.yaml.org/start.html) configuration file. Additionally, it automatically creates some of the output paths.
 
 The script accepts a `--overwrite` flag. Unless this is given, then steps for which the output file already exists will be skipped.
 
@@ -143,9 +156,7 @@ The following keys are read from the configuration file. Keys with [`brackets`] 
 
 * `riboseq_data`. The base output location for all created files.
 * [`note`]. An optional string which will be added to all filenames. It should not contain spaces or any other special characters.
-* `models_base`. The base path to the compiled models.
-
-**N.B.** The models specified in the paper are included with the source distribution and compiled/pickled as part of the installation process. They are in the folders `/path/to/rp-bp/models/periodic` and `/path/to/rp-bp/models/nonperiodic`. For a standard installation, the `models_base` should be `/path/to/rp-bp/models`.
+* [`models_base`]. The base path to the compiled models,  the base path to the compiled models. The models specified in the paper are included with the source distribution and compiled/pickled as part of the installation process. They are installed in an operating system-specific location (in particular, `user_data_dir` from the [appdirs package](https://pypi.python.org/pypi/appdirs). This location is determined during installation and does not normally need to be changed. For development, they may be in some alternative location.
 
 #### Reference genome options
 These options should be exactly the same as those used in the configuration file used to create the reference indices.
@@ -153,7 +164,8 @@ These options should be exactly the same as those used in the configuration file
 * `gtf`. The path to the reference annotations
 * `genome_base_path`. The path to the output directory for the transcript fasta and ORFs
 * `genome_name`. A descriptive name to use for the created files
-* `ribosomal_index`. The base output path for the Bowtie2 index of the ribosomal sequence
+* `ribosomal_index`. The base path for the Bowtie2 index of the ribosomal sequence
+* `star_index`. The base path to the STAR index
 
 
 #### Flexbar options
@@ -171,6 +183,8 @@ These options should be exactly the same as those used in the configuration file
 * [`out_filter_mismatch_n_over_l_max`]. default: 0.04
 * [`out_filter_type`]. default: BySJout
 * [`out_sam_attributes`]. default: AS NH HI nM MD
+* [`sjdb_overhang`]. default: 50
+
 
 #### Metagene periodicity options
 * [`seqids_to_keep`]. If this list is given, then only transcripts appearing on these identifiers will be used to construct the metagene profiles (and other downstream analysis). The identifiers must match exactly (e.g., "2" and "chr2" do not match)
@@ -265,12 +279,6 @@ This script primarily creates the following files. (STAR also creates some tempo
     
     * **aligned reads which map uniquely to the genome**. A sorted bam file containing all alignments of reads to the genome with multimapping reads filtered out. `riboseq_data`/without-rrna-mapping/`sample-name`[.`note`]-unique.bam
     
-    * **unsorted reads aligned to the transcriptome**. An unsorted bam file containing all alignments of reads to the transcriptome. That is, the alignments are in "transcript space" coordinates. `riboseq_data`/without-rrna-mapping/`sample-name`[.`note`]Aligned.toTranscriptome.out.bam
-    
-    * **sorted reads aligned to the transcriptome**. A sorted bam file containing all alignments of reads to the transcriptome. That is, the alignments are in "transcript space" coordinates. `riboseq_data`/without-rrna-mapping/`sample-name`[.`note`].transcriptome.bam
-    
-    * **aligned reads which map uniquely to the transcriptome**. A sorted bam file containing all alignments of reads to the transcriptome with multimappers filtered out. That is, the alignments are in "transcript space" coordinates. This file is often not very useful since it filters reads which align to multiple transcripts. `riboseq_data`/without-rrna-mapping/`sample-name`[.`note`].transcriptome-unique.bam
-    
 * Metagene profiles
     * **metagene profiles**. A gzipped csv file containing the metagene profiles for all read lengths which occur in the uniquely-aligning reads. It includes the metagene profile around both the annotated translation initiation site and translation termination site. `riboseq_data`/metagene-profiles/`sample-name`[.`note`]-unique.metagene-profile.csv.gz
     
@@ -281,9 +289,9 @@ This script primarily creates the following files. (STAR also creates some tempo
 * ORF profiles
     * **unsmoothed ORF profiles**. A sparse [matrix market file](http://math.nist.gov/MatrixMarket/formats.html) containing the profiles for all ORFs. **N.B.** The matrix market format uses base-1 indices.  `riboseq_data`/orf-profiles/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.profiles.mtx. 
     
-    * **smoothed ORF profiles**. A sparse [matrix market file](http://math.nist.gov/MatrixMarket/formats.html) containing the smoothed profiles for all ORFs. **N.B.** The matrix market format uses base-1 indices.  `riboseq_data`/orf-profiles/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.profiles.mtx. 
+    * **smoothed ORF profiles**. The smoothed profiles are not explicitly stored. 
 
-Indices are also created for the bam files.
+Indices are also created for the bam files. STAR creates parameter files in the location `riboseq_data`/without-rrna-mapping/`sample-name`\_STARgenome.
 
 ### Difference from paper
 
@@ -317,9 +325,7 @@ The following keys are read from the configuration file. Keys with [`brackets`] 
 
 * `riboseq_data`. The base output location for all created files
 * [`note`]. An optional string which will be added to all filenames. It should not contain spaces or any other special characters.
-* `models_base`. The base path to the compiled models.
-
-**N.B.** The models specified in the paper are included with the source distribution and compiled/pickled as part of the installation process. They are in the folders `/path/to/rp-bp/models/translated` and `/path/to/rp-bp/models/untranslated`. For a standard installation, the `models_base` should be `/path/to/rp-bp/models`.
+* [`models_base`]. The base path to the compiled models,  the base path to the compiled models. The models specified in the paper are included with the source distribution and compiled/pickled as part of the installation process. They are installed in an operating system-specific location (in particular, `user_data_dir` from the [appdirs package](https://pypi.python.org/pypi/appdirs). This location is determined during installation and does not normally need to be changed. For development, they may be in some alternative location.
 
 #### Reference genome options
 These options should be exactly the same as those used in the configuration file used to create the reference indices.
@@ -380,28 +386,36 @@ This script requires several files created during the previous steps in the pipe
 * ORF profiles
     * **unsmoothed ORF profiles**. A sparse [matrix market file](http://math.nist.gov/MatrixMarket/formats.html) containing the profiles for all ORFs. **N.B.** The matrix market format uses base-1 indices.  `riboseq_data`/orf-profiles/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.profiles.mtx. 
     
-    * **smoothed ORF profiles**. A sparse [matrix market file](http://math.nist.gov/MatrixMarket/formats.html) containing the smoothed profiles for all ORFs. **N.B.** The matrix market format uses base-1 indices.  `riboseq_data`/orf-profiles/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.profiles.mtx. 
-
 
 ### Output files
+    
+
+If replicates are merged, then these files will be created for each condition. Otherwise, they will be created for each sample (or both if the appropriate options are given).
     
 * Estimates
     * **the Bayes factor estimates**. A BED12+ file which contains the estimated values for all ORFs (which pass the thresholds mentioned above). The first 12 columns are valid BED12 entries that are simply copied from the `orfs` BED file.  `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.bayes-factors.bed.gz. 
     
 * Predictions
     * Rp-Bp predictions
-        * **the ORFs**. A BED12+ file containing the ORFs in the final prediction set (the longest ORF for each stop codon which meets the filtering criteria). `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.predicted-orfs.bed.gz. 
+        * **the ORFs**. A BED12+ file containing the ORFs in the final prediction set. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.predicted-orfs.bed.gz. 
         
         * **the DNA sequences**. A fasta file containing the DNA sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.predicted-orfs.dna.gz. 
         
         * **the protein sequences**. A fasta file containing the protein sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.predicted-orfs.protein.gz. 
         
     * Rp-chi predictions
-        * **the ORFs**. A BED12+ file containing the ORFs in the final prediction set (the longest ORF for each stop codon which meets the filtering criteria). `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.chisq.predicted-orfs.bed.gz. 
+    
+    Please note that Rp-chi does not use smoothing; therefore, the filenames do not include the smoothing options.
+    
+        * **the ORFs**. A BED12+ file containing the ORFs in the final prediction set. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.chisq.predicted-orfs.bed.gz. 
         
-        * **the DNA sequences**. A fasta file containing the DNA sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.chisq.predicted-orfs.dna.gz. 
+        * **the DNA sequences**. A fasta file containing the DNA sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.chisq.predicted-orfs.dna.gz. 
         
-        * **the protein sequences**. A fasta file containing the protein sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.smooth.frac-`fraction`.rw-`reweighting-iterations`.chisq.predicted-orfs.protein.gz. 
+        * **the protein sequences**. A fasta file containing the protein sequences of the predicted ORFs. The fasta header matches the 'id' column in the BED files. `riboseq_data`/orf-predictions/`sample-name`[.`note`]-unique.length-`lengths`.offset-`offsets`.chisq.predicted-orfs.protein.gz. 
+        
+
+Furthermore, there are "unfiltered" and "filtered" versions of the files. The "filtered" versions result from performing the filtering described n the paper (taking the longest predicted ORF for each stop codon, and then selecting the ORF with the highest expected Bayes factor among each group of overlapping ORFs). The "unfiltered" version contains all predictions.
+
 
 
 ```python
@@ -455,6 +469,14 @@ All of the scripts accept options for running code in parallel. Furthermore, the
 * [`--no-output`]. If this flag is present, stdout will be redirected to /dev/null. This will be translated into an sbatch request like: "--output=/dev/null". default: If the flag is not present, then stdout will be directed to a log file with the job number. This corresponds to "--output=slurm-%J.out" in the sbatch call.
 
 * [`--no-error`]. If this flag is present, stderr will be redirected to /dev/null. This will be translated into an sbatch request like: "--error=/dev/null". default: If the flag is not present, then stderr will be directed to a log file with the job number. This corresponds to "--error=slurm-%J.err" in the sbatch call.
+
+* [`--stdout-file`]. If this is present and the --no-output flag is not given, then stdout will be directed to this file. This corresponds to "--output=`stdout-file`" in the sbatch call. default: slurm-%J.out
+
+* [`--stderr-file`]. If this is present and the --no-error flag is not given, then stderr will be directed to this file. This corresponds to "--error=`stderr-file`" in the sbatch call. default: slurm-%J.err
+
+* [`--mail-type`]. When to send an email notifcation of the job status. See official documentation for a description of the values. If a mail-user is not specified, this will revert to 'None'. Defaut: FAIL TIME_LIMIT
+
+* [`--mail-user`]. To whom an email will be sent, in accordance with mail-type. default: None
 
 
 ```python

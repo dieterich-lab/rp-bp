@@ -4,7 +4,9 @@ import argparse
 import logging
 import scipy.io
 
+import misc.logging_utils as logging_utils
 import misc.utils as utils
+import misc.math_utils as math_utils
 
 logger = logging.getLogger(__name__)
 
@@ -14,13 +16,13 @@ def main():
         "each file corresponds to one replicate from a condition). The script keeps the "
         "profiles in sparse matrix format, so it is fairly efficient.")
 
-    parser.add_argument('profiles', help="The (mtx) files containing the (smoothed) "
+    parser.add_argument('profiles', help="The (mtx) files containing the "
         "ORF profiles", nargs='+')
-    parser.add_argument('out', help="The (mtx) output file containing the merged profiles")
+    parser.add_argument('out', help="The (mtx.gz) output file containing the merged profiles")
     
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     msg = "Reading first ORF profile"
     logger.info(msg)
@@ -40,7 +42,7 @@ def main():
     msg = "Writing merged profiles to disk"
     logger.info(msg)
 
-    scipy.io.mmwrite(args.out, merged_profiles)
+    math_utils.write_sparse_matrix(args.out, merged_profiles)
 
 
 if __name__ == '__main__':

@@ -7,8 +7,12 @@ import os
 import pandas as pd
 
 import misc.latex as latex
+import misc.parallel as parallel
 import misc.utils as utils
 import riboutils.ribo_filenames as filenames
+import riboutils.ribo_utils as ribo_utils
+
+logger = logging.getLogger(__name__)
 
 default_tmp = None
 default_image_type = 'eps'
@@ -18,7 +22,7 @@ default_min_metagene_profile_count = 1000
 default_min_metagene_profile_bayes_factor_mean = 5
 default_max_metagene_profile_bayes_factor_var = 5
 default_min_visualization_count = 500
-default_num_procs = 1
+default_num_cpus = 1
 
 abstract = """
 This document shows the results of preprocessing steps. 
@@ -43,7 +47,7 @@ Our \\riboseq processing pipeline consists of the following steps.
 \\end{enumerate}
 
 Figure~\\ref{fig:mapping-info}(left) shows the number of reads remaining after each stage in our preprocessing pipeline for all samples.
-Figure~\ref{fig:mapping-info}(right) shows a ``zoomed in'' version which does not include the reads of poor quality and that mapped to ribosomal sequences.
+Figure~\\ref{fig:mapping-info}(right) shows a ``zoomed in'' version which does not include the reads of poor quality and that mapped to ribosomal sequences.
 """
 
 read_length_distribution_text = """
@@ -52,8 +56,121 @@ This section shows the distribution of read lengths \\textbf{for reads which uni
 
 read_filtering_caption = """
 The number of reads lost at each stage in the mapping pipeline. 
-\texttt{wrong\_length} refers to reads which have a length that does not result in a strong periodic signal (see Section~\ref{sec:periodicity}).
+\\texttt{wrong\_length} refers to reads which have a length that does not result in a strong periodic signal (see Section~\\ref{sec:periodicity}).
 """
+
+def create_fastqc_reports(name_data, config, args):
+    name, data = name_data
+    msg = "{}: creating fastqc reports".format(name)
+    logger.info(msg)
+
+    note = config.get('note', None)
+
+    # first, get the ribo_filenames
+    raw_data = data
+    without_adapters = filenames.get_without_adapters_fastq(
+        config['riboseq_data'], name, note=note)
+    with_rrna = filenames.get_with_rrna_fastq(
+        config['riboseq_data'], name, note=note)
+    without_rrna = filenames.get_without_rrna_fastq(
+        config['riboseq_data'], name, note=note)
+    genome_bam = filenames.get_riboseq_bam(
+        config['riboseq_data'], name, note=note)
+    unique_bam = filenames.get_riboseq_bam(
+        config['riboseq_data'], name, is_unique = True, note=note)
+
+    if args.create_fastqc_reports:
+
+        # now, get the fastqc report ribo_filenames
+        raw_data_fastqc = filenames.get_raw_data_fastqc_data(
+            config['riboseq_data'], raw_data)
+        without_adapters_fastqc = filenames.get_without_adapters_fastqc_data(
+            config['riboseq_data'], name, note=note)
+        with_rrna_fastqc = filenames.get_with_rrna_fastqc_data(
+            config['riboseq_data'], name, note=note)
+        without_rrna_fastqc = filenames.get_without_rrna_fastqc_data(
+            config['riboseq_data'], name, note=note)
+
+        genome_bam_fastqc = filenames.get_riboseq_bam_fastqc_data(
+            config['riboseq_data'], name, note=note)
+        unique_bam_fastqc = filenames.get_riboseq_bam_fastqc_data(
+            config['riboseq_data'], name, is_unique=True, note=note)
+
+        # create the fastqc reports if they do not exist
+        raw_data_fastqc_path = filenames.get_raw_data_fastqc_path(config['riboseq_data'])
+        without_adapters_fastqc_path = filenames.get_without_adapters_fastqc(config['riboseq_data'])
+        with_rrna_fastqc_path = filenames.get_with_rrna_fastqc(config['riboseq_data'])
+        without_rrna_fastqc_path = filenames.get_without_rrna_fastqc(config['riboseq_data'])
+        without_rrna_mapping_fastqc_path = filenames.get_riboseq_bam_fastqc_path(config['riboseq_data'])
+
+        fastqc_tmp_str = ""
+        if args.tmp is not None:
+            fastqc_tmp_str = "--dir {}".format(args.tmp)
+
+        msg = "Looking for raw data fastqc report: '{}'".format(raw_data_fastqc)
+        logger.debug(msg)
+        cmd = "fastqc --outdir {} --extract {} {}".format(raw_data_fastqc_path, 
+            raw_data, fastqc_tmp_str)
+        in_files = [raw_data]
+        out_files = [raw_data_fastqc]
+
+        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+
+        cmd = "fastqc --outdir {} --extract {} {}".format(without_adapters_fastqc_path, 
+            without_adapters, fastqc_tmp_str)
+        in_files = [without_adapters]
+        out_files = [without_adapters_fastqc]
+        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+
+        cmd = "fastqc --outdir {} --extract {} {}".format(with_rrna_fastqc_path, 
+            with_rrna, fastqc_tmp_str)
+        in_files = [with_rrna]
+        out_files = [with_rrna_fastqc]
+        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+
+        cmd = "fastqc --outdir {} --extract {} {}".format(without_rrna_fastqc_path, 
+            without_rrna, fastqc_tmp_str)
+        in_files = [without_rrna]
+        out_files = [without_rrna_fastqc]
+        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+
+        cmd = "fastqc --outdir {} --extract {} {}".format(without_rrna_mapping_fastqc_path, 
+            genome_bam, fastqc_tmp_str)
+        in_files = [genome_bam]
+        out_files = [genome_bam_fastqc]
+
+        msg = "genome_bam: '{}'".format(genome_bam)
+        logger.debug(msg)
+        
+        msg = "genome_bam_fastqc: '{}'".format(genome_bam_fastqc)
+        logger.debug(msg)
+
+        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+
+        cmd = "fastqc --outdir {} --extract {} {}".format(without_rrna_mapping_fastqc_path, 
+            unique_bam, fastqc_tmp_str)
+        in_files = [unique_bam]
+        out_files = [unique_bam_fastqc]
+        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+
+        # in some cases, fastqc can fail. make sure all of the reports are present
+        all_fastqc_reports = [
+            raw_data_fastqc,
+            without_adapters_fastqc,
+            without_rrna_fastqc,
+            genome_bam_fastqc,
+            unique_bam_fastqc
+        ]
+
+        missing_files = [
+            f for f in all_fastqc_reports if not os.path.exists(f)
+        ]
+
+        if len(missing_files) > 0:
+            msg = "The following fastqc reports were not created correctly:\n"
+            msg += '\n'.join(missing_files)
+            logger.warning(msg)
+
 
 def create_figures(config_file, config, name, offsets_df, args):
     """ This function creates all of the figures in the preprocessing report
@@ -66,6 +183,8 @@ def create_figures(config_file, config, name, offsets_df, args):
     if note is not None:
         note_str = note
 
+    image_type_str = "--image-type {}".format(args.image_type)
+
     min_read_length = int(offsets_df['length'].min())
     max_read_length = int(offsets_df['length'].max())
 
@@ -73,7 +192,7 @@ def create_figures(config_file, config, name, offsets_df, args):
     max_read_length_str = "--max-read-length {}".format(max_read_length)
 
     msg = "{}: Getting and visualizing read length distribution".format(name)
-    logging.info(msg)
+    logger.info(msg)
 
     # all aligned reads
     genome_bam = filenames.get_riboseq_bam(
@@ -123,7 +242,7 @@ def create_figures(config_file, config, name, offsets_df, args):
 
     # visualize the metagene profiles
     msg = "{}: Visualizing metagene profiles and Bayes' factors".format(name)
-    logging.info(msg)
+    logger.info(msg)
 
     metagene_profiles = filenames.get_metagene_profiles(config['riboseq_data'], 
         name, is_unique=True, note=note)
@@ -166,6 +285,52 @@ def create_figures(config_file, config, name, offsets_df, args):
         out_files = [metagene_profile_image]
         utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
 
+    # the orf-type metagene profiles
+    msg = "{}: Visualizing the ORF type metagene profiles".format(name)
+    logger.info(msg)
+
+
+    try:
+        lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, name)
+    except FileNotFoundError:
+        msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(name)
+        logger.error(msg)
+        return
+
+
+    orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
+        note=config.get('orf_note'))
+         
+    profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
+            length=lengths, offset=offsets, is_unique=True, note=note_str)
+
+    title_str = "--title \"{}, ORF-type periodicity\"".format(name)
+    
+    orf_type_profile_base = filenames.get_orf_type_profile_base(
+        config['riboseq_data'], name, length=lengths, offset=offsets, 
+        is_unique=True, note=note, subfolder='orf-profiles')
+
+    strand = "+"
+    orf_type_profiles_forward = [
+        filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, strand, args.image_type)
+            for orf_type in ribo_utils.orf_types
+    ]
+    
+    strand = "-"
+    orf_type_profiles_reverse = [
+        filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, strand, args.image_type)
+            for orf_type in ribo_utils.orf_types
+    ]
+
+    cmd = ("visualize-orf-type-metagene-profiles {} {} {} {} {} {}".format(
+        orfs_genomic, profiles, orf_type_profile_base, title_str, 
+        image_type_str, logging_str))
+
+    in_files = [orfs_genomic, profiles]
+    out_files = orf_type_profiles_forward + orf_type_profiles_reverse
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+
+
 def create_read_filtering_plots(config_file, config, args):
         
     # get the filtering counts
@@ -181,9 +346,9 @@ def create_read_filtering_plots(config_file, config, args):
 
     logging_str = utils.get_logging_options_string(args)
 
-    procs_str = "--num-procs {}".format(args.num_procs)
+    cpus_str = "--num-cpus {}".format(args.num_cpus)
     cmd = "get-all-read-filtering-counts {} {} {} {} {} {}".format(config_file, 
-        read_filtering_counts, overwrite_str, procs_str, tmp_str, logging_str)
+        read_filtering_counts, overwrite_str, cpus_str, tmp_str, logging_str)
     in_files = [config_file]
     out_files = [read_filtering_counts]
     utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
@@ -217,9 +382,9 @@ def main():
     parser.add_argument('config', help="The (yaml) config file for the project")
     parser.add_argument('out', help="The path for the output files")
 
-    parser.add_argument('--num-procs', help="The number of processors to use for counting "
+    parser.add_argument('--num-cpus', help="The number of processors to use for counting "
         "the mapped reads. This is only useful up to the number of samples in the project.",
-        type=int, default=default_num_procs)
+        type=int, default=default_num_cpus)
     parser.add_argument('--overwrite', help="If this flag is present, existing files will "
         "be overwritten.", action='store_true')
 
@@ -233,6 +398,10 @@ def main():
     parser.add_argument('--image-type', help="The type of image types to create. This "
         "must be an extension which matplotlib can interpret.", default=default_image_type)
 
+    parser.add_argument('-c', '--create-fastqc-reports', help="If this flag is given, then "
+        "fastqc reports will be created for most fastq and bam files. By default, they are "
+        "not created.", action='store_true')
+
     utils.add_logging_options(parser)
     args = parser.parse_args()
     utils.update_logging(args)
@@ -242,17 +411,20 @@ def main():
     programs =  [   'visualize-metagene-profile',
                     'visualize-metagene-profile-bayes-factor',
                     'get-all-read-filtering-counts',
-                    'fastqc',
-                    'java',
                     'samtools',
                     'visualize-read-filtering-counts',
                     'get-read-length-distribution',
                     'plot-read-length-distribution'
                 ]
+
+    if args.create_fastqc_reports:
+        programs.extend(['fastqc','java'])
+        
     utils.check_programs_exist(programs)
 
-    note = config.get('note', None)
+    config = yaml.load(open(args.config))
 
+    note = config.get('note', None)
 
     # make sure the path to the output file exists
     os.makedirs(args.out, exist_ok=True)
@@ -270,12 +442,13 @@ def main():
     max_metagene_profile_bayes_factor_var = config.get(
         "max_metagene_profile_bayes_factor_var", default_max_metagene_profile_bayes_factor_var)
 
-
     project_name = config.get("project_name", default_project_name)
     title = "Preprocessing results for {}".format(project_name)
    
     header = latex.get_header_text(title, abstract)
     footer = latex.get_footer_text()
+
+    sample_names = sorted(config['riboseq_samples'].keys())
 
     tex_file = os.path.join(args.out, "preprocessing-report.tex")
     with open(tex_file, 'w') as out:
@@ -294,11 +467,11 @@ def main():
         # the read filtering figures
 
         read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(
-            config['riboseq_data'], note=note)
+            config['riboseq_data'], note=note, image_type=args.image_type)
     
         n = "no-rrna-{}".format(note)
         no_rrna_read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(
-            config['riboseq_data'], note=n)
+            config['riboseq_data'], note=n, image_type=args.image_type)
 
         latex.begin_figure(out)
         latex.write_graphics(out, read_filtering_image, width=0.75)
@@ -311,31 +484,59 @@ def main():
         out.write(read_length_distribution_text)
 
         msg = "Writing length distribution figures"
-        logging.info(msg)
+        logger.info(msg)
 
-        for name, data in config['riboseq_samples'].items():
+        i = 0
+        for name in sample_names:
+            data = config['riboseq_samples'][name]
             read_length_distribution_image = filenames.get_riboseq_read_length_distribution_image(
                 config['riboseq_data'], name, is_unique=False, note=note, image_type=args.image_type)
             unique_read_length_distribution_image = filenames.get_riboseq_read_length_distribution_image(
                 config['riboseq_data'], name, is_unique=True, note=note, image_type=args.image_type)
 
-            caption = "Read length distribution of mapped reads for {}".format(name)
-            latex.begin_figure(out)
-            latex.write_graphics(out, read_length_distribution_image, width=0.5)
-            latex.write_graphics(out, unique_read_length_distribution_image, width=0.5)
-            latex.write_caption(out, caption)
-            latex.end_figure(out)
+            msg = "Looking for image file: {}".format(read_length_distribution_image)
+            logger.debug(msg)
 
+            if os.path.exists(read_length_distribution_image):
+                if i%4 == 0:
+                    latex.begin_figure(out)
+
+                i += 1
+                latex.write_graphics(out, read_length_distribution_image, height=0.23)
+
+                if i%4 == 0:
+                    latex.end_figure(out)
+                    latex.clearpage(out)
+
+            msg = "Looking for image file: {}".format(unique_read_length_distribution_image)
+            logger.debug(msg)
+
+            if os.path.exists(unique_read_length_distribution_image):
+                if i%4 == 0:
+                    latex.begin_figure(out)
+
+                i += 1
+                latex.write_graphics(out, unique_read_length_distribution_image, height=0.23)
+
+                if i%4 == 0:
+                    latex.end_figure(out)
+                    latex.clearpage(out)
+
+        if (i>0) and (i%4 != 0):
+            latex.end_figure(out)
             latex.clearpage(out)
 
 
         latex.section(out, "Periodicity", label=periodicity_label)
 
-        for name, data in config['riboseq_samples'].items():
-            msg = "Processing sample: {}".format(name)
-            logging.info(msg)
+        i = 0
+        for name in sample_names:
+            data = config['riboseq_samples'][name]
 
-            logging.debug("overwrite: {}".format(args.overwrite))
+            msg = "Processing sample: {}".format(name)
+            logger.info(msg)
+
+            logger.debug("overwrite: {}".format(args.overwrite))
     
             periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], 
                 name, is_unique=True, note=note)
@@ -347,14 +548,9 @@ def main():
             create_figures(args.config, config, name, offsets_df, args)
 
 
-            latex.clearpage(out)
-
-            latex.begin_figure(out)
-
-            i = 0
             for length in range(min_read_length, max_read_length + 1):
                 msg = "Processing length: {}".format(length)
-                logging.info(msg)
+                logger.info(msg)
 
                 # check which offset is used
                 
@@ -382,8 +578,11 @@ def main():
                 
                 if length_row['highest_peak_profile_sum'] < args.min_visualization_count:
                     msg = "Not enough reads of this length. Skipping."
-                    logging.warning(msg)
+                    logger.warning(msg)
                     continue
+
+                if i%5 == 0:
+                    latex.begin_figure(out)
 
                 out.write(name.replace('_', '-'))
                 out.write(", length: ")
@@ -398,10 +597,10 @@ def main():
                 out.write("\n\n")
 
                 metagene_profile_image = filenames.get_riboseq_metagene_profile_image(
-                    config['riboseq_data'], name, image_type='eps', is_unique=True, length=length, note=note)
+                    config['riboseq_data'], name, image_type=args.image_type, is_unique=True, length=length, note=note)
                 
                 bayes_factor_image = filenames.get_metagene_profile_bayes_factor_image(
-                    config['riboseq_data'], name, image_type='eps', is_unique=True, length=length, note=note)
+                    config['riboseq_data'], name, image_type=args.image_type, is_unique=True, length=length, note=note)
 
                 latex.write_graphics(out, metagene_profile_image, width=0.6)
                 latex.write_graphics(out, bayes_factor_image, width=0.39)
@@ -409,13 +608,55 @@ def main():
                 i += 1
 
                 if i % 5 == 0:
-                    latex.write_caption(out, name)
                     latex.end_figure(out)
                     latex.clearpage(out)
-                    latex.begin_figure(out)
 
-            latex.write_caption(out, name)
+        if (i>0) and (i%5 != 0):
             latex.end_figure(out)
+            latex.clearpage(out)
+
+        ### ORF type metagene profiles
+        title = "ORF type metagene profiles"
+        latex.section(out, title)
+        
+        strands = ['+', '-']
+        for sample_name in sample_names:
+            i = 0
+
+            try:
+                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, sample_name)
+            except FileNotFoundError:
+                msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(sample_name)
+                logger.error(msg)
+                continue
+            
+            orf_type_profile_base = filenames.get_orf_type_profile_base(
+                config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
+                is_unique=True, note=note, subfolder='orf-profiles')
+
+            for orf_type in ribo_utils.orf_types:
+                for strand in strands:
+                    orf_type_profile = filenames.get_orf_type_profile_image(orf_type_profile_base, 
+                        orf_type, strand, image_type=args.image_type)
+
+
+                    msg = "Looking for image file: {}".format(orf_type_profile)
+                    logger.debug(msg)
+                    if os.path.exists(orf_type_profile):
+                        if i%4 == 0:
+                            latex.begin_figure(out)
+
+                        i += 1
+                        latex.write_graphics(out, orf_type_profile, height=0.23)
+
+                        if i%4 == 0:
+                            latex.end_figure(out)
+                            latex.clearpage(out)
+
+            if (i>0) and (i%4 != 0):
+                latex.end_figure(out)
+                latex.clearpage(out)
+
 
         out.write(footer)
 
@@ -423,6 +664,12 @@ def main():
     cmd = "pdflatex -shell-escape preprocessing-report"
     utils.check_call(cmd)
     utils.check_call(cmd) # call again to fix references
+
+    if args.create_fastqc_reports:
+        parallel.apply_parallel_iter(config['riboseq_samples'].items(), 
+            args.num_cpus, 
+            create_fastqc_reports, config, args)
+
 
 if __name__ == '__main__':
     main()
