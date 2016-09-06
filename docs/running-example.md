@@ -1,7 +1,7 @@
 
 # Running the small example dataset
 
-A small example dataset using _C. elegans_ is available for [download](http://cloud.dieterichlab.org/index.php/s/3cyluM3ZCsvf0PT/download). Please see [below](#example-dataset-files) for the exact contents of the download, as well as instructions for downloading it from the command line.
+A small example dataset using _C. elegans_ is available for [download](http://cloud.dieterichlab.org/index.php/s/7XHsCqZqU9AbQqB). Please see [below](#example-dataset-files) for the exact contents of the download, as well as instructions for downloading it from the command line.
 
 Additionally, the expected outputs of the pipeline are included. Due to differences among versions of the external programs used in the pipeline (samtools, etc.), it is unlikely that all intermediate files will match exactly. However, we do include a script to compare the ORFs predicted as translated using the pipeline to those which are expected. If these differ significantly, it suggests something is not working correctly in the pipeline.
 
@@ -44,7 +44,7 @@ The following `wget` command can be used to download the example .tar.gz file:
 
 
 ```python
-wget http://cloud.dieterichlab.org/index.php/s/3cyluM3ZCsvf0PT/download -O c-elegans-chrI-example.tar.gz
+wget http://cloud.dieterichlab.org/index.php/s/7XHsCqZqU9AbQqB/download -O c-elegans-chrI-example.tar.gz
 ```
 
 [Back to top](#toc)
