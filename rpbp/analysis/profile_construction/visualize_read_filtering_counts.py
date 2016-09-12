@@ -33,6 +33,7 @@ default_font_size = 20
 #default_ymax = 51000000
 default_ystep = 10000000
 default_ymax = 0
+default_yticks = 6
 
 # these come from the Spectral colormap
 colors = [
@@ -65,6 +66,9 @@ def main():
         "the y-axis.", type=int, default=default_ymax)
     parser.add_argument('--ystep', help="If --ymax is specified, then this value will be used as "
         "the step size for labels on the y-axis.", type=int, default=default_ystep)
+
+    parser.add_argument('--default-yticks', help="If --ymax and --ystep are not specified, "
+        "then this many ticks will be used", type=int, default=default_yticks)
     
     utils.add_logging_options(parser)
     args = parser.parse_args()
@@ -102,10 +106,11 @@ def main():
     fig, ax = plt.subplots()
     gap = 0
 
-    yticks = None
     if args.ymax != default_ymax:
         ylabels = np.arange(0, args.ymax, args.ystep)
         yticks = (ylabels, ylabels)
+    else:
+        yticks = args.default_yticks
 
     #edge_colors = [matplotlib.colors.cnames['darkgrey']] * (len(names)+1)
     edge_colors = None
