@@ -5,6 +5,7 @@ import yaml
 import logging
 import os
 import pandas as pd
+import sys
 
 import misc.latex as latex
 import misc.logging_utils as logging_utils
@@ -387,13 +388,6 @@ def main():
     parser.add_argument('config', help="The (yaml) config file for the project")
     parser.add_argument('out', help="The path for the output files")
 
-    parser.add_argument('--note', help="If given, this overrides the note given in the "
-        "yaml config file. This will mostly be used in creating filenames, so it should "
-        "not include spaces or other special characters.", default=default_note
-
-    parser.add_argument('--num-cpus', help="The number of processors to use for counting "
-        "the mapped reads. This is only useful up to the number of samples in the project.",
-        type=int, default=default_num_cpus)
     parser.add_argument('--overwrite', help="If this flag is present, existing files will "
         "be overwritten.", action='store_true')
 
