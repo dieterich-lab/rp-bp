@@ -110,8 +110,10 @@ def main():
         config['fasta'], transcript_fasta, logging_str))
     in_files = [transcript_bed, config['fasta']]
     out_files = [transcript_fasta]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        overwrite=args.overwrite, call=call)
+
+    # this does not yet produce the output required by extract-orfs
+    #utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    #    overwrite=args.overwrite, call=call)
 
     
     cmd = "gffread -W -w {} -g {} {}".format(transcript_fasta, config['fasta'], config['gtf'])
