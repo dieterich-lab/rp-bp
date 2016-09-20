@@ -16,6 +16,7 @@ import riboutils.ribo_utils as ribo_utils
 
 logger = logging.getLogger(__name__)
 
+default_note = None
 default_tmp = None
 default_image_type = 'eps'
 
@@ -385,6 +386,10 @@ def main():
     parser.add_argument('config', help="The (yaml) config file for the project")
     parser.add_argument('out', help="The path for the output files")
 
+    parser.add_argument('--note', help="If given, this overrides the note given in the "
+        "yaml config file. This will mostly be used in creating filenames, so it should "
+        "not include spaces or other special characters.", default=default_note
+
     parser.add_argument('--num-cpus', help="The number of processors to use for counting "
         "the mapped reads. This is only useful up to the number of samples in the project.",
         type=int, default=default_num_cpus)
@@ -413,6 +418,9 @@ def main():
     logging_utils.update_logging(args)
 
     config = yaml.load(open(args.config))
+
+    if args.note is not None:
+        config['note'] = args.note
 
     programs =  [   'visualize-metagene-profile',
                     'visualize-metagene-profile-bayes-factor',
