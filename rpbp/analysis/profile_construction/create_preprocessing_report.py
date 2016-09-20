@@ -7,7 +7,9 @@ import os
 import pandas as pd
 
 import misc.latex as latex
+import misc.logging_utils as logging_utils
 import misc.parallel as parallel
+
 import misc.utils as utils
 import riboutils.ribo_filenames as filenames
 import riboutils.ribo_utils as ribo_utils
@@ -23,6 +25,7 @@ default_min_metagene_profile_bayes_factor_mean = 5
 default_max_metagene_profile_bayes_factor_var = 5
 default_min_visualization_count = 500
 default_num_cpus = 1
+default_note = None
 
 abstract = """
 This document shows the results of preprocessing steps. 
@@ -176,7 +179,7 @@ def create_figures(config_file, config, name, offsets_df, args):
     """ This function creates all of the figures in the preprocessing report
         for the given dataset.
     """
-    logging_str = utils.get_logging_options_string(args)
+    logging_str = logging_utils.get_logging_options_string(args)
     note = config.get('note', None)
 
     note_str = ''
@@ -344,7 +347,7 @@ def create_read_filtering_plots(config_file, config, args):
     if args.tmp is not None:
         tmp_str = "--tmp {}".format(args.tmp)
 
-    logging_str = utils.get_logging_options_string(args)
+    logging_str = logging_utils.get_logging_options_string(args)
 
     cpus_str = "--num-cpus {}".format(args.num_cpus)
     cmd = "get-all-read-filtering-counts {} {} {} {} {} {}".format(config_file, 
@@ -401,10 +404,13 @@ def main():
     parser.add_argument('-c', '--create-fastqc-reports', help="If this flag is given, then "
         "fastqc reports will be created for most fastq and bam files. By default, they are "
         "not created.", action='store_true')
+     
+    parser.add_argument('--note', help="If this option is given, it will be used in the "
+        "filenames.\n\nN.B. This REPLACES the note in the config file.", default=default_note)
 
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     config = yaml.load(open(args.config))
 
@@ -416,6 +422,9 @@ def main():
                     'get-read-length-distribution',
                     'plot-read-length-distribution'
                 ]
+
+    if args.note is not default_note:
+        config['note'] = args.note
 
     if args.create_fastqc_reports:
         programs.extend(['fastqc','java'])
