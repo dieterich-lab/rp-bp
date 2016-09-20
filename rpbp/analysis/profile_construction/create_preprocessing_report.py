@@ -9,6 +9,7 @@ import pandas as pd
 import misc.latex as latex
 import misc.logging_utils as logging_utils
 import misc.parallel as parallel
+import misc.slurm as slurm
 
 import misc.utils as utils
 import riboutils.ribo_filenames as filenames
@@ -413,6 +414,7 @@ def main():
     parser.add_argument('--note', help="If this option is given, it will be used in the "
         "filenames.\n\nN.B. This REPLACES the note in the config file.", default=default_note)
 
+    slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
@@ -430,16 +432,20 @@ def main():
                     'get-read-length-distribution',
                     'plot-read-length-distribution'
                 ]
-
-    if args.note is not default_note:
-        config['note'] = args.note
-
     if args.create_fastqc_reports:
         programs.extend(['fastqc','java'])
         
     utils.check_programs_exist(programs)
 
+    if args.use_slurm:
+        cmd = ' '.join(sys.argv)
+        slurm.check_sbatch(cmd, args=args)
+        return
+
     config = yaml.load(open(args.config))
+
+    if args.note is not default_note:
+        config['note'] = args.note
 
     note = config.get('note', None)
 
