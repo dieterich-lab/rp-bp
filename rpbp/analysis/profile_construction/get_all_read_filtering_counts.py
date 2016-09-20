@@ -14,6 +14,9 @@ import riboutils.ribo_utils as ribo_utils
 
 
 import misc.bio as bio
+import misc.bio_utils.bam_utils as bam_utils
+import misc.bio_utils.fastx_utils as fastx_utils
+import misc.logging_utils as logging_utils
 import misc.parallel as parallel
 import misc.utils as utils
 
@@ -50,27 +53,27 @@ def get_counts(name_data, config, args):
     # get the read counts
     msg = "{}: counting reads in raw data".format(name)
     logger.info(msg)
-    raw_data_count = bio.get_read_count(raw_data, is_fasta=False)
+    raw_data_count = fastx_utils.get_read_count(raw_data, is_fasta=False)
 
     msg = "{}: counting reads without adapters".format(name)
     logger.info(msg)
-    without_adapters_count = bio.get_read_count(without_adapters, is_fasta=False)
+    without_adapters_count = fastx_utils.get_read_count(without_adapters, is_fasta=False)
     
     msg = "{}: counting reads with rrna".format(name)
     logger.info(msg)
-    with_rrna_count = bio.get_read_count(with_rrna, is_fasta=False)
+    with_rrna_count = fastx_utils.get_read_count(with_rrna, is_fasta=False)
     
     msg = "{}: counting reads without rrna".format(name)
     logger.info(msg)
-    without_rrna_count = bio.get_read_count(without_rrna, is_fasta=False)
+    without_rrna_count = fastx_utils.get_read_count(without_rrna, is_fasta=False)
     
     msg = "{}: counting genome-aligned reads".format(name)
     logger.info(msg)
-    genome_count = bio.count_aligned_reads(genome_bam)
+    genome_count = bam_utils.count_aligned_reads(genome_bam)
 
     msg = "{}: counting uniquely-aligned reads".format(name)
     logger.info(msg)
-    unique_count = bio.count_aligned_reads(unique_bam)
+    unique_count = bam_utils.count_aligned_reads(unique_bam)
 
     # count reads with correct lengths
     msg = "{}: counting reads with selected lengths".format(name)
@@ -78,7 +81,7 @@ def get_counts(name_data, config, args):
 
     # now count the unique reads with the appropriate length
     lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, name)
-    length_counts = bio.get_length_distribution(unique_bam)
+    length_counts = bam_utils.get_length_distribution(unique_bam)
     length_count = sum(length_counts[l] for l in length_counts if str(l) in lengths)
     
     lengths_str = ','.join(lengths)
@@ -119,9 +122,9 @@ def main():
     parser.add_argument('--tmp', help="Intermediate files (such as fastqc reports when "
         "they are first generated) will be written here", default=default_tmp)
     
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     programs = ['samtools']
     utils.check_programs_exist(programs)
