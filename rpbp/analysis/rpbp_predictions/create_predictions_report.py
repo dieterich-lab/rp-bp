@@ -3,10 +3,12 @@
 import argparse
 import logging
 import os
+import sys
 import yaml
 
 import misc.latex as latex
 import misc.logging_utils as logging_utils
+import misc.slurm as slurm
 import misc.utils as utils
 
 import riboutils.ribo_filenames as filenames
@@ -278,8 +280,6 @@ def main():
     parser.add_argument('--image-type', help="The format of the image files. This must be "
         "a format usable by matplotlib.", default=default_image_type)
 
-    parser.add_argument('--num-cpus', help="The number of processors to use",
-        type=int, default=default_num_cpus)
     parser.add_argument('--overwrite', help="If this flag is present, existing files will "
         "be overwritten.", action='store_true')
         
@@ -290,6 +290,7 @@ def main():
         "results from Rp-chi will be included in the document; otherwise, they "
         "will not be created or shown.", action='store_true')
 
+    slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
@@ -308,6 +309,11 @@ def main():
         'riboseq_samples'
     ]
     utils.check_keys_exist(config, required_keys)
+
+    if args.use_slurm:
+        cmd = ' '.join(sys.argv)
+        slurm.check_sbatch(cmd, args=args)
+        return
 
     # by default, we will not include chisq
     chisq_values = [False]
