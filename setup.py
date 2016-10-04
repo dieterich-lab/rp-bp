@@ -20,6 +20,67 @@ logger = logging.getLogger(__name__)
 #       http://diffbrent.ghost.io/correctly-adding-nltk-to-your-python-package-using-setup-py-post-install-commands/
 ###
 
+preprocessing_scripts = [
+    'extract-orfs=rpbp.reference_preprocessing.extract_orfs:main',
+    'extract-orf-coordinates=rpbp.reference_preprocessing.extract_orf_coordinates:main',
+    'label-orfs=rpbp.reference_preprocessing.label_orfs:main',
+    'prepare-genome=rpbp.reference_preprocessing.prepare_genome:main'
+]
+
+profile_construction_scripts = [
+    'create-orf-profiles=rpbp.orf_profile_construction.create_orf_profiles:main',
+    'create-base-genome-profile=rpbp.orf_profile_construction.create_base_genome_profile:main',
+    'extract-orf-profiles=rpbp.orf_profile_construction.extract_orf_profiles:main',
+    'smooth-orf-profiles=rpbp.orf_profile_construction.smooth_orf_profiles:main',
+    'merge-replicate-orf-profiles=rpbp.translation_prediction.merge_replicate_orf_profiles:main',
+    'run-rpbp-pipeline=rpbp.run_rpbp_pipeline:main',
+    'process-all-samples=rpbp.process_all_samples:main'
+]
+
+translation_prediction_scripts = [
+    'predict-translated-orfs=rpbp.translation_prediction.predict_translated_orfs:main',
+    'estimate-orf-bayes-factors=rpbp.translation_prediction.estimate_orf_bayes_factors:main',
+    'select-final-prediction-set=rpbp.translation_prediction.select_final_prediction_set:main'
+]
+
+preprocessing_report_scripts = [
+    'visualize-metagene-profile=rpbp.analysis.profile_construction.visualize_metagene_profile:main [analysis]',
+    'visualize-metagene-profile-bayes-factor=rpbp.analysis.profile_construction.visualize_metagene_profile_bayes_factor:main [analysis]',
+    'create-preprocessing-report=rpbp.analysis.profile_construction.create_preprocessing_report:main [analysis]',
+    'get-all-read-filtering-counts=rpbp.analysis.profile_construction.get_all_read_filtering_counts:main [analysis]',
+    'visualize-read-filtering-counts=rpbp.analysis.profile_construction.visualize_read_filtering_counts:main [analysis]'
+]
+
+predictions_report_scripts = [
+    'visualize-orf-type-metagene-profiles=rpbp.analysis.rpbp_predictions.visualize_orf_type_metagene_profiles:main [analysis]',
+    'create-orf-types-pie-chart=rpbp.analysis.rpbp_predictions.create_orf_types_pie_chart:main [analysis]',
+    'create-orf-length-distribution-line-graph=rpbp.analysis.rpbp_predictions.create_orf_length_distribution_line_graph:main [analysis]',
+    'create-predictions-report=rpbp.analysis.rpbp_predictions.create_predictions_report:main [analysis]',
+    'create-bf-rpkm-scatter-plot=rpbp.analysis.rpbp_predictions.create_bf_rpkm_scatter_plot:main [analysis]'
+]
+
+proteomics_report_scripts = [
+    'get-orf-peptide-matches=rpbp.analysis.proteomics.get_orf_peptide_matches:main [analysis]',
+    'get-all-orf-peptide-matches=rpbp.analysis.proteomics.get_all_orf_peptide_matches:main [analysis]',
+    'create-orf-peptide-coverage-line-graph=rpbp.analysis.proteomics.create_orf_peptide_coverage_line_graph:main [analysis]',
+    'filter-nonunique-peptide-matches=rpbp.analysis.proteomics.filter_nonunique_peptide_matches:main [analysis]',
+    'create-proteomics-report=rpbp.analysis.proteomics.create_proteomics_report:main [analysis]'
+]
+
+other_scripts = [
+    'extract-orf-types=rpbp.analysis.extract_orf_types:main [analysis]',
+    'create-riboseq-test-dataset=rpbp.analysis.create_riboseq_test_dataset:main [analysis]',
+    'match-orfs-with-qti-seq-peaks=rpbp.analysis.qti_seq.match_orfs_with_qti_seq_peaks:main [analysis]',
+    'match-orfs-with-mackowiak-sorfs=rpbp.analysis.conservation.match_orfs_with_mackowiak_sorfs:main [analysis]',
+    'perform-mackowiak-permutation-test=rpbp.analysis.conservation.perform_mackowiak_permutation_test:main [analysis]',
+    'add-mygene-info-to-orfs=rpbp.analysis.rpbp_predictions.add_mygene_info_to_orfs:main [analysis]',
+    'find-differential-micropeptides=rpbp.analysis.find_differential_micropeptides:main [analysis]'
+]
+
+console_scripts = (preprocessing_scripts + profile_construction_scripts + 
+    translation_prediction_scripts + preprocessing_report_scripts + 
+    proteomics_report_scripts + predictions_report_scripts + other_scripts)
+
 external_requirements =  [
     'cython',
     'numpy',
@@ -39,7 +100,7 @@ external_requirements =  [
 ]
 
 internal_requirements = {
-    "misc[bio]":"-e git+https://bitbucket.org/bmmalone/misc.git#egg=misc[bio]",
+    "misc":"-e git+https://bitbucket.org/bmmalone/misc.git#egg=misc[bio]",
      # the "-e" seems to be necessary to grab subfolders. I do not
      # understand this, but it seems to work
     "riboutils": "git+https://github.com/dieterich-lab/riboseq-utils.git#egg=riboutils"
@@ -184,41 +245,7 @@ setup(name='rpbp',
         test_suite='nose.collector',
         tests_require=['nose'],
         entry_points = {
-            'console_scripts': [
-                                'extract-orfs=rpbp.reference_preprocessing.extract_orfs:main',
-                                'prepare-genome=rpbp.reference_preprocessing.prepare_genome:main',
-                                'create-orf-profiles=rpbp.orf_profile_construction.create_orf_profiles:main',
-                                'create-base-genome-profile=rpbp.orf_profile_construction.create_base_genome_profile:main',
-                                'predict-translated-orfs=rpbp.translation_prediction.predict_translated_orfs:main',
-                                'extract-orf-profiles=rpbp.orf_profile_construction.extract_orf_profiles:main',
-                                'smooth-orf-profiles=rpbp.orf_profile_construction.smooth_orf_profiles:main',
-                                'merge-replicate-orf-profiles=rpbp.translation_prediction.merge_replicate_orf_profiles:main',
-                                'estimate-orf-bayes-factors=rpbp.translation_prediction.estimate_orf_bayes_factors:main',
-                                'select-final-prediction-set=rpbp.translation_prediction.select_final_prediction_set:main',
-                                'run-rpbp-pipeline=rpbp.run_rpbp_pipeline:main',
-                                'process-all-samples=rpbp.process_all_samples:main',
-                                'visualize-metagene-profile=rpbp.analysis.profile_construction.visualize_metagene_profile:main [analysis]',
-                                'visualize-metagene-profile-bayes-factor=rpbp.analysis.profile_construction.visualize_metagene_profile_bayes_factor:main [analysis]',
-                                'create-preprocessing-report=rpbp.analysis.profile_construction.create_preprocessing_report:main [analysis]',
-                                'get-all-read-filtering-counts=rpbp.analysis.profile_construction.get_all_read_filtering_counts:main [analysis]',
-                                'visualize-read-filtering-counts=rpbp.analysis.profile_construction.visualize_read_filtering_counts:main [analysis]',
-                                'get-orf-peptide-matches=rpbp.analysis.proteomics.get_orf_peptide_matches:main [analysis]',
-                                'extract-orf-types=rpbp.analysis.extract_orf_types:main [analysis]',
-                                'get-all-orf-peptide-matches=rpbp.analysis.proteomics.get_all_orf_peptide_matches:main [analysis]',
-                                'create-orf-peptide-coverage-line-graph=rpbp.analysis.proteomics.create_orf_peptide_coverage_line_graph:main [analysis]',
-                                'create-proteomics-report=rpbp.analysis.proteomics.create_proteomics_report:main [analysis]',
-                                'create-riboseq-test-dataset=rpbp.analysis.create_riboseq_test_dataset:main [analysis]',
-                                'visualize-orf-type-metagene-profiles=rpbp.analysis.rpbp_predictions.visualize_orf_type_metagene_profiles:main [analysis]',
-                                'create-orf-types-pie-chart=rpbp.analysis.rpbp_predictions.create_orf_types_pie_chart:main [analysis]',
-                                'create-orf-length-distribution-line-graph=rpbp.analysis.rpbp_predictions.create_orf_length_distribution_line_graph:main [analysis]',
-                                'create-predictions-report=rpbp.analysis.rpbp_predictions.create_predictions_report:main [analysis]',
-                                'create-bf-rpkm-scatter-plot=rpbp.analysis.rpbp_predictions.create_bf_rpkm_scatter_plot:main [analysis]',
-                                'match-orfs-with-qti-seq-peaks=rpbp.analysis.qti_seq.match_orfs_with_qti_seq_peaks:main [analysis]',
-                                'match-orfs-with-mackowiak-sorfs=rpbp.analysis.conservation.match_orfs_with_mackowiak_sorfs:main [analysis]',
-                                'perform-mackowiak-permutation-test=rpbp.analysis.conservation.perform_mackowiak_permutation_test:main [analysis]',
-                                'filter-nonunique-peptide-matches=rpbp.analysis.proteomics.filter_nonunique_peptide_matches:main [analysis]',
-                                'add-mygene-info-to-orfs=rpbp.analysis.rpbp_predictions.add_mygene_info_to_orfs:main [analysis]'
-                               ]
+            'console_scripts': console_scripts
         },
         zip_safe=False
         )
