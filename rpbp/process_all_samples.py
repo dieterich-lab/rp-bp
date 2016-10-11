@@ -6,6 +6,7 @@ import os
 import yaml
 
 import misc.logging_utils as logging_utils
+import misc.shell_utils as shell_utils
 import misc.slurm as slurm
 import misc.utils as utils
 
@@ -46,6 +47,11 @@ def main():
         "--merge-replicates flag, then both the replicates *and* the individual "
         "samples will be run. This flag has no effect if --merge-replicates is not "
         "given.", action='store_true')
+         
+    parser.add_argument('-k', '--keep-intermediate-files', help="If this flag is given, "
+        "then all intermediate files will be kept; otherwise, they will be "
+        "deleted. This feature is implemented piecemeal. If the --do-not-call flag "
+        "is given, then nothing will be deleted.", action='store_true')
     
     slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)
@@ -75,7 +81,7 @@ def main():
                     'predict-translated-orfs',
                     'run-rpbp-pipeline'
                 ]
-    utils.check_programs_exist(programs)
+    shell_utils.check_programs_exist(programs)
 
     
     required_keys = [   
@@ -101,6 +107,10 @@ def main():
     overwrite_str = ""
     if args.overwrite:
         overwrite_str = "--overwrite"
+
+    keep_intermediate_str = ""
+    if args.keep_intermediate_files:
+        keep_intermediate_str = "--keep-intermediate-files"
 
     # if we merge the replicates, then we only use the rpbp script to create
     # the ORF profiles
@@ -137,10 +147,10 @@ def main():
             tmp = os.path.join(args.tmp, "{}_{}_rpbp".format(sample_name, note))
             tmp_str = "--tmp {}".format(tmp)
 
-        cmd = "run-rpbp-pipeline {} {} {} --num-cpus {} {} {} {} {} {} {} {}".format(data, 
+        cmd = "run-rpbp-pipeline {} {} {} --num-cpus {} {} {} {} {} {} {} {} {}".format(data, 
                 args.config, sample_name, args.num_cpus, tmp_str, do_not_call_str, 
                 overwrite_str, logging_str, star_str, profiles_only_str,
-                flexbar_format_option_str)
+                flexbar_format_option_str, keep_intermediate_str)
 
         job_id = slurm.check_sbatch(cmd, args=args)
 

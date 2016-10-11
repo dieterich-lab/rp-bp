@@ -8,6 +8,7 @@ import sys
 import yaml
 
 import misc.logging_utils as logging_utils
+import misc.shell_utils as shell_utils
 import misc.slurm as slurm
 import misc.utils as utils
 
@@ -43,6 +44,11 @@ def main():
 
     parser.add_argument('--profiles-only', help="If this flag is present, then only "
         "the ORF profiles will be created", action='store_true')
+         
+    parser.add_argument('-k', '--keep-intermediate-files', help="If this flag is given, "
+        "then all intermediate files will be kept; otherwise, they will be "
+        "deleted. This feature is implemented piecemeal. If the --do-not-call flag "
+        "is given, then nothing will be deleted.", action='store_true')
            
     slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)
@@ -72,7 +78,7 @@ def main():
                     'create-orf-profiles',
                     'predict-translated-orfs'
                 ]
-    utils.check_programs_exist(programs)
+    shell_utils.check_programs_exist(programs)
 
     
     required_keys = [   
@@ -112,6 +118,10 @@ def main():
 
     # for a sample, we first create its filtered genome profile
     star_str = "--star-executable {}".format(args.star_executable)
+    
+    keep_intermediate_str = ""
+    if args.keep_intermediate_files:
+        keep_intermediate_str = "--keep-intermediate-files"
 
     tmp_str = ""
     if args.tmp is not None:
@@ -122,11 +132,11 @@ def main():
         flexbar_format_option_str = "--flexbar-format-option {}".format(
             args.flexbar_format_option)
 
-    cmd = ("create-orf-profiles {} {} {} --num-cpus {} {} {} {} {} {} {}".format(args.raw_data, 
+    cmd = ("create-orf-profiles {} {} {} --num-cpus {} {} {} {} {} {} {} {}".format(args.raw_data, 
             args.config, args.name, args.num_cpus, do_not_call_str, overwrite_str, 
-            logging_str, star_str, tmp_str, flexbar_format_option_str))
+            logging_str, star_str, tmp_str, flexbar_format_option_str, keep_intermediate_str))
 
-    utils.check_call(cmd)
+    shell_utils.check_call(cmd)
 
     # check if we only want to create the profiles
     if args.profiles_only:
@@ -135,7 +145,7 @@ def main():
     # then we predict the ORFs
     cmd = ("predict-translated-orfs {} {} --num-cpus {} {} {} {} {}".format(args.config, 
             args.name, args.num_cpus, tmp_str, do_not_call_str, overwrite_str, logging_str))
-    utils.check_call(cmd)
+    shell_utils.check_call(cmd)
 
 if __name__ == '__main__':
     main()

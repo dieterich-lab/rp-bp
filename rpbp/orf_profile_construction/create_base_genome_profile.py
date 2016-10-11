@@ -13,13 +13,14 @@ import misc.bio as bio
 import misc.bio_utils.bam_utils as bam_utils
 import misc.bio_utils.fastx_utils as fastx_utils
 import misc.logging_utils as logging_utils
+import misc.shell_utils as shell_utils
 import misc.utils as utils
 
 logger = logging.getLogger(__name__)
 
 default_num_cpus = 1
 
-default_flexbar_format_option = "format"
+default_flexbar_format_option = "qtrim-format"
 default_quality_format = 'sanger'
 default_max_uncalled = 1
 default_pre_trim_left = 0
@@ -68,6 +69,13 @@ def main():
     parser.add_argument('--do-not-call', action='store_true')
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
+
+    
+    parser.add_argument('-k', '--keep-intermediate-files', help="If this flag is given, "
+        "then all intermediate files will be kept; otherwise, they will be "
+        "deleted. This feature is implemented piecemeal. If the --do-not-call flag "
+        "is given, then nothing will be deleted.", action='store_true')
+
     
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
@@ -75,6 +83,7 @@ def main():
 
     config = yaml.load(open(args.config))
     call = not args.do_not_call
+    keep_delete_files = args.keep_intermediate_files or args.do_not_call
 
     # check that all of the necessary programs are callable
     programs =  [   'flexbar',
@@ -83,7 +92,7 @@ def main():
                     'bowtie2',
                     'remove-multimapping-reads'
                 ]
-    utils.check_programs_exist(programs)
+    shell_utils.check_programs_exist(programs)
 
     required_keys = [   'riboseq_data',
                         'ribosomal_index',
@@ -117,7 +126,7 @@ def main():
     file_checkers = {
         without_adapters: fastx_utils.check_fastq_file
     }
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         file_checkers=file_checkers, overwrite=args.overwrite, call=call)
 
     # Step 1: Running bowtie2 to remove rRNA alignments
@@ -131,11 +140,13 @@ def main():
     in_files = [without_adapters]
     in_files.extend(bio.get_bowtie2_index_files(config['ribosomal_index']))
     out_files = [without_rrna, with_rrna]
+    to_delete = [without_adapters]
     file_checkers = {
         without_rrna: fastx_utils.check_fastq_file
     }
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+        file_checkers=file_checkers, overwrite=args.overwrite, call=call,
+        keep_delete_files=keep_delete_files, to_delete=to_delete)
 
     # Step 2: Running STAR to align rRNA-depleted reads to genome
     star_output_prefix = filenames.get_riboseq_bam_base(config['riboseq_data'], args.name, note=note)
@@ -173,13 +184,15 @@ def main():
     in_files = [without_rrna]
     in_files.extend(bio.get_star_index_files(config['star_index']))
     #out_files = [transcriptome_bam, genome_star_bam]
+    to_delete = [without_rrna]
     out_files = [genome_star_bam]
     file_checkers = {
         #transcriptome_bam: bam_utils.check_bam_file,
         genome_star_bam: bam_utils.check_bam_file
     }
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+        file_checkers=file_checkers, overwrite=args.overwrite, call=call,
+        keep_delete_files=keep_delete_files, to_delete=to_delete)
     
     # now, we need to symlink the (genome) STAR output to that expected by the rest of the pipeline
     genome_sorted_bam = filenames.get_riboseq_bam(config['riboseq_data'], args.name, note=note)
@@ -206,7 +219,7 @@ def main():
     #file_checkers = {
     #    transcriptome_sorted_bam: bam_utils.check_bam_file
     #}
-    #utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    #shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
     #    file_checekers=file_checkers, overwrite=args.overwrite, call=call)
 
 #    # Creating bam index file for transcriptome alignments
@@ -214,7 +227,7 @@ def main():
 #    cmd = "samtools index -b {} {}".format(transcriptome_sorted_bam, transcriptome_sorted_bai)
 #    in_files = [transcriptome_sorted_bam]
 #    out_files = [transcriptome_sorted_bai]
-#    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+#    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
 #        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
     
     # remove multimapping reads from the genome file
@@ -230,11 +243,13 @@ def main():
 
     in_files = [genome_sorted_bam]
     out_files = [unique_genome_filename]
+    to_delete = [genome_star_bam, genome_sorted_bam]
     file_checkers = {
         unique_genome_filename: bam_utils.check_bam_file
     }
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+        file_checkers=file_checkers, overwrite=args.overwrite, call=call,
+        keep_delete_files=keep_delete_files, to_delete=to_delete)
 #
 #    # remove multimapping reads from the transcriptome file
 #    unique_transcriptome_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, 
@@ -249,7 +264,7 @@ def main():
 #    file_checkers = {
 #        unique_transcriptome_filename: bam_utils.check_bam_file
 #    }
-#    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+#    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
 #        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
    
 if __name__ == '__main__':

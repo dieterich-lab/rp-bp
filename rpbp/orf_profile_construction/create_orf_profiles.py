@@ -10,6 +10,7 @@ import yaml
 
 import misc.bio_utils.bam_utils as bam_utils
 import misc.logging_utils as logging_utils
+import misc.shell_utils as shell_utils
 import misc.utils as utils
 
 import riboutils.ribo_utils as ribo_utils
@@ -52,6 +53,11 @@ def main():
     parser.add_argument('--do-not-call', action='store_true')
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
+         
+    parser.add_argument('-k', '--keep-intermediate-files', help="If this flag is given, "
+        "then all intermediate files will be kept; otherwise, they will be "
+        "deleted. This feature is implemented piecemeal. If the --do-not-call flag "
+        "is given, then nothing will be deleted.", action='store_true')
             
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
@@ -74,7 +80,7 @@ def main():
                     'select-periodic-offsets',
                     'extract-orf-profiles'
                 ]
-    utils.check_programs_exist(programs)
+    shell_utils.check_programs_exist(programs)
 
     
     required_keys = [   'riboseq_data',
@@ -109,6 +115,9 @@ def main():
 
     star_str = "--star-executable {}".format(args.star_executable)
 
+    keep_intermediate_str = ""
+    if args.keep_intermediate_files:
+        keep_intermediate_str = "--keep-intermediate-files"
 
     tmp_str = ""
     if args.tmp is not None:
@@ -124,10 +133,10 @@ def main():
     riboseq_raw_data = args.raw_data
     riboseq_bam_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, 
         is_unique=True, note=note)
-    cmd = ("create-base-genome-profile {} {} {} --num-cpus {} {} {} {} {} {} {}"
+    cmd = ("create-base-genome-profile {} {} {} --num-cpus {} {} {} {} {} {} {} {}"
         .format(riboseq_raw_data, args.config, args.name, args.num_cpus, 
         do_not_call_argument, overwrite_argument, logging_str, star_str, tmp_str,
-        flexbar_format_option_str))
+        flexbar_format_option_str, keep_intermediate_str))
 
     # There could be cases where we start somewhere in the middle of creating
     # the base genome profile. So even if the "raw data" is not available, 
@@ -136,7 +145,7 @@ def main():
     in_files = []
     out_files = [riboseq_bam_filename]
     # we always call this, and pass --do-not-call through
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         overwrite=args.overwrite, call=True) 
 
     # create the metagene profiles
@@ -166,7 +175,7 @@ def main():
     file_checkers = {
         metagene_profiles: utils.check_gzip_file
     }
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         file_checkers=file_checkers, overwrite=args.overwrite, call=call)
 
     # estimate the periodicity for each offset for all read lengths
@@ -205,7 +214,7 @@ def main():
     file_checkers = {
         metagene_profile_bayes_factors: utils.check_gzip_file
     }
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         file_checkers=file_checkers, overwrite=args.overwrite, call=call)
     
     # select the best read lengths for constructing the signal
@@ -219,7 +228,7 @@ def main():
     file_checkers = {
         periodic_offsets: utils.check_gzip_file
     }
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         file_checkers=file_checkers, overwrite=args.overwrite, call=call)
 
     # get the lengths and offsets which meet the required criteria from the config file
@@ -258,7 +267,7 @@ def main():
     out_files = [profiles_filename]
 
     #todo: implement a file checker for mtx files
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         overwrite=args.overwrite, call=call)
    
 if __name__ == '__main__':
