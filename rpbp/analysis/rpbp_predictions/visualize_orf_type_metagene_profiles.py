@@ -12,8 +12,10 @@ import numpy as np
 import scipy.io
 import tqdm
 
-import misc.bio as bio
+import misc.bio_utils.bed_utils as bed_utils
 import misc.parallel as parallel
+import misc.logging_utils as logging_utils
+import misc.shell_utils as shell_utils
 import misc.utils as utils
 
 import riboutils.ribo_filenames as filenames
@@ -210,13 +212,13 @@ def main():
     parser.add_argument('--image-type', help="The type of image files to create. The type "
         "must be recognized by matplotlib.", default=default_image_type)
     
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     msg = "Reading ORFs"
     logger.info(msg)
-    orfs = bio.read_bed(args.orfs)
+    orfs = bed_utils.read_bed(args.orfs)
 
     msg = "Reading profiles"
     logger.info(msg)

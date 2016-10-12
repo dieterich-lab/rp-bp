@@ -11,6 +11,7 @@ import os
 import scipy.stats
 
 import misc.bio as bio
+import misc.bio_utils.bed_utils as bed_utils
 import misc.latex as latex
 import misc.math_utils as math_utils
 
@@ -48,7 +49,7 @@ def main():
     
     args = parser.parse_args()
 
-    orfs = bio.read_bed(args.orfs)
+    orfs = bed_utils.read_bed(args.orfs)
 
     if args.use_groups:
         orf_lengths = [ get_orf_lengths(orfs, ribo_utils.orf_type_labels_mapping[label]) 
