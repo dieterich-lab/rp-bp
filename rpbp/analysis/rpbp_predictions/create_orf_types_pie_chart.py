@@ -8,7 +8,7 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
-import misc.bio as bio
+import misc.bio_utils.bed_utils as bed_utils
 
 import riboutils.ribo_utils as ribo_utils
 
@@ -40,7 +40,7 @@ def main():
     
     args = parser.parse_args()
 
-    orfs = bio.read_bed(args.orfs)
+    orfs = bed_utils.read_bed(args.orfs)
 
     strands = ['+', '-']
     fracs = []

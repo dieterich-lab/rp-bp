@@ -9,6 +9,7 @@ import pandas as pd
 import yaml
 
 import misc.logging_utils as logging_utils
+import misc.shell_utils as shell_utils
 import misc.utils as utils
 
 import riboutils.ribo_utils as ribo_utils
@@ -84,7 +85,7 @@ def main():
                     'estimate-orf-bayes-factors',
                     'select-final-prediction-set'
                 ]
-    utils.check_programs_exist(programs)
+    shell_utils.check_programs_exist(programs)
 
     
     required_keys = [   'riboseq_data',
@@ -139,7 +140,7 @@ def main():
         out_files = [profiles]
 
         # todo: implement file checker for mtx files
-        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
 
     else:
@@ -203,7 +204,7 @@ def main():
     }
     msg = "estimate-bayes-factors in_files: {}".format(in_files)
     logger.debug(msg)
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         file_checkers=file_checkers, overwrite=args.overwrite, call=call)
 
     is_chisq_values = [True, False]
@@ -257,7 +258,7 @@ def main():
             }
 
             # todo: implement file checker for fasta files
-            utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+            shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
                 file_checkers=file_checkers, overwrite=args.overwrite, call=call)
     
 

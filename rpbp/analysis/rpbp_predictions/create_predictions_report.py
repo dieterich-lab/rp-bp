@@ -3,10 +3,13 @@
 import argparse
 import logging
 import os
+import sys
 import yaml
 
 import misc.latex as latex
 import misc.logging_utils as logging_utils
+import misc.shell_utils as shell_utils
+import misc.slurm as slurm
 import misc.utils as utils
 
 import riboutils.ribo_filenames as filenames
@@ -111,7 +114,8 @@ def create_figures(name, is_replicate, config, args):
                     title_str, use_groups_str)
                 in_files = [orfs]
                 out_files = [orf_types_pie_chart]
-                utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+                shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+                    overwrite=args.overwrite)
 
     
     msg = "{}: creating the ORF length distributions line graph".format(name)
@@ -161,7 +165,8 @@ def create_figures(name, is_replicate, config, args):
 
             in_files = [orfs]
             out_files = [orf_length_line_graph]
-            utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+            shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+                overwrite=args.overwrite)
 
     msg = "{}: creating the ORF type metagene profiles".format(name)
     logger.info(msg)
@@ -215,7 +220,8 @@ def create_figures(name, is_replicate, config, args):
 
         in_files = [orfs]
         out_files = orf_type_profiles_forward + orf_type_profiles_reverse
-        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+            overwrite=args.overwrite)
 
     msg = "{}: creating the RPKM-BF scatter plots".format(name)
     logger.info(msg)
@@ -236,7 +242,13 @@ def create_figures(name, is_replicate, config, args):
 
     in_files = [args.config]
     out_files = [bf_rpkm_scatter_plot]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+
+    msg = ("{}: the RPKM-BF plots do not seem to give meaningful insight. "
+        "Skipping.".format(name))
+    logger.warning(msg)
+
+    #shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    #    overwrite=args.overwrite)
 
 
 
@@ -278,8 +290,6 @@ def main():
     parser.add_argument('--image-type', help="The format of the image files. This must be "
         "a format usable by matplotlib.", default=default_image_type)
 
-    parser.add_argument('--num-cpus', help="The number of processors to use",
-        type=int, default=default_num_cpus)
     parser.add_argument('--overwrite', help="If this flag is present, existing files will "
         "be overwritten.", action='store_true')
         
@@ -290,6 +300,7 @@ def main():
         "results from Rp-chi will be included in the document; otherwise, they "
         "will not be created or shown.", action='store_true')
 
+    slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
@@ -301,13 +312,18 @@ def main():
         'create-orf-types-pie-chart',
         'visualize-orf-type-metagene-profiles'
     ]
-    utils.check_programs_exist(programs)
+    shell_utils.check_programs_exist(programs)
     
     required_keys = [
         'riboseq_data',
         'riboseq_samples'
     ]
     utils.check_keys_exist(config, required_keys)
+
+    if args.use_slurm:
+        cmd = ' '.join(sys.argv)
+        slurm.check_sbatch(cmd, args=args)
+        return
 
     # by default, we will not include chisq
     chisq_values = [False]
@@ -336,7 +352,9 @@ def main():
     header = latex.get_header_text(title, abstract)
     footer = latex.get_footer_text()
 
-    tex_file = os.path.join(args.out, "prediction-report.tex")
+    
+    #tex_file = os.path.join(args.out, "prediction-report.tex")
+    tex_file = filenames.get_rpbp_prediction_report(args.out, out_note_str)
 
     
     with open(tex_file, 'w') as out:
@@ -728,10 +746,10 @@ def main():
         out.write(footer)
 
     
-    os.chdir(args.out)
-    cmd = "pdflatex -shell-escape prediction-report"
-    utils.check_call(cmd)
-    utils.check_call(cmd) # call again to fix references
+    #os.chdir(args.out)
+    cmd = "pdflatex -shell-escape {}".format(tex_file) # prediction-report"
+    shell_utils.check_call(cmd)
+    shell_utils.check_call(cmd) # call again to fix references
 
 
 if __name__ == '__main__':
