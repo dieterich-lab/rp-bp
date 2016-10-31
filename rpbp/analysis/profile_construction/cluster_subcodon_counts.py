@@ -1,6 +1,19 @@
 #! /usr/bin/env python3
 
+import matplotlib
+matplotlib.use('agg')
+
 import argparse
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import scipy
+import sklearn.mixture
+
+import misc.bio_utils.bed_utils as bed_utils
+import misc.logging_utils as logging_utils
+import misc.np_utils as np_utils
 
 import logging
 import misc.logging_utils as logging_utils
