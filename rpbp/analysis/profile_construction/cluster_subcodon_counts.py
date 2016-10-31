@@ -8,6 +8,7 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pickle
 import scipy
 import sklearn.mixture
 
@@ -27,10 +28,9 @@ default_min_weight = 0.01
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="This script clusters the ORFs based on their subcodon "
-        "counts. Only clusters which exhibit the basic periodicity pattern in "
-        "which we are interested are kept, i.e., the mean of the in-frame "
-        "counts is larger than either of the others. It visualizes the results "
-        "as a scatter plot.")
+        "counts using a DP-GMM; the means and weights of the clusters are "
+        "written to a pickle file which consists of a list. The first element "
+        "of the list are the means, and the second is the weights.")
 
     parser.add_argument('bf', help="The bayes factor file containing counts")
     parser.add_argument('out', help="The output (image) file")
@@ -42,10 +42,7 @@ def main():
         "clusters", type=int, default=default_n_components)
     parser.add_argument('--seed', help="The seed for the random number "
         "generator", type=int, default=default_seed)
-    parser.add_argument('--min-weight', help="The minumum weight assigned to "
-        "a cluster to include it in the plot", type=float, 
-        default=default_min_weight)
-
+    
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
@@ -63,52 +60,11 @@ def main():
     model = np_utils.fit_bayesian_gaussian_mixture(X, 
         max_iter=args.max_iter, n_components=args.n_components, seed=args.seed)
 
-    msg = "Finding the periodic clusters"
-    logger.info(msg)
-    it = enumerate(zip(model.means_, model.weights_))
-
-    periodic_clusters = []
-
-    for i, (m, w) in it:
-        if w > args.min_weight:
-            if (m[0] > m[1]) and (m[0] > m[2]):
-                periodic_clusters.append(i)
-
-    c = model.means_[periodic_clusters, 0]
-    x = model.means_[periodic_clusters, 1]
-    y = model.means_[periodic_clusters, 2]
-
-    msg = "Creating the plot"
+    msg = "Writing means and weights to disk"
     logger.info(msg)
 
-    max_val = max(max(x), max(y))
-    max_val = max_val * 1.2
-
-    fig, ax = plt.subplots()
-
-    ax.set_aspect('equal')
-
-    ax.set_xlabel("Frame +1")
-    ax.set_ylabel("Frame +2")
-
-    cm = plt.cm.Blues
-
-    sc = ax.scatter(x, y, c=c, cmap=cm, s=30)
-    cb = plt.colorbar(sc, ax=ax)
-    cb.set_label("In-frame")
-
-    lim = (0, max_val)
-
-    ax.set_xlim(lim)
-    ax.set_ylim(lim)
-
-    if len(args.title) > 0:
-        ax.set_title(args.title)
-
-    msg = "Writing the plot to disk"
-    logger.info(msg)
-
-    fig.savefig(args.out)
+    to_pkl = [model.means_, model.weights_]
+    pickle.dump(to_pkl, open(args.out, 'wb'))
 
 if __name__ == '__main__':
     main()
