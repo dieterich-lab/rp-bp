@@ -6,6 +6,7 @@ import logging
 import re
 
 import misc.bio as bio
+import misc.logging_utils as logging_utils
 import misc.parallel as parallel
 import misc.utils as utils
 
@@ -106,9 +107,9 @@ def main():
         "sequences will be used to calculate coverage. This is for testing.", type=int,
         default=default_num_peptides)
     
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
 
     msg = "Reading and filtering peptides"
     logging.info(msg)
