@@ -35,7 +35,6 @@ profile_construction_scripts = [
     'merge-replicate-orf-profiles=rpbp.translation_prediction.merge_replicate_orf_profiles:main',
     'run-rpbp-pipeline=rpbp.run_rpbp_pipeline:main',
     'process-all-samples=rpbp.process_all_samples:main',
-    'cluster-subcodon-counts=rpbp.analysis.profile_construction.cluster_subcodon_counts:main'
 ]
 
 translation_prediction_scripts = [
@@ -75,7 +74,9 @@ other_scripts = [
     'match-orfs-with-mackowiak-sorfs=rpbp.analysis.conservation.match_orfs_with_mackowiak_sorfs:main [analysis]',
     'perform-mackowiak-permutation-test=rpbp.analysis.conservation.perform_mackowiak_permutation_test:main [analysis]',
     'add-mygene-info-to-orfs=rpbp.analysis.rpbp_predictions.add_mygene_info_to_orfs:main [analysis]',
-    'find-differential-micropeptides=rpbp.analysis.find_differential_micropeptides:main [analysis]'
+    'find-differential-micropeptides=rpbp.analysis.find_differential_micropeptides:main [analysis]',
+    'cluster-subcodon-counts=rpbp.analysis.profile_construction.cluster_subcodon_counts:main',
+    'visualize-subcodon-clusters=rpbp.analysis.profile_construction.visualize_subcodon_clusters:main'
 ]
 
 console_scripts = (preprocessing_scripts + profile_construction_scripts + 
