@@ -10,7 +10,7 @@ import misc.logging_utils as logging_utils
 import misc.parallel as parallel
 import misc.utils as utils
 
-default_num_cpus = 2
+default_num_cpus = 1
 
 default_num_groups = 100
 

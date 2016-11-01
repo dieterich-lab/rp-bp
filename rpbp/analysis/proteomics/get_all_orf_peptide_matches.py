@@ -2,13 +2,18 @@
 
 import argparse
 import logging
+import os
 import yaml
 
+import misc.logging_utils as logging_utils
+import misc.shell_utils as shell_utils
 import misc.utils as utils
 import misc.slurm as slurm
 
-import riboutils.ribo_filenames as filenames
-import riboutils.ribo_utils
+import riboutils.ribo_filenames as ribo_filenames
+import riboutils.ribo_utils as ribo_utils
+
+logger = logging.getLogger(__name__)
 
 default_num_procs = 2
 default_note = None
@@ -38,11 +43,11 @@ def main():
         default=default_note)
 
     slurm.add_sbatch_options(parser)
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
     
-    logging_str = utils.get_logging_options_string(args)
+    logging_str = logging_utils.get_logging_options_string(args)
 
     config = yaml.load(open(args.config))
     call = not args.do_not_call
@@ -50,7 +55,7 @@ def main():
     programs = [
         'get-orf-peptide-matches'
     ]
-    utils.check_programs_exist(programs)
+    shell_utils.check_programs_exist(programs)
 
     required_keys = [
         'peptide_files',
@@ -83,7 +88,7 @@ def main():
             continue
             
         cell_type_protein = ribo_filenames.get_riboseq_cell_type_protein(
-            config['riboseq_data'], cell_type, is_filtered=True, note=config['note'])
+            config['riboseq_data'], cell_type, is_filtered=True, note=note_str)
 
         if not os.path.exists(cell_type_protein):
             msg = ("Could not find cell_type protein fasta. Skipping: {}".
