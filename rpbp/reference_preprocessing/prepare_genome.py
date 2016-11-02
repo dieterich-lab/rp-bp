@@ -8,6 +8,7 @@ import sys
 import yaml
 import misc.bio as bio
 import misc.logging_utils as logging_utils
+import misc.shell_utils as shell_utils
 import misc.slurm as slurm
 import misc.utils as utils
 
@@ -49,7 +50,7 @@ def main():
                  'gtf-to-bed12',
                  args.star_executable
                 ]
-    utils.check_programs_exist(programs)
+    shell_utils.check_programs_exist(programs)
 
     
     required_keys = [   'genome_base_path',
@@ -77,7 +78,7 @@ def main():
 
     in_files = [config['ribosomal_fasta']]
     out_files = bio.get_bowtie2_index_files(config['ribosomal_index'])
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         overwrite=args.overwrite, call=call)
     
     # the STAR index
@@ -88,7 +89,7 @@ def main():
         
     in_files = [config['fasta']]
     out_files = bio.get_star_index_files(config['star_index'])
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         overwrite=args.overwrite, call=call)
 
     # extract a bed12 of the canonical ORFs
@@ -99,7 +100,7 @@ def main():
         transcript_bed, args.num_cpus, chr_name_str, logging_str))
     in_files = [config['gtf']]
     out_files = [transcript_bed]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         overwrite=args.overwrite, call=call)
 
     # extract the transcript fasta
@@ -119,7 +120,7 @@ def main():
     cmd = "gffread -W -w {} -g {} {}".format(transcript_fasta, config['fasta'], config['gtf'])
     in_files = [config['gtf'], config['fasta']]
     out_files = [transcript_fasta]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
          
     # the deduplicated, annotated, genomic coordinates orfs
     orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
@@ -136,7 +137,7 @@ def main():
         logging_str, args.num_cpus, start_codons_str, stop_codons_str, novel_id_str, ignore_parsing_errors_str))
     in_files = [transcript_fasta]
     out_files = [orfs_genomic]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
     exons_file = filenames.get_exons(config['genome_base_path'], config['genome_name'],
         note=config.get('orf_note'))
@@ -145,7 +146,7 @@ def main():
         exons_file, args.num_cpus, logging_str))
     in_files = [orfs_genomic]
     out_files = [exons_file]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call)
 
 
 if __name__ == '__main__':
