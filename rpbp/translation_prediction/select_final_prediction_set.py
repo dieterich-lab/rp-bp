@@ -145,6 +145,8 @@ def main():
         bayes_factors = bayes_factors[~m_filtered_orf_types]
 
     msg = "Identifying ORFs which meet the prediction thresholds"
+    logger.info(msg)
+
     all_orfs, bf_orfs, chisq_orfs = ribo_utils.get_predicted_orfs(bayes_factors, 
                                                        min_bf_mean=args.min_bf_mean, 
                                                        max_bf_var=args.max_bf_var, 
