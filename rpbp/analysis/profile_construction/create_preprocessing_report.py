@@ -72,6 +72,9 @@ def create_fastqc_reports(name_data, config, args):
 
     note = config.get('note', None)
 
+    # keep multimappers?
+    is_unique = not ('keep_riboseq_multimappers' in config)
+
     # first, get the ribo_filenames
     raw_data = data
     without_adapters = filenames.get_without_adapters_fastq(
@@ -83,7 +86,7 @@ def create_fastqc_reports(name_data, config, args):
     genome_bam = filenames.get_riboseq_bam(
         config['riboseq_data'], name, note=note)
     unique_bam = filenames.get_riboseq_bam(
-        config['riboseq_data'], name, is_unique = True, note=note)
+        config['riboseq_data'], name, is_unique=is_unique, note=note)
 
     if args.create_fastqc_reports:
 
@@ -100,7 +103,7 @@ def create_fastqc_reports(name_data, config, args):
         genome_bam_fastqc = filenames.get_riboseq_bam_fastqc_data(
             config['riboseq_data'], name, note=note)
         unique_bam_fastqc = filenames.get_riboseq_bam_fastqc_data(
-            config['riboseq_data'], name, is_unique=True, note=note)
+            config['riboseq_data'], name, is_unique=is_unique, note=note)
 
         # create the fastqc reports if they do not exist
         raw_data_fastqc_path = filenames.get_raw_data_fastqc_path(config['riboseq_data'])
@@ -189,6 +192,9 @@ def create_figures(config_file, config, name, offsets_df, args):
     if note is not None:
         note_str = note
 
+    # keep multimappers?
+    is_unique = not ('keep_riboseq_multimappers' in config)
+
     image_type_str = "--image-type {}".format(args.image_type)
 
     min_read_length = int(offsets_df['length'].min())
@@ -225,11 +231,11 @@ def create_figures(config_file, config, name, offsets_df, args):
 
     # uniquely aligned reads
     unique_filename = filenames.get_riboseq_bam(
-        config['riboseq_data'], name, is_unique = True, note=note)
+        config['riboseq_data'], name, is_unique=is_unique, note=note)
     unique_read_length_distribution = filenames.get_riboseq_read_length_distribution(
-        config['riboseq_data'], name, is_unique=True, note=note)
+        config['riboseq_data'], name, is_unique=is_unique, note=note)
     unique_read_length_distribution_image = filenames.get_riboseq_read_length_distribution_image(
-        config['riboseq_data'], name, is_unique=True, note=note, image_type=args.image_type)
+        config['riboseq_data'], name, is_unique=is_unique, note=note, image_type=args.image_type)
     
     cmd = "get-read-length-distribution {} {} {}".format(unique_filename, unique_read_length_distribution, logging_str)
     in_files = [unique_filename]
@@ -251,10 +257,10 @@ def create_figures(config_file, config, name, offsets_df, args):
     logger.info(msg)
 
     metagene_profiles = filenames.get_metagene_profiles(config['riboseq_data'], 
-        name, is_unique=True, note=note)
+        name, is_unique=is_unique, note=note)
     
     profile_bayes_factor = filenames.get_metagene_profiles_bayes_factors(config['riboseq_data'],
-        name, is_unique=True, note=note)
+        name, is_unique=is_unique, note=note)
 
     mp_df = pd.read_csv(metagene_profiles)
 
@@ -274,22 +280,28 @@ def create_figures(config_file, config, name, offsets_df, args):
         # visualize the metagene profile
         title = "Periodicity, {}, length {}".format(name, length)
         metagene_profile_image = filenames.get_riboseq_metagene_profile_image(config['riboseq_data'], 
-            name, image_type=args.image_type, is_unique=True, length=length, note=note)
+            name, image_type=args.image_type, is_unique=is_unique, length=length, note=note)
         cmd = ("visualize-metagene-profile {} {} {} --title \"{}\"".format(
             metagene_profiles, length, metagene_profile_image, title))
         in_files = [metagene_profiles]
         out_files = [metagene_profile_image]
-        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
+        utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+            overwrite=args.overwrite, call=True)
 
         # and the Bayes' factor
         title = "Metagene profile Bayes' factors, {}, length {}".format(name, length)
         metagene_profile_image = filenames.get_metagene_profile_bayes_factor_image(
-            config['riboseq_data'], name, image_type=args.image_type, is_unique=True, length=length, note=note)
+            config['riboseq_data'], name, image_type=args.image_type, 
+            is_unique=is_unique, length=length, note=note)
+
         cmd = ("visualize-metagene-profile-bayes-factor {} {} {} --title \"{}\" "
-            "--font-size 25".format(profile_bayes_factor, length, metagene_profile_image, title))
+            "--font-size 25".format(profile_bayes_factor, length, 
+            metagene_profile_image, title))
+
         in_files = [profile_bayes_factor]
         out_files = [metagene_profile_image]
-        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
+        utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+        overwrite=args.overwrite, call=True)
 
     # the orf-type metagene profiles
     msg = "{}: Visualizing the ORF type metagene profiles".format(name)
@@ -297,35 +309,39 @@ def create_figures(config_file, config, name, offsets_df, args):
 
 
     try:
-        lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, name)
+        lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, 
+            name, is_unique=is_unique)
     except FileNotFoundError:
-        msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(name)
+        msg = ("Could not parse out lengths and offsets for sample: {}. "
+            "Skipping".format(name))
         logger.error(msg)
         return
 
 
-    orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
-        note=config.get('orf_note'))
+    orfs_genomic = filenames.get_orfs(config['genome_base_path'], 
+        config['genome_name'], note=config.get('orf_note'))
          
     profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
-            length=lengths, offset=offsets, is_unique=True, note=note_str)
+            length=lengths, offset=offsets, is_unique=is_unique, note=note_str)
 
     title_str = "--title \"{}, ORF-type periodicity\"".format(name)
     
     orf_type_profile_base = filenames.get_orf_type_profile_base(
         config['riboseq_data'], name, length=lengths, offset=offsets, 
-        is_unique=True, note=note, subfolder='orf-profiles')
+        is_unique=is_unique, note=note, subfolder='orf-profiles')
 
     strand = "+"
     orf_type_profiles_forward = [
-        filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, strand, args.image_type)
-            for orf_type in ribo_utils.orf_types
+        filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, 
+            strand, args.image_type)
+                for orf_type in ribo_utils.orf_types
     ]
     
     strand = "-"
     orf_type_profiles_reverse = [
-        filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, strand, args.image_type)
-            for orf_type in ribo_utils.orf_types
+        filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, 
+            strand, args.image_type)
+                for orf_type in ribo_utils.orf_types
     ]
 
     cmd = ("visualize-orf-type-metagene-profiles {} {} {} {} {} {}".format(
@@ -334,7 +350,8 @@ def create_figures(config_file, config, name, offsets_df, args):
 
     in_files = [orfs_genomic, profiles]
     out_files = orf_type_profiles_forward + orf_type_profiles_reverse
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+        overwrite=args.overwrite)
 
 
 def create_read_filtering_plots(config_file, config, args):
@@ -417,6 +434,9 @@ def main():
 
     if args.note is not None:
         config['note'] = args.note
+    
+    # keep multimappers?
+    is_unique = not ('keep_riboseq_multimappers' in config)
 
     programs =  [   'visualize-metagene-profile',
                     'visualize-metagene-profile-bayes-factor',
@@ -454,10 +474,12 @@ def main():
         "min_metagene_profile_count", default_min_metagene_profile_count)
 
     min_metagene_profile_bayes_factor_mean = config.get(
-        "min_metagene_profile_bayes_factor_mean", default_min_metagene_profile_bayes_factor_mean)
+        "min_metagene_profile_bayes_factor_mean", 
+        default_min_metagene_profile_bayes_factor_mean)
 
     max_metagene_profile_bayes_factor_var = config.get(
-        "max_metagene_profile_bayes_factor_var", default_max_metagene_profile_bayes_factor_var)
+        "max_metagene_profile_bayes_factor_var", 
+        default_max_metagene_profile_bayes_factor_var)
 
     project_name = config.get("project_name", default_project_name)
     title = "Preprocessing results for {}".format(project_name)
@@ -497,7 +519,9 @@ def main():
         latex.end_figure(out)
 
         # the read length distributions
-        latex.section(out, "Read length distributions", label=length_distribution_section_label)
+        latex.section(out, "Read length distributions", 
+            label=length_distribution_section_label)
+
         out.write(read_length_distribution_text)
 
         msg = "Writing length distribution figures"
@@ -507,9 +531,12 @@ def main():
         for name in sample_names:
             data = config['riboseq_samples'][name]
             read_length_distribution_image = filenames.get_riboseq_read_length_distribution_image(
-                config['riboseq_data'], name, is_unique=False, note=note, image_type=args.image_type)
+                config['riboseq_data'], name, is_unique=False, note=note, 
+                image_type=args.image_type)
+
             unique_read_length_distribution_image = filenames.get_riboseq_read_length_distribution_image(
-                config['riboseq_data'], name, is_unique=True, note=note, image_type=args.image_type)
+                config['riboseq_data'], name, is_unique=is_unique, note=note, 
+                image_type=args.image_type)
 
             msg = "Looking for image file: {}".format(read_length_distribution_image)
             logger.debug(msg)
@@ -556,7 +583,7 @@ def main():
             logger.debug("overwrite: {}".format(args.overwrite))
     
             periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], 
-                name, is_unique=True, note=note)
+                name, is_unique=is_unique, note=note)
             offsets_df = pd.read_csv(periodic_offsets)
 
             min_read_length = int(offsets_df['length'].min())
@@ -614,10 +641,12 @@ def main():
                 out.write("\n\n")
 
                 metagene_profile_image = filenames.get_riboseq_metagene_profile_image(
-                    config['riboseq_data'], name, image_type=args.image_type, is_unique=True, length=length, note=note)
+                    config['riboseq_data'], name, image_type=args.image_type, 
+                    is_unique=is_unique, length=length, note=note)
                 
                 bayes_factor_image = filenames.get_metagene_profile_bayes_factor_image(
-                    config['riboseq_data'], name, image_type=args.image_type, is_unique=True, length=length, note=note)
+                    config['riboseq_data'], name, image_type=args.image_type, 
+                    is_unique=is_unique, length=length, note=note)
 
                 latex.write_graphics(out, metagene_profile_image, width=0.6)
                 latex.write_graphics(out, bayes_factor_image, width=0.39)
@@ -641,20 +670,23 @@ def main():
             i = 0
 
             try:
-                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, sample_name)
+                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
+                    config, sample_name, is_unique=is_unique)
             except FileNotFoundError:
-                msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(sample_name)
+                msg = ("Could not parse out lengths and offsets for sample: {}. "
+                    "Skipping".format(sample_name))
                 logger.error(msg)
                 continue
             
             orf_type_profile_base = filenames.get_orf_type_profile_base(
                 config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
-                is_unique=True, note=note, subfolder='orf-profiles')
+                is_unique=is_unique, note=note, subfolder='orf-profiles')
 
             for orf_type in ribo_utils.orf_types:
                 for strand in strands:
-                    orf_type_profile = filenames.get_orf_type_profile_image(orf_type_profile_base, 
-                        orf_type, strand, image_type=args.image_type)
+                    orf_type_profile = filenames.get_orf_type_profile_image(
+                        orf_type_profile_base, orf_type, strand, 
+                        image_type=args.image_type)
 
 
                     msg = "Looking for image file: {}".format(orf_type_profile)

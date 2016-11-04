@@ -204,39 +204,17 @@ def main():
         "--do-not-call was given, this is a problem.")
         logger.warning(msg)
 
-    # sort the transcriptome bam file
-    #transcriptome_sorted_bam = filenames.get_riboseq_bam(
-    #    config['riboseq_data'], args.name, is_transcriptome=True, note=note)
+    # check if we want to keep multimappers
+    if 'keep_riboseq_multimappers' in config:
+        return
 
-    #sam_tmp_str = ""
-    #if args.tmp is not None:
-    #    sam_tmp_str = "-T {}".format(args.tmp)
-
-    #cmd = "samtools sort {} -@{} -o {} {}".format(transcriptome_bam, args.num_cpus, 
-    #    transcriptome_sorted_bam, sam_tmp_str)
-    #in_files = [transcriptome_bam]
-    #out_files = [transcriptome_sorted_bam]
-    #file_checkers = {
-    #    transcriptome_sorted_bam: bam_utils.check_bam_file
-    #}
-    #shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-    #    file_checekers=file_checkers, overwrite=args.overwrite, call=call)
-
-#    # Creating bam index file for transcriptome alignments
-#    transcriptome_sorted_bai = transcriptome_sorted_bam + ".bai"
-#    cmd = "samtools index -b {} {}".format(transcriptome_sorted_bam, transcriptome_sorted_bai)
-#    in_files = [transcriptome_sorted_bam]
-#    out_files = [transcriptome_sorted_bai]
-#    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-#        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
-    
     # remove multimapping reads from the genome file
     tmp_str = ""
     if args.tmp is not None:
         tmp_str = "--tmp {}".format(args.tmp)
 
     unique_genome_filename = filenames.get_riboseq_bam(config['riboseq_data'], 
-        args.name, is_unique=True, note=note)
+        args.name, is_unique=is_unique, note=note)
 
     cmd = "remove-multimapping-reads {} {} {}".format(genome_sorted_bam, 
         unique_genome_filename, tmp_str)
@@ -250,22 +228,6 @@ def main():
     shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         file_checkers=file_checkers, overwrite=args.overwrite, call=call,
         keep_delete_files=keep_delete_files, to_delete=to_delete)
-#
-#    # remove multimapping reads from the transcriptome file
-#    unique_transcriptome_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, 
-#        is_unique=True, is_transcriptome=True, note=note)
-#
-#    
-#    cmd = "remove-multimapping-reads {} {} {}".format(transcriptome_sorted_bam, 
-#        unique_transcriptome_filename, tmp_str)
-#
-#    in_files = [genome_sorted_bam]
-#    out_files = [unique_genome_filename]
-#    file_checkers = {
-#        unique_transcriptome_filename: bam_utils.check_bam_file
-#    }
-#    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-#        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
    
 if __name__ == '__main__':
     main()

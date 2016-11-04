@@ -11992,6 +11992,9 @@ div#notebook {
 <li>[<code>out_sam_attributes</code>]. default: AS NH HI nM MD</li>
 <li>[<code>sjdb_overhang</code>]. default: 50</li>
 </ul>
+<h4 id="Multimapper-options">Multimapper options<a class="anchor-link" href="#Multimapper-options">&#182;</a></h4><ul>
+<li>[<code>keep_riboseq_multimappers</code>]: If this variable is present in the config file with any value (even something like "no" or "null" or "false"), then multimapping riboseq reads <em>will not</em> be removed. They will be treated as "normal" reads in every place they map. That is, the weight of the read will not be distributed fractionally, probabilistically, etc.</li>
+</ul>
 <h4 id="Metagene-periodicity-options">Metagene periodicity options<a class="anchor-link" href="#Metagene-periodicity-options">&#182;</a></h4><ul>
 <li>[<code>seqids_to_keep</code>]. If this list is given, then only transcripts appearing on these identifiers will be used to construct the metagene profiles (and other downstream analysis). The identifiers must match exactly (e.g., "2" and "chr2" do not match)</li>
 </ul>
@@ -12014,7 +12017,7 @@ div#notebook {
 </li>
 </ul>
 <h4 id="Periodicity-and-offset-options">Periodicity and offset options<a class="anchor-link" href="#Periodicity-and-offset-options">&#182;</a></h4><ul>
-<li><p>[<code>use_fixed_lengths</code>]. If this variable is present in the config file with any value, then the estimated  periodic read lengths and offsets will not be used. Instead, fixed values given by <code>lengths</code> and <code>offsets</code> (below) will be used.</p>
+<li><p>[<code>use_fixed_lengths</code>]. If this variable is present in the config file with any value (even something like "no" or "null" or "false"), then the estimated  periodic read lengths and offsets will not be used. Instead, fixed values given by <code>lengths</code> and <code>offsets</code> (below) will be used.</p>
 </li>
 <li><p>[<code>lengths</code>]. A list of read lengths which will be used for creating the profiles if the <code>use_fixed_lengths</code> option is given. Presumably, these are lengths that have periodic metagene profiles.</p>
 </li>
@@ -12063,6 +12066,7 @@ div#notebook {
 <li>The nonperiodic models, taken as all <code>.pkl</code> files located in <code>models_base/nonperiodic</code>.</li>
 </ul>
 <h3 id="Output-files">Output files<a class="anchor-link" href="#Output-files">&#182;</a></h3><p>This script primarily creates the following files. (STAR also creates some temporary and log files.)</p>
+<p><strong>N.B.</strong> If the <code>keep_riboseq_multimappers</code> configuration option is given, then the "-unique" part will not be present in the output filenames.</p>
 <ul>
 <li><p>Trimmed and quality filtered reads</p>
 <ul>

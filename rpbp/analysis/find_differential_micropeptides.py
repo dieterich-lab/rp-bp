@@ -36,6 +36,9 @@ default_max_micropeptide_len = 300
 default_ensembl_release = 79
 default_ensembl_species = 'mouse'
 
+default_read_filter_percent = 0.25
+default_kl_filter_percent = 0.25
+
 default_id_matches = []
 default_id_match_names = []
 default_overlaps = []
@@ -187,6 +190,28 @@ def main():
     parser.add_argument('name_b', help="The name of the second condition")
     parser.add_argument('out', help="The output (.csv.gz or .xlsx) file")
 
+    parser.add_argument('-a', '--append-sheet', help="If this flag is given, "
+        "then a worksheet with the name '<name_a>,<name_b>' will be appended "
+        "to the .xlsx file given by out (if it exists)", action='store_true')
+
+    parser.add_argument('-f', '--filter', help="If this flag is present, then "
+        "the output will be filtered to include only the differential "
+        "micropeptides with the highest KL-divergence and read coverage",
+        action='store_true')
+
+    parser.add_argument('--read-filter-percent', help="If the the --filter flag "
+        "is given, then only the top --read-filter-percent micropeptides will "
+        "be considered for the final output. They still must meet the KL-"
+        "divergence filtering criteria.", type=float, 
+        default=default_read_filter_percent)
+
+        
+    parser.add_argument('--kl-filter-percent', help="If the the --filter flag "
+        "is given, then only the top --read-kl-percent micropeptides will "
+        "be considered for the final output. They still must meet the read "
+        "coverage filtering criteria.", type=float, 
+        default=default_kl_filter_percent)
+
     parser.add_argument('--id-matches', help="This is a list of files which "
         "contain ORF identifiers to compare to the differential micropeptides. "
         "For each of the files given, two columns will be added to the output "
@@ -271,12 +296,25 @@ def main():
     utils.check_files_exist(args.id_matches)
     utils.check_files_exist(args.overlaps)
 
+    if args.filter:
+        msg = "Validating filter percentages"
+        logger.info(msg)
+
+        math_utils.check_range(args.read_filter_percent, 0, 1, 
+            variable_name="--read-filter-percent")
+            
+        math_utils.check_range(args.kl_filter_percent, 0, 1, 
+            variable_name="--kl-filter-percent")
+
     msg = "Extracting file names"
     logger.info(msg)
 
     config = yaml.load(open(args.config))
 
     note_str = config.get('note', None)
+
+    # keep multimappers?
+    is_unique = not ('keep_riboseq_multimappers' in config)
 
     # and the smoothing parameters
     fraction = config.get('smoothing_fraction', None)
@@ -287,10 +325,10 @@ def main():
 
     if args.a_is_single_sample:
         lengths_a, offsets_a = ribo_utils.get_periodic_lengths_and_offsets(config, 
-                args.name_a)
+                args.name_a, is_unique=is_unique)
 
     bayes_factors_a = filenames.get_riboseq_bayes_factors(config['riboseq_data'], args.name_a, 
-        length=lengths_a, offset=offsets_a, is_unique=True, note=note_str, 
+        length=lengths_a, offset=offsets_a, is_unique=is_unique, note=note_str, 
         fraction=fraction, reweighting_iterations=reweighting_iterations)
 
     if not os.path.exists(bayes_factors_a):
@@ -299,7 +337,7 @@ def main():
         raise FileNotFoundError(msg)
 
     predicted_orfs_a = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-        args.name_a, length=lengths_a, offset=offsets_a, is_unique=True, note=note_str, 
+        args.name_a, length=lengths_a, offset=offsets_a, is_unique=is_unique, note=note_str, 
         fraction=fraction, reweighting_iterations=reweighting_iterations,
         is_filtered=True, is_chisq=False)
     
@@ -313,10 +351,10 @@ def main():
     offsets_b = None
     if args.b_is_single_sample:
         lengths_b, offsets_b = ribo_utils.get_periodic_lengths_and_offsets(config, 
-                args.name_b)
+                args.name_b, is_unique=is_unique)
         
     bayes_factors_b = filenames.get_riboseq_bayes_factors(config['riboseq_data'], args.name_b, 
-        length=lengths_b, offset=offsets_b, is_unique=True, note=note_str, 
+        length=lengths_b, offset=offsets_b, is_unique=is_unique, note=note_str, 
         fraction=fraction, reweighting_iterations=reweighting_iterations)
 
     if not os.path.exists(bayes_factors_b):
@@ -325,7 +363,7 @@ def main():
         raise FileNotFoundError(msg)
 
     predicted_orfs_b = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-        args.name_b, length=lengths_b, offset=offsets_b, is_unique=True, note=note_str, 
+        args.name_b, length=lengths_b, offset=offsets_b, is_unique=is_unique, note=note_str, 
         fraction=fraction, reweighting_iterations=reweighting_iterations,
         is_filtered=True, is_chisq=False)
     
@@ -501,17 +539,55 @@ def main():
     for (overlap_file, name) in zip(args.overlaps, args.overlap_names):
         res = add_overlaps(res, overlap_file, name, bed_df_a, bed_df_b, exons)
 
-
-
     msg = "Sorting by in-frame reads"
     logger.info(msg)
 
+    res['x_1_sum_A'] = res['x_1_sum_A'].fillna(0)
+    res['x_1_sum_B'] = res['x_1_sum_B'].fillna(0)
     res['x_1_sum'] = res['x_1_sum_A'] + res['x_1_sum_B']
     res = res.sort_values('x_1_sum', ascending=False)
 
+    if args.filter:
+        msg = "Filtering the micropeptides by read coverage and KL-divergence"
+        logger.info(msg)
+
+        x_1_sum_ranks = res['x_1_sum'].rank(method='min', na_option='top', 
+            ascending=False)
+        num_x_1_sum_ranks = x_1_sum_ranks.max()
+        max_good_x_1_sum_rank = num_x_1_sum_ranks * args.read_filter_percent
+        m_good_x_1_sum_rank = x_1_sum_ranks <= max_good_x_1_sum_rank
+
+        msg = ("Number of micropeptides passing read filter: {}".format(
+            sum(m_good_x_1_sum_rank)))
+        logger.debug(msg)
+
+        kl_ranks = res['kl'].rank(method='dense', na_option='top', ascending=False)
+        num_kl_ranks = kl_ranks.max()
+        max_good_kl_rank = num_kl_ranks * args.kl_filter_percent
+        m_good_kl_rank = kl_ranks <= max_good_kl_rank
+
+        msg = ("Number of micropeptides passing KL filter: {}".format(
+            sum(m_good_kl_rank)))
+        logger.debug(msg)
+
+        m_both_filters = m_good_x_1_sum_rank & m_good_kl_rank
+        
+        msg = ("Number of micropeptides passing both filters: {}".format(
+            sum(m_both_filters)))
+        logger.debug(msg)
+
+        res = res[m_both_filters]
+
+
     msg = "Writing differential micropeptides to disk"
     logger.info(msg)
-    utils.write_df(res, args.out, index=False)
+
+    if args.append_sheet is None:
+        utils.write_df(res, args.out, index=False)
+    else:
+        sheet_name = "{},{}".format(args.name_a, args.name_b)
+        utils.append_to_xlsx(res, args.out, sheet=sheet_name, index=False)
+        
 
 if __name__ == '__main__':
     main()

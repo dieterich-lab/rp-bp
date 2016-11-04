@@ -185,6 +185,9 @@ These options should be exactly the same as those used in the configuration file
 * [`out_sam_attributes`]. default: AS NH HI nM MD
 * [`sjdb_overhang`]. default: 50
 
+#### Multimapper options
+* [`keep_riboseq_multimappers`]: If this variable is present in the config file with any value (even something like "no" or "null" or "false"), then multimapping riboseq reads *will not* be removed. They will be treated as "normal" reads in every place they map. That is, the weight of the read will not be distributed fractionally, probabilistically, etc.
+
 
 #### Metagene periodicity options
 * [`seqids_to_keep`]. If this list is given, then only transcripts appearing on these identifiers will be used to construct the metagene profiles (and other downstream analysis). The identifiers must match exactly (e.g., "2" and "chr2" do not match)
@@ -207,7 +210,7 @@ These options should be exactly the same as those used in the configuration file
 
 
 #### Periodicity and offset options
-* [`use_fixed_lengths`]. If this variable is present in the config file with any value, then the estimated  periodic read lengths and offsets will not be used. Instead, fixed values given by `lengths` and `offsets` (below) will be used.
+* [`use_fixed_lengths`]. If this variable is present in the config file with any value (even something like "no" or "null" or "false"), then the estimated  periodic read lengths and offsets will not be used. Instead, fixed values given by `lengths` and `offsets` (below) will be used.
 
 * [`lengths`]. A list of read lengths which will be used for creating the profiles if the `use_fixed_lengths` option is given. Presumably, these are lengths that have periodic metagene profiles.
 
@@ -264,6 +267,8 @@ The required input files are only those suggested by the configuration file keys
 ### Output files
 
 This script primarily creates the following files. (STAR also creates some temporary and log files.)
+
+**N.B.** If the `keep_riboseq_multimappers` configuration option is given, then the "-unique" part will not be present in the output filenames.
 
 * Trimmed and quality filtered reads
     * **trimmed and filtered reads**. A fastq.gz file containing the reads after removing adapters and low-quality reads. `riboseq_data`/without-adapters/`sample-name`[.`note`].fastq.gz

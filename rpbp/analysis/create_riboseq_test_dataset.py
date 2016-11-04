@@ -40,13 +40,16 @@ def main():
     config = yaml.load(open(args.config))
 
     note = config.get('note', None)
+    
+    # keep multimappers?
+    is_unique = not ('keep_riboseq_multimappers' in config)
 
     ###
     msg = "Reading alignments from BAM file"
     logging.info(msg)
 
     bam_file = filenames.get_riboseq_bam(config['riboseq_data'], 
-        args.name, is_unique=True, note=note)
+        args.name, is_unique=is_unique, note=note)
     bam = pysam.AlignmentFile(bam_file)
     
     alignments = bam.fetch(reference=args.reference)
@@ -57,7 +60,8 @@ def main():
     msg = "Extracting a similar number of rRNA reads"
     logging.info(msg)
 
-    with_rrna = filenames.get_with_rrna_fastq(config['riboseq_data'], args.name, note=note)
+    with_rrna = filenames.get_with_rrna_fastq(config['riboseq_data'], args.name, 
+        note=note)
         
     rrna = bio.get_read_iterator(with_rrna, is_fasta=False)
     rrna = itertools.islice(rrna, num_alignments)
@@ -72,7 +76,8 @@ def main():
     all_alignment_qnames = {get_first_token(a.qname) for a in all_alignments}
 
     # iterate over all reads which passed the rRNA and quality filtering
-    without_rrna_file = filenames.get_without_rrna_fastq(config['riboseq_data'], args.name, note=note)
+    without_rrna_file = filenames.get_without_rrna_fastq(config['riboseq_data'], 
+        args.name, note=note)
     without_rrna = bio.get_read_iterator(without_rrna_file, is_fasta=False)
     without_rrna_qnames = {get_first_token(read[0]) for read in without_rrna}
 

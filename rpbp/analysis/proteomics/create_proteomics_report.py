@@ -28,26 +28,31 @@ def create_figures(config_file, config, name, args):
     if args.note is not None and len(args.note) > 0:
         out_note_str = args.note
 
+    # keep multimappers?
+    is_unique = not ('keep_riboseq_multimappers' in config)
+
     msg = "{}: Creating the ORF-peptide coverage line graph".format(name)
     logging.info(msg)
 
     try:
-        lengths, offsets = riboutils.ribo_utils.get_periodic_lengths_and_offsets(config, name)
+        lengths, offsets = riboutils.ribo_utils.get_periodic_lengths_and_offsets(
+            config, name, is_unique=is_unique)
     except FileNotFoundError:
-        msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(name)
+        msg = ("Could not parse out lengths and offsets for sample: {}. "
+            "Skipping".format(name))
         logging.error(msg)
         return
     
     peptide_matches = filenames.get_riboseq_peptide_matches(
         config['riboseq_data'], name, length=lengths, offset=offsets, 
-        is_unique=True, note=out_note_str)
+        is_unique=is_unique, note=out_note_str)
     
     chisq_peptide_matches = filenames.get_riboseq_peptide_matches(
         config['riboseq_data'], name, length=lengths, offset=offsets, 
-        is_unique=True, note=out_note_str, is_chisq=True)
+        is_unique=is_unique, note=out_note_str, is_chisq=True)
 
     peptide_coverage_line_graph = filenames.get_peptide_coverage_line_graph(config['riboseq_data'], 
-        name, length=lengths, offset=offsets, is_unique=True, note=out_note_str)
+        name, length=lengths, offset=offsets, is_unique=is_unique, note=out_note_str)
 
     title_str = "--title {}".format(name)
     min_length_str = "--min-length {}".format(args.min_orf_length)
@@ -86,6 +91,9 @@ def main():
     utils.update_logging(args)
 
     config = yaml.load(open(args.config))
+
+    # keep multimappers?
+    is_unique = not ('keep_riboseq_multimappers' in config)
 
     programs =  [   
         'create-orf-peptide-coverage-line-graph'
@@ -137,14 +145,15 @@ def main():
             latex.subsection(out, title)
 
             try:
-                lengths, offsets = riboutils.ribo_utils.get_periodic_lengths_and_offsets(config, name)
+                lengths, offsets = riboutils.ribo_utils.get_periodic_lengths_and_offsets(
+                    config, name, is_unique=is_unique)
             except FileNotFoundError:
                 msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(name)
                 logging.error(msg)
                 return
             
             peptide_coverage_line_graph = filenames.get_peptide_coverage_line_graph(config['riboseq_data'], 
-                name, length=lengths, offset=offsets, is_unique=True, note=out_note_str)
+                name, length=lengths, offset=offsets, is_unique=is_unique, note=out_note_str)
 
             if os.path.exists(peptide_coverage_line_graph):
                 latex.begin_figure(out)

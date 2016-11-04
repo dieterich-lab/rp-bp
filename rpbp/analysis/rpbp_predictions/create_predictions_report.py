@@ -31,6 +31,9 @@ def create_figures(name, is_replicate, config, args):
         for the given dataset.
     """
 
+    # keep multimappers?
+    is_unique = not ('keep_riboseq_multimappers' in config)
+
     # by default, we will not include chisq
     chisq_values = [False]
     if args.show_chisq:
@@ -55,14 +58,15 @@ def create_figures(name, is_replicate, config, args):
         offsets = None
     else:
         try:
-            lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, name)
+            lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
+                config, name, is_unique=is_unique)
         except FileNotFoundError:
             msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(name)
             logger.error(msg)
             return
         
     unsmoothed_profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
-            length=lengths, offset=offsets, is_unique=True, note=note_str, is_smooth=False)
+            length=lengths, offset=offsets, is_unique=is_unique, note=note_str, is_smooth=False)
 
 
 
@@ -87,7 +91,7 @@ def create_figures(name, is_replicate, config, args):
                     rw = None
 
                     orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-                        name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+                        name, length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
                         is_chisq=True, is_filtered=is_filtered)
 
                 else:
@@ -95,7 +99,7 @@ def create_figures(name, is_replicate, config, args):
                     f = fraction
                     rw = reweighting_iterations
                     orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-                        name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+                        name, length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
                         fraction=f, reweighting_iterations=rw, 
                         is_filtered=is_filtered)
 
@@ -106,7 +110,7 @@ def create_figures(name, is_replicate, config, args):
                 
                 orf_types_pie_chart = filenames.get_orf_types_pie_chart(
                     config['riboseq_data'], name, length=lengths, offset=offsets, 
-                    is_unique=True, note=out_note_str, image_type=args.image_type,
+                    is_unique=is_unique, note=out_note_str, image_type=args.image_type,
                     fraction=f, reweighting_iterations=rw,
                     is_grouped=is_grouped, is_chisq=is_chisq, is_filtered=is_filtered)
 
@@ -136,7 +140,7 @@ def create_figures(name, is_replicate, config, args):
                 rw = None
                 
                 orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-                    name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+                    name, length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
                     is_chisq=True)
 
             else:
@@ -145,7 +149,7 @@ def create_figures(name, is_replicate, config, args):
                 rw = reweighting_iterations
 
                 orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-                    name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+                    name, length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
                     fraction=f, reweighting_iterations=rw) 
 
 
@@ -155,7 +159,7 @@ def create_figures(name, is_replicate, config, args):
             
             orf_length_line_graph = filenames.get_orf_length_distribution_line_graph(
                 config['riboseq_data'], name, length=lengths, offset=offsets, 
-                is_unique=True, note=out_note_str, image_type=args.image_type,
+                is_unique=is_unique, note=out_note_str, image_type=args.image_type,
                 fraction=f, reweighting_iterations=rw,
                 is_grouped=is_grouped, is_chisq=is_chisq)
 
@@ -181,7 +185,7 @@ def create_figures(name, is_replicate, config, args):
             profiles = unsmoothed_profiles
     
             orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-                name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+                name, length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
                 is_chisq=True, is_filtered=is_filtered)
 
         else:
@@ -192,13 +196,13 @@ def create_figures(name, is_replicate, config, args):
             profiles = unsmoothed_profiles
 
             orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-                name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+                name, length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
                 fraction=f, reweighting_iterations=rw) 
 
         
         orf_type_profile_base = filenames.get_orf_type_profile_base(
             config['riboseq_data'], name, length=lengths, offset=offsets, 
-            is_unique=True, note=out_note_str, 
+            is_unique=is_unique, note=out_note_str, 
             fraction=f, reweighting_iterations=rw,
             is_chisq=is_chisq)
 
@@ -307,6 +311,9 @@ def main():
 
     config = yaml.load(open(args.config))
     
+    # keep multimappers?
+    is_unique = not ('keep_riboseq_multimappers' in config)
+
     programs =  [   
         'create-orf-length-distribution-line-graph',
         'create-orf-types-pie-chart',
@@ -382,9 +389,11 @@ def main():
         for sample_name in sample_names:
             
             try:
-                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, sample_name)
+                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
+                    config, sample_name, is_unique=is_unique)
             except FileNotFoundError:
-                msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(sample_name)
+                msg = ("Could not parse out lengths and offsets for sample: {}. "
+                    "Skipping".format(sample_name))
                 logger.error(msg)
                 continue
             
@@ -406,7 +415,7 @@ def main():
                         
                         orf_types_pie_chart = filenames.get_orf_types_pie_chart(
                             config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
-                            is_unique=True, note=out_note_str, image_type=args.image_type,
+                            is_unique=is_unique, note=out_note_str, image_type=args.image_type,
                             fraction=f, reweighting_iterations=rw,
                             is_grouped=is_grouped, is_chisq=is_chisq, is_filtered=is_filtered)
 
@@ -455,7 +464,7 @@ def main():
                         
                         orf_types_pie_chart = filenames.get_orf_types_pie_chart(
                             config['riboseq_data'], replicate_name, length=lengths, offset=offsets, 
-                            is_unique=True, note=out_note_str, image_type=args.image_type,
+                            is_unique=is_unique, note=out_note_str, image_type=args.image_type,
                             fraction=f, reweighting_iterations=rw,
                             is_grouped=is_grouped, is_chisq=is_chisq, is_filtered=is_filtered)
 
@@ -492,9 +501,11 @@ def main():
         for sample_name in sample_names:
             
             try:
-                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, sample_name)
+                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
+                    config, sample_name, is_unique=is_unique)
             except FileNotFoundError:
-                msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(sample_name)
+                msg = ("Could not parse out lengths and offsets for sample: {}. "
+                    "Skipping".format(sample_name))
                 logger.error(msg)
                 continue
             
@@ -512,7 +523,7 @@ def main():
 
                     orf_length_line_graph = filenames.get_orf_length_distribution_line_graph(
                         config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
-                        is_unique=True, note=out_note_str, image_type=args.image_type,
+                        is_unique=is_unique, note=out_note_str, image_type=args.image_type,
                         fraction=f, reweighting_iterations=rw,
                         is_grouped=is_grouped, is_chisq=is_chisq)
 
@@ -556,7 +567,7 @@ def main():
 
                     orf_length_line_graph = filenames.get_orf_length_distribution_line_graph(
                         config['riboseq_data'], replicate_name, length=lengths, offset=offsets, 
-                        is_unique=True, note=out_note_str, image_type=args.image_type,
+                        is_unique=is_unique, note=out_note_str, image_type=args.image_type,
                         fraction=f, reweighting_iterations=rw,
                         is_grouped=is_grouped, is_chisq=is_chisq)
                     
@@ -588,9 +599,11 @@ def main():
         for sample_name in sample_names:
             
             try:
-                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, sample_name)
+                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
+                    config, sample_name, is_unique=is_unique)
             except FileNotFoundError:
-                msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(sample_name)
+                msg = ("Could not parse out lengths and offsets for sample: {}. "
+                    "Skipping".format(sample_name))
                 logger.error(msg)
                 continue
             
@@ -608,7 +621,7 @@ def main():
 
                 orf_type_profile_base = filenames.get_orf_type_profile_base(
                     config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
-                    is_unique=True, note=out_note_str,
+                    is_unique=is_unique, note=out_note_str,
                     fraction=f, reweighting_iterations=rw,
                     is_chisq=is_chisq)
 
@@ -655,7 +668,7 @@ def main():
 
                 orf_type_profile_base = filenames.get_orf_type_profile_base(
                     config['riboseq_data'], replicate_name, length=lengths, offset=offsets, 
-                    is_unique=True, note=out_note_str, 
+                    is_unique=is_unique, note=out_note_str, 
                     fraction=f, reweighting_iterations=rw,
                     is_chisq=is_chisq)
 
@@ -681,65 +694,6 @@ def main():
             
         if (i > 0) and (i%4 != 0):
             latex.write_caption(out, caption)
-            latex.end_figure(out)
-            latex.clearpage(out)
-
-        ### RPKM-BF scatter plots
-        title = "RPKMs vs. Bayes factors"
-        latex.section(out, title)
-
-        i = 0
-        for sample_name in sample_names:
-            
-            try:
-                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, sample_name)
-            except FileNotFoundError:
-                msg = "Could not parse out lengths and offsets for sample: {}. Skipping".format(sample_name)
-                logger.error(msg)
-                continue
-            
-            bf_rpkm_scatter_plot = filenames.get_bf_rpkm_scatter_plot(config['riboseq_data'], sample_name, 
-                length=lengths, offset=offsets, 
-                is_unique=True, note=out_note_str, image_type=args.image_type,
-                is_smooth=True, fraction=fraction, reweighting_iterations=reweighting_iterations)
-
-            if os.path.exists(bf_rpkm_scatter_plot):
-                if i%4 == 0:
-                    latex.begin_figure(out)
-                    
-                i += 1
-                latex.write_graphics(out, bf_rpkm_scatter_plot, height=0.23)
-
-                if i % 4 == 0:
-                    latex.end_figure(out)
-                    latex.clearpage(out)
-            
-        if (i > 0) and (i%4 != 0):
-            latex.end_figure(out)
-            latex.clearpage(out)
-
-        # now, if the config file specifies replicates, create figures for those                
-        for replicate_name in replicate_names:
-            lengths = None
-            offsets = None
-
-            bf_rpkm_scatter_plot = filenames.get_bf_rpkm_scatter_plot(config['riboseq_data'], replicate_name, 
-                length=lengths, offset=offsets, 
-                is_unique=True, note=out_note_str, image_type=args.image_type,
-                is_smooth=True, fraction=fraction, reweighting_iterations=reweighting_iterations)
-
-            if os.path.exists(bf_rpkm_scatter_plot):
-                if i%4 == 0:
-                    latex.begin_figure(out)
-                    
-                i += 1
-                latex.write_graphics(out, bf_rpkm_scatter_plot, height=0.23)
-
-                if i % 4 == 0:
-                    latex.end_figure(out)
-                    latex.clearpage(out)
-            
-        if (i > 0) and (i%4 != 0):
             latex.end_figure(out)
             latex.clearpage(out)
 

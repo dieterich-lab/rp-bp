@@ -32,6 +32,9 @@ def get_profile(name, config, args):
 
     note_str = config.get('note', None)
     
+    # keep multimappers?
+    is_unique = not ('keep_riboseq_multimappers' in config)
+
     if len(lengths) == 0:
         msg = ("No periodic read lengths and offsets were found. Try relaxing "
             "min_metagene_profile_count, min_metagene_bf_mean, max_metagene_bf_var, "
@@ -40,7 +43,7 @@ def get_profile(name, config, args):
         return
 
     profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
-        length=lengths, offset=offsets, is_unique=True, note=note_str)
+        length=lengths, offset=offsets, is_unique=is_unique, note=note_str)
 
     return profiles
 
@@ -107,6 +110,9 @@ def main():
     fraction = config.get('smoothing_fraction', None)
     reweighting_iterations = config.get('smoothing_reweighting_iterations', None)
 
+    # keep multimappers?
+    is_unique = not ('keep_riboseq_multimappers' in config)
+
     # first, check if we are merging replicates
 
     # either way, the following variables need to have values for the rest of
@@ -132,7 +138,7 @@ def main():
         replicate_profiles_str = ' '.join(replicate_profiles)
 
         profiles = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
-            length=lengths, offset=offsets, is_unique=True, note=note_str)
+            length=lengths, offset=offsets, is_unique=is_unique, note=note_str)
 
         cmd = "merge-replicate-orf-profiles {} {} {}".format(replicate_profiles_str,
             profiles, logging_str)
@@ -147,13 +153,13 @@ def main():
         # otherwise, just treat things as normal
         # get the lengths and offsets which meet the required criteria from the config file
         lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, 
-            args.name, args.do_not_call)
+            args.name, args.do_not_call, is_unique=is_unique)
         
         profiles = get_profile(args.name, config, args)
         
     # estimate the bayes factors
     bayes_factors = filenames.get_riboseq_bayes_factors(config['riboseq_data'], args.name, 
-        length=lengths, offset=offsets, is_unique=True, note=note_str, 
+        length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
         fraction=fraction, reweighting_iterations=reweighting_iterations)
 
     # the smoothing options
@@ -226,16 +232,16 @@ def main():
 
             # now, select the ORFs (longest for each stop codon) which pass the prediction filters
             predicted_orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-                args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+                args.name, length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
                 fraction=fraction, reweighting_iterations=reweighting_iterations,
                 is_filtered=is_filtered, is_chisq=is_chisq)
             predicted_orfs_dna = filenames.get_riboseq_predicted_orfs_dna(config['riboseq_data'], 
-                args.name, length=lengths, offset=offsets, is_unique=True, note=note_str, 
+                args.name, length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
                 fraction=fraction, reweighting_iterations=reweighting_iterations,
                 is_filtered=is_filtered, is_chisq=is_chisq)
             predicted_orfs_protein = filenames.get_riboseq_predicted_orfs_protein(
                 config['riboseq_data'], args.name, length=lengths, offset=offsets, 
-                is_unique=True, note=note_str,
+                is_unique=is_unique, note=note_str,
                 fraction=fraction, reweighting_iterations=reweighting_iterations,
                 is_filtered=is_filtered, is_chisq=is_chisq)
 

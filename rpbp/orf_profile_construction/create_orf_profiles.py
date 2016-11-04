@@ -129,10 +129,12 @@ def main():
         flexbar_format_option_str = "--flexbar-format-option {}".format(
             args.flexbar_format_option)
 
+    # check if we want to keep multimappers
+    is_unique = not ('keep_riboseq_multimappers' in config)
 
     riboseq_raw_data = args.raw_data
     riboseq_bam_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, 
-        is_unique=True, note=note)
+        is_unique=is_unique, note=note)
     cmd = ("create-base-genome-profile {} {} {} --num-cpus {} {} {} {} {} {} {} {}"
         .format(riboseq_raw_data, args.config, args.name, args.num_cpus, 
         do_not_call_argument, overwrite_argument, logging_str, star_str, tmp_str,
@@ -150,7 +152,7 @@ def main():
 
     # create the metagene profiles
     metagene_profiles = filenames.get_metagene_profiles(config['riboseq_data'], 
-        args.name, is_unique=True, note=note)
+        args.name, is_unique=is_unique, note=note)
 
     seqids_to_keep_str = utils.get_config_argument(config, 'seqids_to_keep')
     start_upstream_str = utils.get_config_argument(config, 
@@ -180,7 +182,7 @@ def main():
 
     # estimate the periodicity for each offset for all read lengths
     metagene_profile_bayes_factors = filenames.get_metagene_profiles_bayes_factors(
-        config['riboseq_data'], args.name, is_unique=True, note=note)
+        config['riboseq_data'], args.name, is_unique=is_unique, note=note)
 
     #periodic_models_str = utils.get_config_argument(config, 'periodic_models')
     #non_periodic_models_str = utils.get_config_argument(config, 'nonperiodic_models')
@@ -219,7 +221,7 @@ def main():
     
     # select the best read lengths for constructing the signal
     periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], 
-        args.name, is_unique=True, note=note)
+        args.name, is_unique=is_unique, note=note)
 
     cmd = "select-periodic-offsets {} {}".format(metagene_profile_bayes_factors, 
         periodic_offsets)
@@ -233,7 +235,7 @@ def main():
 
     # get the lengths and offsets which meet the required criteria from the config file
     lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, 
-        args.name, args.do_not_call)
+        args.name, args.do_not_call, is_unique=is_unique)
 
     if len(lengths) == 0:
         msg = ("No periodic read lengths and offsets were found. Try relaxing "
@@ -249,10 +251,10 @@ def main():
     
     # extract the riboseq profiles for each orf
     unique_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, 
-        is_unique=True, note=note)
+        is_unique=is_unique, note=note)
 
     profiles_filename = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
-        length=lengths, offset=offsets, is_unique=True, note=note)
+        length=lengths, offset=offsets, is_unique=is_unique, note=note)
 
     orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
         note=config.get('orf_note'))
