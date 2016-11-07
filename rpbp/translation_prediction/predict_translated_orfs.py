@@ -26,14 +26,15 @@ def get_profile(name, config, args):
     """ This helper function constructs the name of the smooth profile file
         from the given parameters.
     """
+    # keep multimappers?
+    is_unique = not ('keep_riboseq_multimappers' in config)
+
     # get the lengths and offsets which meet the required criteria from the config file
     lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, 
-        name, args.do_not_call)
+        name, args.do_not_call, is_unique=is_unique)
 
     note_str = config.get('note', None)
     
-    # keep multimappers?
-    is_unique = not ('keep_riboseq_multimappers' in config)
 
     if len(lengths) == 0:
         msg = ("No periodic read lengths and offsets were found. Try relaxing "

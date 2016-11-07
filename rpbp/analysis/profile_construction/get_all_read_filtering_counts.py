@@ -83,7 +83,9 @@ def get_counts(name_data, config, args):
     logger.info(msg)
 
     # now count the unique reads with the appropriate length
-    lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, name)
+    is_unique = not ('keep_riboseq_multimappers' in config)
+    lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, name, 
+        is_unique=is_unique)
     length_counts = bam_utils.get_length_distribution(unique_bam)
     length_count = sum(length_counts[l] for l in length_counts if str(l) in lengths)
     
