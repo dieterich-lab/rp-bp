@@ -204,6 +204,10 @@ def main():
         "--do-not-call was given, this is a problem.")
         logger.warning(msg)
 
+    # create the bamtools index
+    cmd = "samtools index -b {}".format(genome_sorted_bam)
+    shell_utils.check_call(cmd, call=call)
+
     # check if we want to keep multimappers
     if 'keep_riboseq_multimappers' in config:
         return
