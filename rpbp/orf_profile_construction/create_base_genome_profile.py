@@ -218,7 +218,7 @@ def main():
         tmp_str = "--tmp {}".format(args.tmp)
 
     unique_genome_filename = filenames.get_riboseq_bam(config['riboseq_data'], 
-        args.name, is_unique=is_unique, note=note)
+        args.name, is_unique=True, note=note)
 
     cmd = "remove-multimapping-reads {} {} {}".format(genome_sorted_bam, 
         unique_genome_filename, tmp_str)
