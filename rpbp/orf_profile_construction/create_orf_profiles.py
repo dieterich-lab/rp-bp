@@ -164,8 +164,9 @@ def main():
     end_downstream_str = utils.get_config_argument(config, 
         'metagene_profile_end_downstream', 'end-downstream')
 
+    # use the canonical transcripts for extracting the metagene profiles
     transcript_bed = filenames.get_bed(config['genome_base_path'], 
-        config['genome_name'], is_merged=False)
+        config['genome_name'], is_merged=False, is_canonical=True)
 
     cmd = ("extract-metagene-profiles {} {} {} --num-cpus {} {} {} {} {} {} {}"
         .format(riboseq_bam_filename, transcript_bed, metagene_profiles, 
