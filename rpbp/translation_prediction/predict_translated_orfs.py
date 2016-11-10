@@ -79,6 +79,9 @@ def main():
     args = parser.parse_args()
     logging_utils.update_logging(args)
 
+    msg = "[predict_translated_orfs]: {}".format(' '.join(sys.argv))
+    logger.debug(msg)
+
     logging_str = logging_utils.get_logging_options_string(args)
 
     config = yaml.load(open(args.config))

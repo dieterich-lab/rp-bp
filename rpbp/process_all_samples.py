@@ -165,6 +165,11 @@ def main():
     merge_replicates_str = "--merge-replicates"
 
     for condition_name in sorted(riboseq_replicates.keys()):
+    
+        tmp_str = ""
+        if args.tmp is not None:
+            tmp = os.path.join(args.tmp, "{}_{}_rpbp".format(condition_name, note))
+            tmp_str = "--tmp {}".format(tmp)
             
         # then we predict the ORFs
         cmd = ("predict-translated-orfs {} {} --num-cpus {} {} {} {} {} {}".format(args.config, 
