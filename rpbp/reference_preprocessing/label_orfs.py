@@ -403,8 +403,10 @@ def main():
     logger.info(msg)
 
     fields = bed_utils.bed12_field_names + ['orf_num', 'orf_len', 'orf_type']
+    extracted_orfs = extracted_orfs[fields]
+    extracted_orfs = bed_utils.sort(extracted_orfs)
 
-    bed_utils.write_bed(extracted_orfs[fields], args.out)
+    bed_utils.write_bed(extracted_orfs, args.out)
 
 if __name__ == '__main__':
     main()

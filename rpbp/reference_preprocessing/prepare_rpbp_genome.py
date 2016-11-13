@@ -7,6 +7,7 @@ import sys
 
 import yaml
 import misc.bio as bio
+import misc.bio_utils.bed_utils as bed_utils
 import misc.logging_utils as logging_utils
 import misc.shell_utils as shell_utils
 import misc.slurm as slurm
@@ -210,10 +211,31 @@ def main():
             is_annotated=False, is_de_novo=True)
 
         orfs_files = [annotated_orfs, de_novo_orfs]
-        utils.concatenate_files(orfs_files, orfs_genomic, call=call)
+
+        orfs_files_str = ' '.join(orfs_files)
+        msg = ("Concatenating files. Output file: {}; Input files: {}".format(
+            orfs_genomic, orfs_files_str))
+        logger.info(msg)
+
+        if call:
+            bed_utils.concatenate(orfs_files, sort_bed=True, out=orfs_genomic)
+        else:
+            msg = "Skipping concatenation due to --call value"
+            logger.info(msg)
+
         
         exons_files = [annotated_exons_file, de_novo_exons_file]
-        utils.concatenate_files(exons_files, exons_file, call=call)
+        
+        exons_files_str = ' '.join(exons_files)
+        msg = ("Concatenating files. Output file: {}; Input files: {}".format(
+            exons_file, exons_files_str))
+        logger.info(msg)
+
+        if call:
+            bed_utils.concatenate(exons_files, sort_bed=True, out=exons_file)
+        else:
+            msg = "Skipping concatenation due to --call value"
+            logger.info(msg)
 
     else:
         # finally, make sure our files are named correctly
