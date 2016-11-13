@@ -63,6 +63,9 @@ def main():
     args = parser.parse_args()
     logging_utils.update_logging(args)
 
+    msg = "[create-orf-profiles]: {}".format(' '.join(sys.argv))
+    logger.info(msg)
+
     logging_str = logging_utils.get_logging_options_string(args)
 
     config = yaml.load(open(args.config))

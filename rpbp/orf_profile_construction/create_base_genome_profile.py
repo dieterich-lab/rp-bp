@@ -4,6 +4,7 @@ import argparse
 import logging
 import os
 import shutil
+import sys
 
 import yaml
 
@@ -80,6 +81,9 @@ def main():
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
+
+    msg = "[create-base-genome-profile]: {}".format(' '.join(sys.argv))
+    logger.info(msg)
 
     config = yaml.load(open(args.config))
     call = not args.do_not_call
