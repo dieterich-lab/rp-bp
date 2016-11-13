@@ -34,7 +34,7 @@ profile_construction_scripts = [
     'smooth-orf-profiles=rpbp.orf_profile_construction.smooth_orf_profiles:main',
     'merge-replicate-orf-profiles=rpbp.translation_prediction.merge_replicate_orf_profiles:main',
     'run-rpbp-pipeline=rpbp.run_rpbp_pipeline:main',
-    'process-all-samples=rpbp.process_all_samples:main',
+    'run-all-rpbp-instances=rpbp.run_all_rpbp_instances:main',
 ]
 
 translation_prediction_scripts = [
