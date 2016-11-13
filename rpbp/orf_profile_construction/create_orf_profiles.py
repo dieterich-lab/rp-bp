@@ -166,7 +166,7 @@ def main():
 
     # use the canonical transcripts for extracting the metagene profiles
     transcript_bed = filenames.get_bed(config['genome_base_path'], 
-        config['genome_name'], is_merged=False, is_canonical=True)
+        config['genome_name'], is_merged=False, is_annotated=True)
 
     cmd = ("extract-metagene-profiles {} {} {} --num-cpus {} {} {} {} {} {} {}"
         .format(riboseq_bam_filename, transcript_bed, metagene_profiles, 
