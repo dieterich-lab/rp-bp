@@ -77,6 +77,7 @@ def get_all_p_site_intersections(exons_df, p_sites, num_orfs, max_orf_len):
             
             for intersection in p_site_intersections:
                 orf_num = intersection[2][1]
+
                 p_site_pos = intersection[1] + intersection[2][0]
 
                 profiles[orf_num, p_site_pos] += 1

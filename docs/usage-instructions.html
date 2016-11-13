@@ -11812,7 +11812,7 @@ div#notebook {
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Creating-reference-genome-indices">Creating reference genome indices<a class="anchor-link" href="#Creating-reference-genome-indices">&#182;</a></h2><p>This section describes the steps necessary to prepare a reference genome and matching annotation for use in the Rp-Bp and Rp-chi pipelines. The process must only be run once for each reference genome and set of annotations.</p>
-<p>The entire index creation process can be run automatically using the <code>prepare-genome</code> scripts. It reads most of the required paths from a <a href="http://www.yaml.org/start.html">YAML</a> configuration file. Additionally, it automatically creates some of the output paths.</p>
+<p>The entire index creation process can be run automatically using the <code>prepare-rpbp-genome</code> script. It reads most of the required paths from a <a href="http://www.yaml.org/start.html">YAML</a> configuration file. Additionally, it automatically creates some of the output paths.</p>
 <p>The script accepts a <code>--overwrite</code> flag. Unless this is given, then steps for which the output file already exists will be skipped.</p>
 <p>It also accepts a <code>--do-not-call</code> flag. If this flag is given, then the commands below will be printed but not executed.</p>
 <p><a href="#logging-options">Logging options</a> can be given to this script.</p>
@@ -11865,7 +11865,7 @@ div#notebook {
 <div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">prepare</span><span class="o">-</span><span class="n">genome</span> <span class="n">WBcel235</span><span class="o">.</span><span class="mf">79.</span><span class="n">chrI</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">10</span> <span class="o">--</span><span class="n">mem</span> <span class="mi">100</span><span class="n">G</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">prepare</span><span class="o">-</span><span class="n">rpbp</span><span class="o">-</span><span class="n">genome</span> <span class="n">WBcel235</span><span class="o">.</span><span class="mf">79.</span><span class="n">chrI</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">10</span> <span class="o">--</span><span class="n">mem</span> <span class="mi">100</span><span class="n">G</span>
 </pre></div>
 
 </div>
@@ -12195,8 +12195,8 @@ div#notebook {
 <h3 id="Input-files">Input files<a class="anchor-link" href="#Input-files">&#182;</a></h3><p>This script requires several files created during the previous steps in the pipeline, as well as a few external files.</p>
 <ul>
 <li>External files<ul>
-<li><strong>genome fasta file</strong>. The genome fasta file. This is the same file used for <code>prepare-genome</code>.</li>
-<li><strong>orfs</strong>. The ORFs (gzipped bed12+ file) created by <code>prepare-genome</code>. It must be located at <code>genome_base_path</code>/transcript-index/<code>genome_name</code>.genomic-orfs.<code>orf_note</code>.bed.gz.</li>
+<li><strong>genome fasta file</strong>. The genome fasta file. This is the same file used for <code>prepare-rpbp-genome</code>.</li>
+<li><strong>orfs</strong>. The ORFs (gzipped bed12+ file) created by <code>prepare-rpbp-genome</code>. It must be located at <code>genome_base_path</code>/transcript-index/<code>genome_name</code>.genomic-orfs.<code>orf_note</code>.bed.gz.</li>
 <li><strong>models of translation</strong>. Some compiled, pickled Stan model files must be located in the <code>models_base</code>/translated folder.</li>
 <li><strong>models of lack of translation</strong>. Some compiled, pickled Stan model files must be located in the <code>models_base</code>/untranslated folder.</li>
 </ul>
@@ -12360,10 +12360,10 @@ div#notebook {
 <div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># This will submit the prepare-genome script to SLURM as a single job. That job</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># This will submit the prepare-rpbp-genome script to SLURM as a single job. That job</span>
 <span class="c1"># will request 10 CPUs and 100G of RAM.</span>
 
-<span class="n">prepare</span><span class="o">-</span><span class="n">genome</span> <span class="n">WBcel235</span><span class="o">.</span><span class="mf">79.</span><span class="n">chrI</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">10</span> <span class="o">--</span><span class="n">mem</span> <span class="mi">100</span><span class="n">G</span> <span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">slurm</span>
+<span class="n">prepare</span><span class="o">-</span><span class="n">rpbp</span><span class="o">-</span><span class="n">genome</span> <span class="n">WBcel235</span><span class="o">.</span><span class="mf">79.</span><span class="n">chrI</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">10</span> <span class="o">--</span><span class="n">mem</span> <span class="mi">100</span><span class="n">G</span> <span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">slurm</span>
 </pre></div>
 
 </div>

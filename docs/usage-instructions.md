@@ -22,7 +22,7 @@ This document describes the steps to run each of these phases. It shows some sam
 
 This section describes the steps necessary to prepare a reference genome and matching annotation for use in the Rp-Bp and Rp-chi pipelines. The process must only be run once for each reference genome and set of annotations.
 
-The entire index creation process can be run automatically using the `prepare-genome` scripts. It reads most of the required paths from a [YAML](http://www.yaml.org/start.html) configuration file. Additionally, it automatically creates some of the output paths.
+The entire index creation process can be run automatically using the `prepare-rpbp-genome` script. It reads most of the required paths from a [YAML](http://www.yaml.org/start.html) configuration file. Additionally, it automatically creates some of the output paths.
 
 The script accepts a `--overwrite` flag. Unless this is given, then steps for which the output file already exists will be skipped.
 
@@ -77,7 +77,7 @@ The required input files are those suggested by the configuration file keys.
 
 
 ```python
-prepare-genome WBcel235.79.chrI.yaml --num-cpus 10 --mem 100G
+prepare-rpbp-genome WBcel235.79.chrI.yaml --num-cpus 10 --mem 100G
 ```
 
 [Back to top](#toc)
@@ -375,8 +375,8 @@ These affect the MCMC both for estimating metagene profile periodicity and ORF t
 This script requires several files created during the previous steps in the pipeline, as well as a few external files.
 
 * External files
-    * **genome fasta file**. The genome fasta file. This is the same file used for `prepare-genome`.
-    * **orfs**. The ORFs (gzipped bed12+ file) created by `prepare-genome`. It must be located at `genome_base_path`/transcript-index/`genome_name`.genomic-orfs.`orf_note`.bed.gz.
+    * **genome fasta file**. The genome fasta file. This is the same file used for `prepare-rpbp-genome`.
+    * **orfs**. The ORFs (gzipped bed12+ file) created by `prepare-rpbp-genome`. It must be located at `genome_base_path`/transcript-index/`genome_name`.genomic-orfs.`orf_note`.bed.gz.
     * **models of translation**. Some compiled, pickled Stan model files must be located in the `models_base`/translated folder.
     * **models of lack of translation**. Some compiled, pickled Stan model files must be located in the `models_base`/untranslated folder.
 
@@ -485,10 +485,10 @@ All of the scripts accept options for running code in parallel. Furthermore, the
 
 
 ```python
-# This will submit the prepare-genome script to SLURM as a single job. That job
+# This will submit the prepare-rpbp-genome script to SLURM as a single job. That job
 # will request 10 CPUs and 100G of RAM.
 
-prepare-genome WBcel235.79.chrI.yaml --num-cpus 10 --mem 100G --use-slurm
+prepare-rpbp-genome WBcel235.79.chrI.yaml --num-cpus 10 --mem 100G --use-slurm
 ```
 
 

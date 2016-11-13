@@ -24,7 +24,7 @@ preprocessing_scripts = [
     'extract-orfs=rpbp.reference_preprocessing.extract_orfs:main',
     'extract-orf-coordinates=rpbp.reference_preprocessing.extract_orf_coordinates:main',
     'label-orfs=rpbp.reference_preprocessing.label_orfs:main',
-    'prepare-genome=rpbp.reference_preprocessing.prepare_genome:main'
+    'prepare-rpbp-genome=rpbp.reference_preprocessing.prepare_rpbp_genome:main'
 ]
 
 profile_construction_scripts = [
@@ -227,7 +227,7 @@ def readme():
         return f.read()
 
 setup(name='rpbp',
-        version='1.0',
+        version='1.1',
         description="This package contains scripts for analyzing ribosome profiling data.",
         long_description=readme(),
         keywords="ribosome profiling bayesian inference markov chain monte carlo translation",

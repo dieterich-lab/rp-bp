@@ -53,7 +53,7 @@ wget http://cloud.dieterichlab.org/index.php/s/3cyluM3ZCsvf0PT/download -O c-ele
 
 ## Creating the reference index files
 
-**Before running the example** the paths in the `WBcel235.79.yaml` configuration file must be updated to point to the correct locations. The following configuration values should be updated to point to the appropriate files in the example. (Mostly, `/home/bmalone/python-projects/rp-bp/data/` should be replaced to the location of the examples.)
+**Before running the example** the paths in the `WBcel235.79.chrI.yaml` configuration file must be updated to point to the correct locations. The following configuration values should be updated to point to the appropriate files in the example. (Mostly, `/home/bmalone/python-projects/rp-bp/data/` should be replaced to the location of the examples.)
 
 * `gtf`
 * `fasta`
@@ -70,9 +70,15 @@ N.B. The `--overwrite` flag is given below to ensure all of the files are (re-)c
 
 This command should only take about 5 minutes on recent commodity hardware (such as a laptop).
 
+N.B. This command may print some warning messages such as:
+
+`WARNING  misc.utils 2016-11-02 17:25:05,023 : [utils.call_if_not_exists]: This function is deprecated. Please use the version in misc.shell_utils instead.`
+
+These are not problematic and will be updated in future releases.
+
 
 ```python
-prepare-genome WBcel235.79.chrI.yaml --num-cpus 2 --mem 4G --overwrite --logging-level INFO
+prepare-rpbp-genome WBcel235.79.chrI.yaml --num-cpus 2 --mem 4G --overwrite --logging-level INFO
 ```
 
 [Back to top](#toc)
@@ -83,7 +89,7 @@ prepare-genome WBcel235.79.chrI.yaml --num-cpus 2 --mem 4G --overwrite --logging
 
 **Before running the example** the paths in the `c-elegans-test.yaml` configuration file must be updated to point to the correct locations. The following configuration values should be updated to point to the appropriate files in the example. (Mostly, `/home/bmalone/python-projects/rp-bp/data/` should be replaced to the location of the examples.)
 
-Reference files and locations should be exactly the same as used in the  `WBcel235.79.yaml` file.
+Reference files and locations should be exactly the same as used in the  `WBcel235.79.chrI.yaml` file.
 
 * `gtf`
 * `fasta`
@@ -110,6 +116,12 @@ N.B. While performing the MCMC sampling, many messages indicating the "Elapsed T
 The Rp-Bp pipeline handles replicates by adding the (smoothed) ORF profiles. The Bayes factors and predictions are then calculated based on the combined profiles. The `--merge-replicates` flag indicates that the replicates should be merged. By default, if the `--merge-replicates` flag is given, then predictions will not be made for the individual datasets. The `--run-replicates` flag can be given to override this and make predictions for both the merged replicates as well as the individual datasets.
 
 The replicates are specified by `riboseq_biological_replicates` in the configuration file. This value should be a dictionary, where the key of the dictionary is a string description of the condition and the value is a list that gives all of the sample replicates which belong to that condition. The names of the sample replicates must match the dataset names specified in `riboseq_samples`.
+
+N.B. These calls may also produce deprecation warnings like:
+
+`WARNING  misc.utils 2016-11-02 17:31:47,545 : [utils.check_programs_exist]: This function is deprecated. Please use the version in misc.shell_utils instead.`
+
+These are again not problematic and will be corrected in future releases.
 
 
 ```python
@@ -138,10 +150,10 @@ The following command will print the number of unique bases to the predictions a
 
 ```python
 # to check the predictions from Rp-Bp
-calculate-bed-overlap c-elegans-test.expected.rpbp.predicted-orfs.bed.gz orf-predictions/c-elegans-chrI.test-unique.length-29.offset-12.predicted-orfs.bed.gz
+calculate-bed-overlap expected-orf-predictions/c-elegans-rep-1.test-unique.length-29.offset-12.frac-0.2.rw-0.filtered.predicted-orfs.bed.gz orf-predictions/c-elegans-rep-1.test-unique.length-29.offset-12.frac-0.2.rw-0.filtered.predicted-orfs.bed.gz
 
 # to check the predictions from Rp-chi
-calculate-bed-overlap c-elegans-test.expected.rpchi.predicted-orfs.bed.gz orf-predictions/c-elegans-chrI.test-unique.length-29.offset-12.chisq.predicted-orfs.bed.gz
+calculate-bed-overlap expected-orf-predictions/c-elegans-test.expected.rpchi.predicted-orfs.bed.gz orf-predictions/c-elegans-chrI.test-unique.length-29.offset-12.chisq.predicted-orfs.bed.gz
 ```
 
 [Back to top](#toc)
