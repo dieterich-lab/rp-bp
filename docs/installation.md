@@ -22,12 +22,12 @@ The pipelines make use of a number of standard bioinformatics tools. All of thes
 * [SAMtools](http://www.htslib.org/), version 1.2
 * [STAR](https://github.com/alexdobin/STAR), version 2.4.1d
 
-#### BLAS
+#### OpenBlas
 
-Additionally, a BLAS library, such as [OpenBLAS](http://www.openblas.net/), is used for efficiency. This library is installed by default on many versions of Unix. It is also available through many standard package managers. For example:
+Additionally, the [OpenBLAS](http://www.openblas.net/) library is used for efficiency. This library is installed by default on many versions of Unix. It is also available through many standard package managers. For example:
 
-* Ubuntu: ``sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran``
-* CentOS: ``sudo yum install atlas-devel lapack-devel blas-devel libgfortran``
+* Ubuntu: ``sudo apt-get install libopenblas-dev``
+* CentOS: ``sudo yum install openblas-devel``
 
 If the use of package managers are not an option (for example, because they require root access) or just not desired, then OpenBLAS can be installed locally. The following instructions have been tested extensively on Ubuntu, but they may require modification for other distributions.
 
@@ -96,6 +96,13 @@ cd rp-bp && pip3 install --verbose --user .
 
 The build process includes compiling several libraries for optimized numerical calculations. Due to the optimized nature of these libraries, the initial installation can take up to an hour.
 
+
+Due to the `--verbose` flag, much debugging information is printed. In some cases, building some libraries may initially fail; this is due to a known issue with dependency-handling in [pip](https://pip.pypa.io/en/stable/reference/pip_install/#installation-order). The following output (or something similar depending on packages already available) indicates installation succeeded:
+
+`Successfully installed cython-0.25.1 docopt-0.6.2 joblib-0.10.3 numpy-1.11.2 pandas-0.19.0 patsy-0.4.1 psutil-4.4.2 pybedtools-0.7.8 pyfasta-0.5.2 pysam-0.9.1.4 pystan-2.12.0.0 python-dateutil-2.5.3 pytz-2016.7 pyyaml-3.12 rpbp-1.0 scipy-0.18.1 six-1.10.0 statsmodels-0.6.1 tqdm-4.9.0
+Cleaning up...`
+
+
 [Back to top](#toc)
 
 <a id='virtual-environment-installation'></a>
@@ -152,6 +159,11 @@ cd rp-bp && pip3 install --verbose .
 ```
 
 The build process includes compiling several libraries for optimized numerical calculations. Due to the optimized nature of these libraries, the initial installation can take up to an hour.
+
+Due to the `--verbose` flag, much debugging information is printed. In some cases, building some libraries may initially fail; this is due to a known issue with dependency-handling in [pip](https://pip.pypa.io/en/stable/reference/pip_install/#installation-order). The following output (or something similar depending on packages already available) indicates installation succeeded:
+
+`Successfully installed cython-0.25.1 docopt-0.6.2 joblib-0.10.3 numpy-1.11.2 pandas-0.19.0 patsy-0.4.1 psutil-4.4.2 pybedtools-0.7.8 pyfasta-0.5.2 pysam-0.9.1.4 pystan-2.12.0.0 python-dateutil-2.5.3 pytz-2016.7 pyyaml-3.12 rpbp-1.0 scipy-0.18.1 six-1.10.0 statsmodels-0.6.1 tqdm-4.9.0
+Cleaning up...`
 
 To use the programs in the future, use the `workon` command to ensure the virtual environment is active.
 
