@@ -212,13 +212,17 @@ def main():
 
         orfs_files = [annotated_orfs, de_novo_orfs]
 
+
         orfs_files_str = ' '.join(orfs_files)
         msg = ("Concatenating files. Output file: {}; Input files: {}".format(
             orfs_genomic, orfs_files_str))
         logger.info(msg)
 
         if call:
-            bed_utils.concatenate(orfs_files, sort_bed=True, out=orfs_genomic)
+            concatenated_bed = bed_utils.concatenate(orfs_files, sort_bed=True)
+            concatenated_bed['orf_num'] = range(len(concatenated_bed))
+            fields = bed_utils.bed12_field_names + ['orf_num', 'orf_len', 'orf_type']
+            bed_utils.write_bed(concatenated_bed[fields], orfs_genomic)
         else:
             msg = "Skipping concatenation due to --call value"
             logger.info(msg)
@@ -232,7 +236,9 @@ def main():
         logger.info(msg)
 
         if call:
-            bed_utils.concatenate(exons_files, sort_bed=True, out=exons_file)
+            concatenated_bed = bed_utils.concatenate(exons_files, sort_bed=True)
+            fields = bed_utils.bed6_field_names + ['exon_index', 'transcript_start']
+            bed_utils.write_bed(concatenated_bed[fields], exons_file)
         else:
             msg = "Skipping concatenation due to --call value"
             logger.info(msg)
