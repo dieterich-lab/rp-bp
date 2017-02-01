@@ -73,7 +73,7 @@ def _post_install(self):
     importlib.reload(site)
     
     import riboutils.ribo_filenames as filenames
-    import misc.utils as utils
+    import misc.shell_utils as shell_utils
     
     smf = [os.path.join("rpbp_models", s) for s in stan_model_files]
 
@@ -92,33 +92,33 @@ def _post_install(self):
         if not os.path.exists(dirname):
             os.makedirs(dirname)
 
-        cmd = "pickle-stan {} {}".format(stan, pickle)
+        cmd = "pickle-stan \"{}\" \"{}\"".format(stan, pickle)
         logging.info(cmd)
         subprocess.call(cmd, shell=True)
 
     # check for the prerequisite programs
     programs = ['flexbar']
-    utils.check_programs_exist(programs, raise_on_error=False, 
+    shell_utils.check_programs_exist(programs, raise_on_error=False, 
         package_name='flexbar', logger=logger)
         
     programs = ['STAR']
-    utils.check_programs_exist(programs, raise_on_error=False, 
+    shell_utils.check_programs_exist(programs, raise_on_error=False, 
         package_name='STAR', logger=logger)
 
     programs = ['bowtie2', 'bowtie2-build-s']
-    utils.check_programs_exist(programs, raise_on_error=False, 
+    shell_utils.check_programs_exist(programs, raise_on_error=False, 
         package_name='bowtie2', logger=logger)
 
     programs = ['intersectBed', 'bedToBam']
-    utils.check_programs_exist(programs, raise_on_error=False, 
+    shell_utils.check_programs_exist(programs, raise_on_error=False, 
         package_name='bedtools', logger=logger)
 
     programs = ['samtools']
-    utils.check_programs_exist(programs, raise_on_error=False, 
+    shell_utils.check_programs_exist(programs, raise_on_error=False, 
         package_name='SAMtools', logger=logger)
 
     programs = ['gffread']
-    utils.check_programs_exist(programs, raise_on_error=False, 
+    shell_utils.check_programs_exist(programs, raise_on_error=False, 
         package_name='cufflinks', logger=logger)
 
 def install_requirements(is_user):
