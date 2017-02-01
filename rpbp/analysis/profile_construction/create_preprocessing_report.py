@@ -10,6 +10,7 @@ import sys
 import misc.latex as latex
 import misc.logging_utils as logging_utils
 import misc.parallel as parallel
+import misc.shell_utils as shell_utils
 import misc.slurm as slurm
 
 import misc.utils as utils
@@ -123,25 +124,25 @@ def create_fastqc_reports(name_data, config, args):
         in_files = [raw_data]
         out_files = [raw_data_fastqc]
 
-        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
         cmd = "fastqc --outdir {} --extract {} {}".format(without_adapters_fastqc_path, 
             without_adapters, fastqc_tmp_str)
         in_files = [without_adapters]
         out_files = [without_adapters_fastqc]
-        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
         cmd = "fastqc --outdir {} --extract {} {}".format(with_rrna_fastqc_path, 
             with_rrna, fastqc_tmp_str)
         in_files = [with_rrna]
         out_files = [with_rrna_fastqc]
-        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
         cmd = "fastqc --outdir {} --extract {} {}".format(without_rrna_fastqc_path, 
             without_rrna, fastqc_tmp_str)
         in_files = [without_rrna]
         out_files = [without_rrna_fastqc]
-        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
         cmd = "fastqc --outdir {} --extract {} {}".format(without_rrna_mapping_fastqc_path, 
             genome_bam, fastqc_tmp_str)
@@ -154,13 +155,13 @@ def create_fastqc_reports(name_data, config, args):
         msg = "genome_bam_fastqc: '{}'".format(genome_bam_fastqc)
         logger.debug(msg)
 
-        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
         cmd = "fastqc --outdir {} --extract {} {}".format(without_rrna_mapping_fastqc_path, 
             unique_bam, fastqc_tmp_str)
         in_files = [unique_bam]
         out_files = [unique_bam_fastqc]
-        utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
+        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite)
 
         # in some cases, fastqc can fail. make sure all of the reports are present
         all_fastqc_reports = [
@@ -214,10 +215,10 @@ def create_figures(config_file, config, name, offsets_df, args):
     read_length_distribution_image = filenames.get_riboseq_read_length_distribution_image(
         config['riboseq_data'], name, is_unique=False, note=note, image_type=args.image_type)
 
-    cmd = "get-read-length-distribution {} {} {}".format(genome_bam, read_length_distribution, logging_str)
+    cmd = "get-read-length-distribution {} --out {} {}".format(genome_bam, read_length_distribution, logging_str)
     in_files = [genome_bam]
     out_files = [read_length_distribution]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
 
     title_str = "All aligned reads, {}{}".format(name, note_str)
     title_str = "--title=\"{}\"".format(title_str)
@@ -227,7 +228,7 @@ def create_figures(config_file, config, name, offsets_df, args):
         title_str, min_read_length_str, max_read_length_str)
     in_files = [read_length_distribution]
     out_files = [read_length_distribution_image]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
 
     # uniquely aligned reads
     unique_filename = filenames.get_riboseq_bam(
@@ -237,10 +238,10 @@ def create_figures(config_file, config, name, offsets_df, args):
     unique_read_length_distribution_image = filenames.get_riboseq_read_length_distribution_image(
         config['riboseq_data'], name, is_unique=is_unique, note=note, image_type=args.image_type)
     
-    cmd = "get-read-length-distribution {} {} {}".format(unique_filename, unique_read_length_distribution, logging_str)
+    cmd = "get-read-length-distribution {} --out {} {}".format(unique_filename, unique_read_length_distribution, logging_str)
     in_files = [unique_filename]
     out_files = [unique_read_length_distribution]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
 
     title_str = "Uniquely aligned reads, {}{}".format(name, note_str)
     title_str = "--title=\"{}\"".format(title_str)
@@ -250,7 +251,7 @@ def create_figures(config_file, config, name, offsets_df, args):
         title_str, min_read_length_str, max_read_length_str)
     in_files = [unique_read_length_distribution]
     out_files = [unique_read_length_distribution_image]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
 
     # visualize the metagene profiles
     msg = "{}: Visualizing metagene profiles and Bayes' factors".format(name)
@@ -279,13 +280,13 @@ def create_figures(config_file, config, name, offsets_df, args):
         
         # visualize the metagene profile
         title = "Periodicity, {}, length {}".format(name, length)
-        metagene_profile_image = filenames.get_riboseq_metagene_profile_image(config['riboseq_data'], 
+        metagene_profile_image = filenames.get_metagene_profile_image(config['riboseq_data'], 
             name, image_type=args.image_type, is_unique=is_unique, length=length, note=note)
         cmd = ("visualize-metagene-profile {} {} {} --title \"{}\"".format(
             metagene_profiles, length, metagene_profile_image, title))
         in_files = [metagene_profiles]
         out_files = [metagene_profile_image]
-        utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
             overwrite=args.overwrite, call=True)
 
         # and the Bayes' factor
@@ -300,7 +301,7 @@ def create_figures(config_file, config, name, offsets_df, args):
 
         in_files = [profile_bayes_factor]
         out_files = [metagene_profile_image]
-        utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         overwrite=args.overwrite, call=True)
 
     # the orf-type metagene profiles
@@ -350,7 +351,7 @@ def create_figures(config_file, config, name, offsets_df, args):
 
     in_files = [orfs_genomic, profiles]
     out_files = orf_type_profiles_forward + orf_type_profiles_reverse
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         overwrite=args.overwrite)
 
 
@@ -374,7 +375,7 @@ def create_read_filtering_plots(config_file, config, args):
         read_filtering_counts, overwrite_str, cpus_str, tmp_str, logging_str)
     in_files = [config_file]
     out_files = [read_filtering_counts]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
 
     # and visualize them
     read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(
@@ -384,7 +385,7 @@ def create_read_filtering_plots(config_file, config, args):
         read_filtering_image, title)
     in_files = [read_filtering_counts]
     out_files=[read_filtering_image]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
 
     # and visualize the filtering without the rrna
     n = "no-rrna-{}".format(note)
@@ -396,7 +397,7 @@ def create_read_filtering_plots(config_file, config, args):
 
     in_files = [read_filtering_counts]
     out_files=[read_filtering_image]
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -449,7 +450,7 @@ def main():
     if args.create_fastqc_reports:
         programs.extend(['fastqc','java'])
         
-    utils.check_programs_exist(programs)
+    shell_utils.check_programs_exist(programs)
 
     if args.use_slurm:
         cmd = ' '.join(sys.argv)
@@ -640,7 +641,7 @@ def main():
 
                 out.write("\n\n")
 
-                metagene_profile_image = filenames.get_riboseq_metagene_profile_image(
+                metagene_profile_image = filenames.get_metagene_profile_image(
                     config['riboseq_data'], name, image_type=args.image_type, 
                     is_unique=is_unique, length=length, note=note)
                 
