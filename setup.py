@@ -163,7 +163,7 @@ def readme():
         return f.read()
 
 setup(name='rpbp',
-        version='1.0',
+        version='1.0.1',
         description="This package contains scripts for analyzing ribosome profiling data.",
         long_description=readme(),
         keywords="ribosome profiling bayesian inference markov chain monte carlo translation",
