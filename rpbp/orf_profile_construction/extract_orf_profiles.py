@@ -2,6 +2,7 @@
 
 import argparse
 import functools
+import gc
 import logging
 import sys
 import numpy as np
@@ -13,6 +14,7 @@ import yaml
 import misc.bio_utils.bed_utils as bed_utils
 import misc.logging_utils as logging_utils
 import misc.math_utils as math_utils
+import misc.pandas_utils as pandas_utils
 import misc.parallel as parallel
 import misc.utils as utils
 
@@ -60,14 +62,18 @@ def get_p_site_intersections(seqname, strand, p_sites, exons_df):
     
     return intersections
 
-def get_all_p_site_intersections(exons_df, p_sites, num_orfs, max_orf_len):
+def get_all_p_site_intersections(exons_psites, num_orfs, max_orf_len):
     """ This function finds the intersection of p_sites across all seqnames
         and strands in the given set of exons. It creates a sparse matrix
         representing the corresponding ORF profiles and returns that.
     """
 
+    exons_df, p_sites = exons_psites
     seqnames = exons_df['seqname'].unique()
     strands = ("+", "-")
+
+    msg = "Unique sequences: {}".format(seqnames)
+    logger.debug(msg)
     
     profiles = scipy.sparse.lil_matrix((num_orfs, max_orf_len))
     
@@ -137,6 +143,9 @@ def main():
         slurm.check_sbatch(cmd, args=args)
         return
 
+    msg = "Finding P-sites"
+    logger.info(msg)
+
     p_sites = ribo_utils.get_p_sites(args.bam, args.lengths, args.offsets)
 
     # we do not need the data frame anymore, so save some memory
@@ -165,19 +174,41 @@ def main():
 
     orf_fields = ['id', 'orf_num']
     exons_orfs = exons.merge(orfs[orf_fields], on='id')
+
+    msg = "Splitting exons and P-sites"
+    logger.info(msg)
+    exon_groups = pandas_utils.split_df(exons_orfs, args.num_groups)
+
+    exons_dfs = []
+    psites_dfs = []
+
+    for group_index, exon_group in exon_groups:
+        # pull out only the p-sites that come from these chromosomes
+        seqnames = set(exon_group['seqname'].unique())
+        m_psites = p_sites['seqname'].isin(seqnames)
+        
+        exons_dfs.append(exon_group)
+        psites_dfs.append(p_sites[m_psites])
+
+    # we no longer need the full list of psites
+    del p_sites
+    del exons_orfs
+    del exon_groups
+    del exons
+    del orfs
+    gc.collect()
+    exons_psites = zip(exons_dfs, psites_dfs)
      
     msg = "Finding all P-site intersections"
     logger.info(msg)
 
         
-    sum_profiles = parallel.apply_parallel_split(
-        exons_orfs,
+    sum_profiles = parallel.apply_parallel_iter(
+        exons_psites,
         args.num_cpus,
         get_all_p_site_intersections,
-        p_sites,
         num_orfs,
         max_orf_len,
-        num_groups=args.num_groups,
         progress_bar=True
     )
 
