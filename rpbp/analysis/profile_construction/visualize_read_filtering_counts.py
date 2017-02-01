@@ -73,6 +73,8 @@ def main():
         "a default set of fields excluding the reads mapping to ribosomal "
         "sequences will be used.", action='store_true')
 
+    parser.add_argument('--title', help="The title of the plot", default=None)
+
     parser.add_argument('--fontsize', help="The font size to use for most of "
         "the text in the plot", type=int, default=default_fontsize)
 
@@ -155,6 +157,9 @@ def main():
     ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.0e'))
     mpl_utils.set_label_fontsize(ax, args.fontsize)
     mpl_utils.set_legend_title_fontsize(ax, args.fontsize)
+
+    if args.title is not None:
+        ax.set_title(args.title, fontsize=args.fontsize)
 
     msg = "Writing the plot to disk"
     logger.info(msg)
