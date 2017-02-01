@@ -29,7 +29,6 @@ import riboutils.ribo_utils as ribo_utils
 
 logger = logging.getLogger(__name__)
 
-default_num_cpus = 1
 default_num_exons = 0
 default_num_groups = 100
 
@@ -106,8 +105,6 @@ def main():
         "amount. There must be one offset value for each length (given by the --lengths "
         "argument.", type=int, default=default_offsets, nargs='*')
        
-    parser.add_argument('-p', '--num-cpus', help="The number of processes to use", 
-        type=int, default=default_num_cpus)
     parser.add_argument('-k', '--num-exons', help="If  k>0, then only the first k exons "
         "will be processed.", type=int, default=default_num_exons)
     parser.add_argument('-g', '--num-groups', help="The number of groups into which to split "
@@ -134,6 +131,11 @@ def main():
     required_files = [args.bam, args.orfs, args.exons]
     msg = "[extract-orf-profiles]: Some input files were missing: "
     utils.check_files_exist(required_files, msg=msg)
+
+    if args.use_slurm:
+        cmd = ' '.join(sys.argv)
+        slurm.check_sbatch(cmd, args=args)
+        return
 
     p_sites = ribo_utils.get_p_sites(args.bam, args.lengths, args.offsets)
 
