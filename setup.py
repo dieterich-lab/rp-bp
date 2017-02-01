@@ -88,6 +88,9 @@ external_requirements =  [
     'numpy',
     'scipy',
     'pandas',
+    'matplotlib',
+    'matplotlib_venn',
+    'seaborn',
     'joblib',
     'docopt',
     'tqdm',
@@ -238,7 +241,7 @@ setup(name='rpbp',
         packages=find_packages(),
         install_requires = [external_requirements], # + internal_requirements,
         extras_require = {
-            'analysis': ['matplotlib', 'matplotlib_venn', 'crimson>=0.1.1']
+            'analysis': []
         },
         cmdclass={'install': my_install,  # override install
                   'develop': my_develop   # develop is used for pip install -e .
