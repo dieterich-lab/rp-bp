@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 import misc.math_utils as math_utils
 import misc.utils as utils
 import misc.parallel as parallel
+import misc.slurm as slurm
 
 import riboutils.ribo_utils as ribo_utils
 
@@ -116,14 +117,23 @@ def main():
     parser.add_argument('--seqname-prefix', help="If present, this string will be prepended "
         "to the seqname field of the ORFs.", default=default_seqname_prefix)
         
+    slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
+
+    msg = "[extract-orf-profiles]: {}".format(' '.join(sys.argv))
+    logger.info(msg)
     
     # make sure the number of lengths and offsets match
     if len(args.lengths) != len(args.offsets):
         msg = "The number of --lengths and --offsets do not match."
         raise ValueError(msg)
+
+    # make sure the necessary files exist
+    required_files = [args.bam, args.orfs, args.exons]
+    msg = "[extract-orf-profiles]: Some input files were missing: "
+    utils.check_files_exist(required_files, msg=msg)
 
     p_sites = ribo_utils.get_p_sites(args.bam, args.lengths, args.offsets)
 
