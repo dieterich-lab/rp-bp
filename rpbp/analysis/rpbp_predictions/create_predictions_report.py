@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 import argparse
+import itertools
 import logging
 import os
 import sys
@@ -39,6 +40,12 @@ def create_figures(name, is_replicate, config, args):
     if args.show_chisq:
         chisq_values = [True, False]
 
+    filtered_values = [True]
+    if args.show_unfiltered_orfs:
+        filtered_values = [True, False]
+
+    grouped_values = [True, False]
+
     logging_str = logging_utils.get_logging_options_string(args)
 
     note_str = config.get('note', None)
@@ -73,53 +80,53 @@ def create_figures(name, is_replicate, config, args):
     msg = "{}: creating the ORF types pie charts".format(name)
     logger.info(msg)
 
-    for is_grouped in [True, False]:
-        for is_chisq in chisq_values:
-            for is_filtered in [True, False]:
+    it = itertools.product(grouped_values, chisq_values, filtered_values)
 
-                is_grouped_str = ""
-                if is_grouped:
-                    is_grouped_str = ", Grouped"
+    for is_grouped, is_chisq, is_filtered in it:
 
-                is_filtered_str = ""
-                if is_filtered:
-                    is_filtered_str = ", Filtered"
-                
-                if is_chisq:
-                    title_str = "--title \"{}{}{}, Rp-$\chi^2$\"".format(name, is_grouped_str, is_filtered_str)
-                    f = None
-                    rw = None
+        is_grouped_str = ""
+        if is_grouped:
+            is_grouped_str = ", Grouped"
 
-                    orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-                        name, length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
-                        is_chisq=True, is_filtered=is_filtered)
+        is_filtered_str = ""
+        if is_filtered:
+            is_filtered_str = ", Filtered"
+        
+        if is_chisq:
+            title_str = "--title \"{}{}{}, Rp-$\chi^2$\"".format(name, is_grouped_str, is_filtered_str)
+            f = None
+            rw = None
 
-                else:
-                    title_str = "--title \"{}{}{}, Rp-Bp\"".format(name, is_grouped_str, is_filtered_str)
-                    f = fraction
-                    rw = reweighting_iterations
-                    orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-                        name, length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
-                        fraction=f, reweighting_iterations=rw, 
-                        is_filtered=is_filtered)
+            orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
+                name, length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
+                is_chisq=True, is_filtered=is_filtered)
+
+        else:
+            title_str = "--title \"{}{}{}, Rp-Bp\"".format(name, is_grouped_str, is_filtered_str)
+            f = fraction
+            rw = reweighting_iterations
+            orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
+                name, length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
+                fraction=f, reweighting_iterations=rw, 
+                is_filtered=is_filtered)
 
 
-                use_groups_str = ""
-                if is_grouped:
-                    use_groups_str = "--use-groups"
-                
-                orf_types_pie_chart = filenames.get_orf_types_pie_chart(
-                    config['riboseq_data'], name, length=lengths, offset=offsets, 
-                    is_unique=is_unique, note=out_note_str, image_type=args.image_type,
-                    fraction=f, reweighting_iterations=rw,
-                    is_grouped=is_grouped, is_chisq=is_chisq, is_filtered=is_filtered)
+        use_groups_str = ""
+        if is_grouped:
+            use_groups_str = "--use-groups"
+        
+        orf_types_pie_chart = filenames.get_orf_types_pie_chart(
+            config['riboseq_data'], name, length=lengths, offset=offsets, 
+            is_unique=is_unique, note=out_note_str, image_type=args.image_type,
+            fraction=f, reweighting_iterations=rw,
+            is_grouped=is_grouped, is_chisq=is_chisq, is_filtered=is_filtered)
 
-                cmd = "create-orf-types-pie-chart {} {} {} {}".format(orfs, orf_types_pie_chart,
-                    title_str, use_groups_str)
-                in_files = [orfs]
-                out_files = [orf_types_pie_chart]
-                shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-                    overwrite=args.overwrite)
+        cmd = "create-orf-types-pie-chart {} {} {} {}".format(orfs, orf_types_pie_chart,
+            title_str, use_groups_str)
+        in_files = [orfs]
+        out_files = [orf_types_pie_chart]
+        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+            overwrite=args.overwrite)
 
     
     msg = "{}: creating the ORF length distributions line graph".format(name)
@@ -131,7 +138,7 @@ def create_figures(name, is_replicate, config, args):
         uniprot_str = "--uniprot {}".format(args.uniprot)
         uniprot_label_str = "--uniprot-label \"{}\"".format(args.uniprot_label)
 
-    for is_grouped in [True, False]:
+    for is_grouped in grouped_values:
         for is_chisq in chisq_values:
             
             if is_chisq:
@@ -227,37 +234,6 @@ def create_figures(name, is_replicate, config, args):
         shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
             overwrite=args.overwrite)
 
-    msg = "{}: creating the RPKM-BF scatter plots".format(name)
-    logger.info(msg)
-
-    bf_rpkm_scatter_plot = filenames.get_bf_rpkm_scatter_plot(config['riboseq_data'], name, 
-        length=lengths, offset=offsets, 
-        is_unique=True, note=out_note_str, image_type=args.image_type,
-        fraction=f, reweighting_iterations=rw)
-
-    title_str = "--title \"{}, RPKM vs. Bayes factor\"".format(name)
-
-    is_replicate_str = ""
-    if is_replicate:
-        is_replicate_str = "--is-replicate"
-
-    cmd = "create-bf-rpkm-scatter-plot {} {} {} {} {}".format(args.config, name, 
-        bf_rpkm_scatter_plot, is_replicate_str, title_str)
-
-    in_files = [args.config]
-    out_files = [bf_rpkm_scatter_plot]
-
-    msg = ("{}: the RPKM-BF plots do not seem to give meaningful insight. "
-        "Skipping.".format(name))
-    logger.warning(msg)
-
-    #shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-    #    overwrite=args.overwrite)
-
-
-
-
-
 def create_all_figures(config, args):
     
     # first, handle all of the regular datasets
@@ -285,6 +261,10 @@ def main():
 
     parser.add_argument('config', help="The (yaml) config file")
     parser.add_argument('out', help="The base output directory for the latex report")
+
+    parser.add_argument('--show-unfiltered-orfs', help="If this flag is "
+        "present, pie charts showing the distribution of the types of the "
+        "unfiltered ORF set will be included", action='store_true')
 
     parser.add_argument('--uniprot', help="The uniprot ORF lengths, if available", 
         default=default_uniprot)
@@ -336,6 +316,12 @@ def main():
     chisq_values = [False]
     if args.show_chisq:
         chisq_values = [True, False]
+
+    filtered_values = [True]
+    if args.show_unfiltered_orfs:
+        filtered_values = [True, False]
+
+    grouped_values = [True, False]
     
     # make sure the path to the output file exists
     os.makedirs(args.out, exist_ok=True)
@@ -356,9 +342,6 @@ def main():
     title = "Rp-Bp prediction analysis for {}".format(project_name)
     abstract = "This document shows the results of the Rp-Bp pipeline analysis."
 
-    header = latex.get_header_text(title, abstract)
-    footer = latex.get_footer_text()
-
     
     #tex_file = os.path.join(args.out, "prediction-report.tex")
     tex_file = filenames.get_rpbp_prediction_report(args.out, out_note_str)
@@ -366,8 +349,7 @@ def main():
     
     with open(tex_file, 'w') as out:
 
-        out.write(header)
-        out.write("\n")
+        latex.begin_document(out, title, abstract)
 
         ### ORF type distributions
         title = "Predicted ORF type distributions"
@@ -377,13 +359,11 @@ def main():
         sample_names = sorted(config['riboseq_samples'].keys())
         
         # and check if we also have replicates
+        replicate_names = []
         if 'riboseq_biological_replicates' not in config:
-            replicate_names = []
-        else:
             replicate_names = sorted(ribo_utils.get_riboseq_replicates(config).keys())
 
         strands = ["+", "-"]
-
 
         i = 0
         for sample_name in sample_names:
@@ -399,40 +379,42 @@ def main():
             
             caption = "ORF types: {}".format(sample_name)
 
-            # first, just dump all of the pie charts to the page
-            
-            
-            for is_grouped in [True, False]:
-                for is_chisq in chisq_values:
-                    for is_filtered in [True, False]:
+            # first, just dump all of the pie charts to the page            
+            it = itertools.product(grouped_values, chisq_values, filtered_values)
 
-                        if is_chisq:
-                            f = None
-                            rw = None
-                        else:
-                            f = fraction
-                            rw = reweighting_iterations
-                        
-                        orf_types_pie_chart = filenames.get_orf_types_pie_chart(
-                            config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
-                            is_unique=is_unique, note=out_note_str, image_type=args.image_type,
-                            fraction=f, reweighting_iterations=rw,
-                            is_grouped=is_grouped, is_chisq=is_chisq, is_filtered=is_filtered)
+            for is_grouped, is_chisq, is_filtered in it:
 
-                        msg = "looking for image file: {}".format(orf_types_pie_chart)
-                        logger.debug(msg)
+                if is_chisq:
+                    f = None
+                    rw = None
+                else:
+                    f = fraction
+                    rw = reweighting_iterations
+                
+                orf_types_pie_chart = filenames.get_orf_types_pie_chart(
+                    config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
+                    is_unique=is_unique, note=out_note_str, image_type=args.image_type,
+                    fraction=f, reweighting_iterations=rw,
+                    is_grouped=is_grouped, is_chisq=is_chisq, is_filtered=is_filtered)
 
-                        if os.path.exists(orf_types_pie_chart):
-                            if i%4 == 0:
-                                latex.begin_figure(out)
-                            
-                            i += 1
-                            latex.write_graphics(out, orf_types_pie_chart, height=0.23)
+                msg = "Looking for image file: {}".format(orf_types_pie_chart)
+                logger.debug(msg)
 
-                            if i%4 == 0:
-                                latex.write_caption(out, caption)
-                                latex.end_figure(out)
-                                latex.clearpage(out)
+                if os.path.exists(orf_types_pie_chart):
+                    if i%4 == 0:
+                        latex.begin_figure(out)
+                    
+                    i += 1
+                    latex.write_graphics(out, orf_types_pie_chart, height=0.23)
+
+                    if i%4 == 0:
+                        latex.write_caption(out, caption)
+                        latex.end_figure(out)
+                        latex.clearpage(out)
+
+                else:
+                    msg = "Could not find image: {}".format(orf_types_pie_chart)
+                    logger.warning(msg)
 
 
 
@@ -450,41 +432,43 @@ def main():
 
             caption = "ORF types: {}".format(replicate_name)
 
-            for is_grouped in [True, False]:
-                for is_chisq in chisq_values:
-                    for is_filtered in [True, False]:
+            it = itertools.product(grouped_values, chisq_values, filtered_values)
 
-                        if is_chisq:
-                            f = None
-                            rw = None
-                        else:
-                            f = fraction
-                            rw = reweighting_iterations
+            for is_grouped, is_chisq, is_filtered in it:
 
-                        
-                        orf_types_pie_chart = filenames.get_orf_types_pie_chart(
-                            config['riboseq_data'], replicate_name, length=lengths, offset=offsets, 
-                            is_unique=is_unique, note=out_note_str, image_type=args.image_type,
-                            fraction=f, reweighting_iterations=rw,
-                            is_grouped=is_grouped, is_chisq=is_chisq, is_filtered=is_filtered)
+                if is_chisq:
+                    f = None
+                    rw = None
+                else:
+                    f = fraction
+                    rw = reweighting_iterations
 
-                        
-                        msg = "looking for image file: {}".format(orf_types_pie_chart)
-                        logger.debug(msg)
+                
+                orf_types_pie_chart = filenames.get_orf_types_pie_chart(
+                    config['riboseq_data'], replicate_name, length=lengths, offset=offsets, 
+                    is_unique=is_unique, note=out_note_str, image_type=args.image_type,
+                    fraction=f, reweighting_iterations=rw,
+                    is_grouped=is_grouped, is_chisq=is_chisq, is_filtered=is_filtered)
 
-                        
-                        if os.path.exists(orf_types_pie_chart):
-                            if i%4 == 0:
-                                latex.begin_figure(out)
-                            
-                            i += 1
-                            latex.write_graphics(out, orf_types_pie_chart, height=0.23)
+                
+                msg = "Looking for image file: {}".format(orf_types_pie_chart)
+                logger.debug(msg)
 
-                            if i%4 == 0:
-                                latex.write_caption(out, caption)
-                                latex.end_figure(out)
-                                latex.clearpage(out)
+                if os.path.exists(orf_types_pie_chart):
+                    if i%4 == 0:
+                        latex.begin_figure(out)
+                    
+                    i += 1
+                    latex.write_graphics(out, orf_types_pie_chart, height=0.23)
 
+                    if i%4 == 0:
+                        latex.write_caption(out, caption)
+                        latex.end_figure(out)
+                        latex.clearpage(out)
+
+                else:
+                    msg = "Could not find image: {}".format(orf_types_pie_chart)
+                    logger.warning(msg)
 
 
             if (i > 0) and (i%4) != 0:
@@ -540,6 +524,9 @@ def main():
                             latex.end_figure(out)
                             latex.clearpage(out)
 
+                    else:
+                        msg = "Could not find image: {}".format(orf_length_line_graph)
+                        logger.debug(msg)
 
 
             if (i > 0) and (i%4) != 0:
@@ -584,7 +571,9 @@ def main():
                             latex.end_figure(out)
                             latex.clearpage(out)
 
-
+                    else:
+                        msg = "Could not find image: {}".format(orf_length_line_graph)
+                        logger.debug(msg)
 
             if (i > 0) and (i%4) != 0:
                 latex.write_caption(out, caption)
@@ -620,31 +609,42 @@ def main():
                     rw = reweighting_iterations
 
                 orf_type_profile_base = filenames.get_orf_type_profile_base(
-                    config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
-                    is_unique=is_unique, note=out_note_str,
+                    config['riboseq_data'], 
+                    sample_name, 
+                    length=lengths, offset=offsets, 
+                    is_unique=is_unique, 
+                    note=out_note_str,
                     fraction=f, reweighting_iterations=rw,
                     is_chisq=is_chisq)
 
-                for orf_type in ribo_utils.orf_types:
-                    for strand in strands:
-                        orf_type_profile = filenames.get_orf_type_profile_image(orf_type_profile_base, 
-                            orf_type, strand, args.image_type)
+                it = itertools.product(ribo_utils.orf_types, strands)
 
+                for orf_type, strand in it:
+                    orf_type_profile = filenames.get_orf_type_profile_image(
+                        orf_type_profile_base, 
+                        orf_type, 
+                        strand, 
+                        args.image_type
+                    )
 
-                        msg = "Looking for image file: {}".format(orf_type_profile)
-                        logger.debug(msg)
-                        if os.path.exists(orf_type_profile):
+                    msg = "Looking for image file: {}".format(orf_type_profile)
+                    logger.debug(msg)
+                    if os.path.exists(orf_type_profile):
 
-                            if i%4 == 0:
-                                latex.begin_figure(out)
+                        if i%4 == 0:
+                            latex.begin_figure(out)
 
-                            i += 1
-                            latex.write_graphics(out, orf_type_profile, height=0.23)
+                        i += 1
+                        latex.write_graphics(out, orf_type_profile, height=0.23)
 
-                            if i%4 == 0:
-                                latex.write_caption(out, caption)
-                                latex.end_figure(out)
-                                latex.clearpage(out)
+                        if i%4 == 0:
+                            latex.write_caption(out, caption)
+                            latex.end_figure(out)
+                            latex.clearpage(out)
+
+                    else:
+                        msg = "Could not find image: {}".format(orf_type_profile)
+                        logger.warning(msg)
 
         if (i > 0) and (i%4 != 0):
             latex.write_caption(out, caption)
@@ -667,29 +667,42 @@ def main():
                     rw = reweighting_iterations
 
                 orf_type_profile_base = filenames.get_orf_type_profile_base(
-                    config['riboseq_data'], replicate_name, length=lengths, offset=offsets, 
-                    is_unique=is_unique, note=out_note_str, 
+                    config['riboseq_data'], 
+                    replicate_name, 
+                    length=lengths, offset=offsets, 
+                    is_unique=is_unique, 
+                    note=out_note_str, 
                     fraction=f, reweighting_iterations=rw,
-                    is_chisq=is_chisq)
+                    is_chisq=is_chisq
+                )
 
-                
-                for orf_type in ribo_utils.orf_types:
-                    for strand in strands:
-                        orf_type_profile = filenames.get_orf_type_profile_image(orf_type_profile_base, 
-                            orf_type, strand, args.image_type)
+                it = itertools.product(ribo_utils.orf_types, strands)
 
-                        if os.path.exists(orf_type_profile):
+                for orf_type, strand in it:
 
-                            if i%4 == 0:
-                                latex.begin_figure(out)
+                    orf_type_profile = filenames.get_orf_type_profile_image(
+                        orf_type_profile_base, 
+                        orf_type, 
+                        strand, 
+                        args.image_type
+                    )
 
-                            i += 1
-                            latex.write_graphics(out, orf_type_profile, height=0.23)
+                    if os.path.exists(orf_type_profile):
 
-                            if i % 4 == 0:
-                                latex.write_caption(out, caption)
-                                latex.end_figure(out)
-                                latex.clearpage(out)
+                        if i%4 == 0:
+                            latex.begin_figure(out)
+
+                        i += 1
+                        latex.write_graphics(out, orf_type_profile, height=0.23)
+
+                        if i % 4 == 0:
+                            latex.write_caption(out, caption)
+                            latex.end_figure(out)
+                            latex.clearpage(out)
+
+                    else:
+                        msg = "Could not find image: {}".format(orf_type_profile)
+                        logger.debug(msg)
 
             
         if (i > 0) and (i%4 != 0):
@@ -697,14 +710,10 @@ def main():
             latex.end_figure(out)
             latex.clearpage(out)
 
-        out.write(footer)
+        latex.end_document(out)
 
+    tex_filename = os.path.basename(tex_file)
+    latex.compile(args.out, "prediction-report")
     
-    #os.chdir(args.out)
-    cmd = "pdflatex -shell-escape {}".format(tex_file) # prediction-report"
-    shell_utils.check_call(cmd)
-    shell_utils.check_call(cmd) # call again to fix references
-
-
 if __name__ == '__main__':
     main()
