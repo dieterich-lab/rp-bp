@@ -179,60 +179,61 @@ def create_figures(name, is_replicate, config, args):
             shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
                 overwrite=args.overwrite)
 
-    msg = "{}: creating the ORF type metagene profiles".format(name)
-    logger.info(msg)
+    if args.show_orf_periodicity:
+        msg = "{}: creating the ORF type metagene profiles".format(name)
+        logger.info(msg)
 
-    for is_chisq in chisq_values:
+        for is_chisq in chisq_values:
+            
+            if is_chisq:
+                title_str = "--title \"{}, Rp-$\chi^2$\"".format(name)
+                f = None
+                rw = None
+                is_smooth = False
+                profiles = unsmoothed_profiles
         
-        if is_chisq:
-            title_str = "--title \"{}, Rp-$\chi^2$\"".format(name)
-            f = None
-            rw = None
-            is_smooth = False
-            profiles = unsmoothed_profiles
-    
-            orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-                name, length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
-                is_chisq=True, is_filtered=is_filtered)
+                orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
+                    name, length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
+                    is_chisq=True, is_filtered=is_filtered)
 
-        else:
-            title_str = "--title \"{}, Rp-Bp\"".format(name)
-            f = fraction
-            rw = reweighting_iterations
-            is_smooth = False
-            profiles = unsmoothed_profiles
+            else:
+                title_str = "--title \"{}, Rp-Bp\"".format(name)
+                f = fraction
+                rw = reweighting_iterations
+                is_smooth = False
+                profiles = unsmoothed_profiles
 
-            orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
-                name, length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
-                fraction=f, reweighting_iterations=rw) 
+                orfs = filenames.get_riboseq_predicted_orfs(config['riboseq_data'], 
+                    name, length=lengths, offset=offsets, is_unique=is_unique, note=note_str, 
+                    fraction=f, reweighting_iterations=rw) 
 
-        
-        orf_type_profile_base = filenames.get_orf_type_profile_base(
-            config['riboseq_data'], name, length=lengths, offset=offsets, 
-            is_unique=is_unique, note=out_note_str, 
-            fraction=f, reweighting_iterations=rw,
-            is_chisq=is_chisq)
+            
+            orf_type_profile_base = filenames.get_orf_type_profile_base(
+                config['riboseq_data'], name, length=lengths, offset=offsets, 
+                is_unique=is_unique, note=out_note_str, 
+                fraction=f, reweighting_iterations=rw,
+                is_chisq=is_chisq)
 
-        strand = "+"
-        orf_type_profiles_forward = [
-            filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, strand, args.image_type)
-                for orf_type in ribo_utils.orf_types
-        ]
-        
-        strand = "-"
-        orf_type_profiles_reverse = [
-            filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, strand, args.image_type)
-                for orf_type in ribo_utils.orf_types
-        ]
+            strand = "+"
+            orf_type_profiles_forward = [
+                filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, strand, args.image_type)
+                    for orf_type in ribo_utils.orf_types
+            ]
+            
+            strand = "-"
+            orf_type_profiles_reverse = [
+                filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, strand, args.image_type)
+                    for orf_type in ribo_utils.orf_types
+            ]
 
-        cmd = ("visualize-orf-type-metagene-profiles {} {} {} {} {} {}".format(
-            orfs, profiles, orf_type_profile_base, title_str, 
-            image_type_str, logging_str))
+            cmd = ("visualize-orf-type-metagene-profiles {} {} {} {} {} {}".format(
+                orfs, profiles, orf_type_profile_base, title_str, 
+                image_type_str, logging_str))
 
-        in_files = [orfs]
-        out_files = orf_type_profiles_forward + orf_type_profiles_reverse
-        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-            overwrite=args.overwrite)
+            in_files = [orfs]
+            out_files = orf_type_profiles_forward + orf_type_profiles_reverse
+            shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+                overwrite=args.overwrite)
 
 def create_all_figures(config, args):
     
@@ -265,6 +266,10 @@ def main():
     parser.add_argument('--show-unfiltered-orfs', help="If this flag is "
         "present, pie charts showing the distribution of the types of the "
         "unfiltered ORF set will be included", action='store_true')
+    
+    parser.add_argument('--show-orf-periodicity', help="If this flag is "
+        "present, bar charts showing the periodicity of each ORF type will be "
+        "included in the report.", action='store_true')
 
     parser.add_argument('--uniprot', help="The uniprot ORF lengths, if available", 
         default=default_uniprot)
@@ -351,6 +356,10 @@ def main():
 
         latex.begin_document(out, title, abstract)
 
+        latex.write(out, "\n")
+
+        latex.clearpage(out)
+
         ### ORF type distributions
         title = "Predicted ORF type distributions"
         latex.section(out, title)
@@ -360,13 +369,13 @@ def main():
         
         # and check if we also have replicates
         replicate_names = []
-        if 'riboseq_biological_replicates' not in config:
+        if 'riboseq_biological_replicates' in config:
             replicate_names = sorted(ribo_utils.get_riboseq_replicates(config).keys())
 
         strands = ["+", "-"]
 
-        i = 0
         for sample_name in sample_names:
+            i = 0
             
             try:
                 lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
@@ -383,6 +392,7 @@ def main():
             it = itertools.product(grouped_values, chisq_values, filtered_values)
 
             for is_grouped, is_chisq, is_filtered in it:
+                is_first = True
 
                 if is_chisq:
                     f = None
@@ -401,11 +411,12 @@ def main():
                 logger.debug(msg)
 
                 if os.path.exists(orf_types_pie_chart):
-                    if i%4 == 0:
+                    if is_first or (i%4 == 0):
                         latex.begin_figure(out)
+                        is_first = False
                     
                     i += 1
-                    latex.write_graphics(out, orf_types_pie_chart, height=0.23)
+                    latex.write_graphics(out, orf_types_pie_chart, height=0.15)
 
                     if i%4 == 0:
                         latex.write_caption(out, caption)
@@ -421,11 +432,14 @@ def main():
             if (i > 0) and (i%4) != 0:
                 latex.write_caption(out, caption)
                 latex.end_figure(out)
-                latex.clearpage(out)
+                #latex.clearpage(out)
+
+        if i%4 != 0:
+            latex.clearpage(out)
 
     
-        i = 0
         # now, if the config file specifies replicates, create figures for those                
+        i = 0
         for replicate_name in replicate_names:
             lengths = None
             offsets = None
@@ -433,6 +447,8 @@ def main():
             caption = "ORF types: {}".format(replicate_name)
 
             it = itertools.product(grouped_values, chisq_values, filtered_values)
+
+            is_first = True
 
             for is_grouped, is_chisq, is_filtered in it:
 
@@ -455,11 +471,12 @@ def main():
                 logger.debug(msg)
 
                 if os.path.exists(orf_types_pie_chart):
-                    if i%4 == 0:
+                    if is_first or (i%4 == 0):
                         latex.begin_figure(out)
+                        is_first = False
                     
                     i += 1
-                    latex.write_graphics(out, orf_types_pie_chart, height=0.23)
+                    latex.write_graphics(out, orf_types_pie_chart, height=0.15)
 
                     if i%4 == 0:
                         latex.write_caption(out, caption)
@@ -474,7 +491,10 @@ def main():
             if (i > 0) and (i%4) != 0:
                 latex.write_caption(out, caption)
                 latex.end_figure(out)
-                latex.clearpage(out)
+                #latex.clearpage(out)
+
+        if i%4 != 0:
+            latex.clearpage(out)
 
 
         ### ORF type length distributions
@@ -494,45 +514,51 @@ def main():
                 continue
             
             caption = "ORF type length distributions: {}".format(sample_name)
+
+            is_first = True
+            it = itertools.product(grouped_values, chisq_values)
             
-            for is_grouped in [True, False]:
-                for is_chisq in chisq_values:
+            for is_grouped, is_chisq in it:
 
-                    if is_chisq:
-                        f = None
-                        rw = None
-                    else:
-                        f = fraction
-                        rw = reweighting_iterations
+                if is_chisq:
+                    f = None
+                    rw = None
+                else:
+                    f = fraction
+                    rw = reweighting_iterations
 
-                    orf_length_line_graph = filenames.get_orf_length_distribution_line_graph(
-                        config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
-                        is_unique=is_unique, note=out_note_str, image_type=args.image_type,
-                        fraction=f, reweighting_iterations=rw,
-                        is_grouped=is_grouped, is_chisq=is_chisq)
+                orf_length_line_graph = filenames.get_orf_length_distribution_line_graph(
+                    config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
+                    is_unique=is_unique, note=out_note_str, image_type=args.image_type,
+                    fraction=f, reweighting_iterations=rw,
+                    is_grouped=is_grouped, is_chisq=is_chisq)
 
-                    if os.path.exists(orf_length_line_graph):
-                
-                        if i%4 == 0:
-                            latex.begin_figure(out)
-                        
-                        i += 1
-                        latex.write_graphics(out, orf_length_line_graph, height=0.23)
+                if os.path.exists(orf_length_line_graph):
+            
+                    if is_first or (i%4 == 0):
+                        latex.begin_figure(out)
+                        is_first = False
+                    
+                    i += 1
+                    latex.write_graphics(out, orf_length_line_graph, height=0.15)
 
-                        if i%4 == 0:
-                            latex.write_caption(out, caption)
-                            latex.end_figure(out)
-                            latex.clearpage(out)
+                    if i%4 == 0:
+                        latex.write_caption(out, caption)
+                        latex.end_figure(out)
+                        latex.clearpage(out)
 
-                    else:
-                        msg = "Could not find image: {}".format(orf_length_line_graph)
-                        logger.debug(msg)
+                else:
+                    msg = "Could not find image: {}".format(orf_length_line_graph)
+                    logger.debug(msg)
 
 
             if (i > 0) and (i%4) != 0:
                 latex.write_caption(out, caption)
                 latex.end_figure(out)
-                latex.clearpage(out)
+                #latex.clearpage(out)
+
+        if i%4 != 0:
+            latex.clearpage(out)
 
         # now, if the config file specifies replicates, create figures for those  
         i = 0
@@ -541,8 +567,72 @@ def main():
             offsets = None
 
             caption = "ORF types: {}".format(replicate_name)
+
+            is_first = True
+            it = itertools.product(grouped_values, chisq_values)
             
-            for is_grouped in [True, False]:
+            for is_grouped, is_chisq in it:
+
+                if is_chisq:
+                    f = None
+                    rw = None
+                else:
+                    f = fraction
+                    rw = reweighting_iterations
+
+                orf_length_line_graph = filenames.get_orf_length_distribution_line_graph(
+                    config['riboseq_data'], replicate_name, length=lengths, offset=offsets, 
+                    is_unique=is_unique, note=out_note_str, image_type=args.image_type,
+                    fraction=f, reweighting_iterations=rw,
+                    is_grouped=is_grouped, is_chisq=is_chisq)
+                
+                if os.path.exists(orf_length_line_graph):
+            
+                    if is_first or (i%4 == 0):
+                        latex.begin_figure(out)
+                        is_first = False
+                    
+                    i += 1
+                    latex.write_graphics(out, orf_length_line_graph, height=0.15)
+
+                    if i%4 == 0:
+                        latex.write_caption(out, caption)
+                        latex.end_figure(out)
+                        latex.clearpage(out)
+
+                else:
+                    msg = "Could not find image: {}".format(orf_length_line_graph)
+                    logger.debug(msg)
+
+            if (i > 0) and (i%4) != 0:
+                latex.write_caption(out, caption)
+                latex.end_figure(out)
+                #latex.clearpage(out)
+
+        if i%4 != 0:
+            latex.clearpage(out)
+
+        ### ORF type metagene profiles
+        if args.show_orf_periodicity:
+            title = "Predicted ORF type metagene profiles"
+            latex.section(out, title)
+            
+            i = 0
+            for sample_name in sample_names:
+                
+                try:
+                    lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
+                        config, sample_name, is_unique=is_unique)
+                except FileNotFoundError:
+                    msg = ("Could not parse out lengths and offsets for sample: {}. "
+                        "Skipping".format(sample_name))
+                    logger.error(msg)
+                    continue
+                
+                caption = "ORF type metagene profiles: {}".format(sample_name)
+
+                is_first = True
+
                 for is_chisq in chisq_values:
 
                     if is_chisq:
@@ -552,168 +642,119 @@ def main():
                         f = fraction
                         rw = reweighting_iterations
 
-                    orf_length_line_graph = filenames.get_orf_length_distribution_line_graph(
-                        config['riboseq_data'], replicate_name, length=lengths, offset=offsets, 
-                        is_unique=is_unique, note=out_note_str, image_type=args.image_type,
+                    orf_type_profile_base = filenames.get_orf_type_profile_base(
+                        config['riboseq_data'], 
+                        sample_name, 
+                        length=lengths, offset=offsets, 
+                        is_unique=is_unique, 
+                        note=out_note_str,
                         fraction=f, reweighting_iterations=rw,
-                        is_grouped=is_grouped, is_chisq=is_chisq)
-                    
-                    if os.path.exists(orf_length_line_graph):
-                
-                        if i%4 == 0:
-                            latex.begin_figure(out)
-                        
-                        i += 1
-                        latex.write_graphics(out, orf_length_line_graph, height=0.23)
+                        is_chisq=is_chisq)
 
-                        if i%4 == 0:
-                            latex.write_caption(out, caption)
-                            latex.end_figure(out)
-                            latex.clearpage(out)
+                    it = itertools.product(ribo_utils.orf_types, strands)
 
-                    else:
-                        msg = "Could not find image: {}".format(orf_length_line_graph)
+                    for orf_type, strand in it:
+                        orf_type_profile = filenames.get_orf_type_profile_image(
+                            orf_type_profile_base, 
+                            orf_type, 
+                            strand, 
+                            args.image_type
+                        )
+
+                        msg = "Looking for image file: {}".format(orf_type_profile)
                         logger.debug(msg)
+                        if os.path.exists(orf_type_profile):
 
-            if (i > 0) and (i%4) != 0:
-                latex.write_caption(out, caption)
-                latex.end_figure(out)
+                            if is_first or (i%4 == 0):
+                                latex.begin_figure(out)
+                                is_first = False
+
+                            i += 1
+                            latex.write_graphics(out, orf_type_profile, height=0.23)
+
+                            if i%4 == 0:
+                                latex.write_caption(out, caption)
+                                latex.end_figure(out)
+                                latex.clearpage(out)
+
+                        else:
+                            msg = "Could not find image: {}".format(orf_type_profile)
+                            logger.warning(msg)
+
+                if (i > 0) and (i%4 != 0):
+                    latex.write_caption(out, caption)
+                    latex.end_figure(out)
+                    #latex.clearpage(out)
+
+            if i%4 != 0:
                 latex.clearpage(out)
 
-        ### ORF type metagene profiles
-        title = "Predicted ORF type metagene profiles"
-        latex.section(out, title)
-        
-        i = 0
-        for sample_name in sample_names:
-            
-            try:
-                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
-                    config, sample_name, is_unique=is_unique)
-            except FileNotFoundError:
-                msg = ("Could not parse out lengths and offsets for sample: {}. "
-                    "Skipping".format(sample_name))
-                logger.error(msg)
-                continue
-            
-            caption = "ORF type metagene profiles: {}".format(sample_name)
+            i = 0
+            for replicate_name in replicate_names:
+                lengths = None
+                offsets = None
+                            
+                caption = "ORF type metagene profiles: {}".format(replicate_name)
+                is_first = True
+                for is_chisq in chisq_values:
 
+                    if is_chisq:
+                        f = None
+                        rw = None
+                    else:
+                        f = fraction
+                        rw = reweighting_iterations
 
-            for is_chisq in chisq_values:
-
-                if is_chisq:
-                    f = None
-                    rw = None
-                else:
-                    f = fraction
-                    rw = reweighting_iterations
-
-                orf_type_profile_base = filenames.get_orf_type_profile_base(
-                    config['riboseq_data'], 
-                    sample_name, 
-                    length=lengths, offset=offsets, 
-                    is_unique=is_unique, 
-                    note=out_note_str,
-                    fraction=f, reweighting_iterations=rw,
-                    is_chisq=is_chisq)
-
-                it = itertools.product(ribo_utils.orf_types, strands)
-
-                for orf_type, strand in it:
-                    orf_type_profile = filenames.get_orf_type_profile_image(
-                        orf_type_profile_base, 
-                        orf_type, 
-                        strand, 
-                        args.image_type
+                    orf_type_profile_base = filenames.get_orf_type_profile_base(
+                        config['riboseq_data'], 
+                        replicate_name, 
+                        length=lengths, offset=offsets, 
+                        is_unique=is_unique, 
+                        note=out_note_str, 
+                        fraction=f, reweighting_iterations=rw,
+                        is_chisq=is_chisq
                     )
 
-                    msg = "Looking for image file: {}".format(orf_type_profile)
-                    logger.debug(msg)
-                    if os.path.exists(orf_type_profile):
+                    it = itertools.product(ribo_utils.orf_types, strands)
 
-                        if i%4 == 0:
-                            latex.begin_figure(out)
+                    for orf_type, strand in it:
 
-                        i += 1
-                        latex.write_graphics(out, orf_type_profile, height=0.23)
+                        orf_type_profile = filenames.get_orf_type_profile_image(
+                            orf_type_profile_base, 
+                            orf_type, 
+                            strand, 
+                            args.image_type
+                        )
 
-                        if i%4 == 0:
-                            latex.write_caption(out, caption)
-                            latex.end_figure(out)
-                            latex.clearpage(out)
+                        if os.path.exists(orf_type_profile):
 
-                    else:
-                        msg = "Could not find image: {}".format(orf_type_profile)
-                        logger.warning(msg)
+                            if is_first or (i%4 == 0):
+                                latex.begin_figure(out)
+                                is_first = False
 
-        if (i > 0) and (i%4 != 0):
-            latex.write_caption(out, caption)
-            latex.end_figure(out)
-            latex.clearpage(out)
+                            i += 1
+                            latex.write_graphics(out, orf_type_profile, height=0.23)
 
-        i = 0
-        for replicate_name in replicate_names:
-            lengths = None
-            offsets = None
-                        
-            caption = "ORF type metagene profiles: {}".format(replicate_name)
-            for is_chisq in chisq_values:
+                            if i % 4 == 0:
+                                latex.write_caption(out, caption)
+                                latex.end_figure(out)
+                                latex.clearpage(out)
+                        else:
+                            msg = "Could not find image: {}".format(orf_type_profile)
+                            logger.debug(msg)
+                
+                if (i > 0) and (i%4 != 0):
+                    latex.write_caption(out, caption)
+                    latex.end_figure(out)
+                    #latex.clearpage(out)
 
-                if is_chisq:
-                    f = None
-                    rw = None
-                else:
-                    f = fraction
-                    rw = reweighting_iterations
-
-                orf_type_profile_base = filenames.get_orf_type_profile_base(
-                    config['riboseq_data'], 
-                    replicate_name, 
-                    length=lengths, offset=offsets, 
-                    is_unique=is_unique, 
-                    note=out_note_str, 
-                    fraction=f, reweighting_iterations=rw,
-                    is_chisq=is_chisq
-                )
-
-                it = itertools.product(ribo_utils.orf_types, strands)
-
-                for orf_type, strand in it:
-
-                    orf_type_profile = filenames.get_orf_type_profile_image(
-                        orf_type_profile_base, 
-                        orf_type, 
-                        strand, 
-                        args.image_type
-                    )
-
-                    if os.path.exists(orf_type_profile):
-
-                        if i%4 == 0:
-                            latex.begin_figure(out)
-
-                        i += 1
-                        latex.write_graphics(out, orf_type_profile, height=0.23)
-
-                        if i % 4 == 0:
-                            latex.write_caption(out, caption)
-                            latex.end_figure(out)
-                            latex.clearpage(out)
-
-                    else:
-                        msg = "Could not find image: {}".format(orf_type_profile)
-                        logger.debug(msg)
-
-            
-        if (i > 0) and (i%4 != 0):
-            latex.write_caption(out, caption)
-            latex.end_figure(out)
-            latex.clearpage(out)
+            if i%4 != 0:
+                latex.clearpage(out)
 
         latex.end_document(out)
 
     tex_filename = os.path.basename(tex_file)
-    latex.compile(args.out, "prediction-report")
+    latex.compile(args.out, tex_filename)
     
 if __name__ == '__main__':
     main()

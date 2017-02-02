@@ -37,6 +37,10 @@ In particular, it shows the amount of reads filtered at each step in the pipelin
 Additionally, it includes ``metagene'' profile figures for all of the samples.
 """
 
+commands = {
+    "riboseq": r"\textsc{ribo-seq}\xspace"
+}
+
 read_filtering_label = "fig:mapping-info"
 length_distribution_section_label = "sec:read-length-distribution"
 periodicity_label = "sec:periodicity"
@@ -305,54 +309,55 @@ def create_figures(config_file, config, name, offsets_df, args):
         overwrite=args.overwrite, call=True)
 
     # the orf-type metagene profiles
-    msg = "{}: Visualizing the ORF type metagene profiles".format(name)
-    logger.info(msg)
+    if args.show_orf_periodicity:
+        msg = "{}: Visualizing the ORF type metagene profiles".format(name)
+        logger.info(msg)
 
 
-    try:
-        lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, 
-            name, is_unique=is_unique)
-    except FileNotFoundError:
-        msg = ("Could not parse out lengths and offsets for sample: {}. "
-            "Skipping".format(name))
-        logger.error(msg)
-        return
+        try:
+            lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, 
+                name, is_unique=is_unique)
+        except FileNotFoundError:
+            msg = ("Could not parse out lengths and offsets for sample: {}. "
+                "Skipping".format(name))
+            logger.error(msg)
+            return
 
 
-    orfs_genomic = filenames.get_orfs(config['genome_base_path'], 
-        config['genome_name'], note=config.get('orf_note'))
-         
-    profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
-            length=lengths, offset=offsets, is_unique=is_unique, note=note_str)
+        orfs_genomic = filenames.get_orfs(config['genome_base_path'], 
+            config['genome_name'], note=config.get('orf_note'))
+             
+        profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
+                length=lengths, offset=offsets, is_unique=is_unique, note=note_str)
 
-    title_str = "--title \"{}, ORF-type periodicity\"".format(name)
-    
-    orf_type_profile_base = filenames.get_orf_type_profile_base(
-        config['riboseq_data'], name, length=lengths, offset=offsets, 
-        is_unique=is_unique, note=note, subfolder='orf-profiles')
+        title_str = "--title \"{}, ORF-type periodicity\"".format(name)
+        
+        orf_type_profile_base = filenames.get_orf_type_profile_base(
+            config['riboseq_data'], name, length=lengths, offset=offsets, 
+            is_unique=is_unique, note=note, subfolder='orf-profiles')
 
-    strand = "+"
-    orf_type_profiles_forward = [
-        filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, 
-            strand, args.image_type)
-                for orf_type in ribo_utils.orf_types
-    ]
-    
-    strand = "-"
-    orf_type_profiles_reverse = [
-        filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, 
-            strand, args.image_type)
-                for orf_type in ribo_utils.orf_types
-    ]
+        strand = "+"
+        orf_type_profiles_forward = [
+            filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, 
+                strand, args.image_type)
+                    for orf_type in ribo_utils.orf_types
+        ]
+        
+        strand = "-"
+        orf_type_profiles_reverse = [
+            filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, 
+                strand, args.image_type)
+                    for orf_type in ribo_utils.orf_types
+        ]
 
-    cmd = ("visualize-orf-type-metagene-profiles {} {} {} {} {} {}".format(
-        orfs_genomic, profiles, orf_type_profile_base, title_str, 
-        image_type_str, logging_str))
+        cmd = ("visualize-orf-type-metagene-profiles {} {} {} {} {} {}".format(
+            orfs_genomic, profiles, orf_type_profile_base, title_str, 
+            image_type_str, logging_str))
 
-    in_files = [orfs_genomic, profiles]
-    out_files = orf_type_profiles_forward + orf_type_profiles_reverse
-    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        overwrite=args.overwrite)
+        in_files = [orfs_genomic, profiles]
+        out_files = orf_type_profiles_forward + orf_type_profiles_reverse
+        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+            overwrite=args.overwrite)
 
 
 def create_read_filtering_plots(config_file, config, args):
@@ -405,6 +410,10 @@ def main():
         "filtering images, metagene profiles and analysis, and standard section text.")
     parser.add_argument('config', help="The (yaml) config file for the project")
     parser.add_argument('out', help="The path for the output files")
+
+    parser.add_argument('--show-orf-periodicity', help="If this flag is "
+        "present, bar charts showing the periodicity of each ORF type will be "
+        "included in the report.", action='store_true')
 
     parser.add_argument('--overwrite', help="If this flag is present, existing files will "
         "be overwritten.", action='store_true')
@@ -485,16 +494,12 @@ def main():
     project_name = config.get("project_name", default_project_name)
     title = "Preprocessing results for {}".format(project_name)
    
-    header = latex.get_header_text(title, abstract)
-    footer = latex.get_footer_text()
-
     sample_names = sorted(config['riboseq_samples'].keys())
 
     tex_file = os.path.join(args.out, "preprocessing-report.tex")
     with open(tex_file, 'w') as out:
 
-        out.write(header)
-        out.write("\n")
+        latex.begin_document(out, title, abstract, commands=commands)
 
         latex.section(out, "Introduction")
 
@@ -502,7 +507,7 @@ def main():
         latex.newpage(out)
 
         latex.section(out, "Mapping and filtering")
-        out.write(mapping_and_filtering_text)
+        latex.write(out, mapping_and_filtering_text)
 
         # the read filtering figures
 
@@ -514,8 +519,8 @@ def main():
             config['riboseq_data'], note=n, image_type=args.image_type)
 
         latex.begin_figure(out)
-        latex.write_graphics(out, read_filtering_image, width=0.75)
-        latex.write_graphics(out, no_rrna_read_filtering_image, width=0.75)
+        latex.write_graphics(out, read_filtering_image, height=0.45)
+        latex.write_graphics(out, no_rrna_read_filtering_image, height=0.45)
         latex.write_caption(out, read_filtering_caption, label=read_filtering_label)
         latex.end_figure(out)
 
@@ -553,6 +558,10 @@ def main():
                     latex.end_figure(out)
                     latex.clearpage(out)
 
+            else:
+                msg = "Could not find image: {}".format(read_length_distribution_image)
+                logger.warning(msg)
+
             msg = "Looking for image file: {}".format(unique_read_length_distribution_image)
             logger.debug(msg)
 
@@ -567,12 +576,17 @@ def main():
                     latex.end_figure(out)
                     latex.clearpage(out)
 
+            else:
+                msg = "Could not find image: {}".format(unique_read_length_distribution_image)
+                logger.warning(msg)
+
+
         if (i>0) and (i%4 != 0):
             latex.end_figure(out)
             latex.clearpage(out)
 
 
-        latex.section(out, "Periodicity", label=periodicity_label)
+        latex.section(out, "Read length periodicity", label=periodicity_label)
 
         i = 0
         for name in sample_names:
@@ -663,57 +677,56 @@ def main():
             latex.clearpage(out)
 
         ### ORF type metagene profiles
-        title = "ORF type metagene profiles"
-        latex.section(out, title)
-        
-        strands = ['+', '-']
-        for sample_name in sample_names:
-            i = 0
-
-            try:
-                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
-                    config, sample_name, is_unique=is_unique)
-            except FileNotFoundError:
-                msg = ("Could not parse out lengths and offsets for sample: {}. "
-                    "Skipping".format(sample_name))
-                logger.error(msg)
-                continue
+        if args.show_orf_periodicity:
+            title = "ORF type periodicity"
+            latex.section(out, title)
             
-            orf_type_profile_base = filenames.get_orf_type_profile_base(
-                config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
-                is_unique=is_unique, note=note, subfolder='orf-profiles')
+            strands = ['+', '-']
+            for sample_name in sample_names:
+                i = 0
 
-            for orf_type in ribo_utils.orf_types:
-                for strand in strands:
-                    orf_type_profile = filenames.get_orf_type_profile_image(
-                        orf_type_profile_base, orf_type, strand, 
-                        image_type=args.image_type)
+                try:
+                    lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
+                        config, sample_name, is_unique=is_unique)
+                except FileNotFoundError:
+                    msg = ("Could not parse out lengths and offsets for sample: {}. "
+                        "Skipping".format(sample_name))
+                    logger.error(msg)
+                    continue
+                
+                orf_type_profile_base = filenames.get_orf_type_profile_base(
+                    config['riboseq_data'], sample_name, length=lengths, offset=offsets, 
+                    is_unique=is_unique, note=note, subfolder='orf-profiles')
 
-
-                    msg = "Looking for image file: {}".format(orf_type_profile)
-                    logger.debug(msg)
-                    if os.path.exists(orf_type_profile):
-                        if i%4 == 0:
-                            latex.begin_figure(out)
-
-                        i += 1
-                        latex.write_graphics(out, orf_type_profile, height=0.23)
-
-                        if i%4 == 0:
-                            latex.end_figure(out)
-                            latex.clearpage(out)
-
-            if (i>0) and (i%4 != 0):
-                latex.end_figure(out)
-                latex.clearpage(out)
+                for orf_type in ribo_utils.orf_types:
+                    for strand in strands:
+                        orf_type_profile = filenames.get_orf_type_profile_image(
+                            orf_type_profile_base, orf_type, strand, 
+                            image_type=args.image_type)
 
 
-        out.write(footer)
+                        msg = "Looking for image file: {}".format(orf_type_profile)
+                        logger.debug(msg)
+                        if os.path.exists(orf_type_profile):
+                            if i%4 == 0:
+                                latex.begin_figure(out)
 
-    os.chdir(args.out)
-    cmd = "pdflatex -shell-escape preprocessing-report"
-    utils.check_call(cmd)
-    utils.check_call(cmd) # call again to fix references
+                            i += 1
+                            latex.write_graphics(out, orf_type_profile, height=0.23)
+
+                            if i%4 == 0:
+                                latex.end_figure(out)
+                                latex.clearpage(out)
+
+                if (i>0) and (i%4 != 0):
+                    latex.end_figure(out)
+                    latex.clearpage(out)
+
+
+        latex.end_document(out)
+
+    tex_filename = os.path.basename(tex_file)
+    latex.compile(args.out, tex_filename)
 
     if args.create_fastqc_reports:
         parallel.apply_parallel_iter(config['riboseq_samples'].items(), 
