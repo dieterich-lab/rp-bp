@@ -61,13 +61,8 @@ Figure~\\ref{fig:mapping-info}(left) shows the number of reads remaining after e
 Figure~\\ref{fig:mapping-info}(right) shows a ``zoomed in'' version which does not include the reads of poor quality and that mapped to ribosomal sequences.
 """
 
-read_length_distribution_text = """
-This section shows the distribution of read lengths \\textbf{for reads which uniquely map to the genome}.
-"""
-
 read_filtering_caption = """
-The number of reads lost at each stage in the mapping pipeline. 
-\\texttt{wrong\_length} refers to reads which have a length that does not result in a strong periodic signal (see Section~\\ref{sec:periodicity}).
+The number of reads passing each phase of the filtering pipeline.
 """
 
 def create_fastqc_reports(name_data, config, args):
@@ -524,16 +519,19 @@ def main():
         latex.write_caption(out, read_filtering_caption, label=read_filtering_label)
         latex.end_figure(out)
 
+        latex.clearpage(out)
+
         # the read length distributions
         latex.section(out, "Read length distributions", 
             label=length_distribution_section_label)
 
-        out.write(read_length_distribution_text)
-
         msg = "Writing length distribution figures"
         logger.info(msg)
 
-        i = 0
+        latex.begin_table(out, "cc")
+
+        latex.write_header(out, ["All aligned reads", "Uniquely-aligning reads"])
+
         for name in sample_names:
             data = config['riboseq_samples'][name]
             read_length_distribution_image = filenames.get_riboseq_read_length_distribution_image(
@@ -544,46 +542,41 @@ def main():
                 config['riboseq_data'], name, is_unique=is_unique, note=note, 
                 image_type=args.image_type)
 
+            
             msg = "Looking for image file: {}".format(read_length_distribution_image)
             logger.debug(msg)
 
             if os.path.exists(read_length_distribution_image):
-                if i%4 == 0:
-                    latex.begin_figure(out)
-
-                i += 1
-                latex.write_graphics(out, read_length_distribution_image, height=0.23)
-
-                if i%4 == 0:
-                    latex.end_figure(out)
-                    latex.clearpage(out)
-
+                latex.write_graphics(out, read_length_distribution_image, width=0.45)
             else:
                 msg = "Could not find image: {}".format(read_length_distribution_image)
                 logger.warning(msg)
+                
+                text = "Missing: {}\n\n".format(name)
+                latex.write(out, text)
+
+
+            latex.write_column_sep(out)
+            
 
             msg = "Looking for image file: {}".format(unique_read_length_distribution_image)
             logger.debug(msg)
 
             if os.path.exists(unique_read_length_distribution_image):
-                if i%4 == 0:
-                    latex.begin_figure(out)
-
-                i += 1
-                latex.write_graphics(out, unique_read_length_distribution_image, height=0.23)
-
-                if i%4 == 0:
-                    latex.end_figure(out)
-                    latex.clearpage(out)
-
+                latex.write_graphics(out, unique_read_length_distribution_image, width=0.45)
             else:
                 msg = "Could not find image: {}".format(unique_read_length_distribution_image)
                 logger.warning(msg)
+            
+                text = "Missing: {}\n\n".format(name)
+                latex.write(out, text)
 
+            latex.write_row_sep(out)
 
-        if (i>0) and (i%4 != 0):
-            latex.end_figure(out)
-            latex.clearpage(out)
+            
+
+        latex.end_table(out)
+        latex.clearpage(out)
 
 
         latex.section(out, "Read length periodicity", label=periodicity_label)
