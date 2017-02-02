@@ -278,10 +278,10 @@ def create_figures(config_file, config, name, offsets_df, args):
             continue
         
         # visualize the metagene profile
-        title = "Periodicity, {}, length {}".format(name, length)
+        title = "{}. length: {}".format(name, length)
         metagene_profile_image = filenames.get_metagene_profile_image(config['riboseq_data'], 
             name, image_type=args.image_type, is_unique=is_unique, length=length, note=note)
-        cmd = ("visualize-metagene-profile {} {} {} --title \"{}\"".format(
+        cmd = ("create-read-length-metagene-profile-plot {} {} {} --title \"{}\"".format(
             metagene_profiles, length, metagene_profile_image, title))
         in_files = [metagene_profiles]
         out_files = [metagene_profile_image]
@@ -289,19 +289,20 @@ def create_figures(config_file, config, name, offsets_df, args):
             overwrite=args.overwrite, call=True)
 
         # and the Bayes' factor
-        title = "Metagene profile Bayes' factors, {}, length {}".format(name, length)
-        metagene_profile_image = filenames.get_metagene_profile_bayes_factor_image(
-            config['riboseq_data'], name, image_type=args.image_type, 
-            is_unique=is_unique, length=length, note=note)
+        if args.show_read_length_bfs:
+            title = "Metagene profile Bayes' factors, {}, length {}".format(name, length)
+            metagene_profile_image = filenames.get_metagene_profile_bayes_factor_image(
+                config['riboseq_data'], name, image_type=args.image_type, 
+                is_unique=is_unique, length=length, note=note)
 
-        cmd = ("visualize-metagene-profile-bayes-factor {} {} {} --title \"{}\" "
-            "--font-size 25".format(profile_bayes_factor, length, 
-            metagene_profile_image, title))
+            cmd = ("visualize-metagene-profile-bayes-factor {} {} {} --title \"{}\" "
+                "--font-size 25".format(profile_bayes_factor, length, 
+                metagene_profile_image, title))
 
-        in_files = [profile_bayes_factor]
-        out_files = [metagene_profile_image]
-        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        overwrite=args.overwrite, call=True)
+            in_files = [profile_bayes_factor]
+            out_files = [metagene_profile_image]
+            shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+                overwrite=args.overwrite, call=True)
 
     # the orf-type metagene profiles
     if args.show_orf_periodicity:
@@ -410,6 +411,10 @@ def main():
         "present, bar charts showing the periodicity of each ORF type will be "
         "included in the report.", action='store_true')
 
+    parser.add_argument('--show-read-length-bfs', help="If this flag is given, "
+        "plots showing the Bayes factor at each offset for each read length "
+        "are included in the report.", action='store_true')
+
     parser.add_argument('--overwrite', help="If this flag is present, existing files will "
         "be overwritten.", action='store_true')
 
@@ -443,7 +448,7 @@ def main():
     # keep multimappers?
     is_unique = not ('keep_riboseq_multimappers' in config)
 
-    programs =  [   'visualize-metagene-profile',
+    programs =  [   'create-read-length-metagene-profile-plot',
                     'visualize-metagene-profile-bayes-factor',
                     'get-all-read-filtering-counts',
                     'samtools',
@@ -539,7 +544,7 @@ def main():
                 image_type=args.image_type)
 
             unique_read_length_distribution_image = filenames.get_riboseq_read_length_distribution_image(
-                config['riboseq_data'], name, is_unique=is_unique, note=note, 
+                config['riboseq_data'], name, is_unique=True, note=note, 
                 image_type=args.image_type)
 
             
@@ -581,8 +586,9 @@ def main():
 
         latex.section(out, "Read length periodicity", label=periodicity_label)
 
-        i = 0
         for name in sample_names:
+            i = 0
+
             data = config['riboseq_samples'][name]
 
             msg = "Processing sample: {}".format(name)
@@ -599,6 +605,11 @@ def main():
     
             create_figures(args.config, config, name, offsets_df, args)
 
+            latex.begin_table(out, "YY")
+
+            header = "\\multicolumn{2}{c}{" + name + "}"
+            header = [header]
+            latex.write_header(out, header)
 
             for length in range(min_read_length, max_read_length + 1):
                 msg = "Processing length: {}".format(length)
@@ -633,40 +644,43 @@ def main():
                     logger.warning(msg)
                     continue
 
-                if i%5 == 0:
-                    latex.begin_figure(out)
-
-                out.write(name.replace('_', '-'))
-                out.write(", length: ")
-                out.write(str(length))
-                out.write(", offset: ")
-
-                out.write(str(offset))
-
-                out.write(", status: ")
-                out.write(offset_status)
-
-                out.write("\n\n")
-
                 metagene_profile_image = filenames.get_metagene_profile_image(
                     config['riboseq_data'], name, image_type=args.image_type, 
                     is_unique=is_unique, length=length, note=note)
                 
-                bayes_factor_image = filenames.get_metagene_profile_bayes_factor_image(
-                    config['riboseq_data'], name, image_type=args.image_type, 
-                    is_unique=is_unique, length=length, note=note)
+                title = ("length: {}. P-site offset: {}. \\newline status: {}"
+                    "\n".format(length, offset, offset_status))
+                latex.write(out, title, size="scriptsize")
 
-                latex.write_graphics(out, metagene_profile_image, width=0.6)
-                latex.write_graphics(out, bayes_factor_image, width=0.39)
-                                
+                latex.write_graphics(out, metagene_profile_image, width=0.45)
+                               
                 i += 1
+                if i%2 == 1:
+                    latex.write_column_sep(out)
+                else:
+                    latex.write_row_sep(out)
 
-                if i % 5 == 0:
-                    latex.end_figure(out)
-                    latex.clearpage(out)
 
-        if (i>0) and (i%5 != 0):
-            latex.end_figure(out)
+                if args.show_read_length_bfs:
+                    
+                    bayes_factor_image = filenames.get_metagene_profile_bayes_factor_image(
+                        config['riboseq_data'], name, image_type=args.image_type, 
+                        is_unique=is_unique, length=length, note=note)
+
+                    latex.centering(out)
+                    latex.write_graphics(out, bayes_factor_image, width=0.45)
+                        
+                    i += 1
+                    if i%2 == 1:
+                        latex.write_column_sep(out)
+                    else:
+                        latex.write_row_sep(out)
+
+                               
+            if i%2 == 1:
+                latex.write_row_sep(out)
+
+            latex.end_table(out)
             latex.clearpage(out)
 
         ### ORF type metagene profiles
