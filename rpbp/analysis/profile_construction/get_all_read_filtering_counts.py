@@ -18,6 +18,7 @@ import misc.bio_utils.bam_utils as bam_utils
 import misc.bio_utils.fastx_utils as fastx_utils
 import misc.logging_utils as logging_utils
 import misc.parallel as parallel
+import misc.shell_utils as shell_utils
 import misc.utils as utils
 
 logger = logging.getLogger(__name__)
@@ -83,16 +84,21 @@ def get_counts(name_data, config, args):
     logger.info(msg)
 
     # now count the unique reads with the appropriate length
-    is_unique = not ('keep_riboseq_multimappers' in config)
-    lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, name, 
-        is_unique=is_unique)
-    length_counts = bam_utils.get_length_distribution(unique_bam)
-    length_count = sum(length_counts[l] for l in length_counts if str(l) in lengths)
-    
-    lengths_str = ','.join(lengths)
-    msg = ("{}: found the following periodic lengths: {}. The number of reads "
-        "of these lengths: {}".format(name, lengths_str, length_count))
-    logger.debug(msg)
+    try:
+        lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, name, 
+            is_unique=is_unique)
+        length_counts = bam_utils.get_length_distribution(unique_bam)
+        length_count = sum(length_counts[l] for l in length_counts if str(l) in lengths)
+        
+        lengths_str = ','.join(lengths)
+        msg = ("{}: found the following periodic lengths: {}. The number of reads "
+            "of these lengths: {}".format(name, lengths_str, length_count))
+        logger.debug(msg)
+    except ValueError as e:
+        msg = ("Encountered a problem counting periodic reads. This probably "
+            "means no read lengths were periodic. Error message: {}".format(e))
+        logger.warning(msg)
+        length_count = 0
 
     msg = ("{}: counting filtered reads does not work correctly due to counting "
         "multiple isoforms. It is disabled.".format(name))
@@ -132,7 +138,7 @@ def main():
     logging_utils.update_logging(args)
 
     programs = ['samtools']
-    utils.check_programs_exist(programs)
+    shell_utils.check_programs_exist(programs)
 
     config = yaml.load(open(args.config))
 
