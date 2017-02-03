@@ -8,6 +8,7 @@ import sys
 import yaml
 import misc.bio as bio
 import misc.bio_utils.bed_utils as bed_utils
+import misc.bio_utils.star_utils as star_utils
 import misc.logging_utils as logging_utils
 import misc.shell_utils as shell_utils
 import misc.slurm as slurm
@@ -17,7 +18,6 @@ import riboutils.ribo_filenames as filenames
 
 logger = logging.getLogger(__name__)
 
-default_star_executable = "STAR"
 
 def get_orfs(gtf, args, config, is_annotated=False, is_de_novo=False):
     """ This helper function processes a GTF file into its ORFs.
@@ -114,12 +114,10 @@ def main():
         "analysis performed with the rpbp package.")
     parser.add_argument('config', help="The (yaml) config file")
 
-    parser.add_argument('--star-executable', help="The name of the STAR executable",
-        default=default_star_executable)
-    
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
     
+    star_utils.add_star_options(parser)
     slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
@@ -173,7 +171,7 @@ def main():
         config['star_index'], config['fasta'], args.num_cpus, mem))
         
     in_files = [config['fasta']]
-    out_files = bio.get_star_index_files(config['star_index'])
+    out_files = star_utils.get_star_index_files(config['star_index'])
     shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         overwrite=args.overwrite, call=call)
 

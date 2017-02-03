@@ -7,6 +7,7 @@ import sys
 
 import yaml
 
+import misc.bio_utils.star_utils as star_utils
 import misc.logging_utils as logging_utils
 import misc.shell_utils as shell_utils
 import misc.slurm as slurm
@@ -17,7 +18,6 @@ logger = logging.getLogger(__name__)
 default_num_procs = 1
 default_tmp = None # utils.abspath('tmp')
 default_flexbar_format_option = None
-default_star_executable = "STAR"
 
 
 def main():
@@ -30,10 +30,7 @@ def main():
     parser.add_argument('config', help="The (yaml) config file")
     parser.add_argument('name', help="The name for the dataset, used in the created files")
 
-    parser.add_argument('--tmp', help="The temp directory for pybedtools", default=default_tmp)
-
-    parser.add_argument('--star-executable', help="The name of the STAR executable",
-        default=default_star_executable)
+    parser.add_argument('--tmp', help="The temp directory", default=default_tmp)
     
     parser.add_argument('--flexbar-format-option', help="The name of the \"format\" "
         "option for flexbar. This changed from \"format\" to \"qtrim-format\" in "
@@ -50,12 +47,14 @@ def main():
         "deleted. This feature is implemented piecemeal. If the --do-not-call flag "
         "is given, then nothing will be deleted.", action='store_true')
            
+    star_utils.add_star_options(parser)
     slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
 
     logging_str = logging_utils.get_logging_options_string(args)
+    star_str = star_utils.get_star_options_string(args)
 
     config = yaml.load(open(args.config))
     call = not args.do_not_call
@@ -117,7 +116,6 @@ def main():
         overwrite_str = "--overwrite"
 
     # for a sample, we first create its filtered genome profile
-    star_str = "--star-executable {}".format(args.star_executable)
     
     keep_intermediate_str = ""
     if args.keep_intermediate_files:

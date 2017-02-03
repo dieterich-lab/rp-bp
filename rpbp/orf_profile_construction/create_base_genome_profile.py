@@ -3,6 +3,7 @@
 import argparse
 import logging
 import os
+import shlex
 import shutil
 import sys
 
@@ -13,6 +14,7 @@ import riboutils.ribo_filenames as filenames
 import misc.bio as bio
 import misc.bio_utils.bam_utils as bam_utils
 import misc.bio_utils.fastx_utils as fastx_utils
+import misc.bio_utils.star_utils as star_utils
 import misc.logging_utils as logging_utils
 import misc.shell_utils as shell_utils
 import misc.utils as utils
@@ -41,7 +43,6 @@ flexbar_compression_str = "--zip-output GZ"
 
 # the Rp-Bp pipeline does not use the transcript alignments, so do not create them
 quant_mode_str = "" # '--quantMode TranscriptomeSAM'
-star_compression_str = "--readFilesCommand zcat"
 star_out_str = "--outSAMtype BAM SortedByCoordinate"
 
 default_tmp = None
@@ -56,10 +57,7 @@ def main():
 
     parser.add_argument('-p', '--num-cpus', help="The number of processors to use",
         type=int, default=default_num_cpus)
-        
-    parser.add_argument('--star-executable', help="The name of the STAR executable",
-        default=default_star_executable)
-
+       
     parser.add_argument('--flexbar-format-option', help="The name of the \"format\" "
         "option for flexbar. This changed from \"format\" to \"qtrim-format\" in "
         "version 2.7.", default=default_flexbar_format_option)
@@ -77,7 +75,7 @@ def main():
         "deleted. This feature is implemented piecemeal. If the --do-not-call flag "
         "is given, then nothing will be deleted.", action='store_true')
 
-    
+    star_utils.add_star_options(parser)
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
@@ -157,6 +155,9 @@ def main():
     #transcriptome_bam = "{}{}".format(star_output_prefix, "Aligned.toTranscriptome.out.bam")
     genome_star_bam = "{}{}".format(star_output_prefix, "Aligned.sortedByCoord.out.bam")
 
+    star_compression_str = "--readFilesCommand {}".format(
+        shlex.quote(args.star_read_files_command))
+
     align_intron_min_str = utils.get_config_argument(config, 'align_intron_min', 
         'alignIntronMin', default=default_align_intron_min)
     align_intron_max_str = utils.get_config_argument(config, 'align_intron_max', 
@@ -175,7 +176,7 @@ def main():
     star_tmp_str = ""
     if args.tmp is not None:
         star_tmp_name = "STAR_rpbp"
-        star_tmp_dir = bio.create_star_tmp(args.tmp, star_tmp_name)
+        star_tmp_dir = star_utils.create_star_tmp(args.tmp, star_tmp_name)
         star_tmp_str = "--outTmpDir {}".format(star_tmp_dir)
 
     cmd = ("{} --runThreadN {} {} --genomeDir {} --sjdbGTFfile {} --readFilesIn {} "
@@ -186,7 +187,7 @@ def main():
         out_filter_mismatch_n_over_l_max_str, out_sam_attributes_str, star_output_prefix,
         star_out_str, star_tmp_str))
     in_files = [without_rrna]
-    in_files.extend(bio.get_star_index_files(config['star_index']))
+    in_files.extend(star_utils.get_star_index_files(config['star_index']))
     #out_files = [transcriptome_bam, genome_star_bam]
     to_delete = [without_rrna]
     out_files = [genome_star_bam]

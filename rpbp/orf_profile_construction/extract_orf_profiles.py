@@ -195,7 +195,6 @@ def main():
     del exons_orfs
     del exon_groups
     del exons
-    del orfs
     gc.collect()
     exons_psites = zip(exons_dfs, psites_dfs)
      

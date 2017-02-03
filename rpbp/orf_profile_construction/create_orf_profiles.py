@@ -9,6 +9,7 @@ import pandas as pd
 import yaml
 
 import misc.bio_utils.bam_utils as bam_utils
+import misc.bio_utils.star_utils as star_utils
 import misc.logging_utils as logging_utils
 import misc.shell_utils as shell_utils
 import misc.utils as utils
@@ -20,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 default_num_cpus = 1
 default_flexbar_format_option = None
-default_star_executable = "STAR"
 default_tmp = None # utils.abspath("tmp")
 
 default_models_base = filenames.get_default_models_base()
@@ -41,9 +41,6 @@ def main():
     parser.add_argument('-p', '--num-cpus', help="The number of processors to use",
         type=int, default=default_num_cpus)
 
-    parser.add_argument('--star-executable', help="The name of the STAR executable",
-        default=default_star_executable)
-        
     parser.add_argument('--flexbar-format-option', help="The name of the \"format\" "
         "option for flexbar. This changed from \"format\" to \"qtrim-format\" in "
         "version 2.7.", default=default_flexbar_format_option)
@@ -59,6 +56,7 @@ def main():
         "deleted. This feature is implemented piecemeal. If the --do-not-call flag "
         "is given, then nothing will be deleted.", action='store_true')
             
+    star_utils.add_star_options(parser)
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
@@ -67,6 +65,7 @@ def main():
     logger.info(msg)
 
     logging_str = logging_utils.get_logging_options_string(args)
+    star_str = star_utils.get_star_options_string(args)
 
     config = yaml.load(open(args.config))
     call = not args.do_not_call
@@ -115,8 +114,6 @@ def main():
 
     orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
         note=config.get('orf_note'))
-
-    star_str = "--star-executable {}".format(args.star_executable)
 
     keep_intermediate_str = ""
     if args.keep_intermediate_files:
