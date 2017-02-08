@@ -202,8 +202,13 @@ def install_requirements(is_user):
 
         if not found:
             cmd = "pip3 {} {}".format(option, location)
-            subprocess.call(cmd, shell=True)
-    
+            #subprocess.call(cmd, shell=True)
+            msg = "I could not find package: {}".format(package_name)
+            logger.info(msg)
+        else:
+            msg = "I found a package: {}".format(package_name)
+            logger.info(msg)
+            
 
 class my_install(_install):
     def run(self):

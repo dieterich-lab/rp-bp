@@ -1,0 +1,3 @@
+git+https://bitbucket.org/bmmalone/misc.git#egg=misc[bio]
+git+https://github.com/dieterich-lab/riboseq-utils.git#egg=riboutils
+.
