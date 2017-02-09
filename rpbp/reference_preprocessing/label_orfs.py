@@ -149,6 +149,10 @@ def main():
     five_prime_regions = bed_utils.retain_all_five_prime_of_thick(
         annotated_transcripts, num_cpus=args.num_cpus)
 
+    if len(five_prime_regions) == 0:
+        msg = "No annotated 5' leader regions were found"
+        logger.warning(msg)
+
     msg = "Splitting the 5' leaders into exons"
     logger.info(msg)
     five_prime_exons = bed_utils.split_bed12(five_prime_regions, 
@@ -158,6 +162,12 @@ def main():
     logger.info(msg)
     three_prime_regions = bed_utils.retain_all_three_prime_of_thick(
         annotated_transcripts, num_cpus=args.num_cpus)
+
+    
+    if len(three_prime_regions) == 0:
+        msg = "No annotated 3' trailer regions were found"
+        logger.warning(msg)
+
 
     msg = "Splitting the 3' trailers into exons"
     logger.info(msg)

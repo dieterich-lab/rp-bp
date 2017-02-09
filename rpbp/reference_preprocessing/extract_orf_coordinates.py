@@ -162,10 +162,10 @@ def get_orfs(transcript_and_sequence, start_codons_re, stop_codons_re):
     # get the ORFs for this entry
     orf_rel_positions = get_orf_positions(transcript_sequence, start_codons_re, stop_codons_re)
     
-    if logger.isEnabledFor(logging.DEBUG):
-        s = ["({},{})".format(o.start, o.end) for o in orf_rel_positions]
-        s = ' '.join(s)
-        logger.debug(s)
+    #if logger.isEnabledFor(logging.DEBUG):
+    #   s = ["({},{})".format(o.start, o.end) for o in orf_rel_positions]
+    #    s = ' '.join(s)
+    #    logger.debug(s)
 
     # now, if the strand is negative, we need to "flip" the relative positions 
     if transcript['strand'] == '-':
@@ -178,10 +178,11 @@ def get_orfs(transcript_and_sequence, start_codons_re, stop_codons_re):
         ]
         
 
-        if logger.isEnabledFor(logging.DEBUG):
-            s = ["({},{})".format(o.start, o.end) for o in orf_rel_positions]
-            s = ' '.join(s)
-            logger.debug(s)
+        # this is too much debug info; unit tests handle this
+        #if logger.isEnabledFor(logging.DEBUG):
+        #    s = ["({},{})".format(o.start, o.end) for o in orf_rel_positions]
+        #    s = ' '.join(s)
+        #    logger.debug(s)
 
     # we need the block information to convert between relative and genomic coordinates
     start = transcript['start']
