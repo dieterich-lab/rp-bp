@@ -130,7 +130,8 @@ def main():
 
     # check that all of the necessary programs are callable
     programs =  [
-                 'extract-orfs',
+                 'extract-orf-coordinates',
+                 'label-orfs',
                  'bowtie2-build-s',
                  'split-bed12-blocks',
                  'gtf-to-bed12',

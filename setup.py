@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 ###
 
 preprocessing_scripts = [
-    'extract-orfs=rpbp.reference_preprocessing.extract_orfs:main',
     'extract-orf-coordinates=rpbp.reference_preprocessing.extract_orf_coordinates:main',
     'label-orfs=rpbp.reference_preprocessing.label_orfs:main',
     'prepare-rpbp-genome=rpbp.reference_preprocessing.prepare_rpbp_genome:main'
@@ -101,15 +100,10 @@ external_requirements =  [
     'pybedtools',
     'pyyaml',
     'psutil',
-    'patsy' # no idea what this is for...
+    'patsy', # used in statsmodels 
+    'misc', # this has to be installed via requirements.txt
+    'riboutils' # this, too
 ]
-
-internal_requirements = {
-    "misc":"-e git+https://bitbucket.org/bmmalone/misc.git#egg=misc[bio]",
-     # the "-e" seems to be necessary to grab subfolders. I do not
-     # understand this, but it seems to work
-    "riboutils": "git+https://github.com/dieterich-lab/riboseq-utils.git#egg=riboutils"
-}
 
 stan_model_files = [
     os.path.join("nonperiodic", "no-periodicity.stan"),
@@ -184,31 +178,9 @@ def _post_install(self):
     shell_utils.check_programs_exist(programs, raise_on_error=False, 
         package_name='SAMtools', logger=logger)
 
-    programs = ['gffread']
-    shell_utils.check_programs_exist(programs, raise_on_error=False, 
-        package_name='cufflinks', logger=logger)
-
 def install_requirements(is_user):
-    
-    is_user_str = ""
-    if is_user:
-        is_user_str = "--user"
-
-    option = "install {}".format(is_user_str)
-    for package_name, location in internal_requirements.items():
-        # check if this package is already installed
-        package_spec = importlib.util.find_spec(package_name)
-        found = package_spec is not None
-
-        if not found:
-            cmd = "pip3 {} {}".format(option, location)
-            #subprocess.call(cmd, shell=True)
-            msg = "I could not find package: {}".format(package_name)
-            logger.info(msg)
-        else:
-            msg = "I found a package: {}".format(package_name)
-            logger.info(msg)
-            
+    # private dependencies are now specified with requirements.txt
+    pass
 
 class my_install(_install):
     def run(self):
@@ -236,18 +208,15 @@ def readme():
 
 setup(name='rpbp',
         version='1.1',
-        description="This package contains scripts for analyzing ribosome profiling data.",
+        description="This package contains the Rp-Bp pipeline for predicting translation of open reading frames from ribosome profiling data.",
         long_description=readme(),
-        keywords="ribosome profiling bayesian inference markov chain monte carlo translation",
+        keywords="rpbp ribosome profiling bayesian inference markov chain monte carlo translation",
         url="",
         author="Brandon Malone",
         author_email="bmmalone@gmail.com",
         license='MIT',
         packages=find_packages(),
         install_requires = [external_requirements], # + internal_requirements,
-        extras_require = {
-            'analysis': []
-        },
         cmdclass={'install': my_install,  # override install
                   'develop': my_develop   # develop is used for pip install -e .
         },  
