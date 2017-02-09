@@ -50,15 +50,12 @@ The following keys are read from the configuration file. Keys with [`brackets`] 
 * [`start_codons`]. A list of strings that will be treated as start codons when searching for ORFs. default: [`ATG`]
 * [`stop_codons`]. A list of strings that will be treated as stop codons when searching for ORFS. default: [`TAA`, `TGA`, `TAG`]
 
-* [`ignore_parsing_errors`]. If this key is in the config file with any value, then transcript headers which do not parse correctly will be skipped. A warning is printed for each header skipped in this manner. Otherwise, the program will report the parsing error and quit. default: False
-
-* [`novel_id_re`]. As a part of ORF extraction, the ORFs are assigned a label based on their position relative to annotated CDS regions; part of the labeling process considers the transcript identifiers. This option is a regular expression for the identifiers of novel ORFs (i.e., those from transcripts assembled using StringTie or Cufflinks. ORFs are annotated as novel if their id's match this expression and they would otherwise be annotated as 'noncoding' or 'suspect_overlap'. If no expression is given, no ORFs are annotated as novel.
 
 ### Input files
 
 The required input files are those suggested by the configuration file keys.
 
-* `gtf`. The GTF/GFF3 file containing the reference annotations. This file must be compatible with [gffread](http://cole-trapnell-lab.github.io/cufflinks/file_formats/#the-gffread-utility) for extracting coding sequences. Typically, this means at least the `exon` features must be present, and the transcript identifiers must match for exons from the same transcript. Furthermore, the ORFs are labeled based on their positions relative to annotated coding sequences. This labeling is based on the `CDS` information output by `gffread`. Thus, for it to work correctly, the `CDS` features must also be present in the annotation file.
+* `gtf`. The GTF/GFF3 file containing the reference annotations. The file must follow standard conventions for annotating transcripts. This means at least the `exon` features must be present, and the transcript identifiers (`transcript_id` attribute) must match for exons from the same transcript. Furthermore, the ORFs are labeled based on their positions relative to annotated coding sequences. For it to work correctly, the `CDS` features must also be present in the annotation file. The start codon should be included in the `CDS`, but the stop codon should not. Following standard conventions, the genomic locations are taken to be base-1 and inclusive. Other feature types, such as `gene`, `start_codon` and `stop_codon` may be present in the file, but they **are not used** for extracting ORFs.
 
 
 * `fasta`. The input fasta file should contain all chromosome sequences. The identifiers must match those in the GTF file. Typically, the "dna.toplevel.fa" file from Ensembl contains the appropriate sequences and identifiers.

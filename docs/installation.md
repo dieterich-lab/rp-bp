@@ -17,7 +17,6 @@ The pipelines make use of a number of standard bioinformatics tools. All of thes
 
 * [bedtools](http://bedtools.readthedocs.io/en/latest/), version 2.25.0. Importantly, [bedtools intersect](http://bedtools.readthedocs.io/en/latest/content/tools/intersect.html) must accept the `-F` option
 * [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml), version 2.2.6
-* [cufflinks](http://cole-trapnell-lab.github.io/cufflinks/), version 2.2.1. Only the `gffread` program is required for Rp-Bp.
 * [flexbar](https://github.com/seqan/flexbar), version 2.5
 * [SAMtools](http://www.htslib.org/), version 1.2
 * [STAR](https://github.com/alexdobin/STAR), version 2.4.1d

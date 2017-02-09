@@ -11832,16 +11832,11 @@ div#notebook {
 <ul>
 <li>[<code>orf_note</code>]. An additional description used in the filename of the created ORFs</li>
 <li>[<code>start_codons</code>]. A list of strings that will be treated as start codons when searching for ORFs. default: [<code>ATG</code>]</li>
-<li><p>[<code>stop_codons</code>]. A list of strings that will be treated as stop codons when searching for ORFS. default: [<code>TAA</code>, <code>TGA</code>, <code>TAG</code>]</p>
-</li>
-<li><p>[<code>ignore_parsing_errors</code>]. If this key is in the config file with any value, then transcript headers which do not parse correctly will be skipped. A warning is printed for each header skipped in this manner. Otherwise, the program will report the parsing error and quit. default: False</p>
-</li>
-<li><p>[<code>novel_id_re</code>]. As a part of ORF extraction, the ORFs are assigned a label based on their position relative to annotated CDS regions; part of the labeling process considers the transcript identifiers. This option is a regular expression for the identifiers of novel ORFs (i.e., those from transcripts assembled using StringTie or Cufflinks. ORFs are annotated as novel if their id's match this expression and they would otherwise be annotated as 'noncoding' or 'suspect_overlap'. If no expression is given, no ORFs are annotated as novel.</p>
-</li>
+<li>[<code>stop_codons</code>]. A list of strings that will be treated as stop codons when searching for ORFS. default: [<code>TAA</code>, <code>TGA</code>, <code>TAG</code>]</li>
 </ul>
 <h3 id="Input-files">Input files<a class="anchor-link" href="#Input-files">&#182;</a></h3><p>The required input files are those suggested by the configuration file keys.</p>
 <ul>
-<li><code>gtf</code>. The GTF/GFF3 file containing the reference annotations. This file must be compatible with <a href="http://cole-trapnell-lab.github.io/cufflinks/file_formats/#the-gffread-utility">gffread</a> for extracting coding sequences. Typically, this means at least the <code>exon</code> features must be present, and the transcript identifiers must match for exons from the same transcript. Furthermore, the ORFs are labeled based on their positions relative to annotated coding sequences. This labeling is based on the <code>CDS</code> information output by <code>gffread</code>. Thus, for it to work correctly, the <code>CDS</code> features must also be present in the annotation file.</li>
+<li><code>gtf</code>. The GTF/GFF3 file containing the reference annotations. The file must follow standard conventions for annotating transcripts. This means at least the <code>exon</code> features must be present, and the transcript identifiers (<code>transcript_id</code> attribute) must match for exons from the same transcript. Furthermore, the ORFs are labeled based on their positions relative to annotated coding sequences. For it to work correctly, the <code>CDS</code> features must also be present in the annotation file. The start codon should be included in the <code>CDS</code>, but the stop codon should not. Following standard conventions, the genomic locations are taken to be base-1 and inclusive. Other feature types, such as <code>gene</code>, <code>start_codon</code> and <code>stop_codon</code> may be present in the file, but they <strong>are not used</strong> for extracting ORFs.</li>
 </ul>
 <ul>
 <li><code>fasta</code>. The input fasta file should contain all chromosome sequences. The identifiers must match those in the GTF file. Typically, the "dna.toplevel.fa" file from Ensembl contains the appropriate sequences and identifiers.</li>
