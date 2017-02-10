@@ -3,6 +3,7 @@
 import argparse
 import logging
 import os
+import shlex
 import sys
 
 import yaml
@@ -130,8 +131,10 @@ def main():
         flexbar_format_option_str = "--flexbar-format-option {}".format(
             args.flexbar_format_option)
 
-    cmd = ("create-orf-profiles {} {} {} --num-cpus {} {} {} {} {} {} {} {}".format(args.raw_data, 
-            args.config, args.name, args.num_cpus, do_not_call_str, overwrite_str, 
+    mem_str = "--mem {}".format(shlex.quote(args.mem))
+
+    cmd = ("create-orf-profiles {} {} {} --num-cpus {} {} {} {} {} {} {} {} {}".format(args.raw_data, 
+            args.config, args.name, args.num_cpus, mem_str, do_not_call_str, overwrite_str, 
             logging_str, star_str, tmp_str, flexbar_format_option_str, keep_intermediate_str))
 
     shell_utils.check_call(cmd)

@@ -5,6 +5,7 @@ import sys
 import argparse
 import os
 import pandas as pd
+import shlex
 
 import yaml
 
@@ -20,6 +21,7 @@ import riboutils.ribo_filenames as filenames
 logger = logging.getLogger(__name__)
 
 default_num_cpus = 1
+default_mem = "2G"
 default_flexbar_format_option = None
 default_tmp = None # utils.abspath("tmp")
 
@@ -40,6 +42,9 @@ def main():
 
     parser.add_argument('-p', '--num-cpus', help="The number of processors to use",
         type=int, default=default_num_cpus)
+
+    parser.add_argument('--mem', help="The amount of RAM to request", 
+        default=default_mem)
 
     parser.add_argument('--flexbar-format-option', help="The name of the \"format\" "
         "option for flexbar. This changed from \"format\" to \"qtrim-format\" in "
@@ -135,10 +140,13 @@ def main():
     riboseq_raw_data = args.raw_data
     riboseq_bam_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, 
         is_unique=is_unique, note=note)
-    cmd = ("create-base-genome-profile {} {} {} --num-cpus {} {} {} {} {} {} {} {}"
+
+    mem_str = "--mem {}".format(shlex.quote(args.mem))
+
+    cmd = ("create-base-genome-profile {} {} {} --num-cpus {} {} {} {} {} {} {} {} {}"
         .format(riboseq_raw_data, args.config, args.name, args.num_cpus, 
         do_not_call_argument, overwrite_argument, logging_str, star_str, tmp_str,
-        flexbar_format_option_str, keep_intermediate_str))
+        flexbar_format_option_str, keep_intermediate_str, mem_str))
 
     # There could be cases where we start somewhere in the middle of creating
     # the base genome profile. So even if the "raw data" is not available, 

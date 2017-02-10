@@ -22,6 +22,7 @@ import misc.utils as utils
 logger = logging.getLogger(__name__)
 
 default_num_cpus = 1
+default_mem = "2G"
 
 default_flexbar_format_option = "qtrim-format"
 default_quality_format = 'sanger'
@@ -57,6 +58,9 @@ def main():
 
     parser.add_argument('-p', '--num-cpus', help="The number of processors to use",
         type=int, default=default_num_cpus)
+    
+    parser.add_argument('--mem', help="The amount of RAM to request", 
+        default=default_mem)
        
     parser.add_argument('--flexbar-format-option', help="The name of the \"format\" "
         "option for flexbar. This changed from \"format\" to \"qtrim-format\" in "
@@ -179,13 +183,16 @@ def main():
         star_tmp_dir = star_utils.create_star_tmp(args.tmp, star_tmp_name)
         star_tmp_str = "--outTmpDir {}".format(star_tmp_dir)
 
+    mem_bytes = utils.human2bytes(args.mem)
+    star_mem_str = "--limitBAMsortRAM {}".format(mem_bytes)
+
     cmd = ("{} --runThreadN {} {} --genomeDir {} --sjdbGTFfile {} --readFilesIn {} "
-        "{} {} {} {} {} {} {} {} --outFileNamePrefix {} {} {}".format(args.star_executable,
+        "{} {} {} {} {} {} {} {} --outFileNamePrefix {} {} {} {}".format(args.star_executable,
         args.num_cpus, star_compression_str, config['star_index'], config['gtf'], without_rrna, 
         align_intron_min_str, align_intron_max_str, out_filter_mismatch_n_max_str, 
         out_filter_type_str, out_filter_intron_motifs_str, quant_mode_str,
         out_filter_mismatch_n_over_l_max_str, out_sam_attributes_str, star_output_prefix,
-        star_out_str, star_tmp_str))
+        star_out_str, star_tmp_str, star_mem_str))
     in_files = [without_rrna]
     in_files.extend(star_utils.get_star_index_files(config['star_index']))
     #out_files = [transcriptome_bam, genome_star_bam]
