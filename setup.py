@@ -75,7 +75,9 @@ other_scripts = [
     'add-mygene-info-to-orfs=rpbp.analysis.rpbp_predictions.add_mygene_info_to_orfs:main [analysis]',
     'find-differential-micropeptides=rpbp.analysis.find_differential_micropeptides:main [analysis]',
     'cluster-subcodon-counts=rpbp.analysis.profile_construction.cluster_subcodon_counts:main',
-    'visualize-subcodon-clusters=rpbp.analysis.profile_construction.visualize_subcodon_clusters:main'
+    'visualize-subcodon-clusters=rpbp.analysis.profile_construction.visualize_subcodon_clusters:main',
+    'create-read-length-orf-profiles=rpbp.analysis.profile_construction.create_read_length_orf_profiles:main',
+    'collect-read-length-orf-profiles=rpbp.analysis.profile_construction.collect_read_length_orf_profiles:main'
 ]
 
 console_scripts = (preprocessing_scripts + profile_construction_scripts + 

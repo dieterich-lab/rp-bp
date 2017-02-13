@@ -99,26 +99,32 @@ def main():
         "find the coverage of each position in each exon of each ORF. Finally, "
         "the ORF exons are glued together to find the profile of the entire ORF.")
     
-    parser.add_argument('bam', help="The bam file including filtered (unique, etc.) alignments")
+    parser.add_argument('bam', help="The bam file including filtered (unique, "
+        "etc.) alignments")
     parser.add_argument('orfs', help="The (bed12) file containing the ORFs")
     parser.add_argument('exons', help="The (bed6+2) file containing the exons")
-    parser.add_argument('out', help="The (mtx.gz) output file containing the ORF profiles")
+    parser.add_argument('out', help="The (mtx.gz) output file containing the "
+        "ORF profiles")
 
-    parser.add_argument('-l', '--lengths', help="If any values are given, then only reads "
-        "which have those lengths will be included in the signal construction.", type=int,
-        default=default_lengths, nargs='*')
-    parser.add_argument('-o', '--offsets', help="The 5' end of reads will be shifted by this "
-        "amount. There must be one offset value for each length (given by the --lengths "
-        "argument.", type=int, default=default_offsets, nargs='*')
+    parser.add_argument('-l', '--lengths', help="If any values are given, "
+        "then only reads which have those lengths will be included in the "
+        "signal construction.", type=int, default=default_lengths, nargs='*')
+    parser.add_argument('-o', '--offsets', help="The 5' end of reads will be "
+        "shifted by this amount. There must be one offset value for each "
+        "length (given by the --lengths argument.", type=int, 
+        default=default_offsets, nargs='*')
        
-    parser.add_argument('-k', '--num-exons', help="If  k>0, then only the first k exons "
-        "will be processed.", type=int, default=default_num_exons)
-    parser.add_argument('-g', '--num-groups', help="The number of groups into which to split "
-        "the exons. More groups means the progress bar is updated more frequently but incurs "
-        "more overhead because of the parallel calls.", type=int, default=default_num_groups)
+    parser.add_argument('-k', '--num-exons', help="If  k>0, then only the "
+        "first k exons will be processed.", type=int, 
+        default=default_num_exons)
+    parser.add_argument('-g', '--num-groups', help="The number of groups into "
+        "which to split the exons. More groups means the progress bar is "
+        "updated more frequently but incurs more overhead because of the "
+        "parallel calls.", type=int, default=default_num_groups)
 
-    parser.add_argument('--seqname-prefix', help="If present, this string will be prepended "
-        "to the seqname field of the ORFs.", default=default_seqname_prefix)
+    parser.add_argument('--seqname-prefix', help="If present, this string "
+        "will be prepended to the seqname field of the ORFs.", 
+        default=default_seqname_prefix)
         
     slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)
