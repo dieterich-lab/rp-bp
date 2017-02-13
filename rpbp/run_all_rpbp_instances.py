@@ -3,6 +3,7 @@
 import argparse
 import logging
 import os
+import shlex
 import yaml
 
 import misc.bio_utils.star_utils as star_utils
@@ -108,6 +109,8 @@ def main():
     if args.overwrite:
         overwrite_str = "--overwrite"
 
+    mem_str = "--mem {}".format(shlex.quote(args.mem))
+
     keep_intermediate_str = ""
     if args.keep_intermediate_files:
         keep_intermediate_str = "--keep-intermediate-files"
@@ -146,10 +149,21 @@ def main():
             tmp = os.path.join(args.tmp, "{}_{}_rpbp".format(sample_name, note))
             tmp_str = "--tmp {}".format(tmp)
 
-        cmd = "run-rpbp-pipeline {} {} {} --num-cpus {} {} {} {} {} {} {} {} {}".format(data, 
-                args.config, sample_name, args.num_cpus, tmp_str, do_not_call_str, 
-                overwrite_str, logging_str, star_str, profiles_only_str,
-                flexbar_format_option_str, keep_intermediate_str)
+        cmd = "run-rpbp-pipeline {} {} {} --num-cpus {} {} {} {} {} {} {} {} {} {}".format(
+            data, 
+            args.config, 
+            sample_name, 
+            args.num_cpus, 
+            tmp_str, 
+            do_not_call_str, 
+            overwrite_str, 
+            logging_str, 
+            star_str, 
+            profiles_only_str,
+            flexbar_format_option_str, 
+            keep_intermediate_str,
+            mem_str
+        )
 
         job_id = slurm.check_sbatch(cmd, args=args)
 
