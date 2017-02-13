@@ -208,7 +208,8 @@ def main():
         get_all_p_site_intersections,
         num_orfs,
         max_orf_len,
-        progress_bar=True
+        progress_bar=True,
+        total=args.num_groups
     )
 
     msg = "Combining the ORF profiles into one matrix"
