@@ -70,9 +70,6 @@ def main():
             is_unique=is_unique
         )
 
-        lengths = [28, 29]
-        offsets = [12, 12]
-
         if len(lengths) == 0:
             msg = ("No periodic read lengths and offsets were found. Try relaxing "
                 "min_metagene_profile_count, min_metagene_bf_mean, "
