@@ -5,11 +5,14 @@ import sys
 import argparse
 import os
 import pandas as pd
+import shlex
 
 import yaml
 
 import misc.bio_utils.bam_utils as bam_utils
+import misc.bio_utils.star_utils as star_utils
 import misc.logging_utils as logging_utils
+import misc.shell_utils as shell_utils
 import misc.utils as utils
 
 import riboutils.ribo_utils as ribo_utils
@@ -18,8 +21,8 @@ import riboutils.ribo_filenames as filenames
 logger = logging.getLogger(__name__)
 
 default_num_cpus = 1
+default_mem = "2G"
 default_flexbar_format_option = None
-default_star_executable = "STAR"
 default_tmp = None # utils.abspath("tmp")
 
 default_models_base = filenames.get_default_models_base()
@@ -40,9 +43,9 @@ def main():
     parser.add_argument('-p', '--num-cpus', help="The number of processors to use",
         type=int, default=default_num_cpus)
 
-    parser.add_argument('--star-executable', help="The name of the STAR executable",
-        default=default_star_executable)
-        
+    parser.add_argument('--mem', help="The amount of RAM to request", 
+        default=default_mem)
+
     parser.add_argument('--flexbar-format-option', help="The name of the \"format\" "
         "option for flexbar. This changed from \"format\" to \"qtrim-format\" in "
         "version 2.7.", default=default_flexbar_format_option)
@@ -52,12 +55,22 @@ def main():
     parser.add_argument('--do-not-call', action='store_true')
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
+         
+    parser.add_argument('-k', '--keep-intermediate-files', help="If this flag is given, "
+        "then all intermediate files will be kept; otherwise, they will be "
+        "deleted. This feature is implemented piecemeal. If the --do-not-call flag "
+        "is given, then nothing will be deleted.", action='store_true')
             
+    star_utils.add_star_options(parser)
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
 
+    msg = "[create-orf-profiles]: {}".format(' '.join(sys.argv))
+    logger.info(msg)
+
     logging_str = logging_utils.get_logging_options_string(args)
+    star_str = star_utils.get_star_options_string(args)
 
     config = yaml.load(open(args.config))
     call = not args.do_not_call
@@ -74,7 +87,7 @@ def main():
                     'select-periodic-offsets',
                     'extract-orf-profiles'
                 ]
-    utils.check_programs_exist(programs)
+    shell_utils.check_programs_exist(programs)
 
     
     required_keys = [   'riboseq_data',
@@ -107,8 +120,9 @@ def main():
     orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
         note=config.get('orf_note'))
 
-    star_str = "--star-executable {}".format(args.star_executable)
-
+    keep_intermediate_str = ""
+    if args.keep_intermediate_files:
+        keep_intermediate_str = "--keep-intermediate-files"
 
     tmp_str = ""
     if args.tmp is not None:
@@ -120,14 +134,19 @@ def main():
         flexbar_format_option_str = "--flexbar-format-option {}".format(
             args.flexbar_format_option)
 
+    # check if we want to keep multimappers
+    is_unique = not ('keep_riboseq_multimappers' in config)
 
     riboseq_raw_data = args.raw_data
     riboseq_bam_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, 
-        is_unique=True, note=note)
-    cmd = ("create-base-genome-profile {} {} {} --num-cpus {} {} {} {} {} {} {}"
+        is_unique=is_unique, note=note)
+
+    mem_str = "--mem {}".format(shlex.quote(args.mem))
+
+    cmd = ("create-base-genome-profile {} {} {} --num-cpus {} {} {} {} {} {} {} {} {}"
         .format(riboseq_raw_data, args.config, args.name, args.num_cpus, 
         do_not_call_argument, overwrite_argument, logging_str, star_str, tmp_str,
-        flexbar_format_option_str))
+        flexbar_format_option_str, keep_intermediate_str, mem_str))
 
     # There could be cases where we start somewhere in the middle of creating
     # the base genome profile. So even if the "raw data" is not available, 
@@ -136,12 +155,12 @@ def main():
     in_files = []
     out_files = [riboseq_bam_filename]
     # we always call this, and pass --do-not-call through
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         overwrite=args.overwrite, call=True) 
 
     # create the metagene profiles
     metagene_profiles = filenames.get_metagene_profiles(config['riboseq_data'], 
-        args.name, is_unique=True, note=note)
+        args.name, is_unique=is_unique, note=note)
 
     seqids_to_keep_str = utils.get_config_argument(config, 'seqids_to_keep')
     start_upstream_str = utils.get_config_argument(config, 
@@ -153,8 +172,9 @@ def main():
     end_downstream_str = utils.get_config_argument(config, 
         'metagene_profile_end_downstream', 'end-downstream')
 
+    # use the canonical transcripts for extracting the metagene profiles
     transcript_bed = filenames.get_bed(config['genome_base_path'], 
-        config['genome_name'], is_merged=False)
+        config['genome_name'], is_merged=False, is_annotated=True)
 
     cmd = ("extract-metagene-profiles {} {} {} --num-cpus {} {} {} {} {} {} {}"
         .format(riboseq_bam_filename, transcript_bed, metagene_profiles, 
@@ -166,12 +186,12 @@ def main():
     file_checkers = {
         metagene_profiles: utils.check_gzip_file
     }
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         file_checkers=file_checkers, overwrite=args.overwrite, call=call)
 
     # estimate the periodicity for each offset for all read lengths
     metagene_profile_bayes_factors = filenames.get_metagene_profiles_bayes_factors(
-        config['riboseq_data'], args.name, is_unique=True, note=note)
+        config['riboseq_data'], args.name, is_unique=is_unique, note=note)
 
     #periodic_models_str = utils.get_config_argument(config, 'periodic_models')
     #non_periodic_models_str = utils.get_config_argument(config, 'nonperiodic_models')
@@ -205,12 +225,12 @@ def main():
     file_checkers = {
         metagene_profile_bayes_factors: utils.check_gzip_file
     }
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         file_checkers=file_checkers, overwrite=args.overwrite, call=call)
     
     # select the best read lengths for constructing the signal
     periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], 
-        args.name, is_unique=True, note=note)
+        args.name, is_unique=is_unique, note=note)
 
     cmd = "select-periodic-offsets {} {}".format(metagene_profile_bayes_factors, 
         periodic_offsets)
@@ -219,12 +239,12 @@ def main():
     file_checkers = {
         periodic_offsets: utils.check_gzip_file
     }
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         file_checkers=file_checkers, overwrite=args.overwrite, call=call)
 
     # get the lengths and offsets which meet the required criteria from the config file
     lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, 
-        args.name, args.do_not_call)
+        args.name, args.do_not_call, is_unique=is_unique)
 
     if len(lengths) == 0:
         msg = ("No periodic read lengths and offsets were found. Try relaxing "
@@ -240,10 +260,10 @@ def main():
     
     # extract the riboseq profiles for each orf
     unique_filename = filenames.get_riboseq_bam(config['riboseq_data'], args.name, 
-        is_unique=True, note=note)
+        is_unique=is_unique, note=note)
 
     profiles_filename = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
-        length=lengths, offset=offsets, is_unique=True, note=note)
+        length=lengths, offset=offsets, is_unique=is_unique, note=note)
 
     orfs_genomic = filenames.get_orfs(config['genome_base_path'], config['genome_name'], 
         note=config.get('orf_note'))
@@ -258,7 +278,7 @@ def main():
     out_files = [profiles_filename]
 
     #todo: implement a file checker for mtx files
-    utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         overwrite=args.overwrite, call=call)
    
 if __name__ == '__main__':

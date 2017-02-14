@@ -4,7 +4,6 @@ import argparse
 import logging
 import pandas as pd
 
-import pybedtools
 import Bio.Seq
 
 import misc.bio as bio
@@ -141,18 +140,21 @@ def main():
         msg = "Filtering these ORF types: {}".format(filtered_orf_types_str)
         logger.info(msg)
 
-        m_filtered_orf_types = bayes_factors['orf_type'].isin(args.filtered_orf_types)
-        bayes_factors = bayes_factors[~m_filtered_orf_types]
+        m_orf_types = bayes_factors['orf_type'].isin(args.filtered_orf_types)
+        bayes_factors = bayes_factors[~m_orf_types]
 
     msg = "Identifying ORFs which meet the prediction thresholds"
-    all_orfs, bf_orfs, chisq_orfs = ribo_utils.get_predicted_orfs(bayes_factors, 
-                                                       min_bf_mean=args.min_bf_mean, 
-                                                       max_bf_var=args.max_bf_var, 
-                                                       min_bf_likelihood=args.min_bf_likelihood,
-                                                       min_length=args.min_length,
-                                                       chisq_alpha=args.chisq_significance_level,
-                                                       select_longest_by_stop=args.select_longest_by_stop
-                                                       )
+    logger.info(msg)
+
+    all_orfs, bf_orfs, chisq_orfs = ribo_utils.get_predicted_orfs(
+        bayes_factors, 
+        min_bf_mean=args.min_bf_mean, 
+        max_bf_var=args.max_bf_var, 
+        min_bf_likelihood=args.min_bf_likelihood,
+        min_length=args.min_length,
+        chisq_alpha=args.chisq_significance_level,
+        select_longest_by_stop=args.select_longest_by_stop
+    )
     
     if args.use_chi_square:
         predicted_orfs = chisq_orfs
@@ -172,8 +174,13 @@ def main():
         msg = "Selecting best among overlapping ORFs"
         logger.info(msg)
 
-        predicted_orfs = parallel.apply_iter_simple(merged_intervals['merged_ids'], 
-            get_best_overlapping_orf, predicted_orfs, progress_bar=True)
+        predicted_orfs = parallel.apply_iter_simple(
+            merged_intervals['merged_ids'], 
+            get_best_overlapping_orf, 
+            predicted_orfs, 
+            progress_bar=True
+        )
+
         predicted_orfs = pd.DataFrame(predicted_orfs)
 
     msg = "Sorting selected ORFs"
@@ -190,8 +197,14 @@ def main():
     logger.info(msg)
 
     split_exons = True
-    transcript_sequences = bed_utils.get_all_bed_sequences(predicted_orfs, args.fasta, split_exons)
-    fastx_utils.write_fasta(transcript_sequences, args.predicted_dna_sequences, compress=False)
+    transcript_sequences = bed_utils.get_all_bed_sequences(
+        predicted_orfs, 
+        args.fasta, 
+        split_exons
+    )
+
+    fastx_utils.write_fasta(transcript_sequences, args.predicted_dna_sequences,
+        compress=False)
 
     # translate the remaining ORFs into protein sequences
     msg = "Converting predicted ORF sequences to amino acids"
@@ -201,7 +214,12 @@ def main():
     protein_records = {
         r[0]: Bio.Seq.translate(r[1]) for r in records
     }
-    fastx_utils.write_fasta(protein_records.items(), args.predicted_protein_sequences, compress=False)
+    
+    fastx_utils.write_fasta(
+        protein_records.items(), 
+        args.predicted_protein_sequences, 
+        compress=False
+    )
 
 if __name__ == '__main__':
     main()

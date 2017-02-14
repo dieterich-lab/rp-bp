@@ -4,12 +4,16 @@ import argparse
 import pandas as pd
 import logging
 import re
+import sys
 
 import misc.bio as bio
+import misc.logging_utils as logging_utils
 import misc.parallel as parallel
 import misc.utils as utils
 
-default_num_cpus = 2
+logger = logging.getLogger(__name__)
+
+default_num_cpus = 1
 
 default_num_groups = 100
 
@@ -106,12 +110,15 @@ def main():
         "sequences will be used to calculate coverage. This is for testing.", type=int,
         default=default_num_peptides)
     
-    utils.add_logging_options(parser)
+    logging_utils.add_logging_options(parser)
     args = parser.parse_args()
-    utils.update_logging(args)
+    logging_utils.update_logging(args)
+
+    msg = "[get-orf-peptide-matches]: {}".format(' '.join(sys.argv))
+    logger.info(msg)
 
     msg = "Reading and filtering peptides"
-    logging.info(msg)
+    logger.info(msg)
 
     peptides = pd.read_csv(args.peptides, sep=args.peptide_separator)
     mask_filter = peptides[args.peptide_filter_field] < args.peptide_filter_value
@@ -122,10 +129,10 @@ def main():
         peptide_sequences = peptide_sequences.head(args.num_peptides)
 
     msg = "Number of filtered peptides: {}".format(len(peptide_sequences))
-    logging.info(msg)
+    logger.info(msg)
 
     msg = "Reading predicted ORFs into a data frame"
-    logging.info(msg)
+    logger.info(msg)
 
     # TODO: use read iterator
     predicted_orfs = bio.get_read_iterator(args.predicted_proteins)
@@ -141,21 +148,21 @@ def main():
     predicted_orfs_df['orf_sequence'] = orf_sequences
 
     msg = "Searching for matching peptides"
-    logging.info(msg)
+    logger.info(msg)
 
     peptide_matches = parallel.apply_parallel_split(peptide_sequences, args.num_cpus, 
         find_matching_orfs_group, predicted_orfs_df, progress_bar=True, num_groups=args.num_groups)
 
     # filter out the Nones to avoid DataFrame conversion problems
     msg = "Joining results back into large data frame"
-    logging.info(msg)
+    logger.info(msg)
 
     peptide_matches = [pm for pm in peptide_matches if pm is not None]
     peptide_matches = pd.concat(peptide_matches)
 
     # now, we have a data frame of matches (fields: peptide, orf_id)
     msg = "Getting peptide coverage of ORFs"
-    logging.info(msg)
+    logger.info(msg)
 
     # first, count the matches for each ORF
     peptide_matches_groups = peptide_matches.groupby('orf_id')

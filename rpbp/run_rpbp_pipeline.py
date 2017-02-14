@@ -3,11 +3,14 @@
 import argparse
 import logging
 import os
+import shlex
 import sys
 
 import yaml
 
+import misc.bio_utils.star_utils as star_utils
 import misc.logging_utils as logging_utils
+import misc.shell_utils as shell_utils
 import misc.slurm as slurm
 import misc.utils as utils
 
@@ -16,7 +19,6 @@ logger = logging.getLogger(__name__)
 default_num_procs = 1
 default_tmp = None # utils.abspath('tmp')
 default_flexbar_format_option = None
-default_star_executable = "STAR"
 
 
 def main():
@@ -29,10 +31,7 @@ def main():
     parser.add_argument('config', help="The (yaml) config file")
     parser.add_argument('name', help="The name for the dataset, used in the created files")
 
-    parser.add_argument('--tmp', help="The temp directory for pybedtools", default=default_tmp)
-
-    parser.add_argument('--star-executable', help="The name of the STAR executable",
-        default=default_star_executable)
+    parser.add_argument('--tmp', help="The temp directory", default=default_tmp)
     
     parser.add_argument('--flexbar-format-option', help="The name of the \"format\" "
         "option for flexbar. This changed from \"format\" to \"qtrim-format\" in "
@@ -43,13 +42,20 @@ def main():
 
     parser.add_argument('--profiles-only', help="If this flag is present, then only "
         "the ORF profiles will be created", action='store_true')
+         
+    parser.add_argument('-k', '--keep-intermediate-files', help="If this flag is given, "
+        "then all intermediate files will be kept; otherwise, they will be "
+        "deleted. This feature is implemented piecemeal. If the --do-not-call flag "
+        "is given, then nothing will be deleted.", action='store_true')
            
+    star_utils.add_star_options(parser)
     slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
 
     logging_str = logging_utils.get_logging_options_string(args)
+    star_str = star_utils.get_star_options_string(args)
 
     config = yaml.load(open(args.config))
     call = not args.do_not_call
@@ -72,7 +78,7 @@ def main():
                     'create-orf-profiles',
                     'predict-translated-orfs'
                 ]
-    utils.check_programs_exist(programs)
+    shell_utils.check_programs_exist(programs)
 
     
     required_keys = [   
@@ -111,7 +117,10 @@ def main():
         overwrite_str = "--overwrite"
 
     # for a sample, we first create its filtered genome profile
-    star_str = "--star-executable {}".format(args.star_executable)
+    
+    keep_intermediate_str = ""
+    if args.keep_intermediate_files:
+        keep_intermediate_str = "--keep-intermediate-files"
 
     tmp_str = ""
     if args.tmp is not None:
@@ -122,11 +131,13 @@ def main():
         flexbar_format_option_str = "--flexbar-format-option {}".format(
             args.flexbar_format_option)
 
-    cmd = ("create-orf-profiles {} {} {} --num-cpus {} {} {} {} {} {} {}".format(args.raw_data, 
-            args.config, args.name, args.num_cpus, do_not_call_str, overwrite_str, 
-            logging_str, star_str, tmp_str, flexbar_format_option_str))
+    mem_str = "--mem {}".format(shlex.quote(args.mem))
 
-    utils.check_call(cmd)
+    cmd = ("create-orf-profiles {} {} {} --num-cpus {} {} {} {} {} {} {} {} {}".format(args.raw_data, 
+            args.config, args.name, args.num_cpus, mem_str, do_not_call_str, overwrite_str, 
+            logging_str, star_str, tmp_str, flexbar_format_option_str, keep_intermediate_str))
+
+    shell_utils.check_call(cmd)
 
     # check if we only want to create the profiles
     if args.profiles_only:
@@ -135,7 +146,7 @@ def main():
     # then we predict the ORFs
     cmd = ("predict-translated-orfs {} {} --num-cpus {} {} {} {} {}".format(args.config, 
             args.name, args.num_cpus, tmp_str, do_not_call_str, overwrite_str, logging_str))
-    utils.check_call(cmd)
+    shell_utils.check_call(cmd)
 
 if __name__ == '__main__':
     main()
