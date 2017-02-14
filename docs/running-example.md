@@ -9,7 +9,8 @@ If the results differ significantly, please run the pipeline using the "DEBUG" l
 
 In total, creating the reference index files should take about 5 minutes and running the main pipeline should take an additional 15 to 20 minutes on a commodity laptop.
 
-<a id='toc'</a>
+<a id='toc'></a>
+
 * [Example dataset files](#example-dataset-files)
 * [Creating the reference index files](#creating-reference-indices)
 * [Running the Rp-Bp pipeline (also with replicates)](#running-rpbp-pipeline)
@@ -20,9 +21,10 @@ In total, creating the reference index files should take about 5 minutes and run
 ## Example dataset files
 
 The example dataset is distributed as a .tar.gz file and includes the following:
+
 * `WBcel235.79.chrI.yaml`. The configuration file for creating the reference index files. It includes all possible options for creating the indices as well as detailed descriptions.
 
-* `WBcel235.dna.toplevel.chrI.fa`. The reference sequence of Chromosome I for _C. elegans_.
+* `WBcel235.chrI.fa`. The reference sequence of Chromosome I for _C. elegans_.
 
 * `WBcel235.79.chrI.gtf`. The Ensembl, version 79 annotations for Chromosome I for _C. elegans_.
 
@@ -40,11 +42,12 @@ The example dataset is distributed as a .tar.gz file and includes the following:
 
 **Downloading from the command line**
 
-The following `wget` command can be used to download the example .tar.gz file:
+The following commands can be used to download and extract the example .tar.gz file:
 
 
-```python
-wget http://cloud.dieterichlab.org/index.php/s/3cyluM3ZCsvf0PT/download -O c-elegans-chrI-example.tar.gz
+```
+wget http://cloud.dieterichlab.org/index.php/s/7XHsCqZqU9AbQqB/download -O c-elegans-chrI-example.tar.gz
+tar -xvf c-elegans-chrI-example.tar.gz
 ```
 
 [Back to top](#toc)
@@ -77,7 +80,7 @@ N.B. This command may print some warning messages such as:
 These are not problematic and will be updated in future releases.
 
 
-```python
+```
 prepare-rpbp-genome WBcel235.79.chrI.yaml --num-cpus 2 --mem 4G --overwrite --logging-level INFO
 ```
 
@@ -126,7 +129,7 @@ WARNING  misc.utils 2016-11-02 17:31:47,545 : [utils.check_programs_exist]: This
 These are again not problematic and will be corrected in future releases.
 
 
-```python
+```
 # do not merge replicates
 run-all-rpbp-instances c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --keep-intermediate-files
 
