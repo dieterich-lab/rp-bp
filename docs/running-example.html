@@ -11764,12 +11764,12 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><a id='toc'</a></p>
+<p>&lt;a id='toc'&lt;/a&gt;</p>
 <ul>
 <li><a href="#example-dataset-files">Example dataset files</a></li>
 <li><a href="#creating-reference-indices">Creating the reference index files</a></li>
 <li><a href="#running-rpbp-pipeline">Running the Rp-Bp pipeline (also with replicates)</a></li>
-<li><a href="#validating-results">Validating the Rp-Bp prediction results</a></li>
+<li><a href="#common-problems">Common problems</a></li>
 </ul>
 <p><a id="example-dataset-files"></a></p>
 
@@ -11909,7 +11909,8 @@ div#notebook {
 <p>The Rp-Bp pipeline handles replicates by adding the (smoothed) ORF profiles. The Bayes factors and predictions are then calculated based on the combined profiles. The <code>--merge-replicates</code> flag indicates that the replicates should be merged. By default, if the <code>--merge-replicates</code> flag is given, then predictions will not be made for the individual datasets. The <code>--run-replicates</code> flag can be given to override this and make predictions for both the merged replicates as well as the individual datasets.</p>
 <p>The replicates are specified by <code>riboseq_biological_replicates</code> in the configuration file. This value should be a dictionary, where the key of the dictionary is a string description of the condition and the value is a list that gives all of the sample replicates which belong to that condition. The names of the sample replicates must match the dataset names specified in <code>riboseq_samples</code>.</p>
 <p>N.B. These calls may also produce deprecation warnings like:</p>
-<p><code>WARNING  misc.utils 2016-11-02 17:31:47,545 : [utils.check_programs_exist]: This function is deprecated. Please use the version in misc.shell_utils instead.</code></p>
+
+<pre><code>WARNING  misc.utils 2016-11-02 17:31:47,545 : [utils.check_programs_exist]: This function is deprecated. Please use the version in misc.shell_utils instead.</code></pre>
 <p>These are again not problematic and will be corrected in future releases.</p>
 
 </div>
@@ -11920,14 +11921,14 @@ div#notebook {
 <div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># running on each dataset separately</span>
-<span class="n">process</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">samples</span> <span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">test</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">overwrite</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">2</span> <span class="o">--</span><span class="n">logging</span><span class="o">-</span><span class="n">level</span> <span class="n">INFO</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># do not merge replicates</span>
+<span class="n">run</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">rpbp</span><span class="o">-</span><span class="n">instances</span> <span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">test</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">overwrite</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">2</span> <span class="o">--</span><span class="n">logging</span><span class="o">-</span><span class="n">level</span> <span class="n">INFO</span> <span class="o">--</span><span class="n">keep</span><span class="o">-</span><span class="n">intermediate</span><span class="o">-</span><span class="n">files</span>
 
 <span class="c1"># merging the replicates, do not calculate Bayes factors and make predictions for individual datasets</span>
-<span class="n">process</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">samples</span> <span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">test</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">overwrite</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">2</span> <span class="o">--</span><span class="n">logging</span><span class="o">-</span><span class="n">level</span> <span class="n">INFO</span> <span class="o">--</span><span class="n">merge</span><span class="o">-</span><span class="n">replicates</span>
+<span class="n">run</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">rpbp</span><span class="o">-</span><span class="n">instances</span> <span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">test</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">overwrite</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">2</span> <span class="o">--</span><span class="n">logging</span><span class="o">-</span><span class="n">level</span> <span class="n">INFO</span> <span class="o">--</span><span class="n">merge</span><span class="o">-</span><span class="n">replicates</span> <span class="o">--</span><span class="n">keep</span><span class="o">-</span><span class="n">intermediate</span><span class="o">-</span><span class="n">files</span>
 
 <span class="c1"># merging the replicates and calculating Bayes factors and making predictions for individual datasets</span>
-<span class="n">process</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">samples</span> <span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">test</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">overwrite</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">2</span> <span class="o">--</span><span class="n">logging</span><span class="o">-</span><span class="n">level</span> <span class="n">INFO</span> <span class="o">--</span><span class="n">merge</span><span class="o">-</span><span class="n">replicates</span> <span class="o">--</span><span class="n">run</span><span class="o">-</span><span class="n">replicates</span>
+<span class="n">run</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">rpbp</span><span class="o">-</span><span class="n">instances</span> <span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">test</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">overwrite</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">cpus</span> <span class="mi">2</span> <span class="o">--</span><span class="n">logging</span><span class="o">-</span><span class="n">level</span> <span class="n">INFO</span> <span class="o">--</span><span class="n">merge</span><span class="o">-</span><span class="n">replicates</span> <span class="o">--</span><span class="n">run</span><span class="o">-</span><span class="n">replicates</span> <span class="o">--</span><span class="n">keep</span><span class="o">-</span><span class="n">intermediate</span><span class="o">-</span><span class="n">files</span>
 </pre></div>
 
 </div>
@@ -11941,7 +11942,7 @@ div#notebook {
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="#toc">Back to top</a></p>
-<p><a id='validating-results'></a></p>
+<p><a id='common-problems'></a></p>
 
 </div>
 </div>
@@ -11951,9 +11952,17 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Validating-the-Rp-Bp-prediction-results">Validating the Rp-Bp prediction results<a class="anchor-link" href="#Validating-the-Rp-Bp-prediction-results">&#182;</a></h2><p>As described above, we do not necessarily expect every intermediate file to exactly match across different versions of the external programs. However, the final predictions should be rather similar across versions.</p>
-<p>With this in mind, we include a script with the Rp-Bp package which calculates the difference, in base pairs, among the ORFs predicted as translated between the "expected" outputs for the example dataset and those calculated on a particular run. While no hard threshold distinguishes between "successful" runs or not, the value should not be very large.</p>
-<p>The following command will print the number of unique bases to the predictions and expected predictions, as well as the overlap between them. The filenames may need to be changed to account for the local paths.</p>
+<h2 id="Common-problems">Common problems<a class="anchor-link" href="#Common-problems">&#182;</a></h2><p>Some common problems result due to versions of external programs. The can be controlled using command line options to <code>run-all-rpbp-instances</code>.</p>
+<ul>
+<li><code>--flexbar-format-option</code>. Older versions of flexbar used <code>format</code> as the command line option to specify the format of the fastq quality scores, while newer versions use <code>qtrim-format</code>. Depending on the installed version of flexbar, this option may need to be changed. Default: <code>qtrim-format</code></li>
+</ul>
+<ul>
+<li><code>--star-executable</code>. In principle, <code>STARlong</code> (as opposed to <code>STAR</code>) could be used for alignment. Given the nature of riboseq reads (that is, short due to the experimental protocols of degrading everything not protected by a ribosome), this is unlikely to be a good choice, though. Default: <code>STAR</code></li>
+</ul>
+<ul>
+<li><code>--star-read-files-command</code>. The input for <code>STAR</code> will always be a gzipped fastq file. <code>STAR</code> needs the system command which means "read a gzipped text file". As discovered in <a href="https://github.com/dieterich-lab/rp-bp/issues/35">Issue #35</a>, the name of this command is different on OSX and ubuntu. The program now attempts to guess the name of this command based on the system operating system, but it can be explicitly specified as a command line option. Default: <code>gzcat</code> if <code>sys.platform.startswith("darwin")</code>; <code>zcat</code> otherwise. Please see <a href="https://docs.python.org/3/library/sys.html">python.sys documentation</a> for more details about attempting to guess the operating system.</li>
+</ul>
+<p><a href="#toc">Back to top</a></p>
 
 </div>
 </div>
@@ -11963,27 +11972,13 @@ div#notebook {
 <div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># to check the predictions from Rp-Bp</span>
-<span class="n">calculate</span><span class="o">-</span><span class="n">bed</span><span class="o">-</span><span class="n">overlap</span> <span class="n">expected</span><span class="o">-</span><span class="n">orf</span><span class="o">-</span><span class="n">predictions</span><span class="o">/</span><span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">rep</span><span class="o">-</span><span class="mf">1.</span><span class="n">test</span><span class="o">-</span><span class="n">unique</span><span class="o">.</span><span class="n">length</span><span class="o">-</span><span class="mf">29.</span><span class="n">offset</span><span class="o">-</span><span class="mf">12.</span><span class="n">frac</span><span class="o">-</span><span class="mf">0.2</span><span class="o">.</span><span class="n">rw</span><span class="o">-</span><span class="mf">0.</span><span class="n">filtered</span><span class="o">.</span><span class="n">predicted</span><span class="o">-</span><span class="n">orfs</span><span class="o">.</span><span class="n">bed</span><span class="o">.</span><span class="n">gz</span> <span class="n">orf</span><span class="o">-</span><span class="n">predictions</span><span class="o">/</span><span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">rep</span><span class="o">-</span><span class="mf">1.</span><span class="n">test</span><span class="o">-</span><span class="n">unique</span><span class="o">.</span><span class="n">length</span><span class="o">-</span><span class="mf">29.</span><span class="n">offset</span><span class="o">-</span><span class="mf">12.</span><span class="n">frac</span><span class="o">-</span><span class="mf">0.2</span><span class="o">.</span><span class="n">rw</span><span class="o">-</span><span class="mf">0.</span><span class="n">filtered</span><span class="o">.</span><span class="n">predicted</span><span class="o">-</span><span class="n">orfs</span><span class="o">.</span><span class="n">bed</span><span class="o">.</span><span class="n">gz</span>
-
-<span class="c1"># to check the predictions from Rp-chi</span>
-<span class="n">calculate</span><span class="o">-</span><span class="n">bed</span><span class="o">-</span><span class="n">overlap</span> <span class="n">expected</span><span class="o">-</span><span class="n">orf</span><span class="o">-</span><span class="n">predictions</span><span class="o">/</span><span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">test</span><span class="o">.</span><span class="n">expected</span><span class="o">.</span><span class="n">rpchi</span><span class="o">.</span><span class="n">predicted</span><span class="o">-</span><span class="n">orfs</span><span class="o">.</span><span class="n">bed</span><span class="o">.</span><span class="n">gz</span> <span class="n">orf</span><span class="o">-</span><span class="n">predictions</span><span class="o">/</span><span class="n">c</span><span class="o">-</span><span class="n">elegans</span><span class="o">-</span><span class="n">chrI</span><span class="o">.</span><span class="n">test</span><span class="o">-</span><span class="n">unique</span><span class="o">.</span><span class="n">length</span><span class="o">-</span><span class="mf">29.</span><span class="n">offset</span><span class="o">-</span><span class="mf">12.</span><span class="n">chisq</span><span class="o">.</span><span class="n">predicted</span><span class="o">-</span><span class="n">orfs</span><span class="o">.</span><span class="n">bed</span><span class="o">.</span><span class="n">gz</span>
+<div class=" highlight hl-ipython3"><pre><span></span> 
 </pre></div>
 
 </div>
 </div>
 </div>
 
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="#toc">Back to top</a></p>
-
-</div>
-</div>
 </div>
     </div>
   </div>

@@ -1,7 +1,7 @@
 
-# Running the Rp-Bp and Rp-chi pipelines
+# Running the Rp-Bp pipeline
 
-The Rp-Bp and Rp-chi pipeline consist of an index creation step, which must be performed once for each genome and set of annotations, and a two-phase prediction pipeline, which must be performed for each sample. 
+The Rp-Bp pipeline consists of an index creation step, which must be performed once for each genome and set of annotations, and a two-phase prediction pipeline, which must be performed for each sample. 
 
 In the first phase of the prediction pipeline, a filtered genome profile is created. In the second phase, the ORFs which show evidence of translation in the profile are predicted.
 
@@ -10,7 +10,7 @@ This document describes the steps to run each of these phases. It shows some sam
 <a id="toc"></a>
 
 * [Creating reference genome indices](#creating-reference-genome-indices)
-* [Running Rp-Bp, Rp-chi pipelines](#running-pipelines)
+* [Running the Rp-Bp pipeline](#running-pipelines)
     * [Creating filtered genome profiles](#creating-filtered-genome-profiles)
     * [Predicting translated open reading frames](#predicting-translated-open-reading-frames)
 * [Logging options](#logging-options)
@@ -22,7 +22,7 @@ This document describes the steps to run each of these phases. It shows some sam
 
 This section describes the steps necessary to prepare a reference genome and matching annotation for use in the Rp-Bp and Rp-chi pipelines. The process must only be run once for each reference genome and set of annotations.
 
-The entire index creation process can be run automatically using the `prepare-genome` scripts. It reads most of the required paths from a [YAML](http://www.yaml.org/start.html) configuration file. Additionally, it automatically creates some of the output paths.
+The entire index creation process can be run automatically using the `prepare-rpbp-genome` scripts. It reads most of the required paths from a [YAML](http://www.yaml.org/start.html) configuration file. Additionally, it automatically creates some of the output paths.
 
 The script accepts a `--overwrite` flag. Unless this is given, then steps for which the output file already exists will be skipped.
 
@@ -40,6 +40,9 @@ The following keys are read from the configuration file. Keys with [`brackets`] 
 * `ribosomal_fasta`. The path to the ribosomal sequence
 
 
+* [`de_novo_gtf`]. An additional GTF containing annotaions constructed from a _de novo_ assembly (for example, from StringTie). See below for how _de novo_ assemblies are handled.
+
+
 * `genome_base_path`. The path to the output directory for the transcript fasta and ORFs
 * `genome_name`. A descriptive name to use for the created files
 * `ribosomal_index`. The base output path for the Bowtie2 index of the ribosomal sequence
@@ -50,6 +53,21 @@ The following keys are read from the configuration file. Keys with [`brackets`] 
 * [`start_codons`]. A list of strings that will be treated as start codons when searching for ORFs. default: [`ATG`]
 * [`stop_codons`]. A list of strings that will be treated as stop codons when searching for ORFS. default: [`TAA`, `TGA`, `TAG`]
 
+### ORF labels
+
+As part of the index creation phase, ORFs are labeled according to their location relative to the annotated, canonical transcripts, that is, annotated CDS regions. We use the following labels (essentially, the same as those given in the supplement of the paper):
+
+* `canonical`. an ORF which exactly coincides with an annotated transcript
+* `canonical_extended`. an ORF which starts upstream of a `canonical` ORF, but otherwise has the same structure
+* `canonical_truncated`. an ORF which starts downstream of a `canonical` ORF, but otherwise has the same structure
+* `five_prime`. an ORF which is completely in the annotated 5' leader region of a transcript and does not overlap other `canonical` ORFs on the same strand (such as from another isoform)
+* `three_prime`. an ORF in the annotated 3' trailer region of a transcript and does not overlap other `canonical` ORFs on the same strand
+* `noncoding`. an ORF from a transcript not annotated as coding, such as a lncRNA or pseudogene.
+* `five_prime_overlap`. an ORF in the annotated 5' leader region of a transcript but which overlaps a `canonical` ORF; this could either be out-of-frame with respect to the `canonical` ORF of the same transcript or otherwise overlap a `canonical` ORF from another isoform.
+* `three_prime_overlap`. an ORF in the annotated 3' trailer region of a transcript but which overlaps a `canonical` ORF
+* `suspect`. an ORF which partially overlaps the interior of a `canonical` ORF. These can result from things like retained introns.
+* `within`. an out-of-frame ORF in the interior of a `canonical` ORF
+
 
 ### Input files
 
@@ -58,36 +76,95 @@ The required input files are those suggested by the configuration file keys.
 * `gtf`. The GTF/GFF3 file containing the reference annotations. The file must follow standard conventions for annotating transcripts. This means at least the `exon` features must be present, and the transcript identifiers (`transcript_id` attribute) must match for exons from the same transcript. Furthermore, the ORFs are labeled based on their positions relative to annotated coding sequences. For it to work correctly, the `CDS` features must also be present in the annotation file. The start codon should be included in the `CDS`, but the stop codon should not. Following standard conventions, the genomic locations are taken to be base-1 and inclusive. Other feature types, such as `gene`, `start_codon` and `stop_codon` may be present in the file, but they **are not used** for extracting ORFs.
 
 
-* `fasta`. The input fasta file should contain all chromosome sequences. The identifiers must match those in the GTF file. Typically, the "dna.toplevel.fa" file from Ensembl contains the appropriate sequences and identifiers.
+* `fasta`. The input fasta file should contain all chromosome sequences. The identifiers must match those in the GTF file. Typically, the "primary assembly" file from Ensembl contains the appropriate sequences and identifiers. In particular, the "top level" Ensembl genome assembly includes haplotype information that is not used by Rp-Bp; for human, this is quite large and can substantially slow down the pipeline. Please see [Ensembl](http://www.ensembl.org/info/genome/genebuild/assembly.html) for more information about the differences between assemblies.
 
 
-* `ribosomal_fasta`. The ribosomal DNA sequence is typically repeated many times throughout the genome. Consequently, it can be difficult to include in the genome assembly and is often omitted. Therefore, a separate fasta file is required for these sequences (which are later used to filter reads). 
+* `ribosomal_fasta`. The ribosomal DNA sequence is typically repeated many times throughout the genome. Consequently, it can be difficult to include in the genome assembly and is often omitted. Therefore, a separate fasta file is required for these sequences (which are later used to filter reads). This file could also include other sequences which should be filtered, such as tRNA sequences downloaded from [GtRNAdb](http://gtrnadb.ucsc.edu/), for example.
+
+* `de_novo_gtf`. The GTF/GFF3 file containig the _de novo_ assembled transcripts.
+
+### _de novo_ assembled transcripts
+
+In principle, there is no difference between "standard" annotated transcripts and _de novo_ assembled transcripts. In both cases, ORFs are extracted from the transcripts based on the given `start_codons` and `stop_codons`. However, it is often of scientific interest to distinguish between ORFs from annotated transcripts and "novel" ones from the _de novo_ assembly.
+
+Both to avoid reporting spurious "novel" translated ORFs and to avoid redundant calculations, we remove each ORF identified in the _de novo_ assembly which exactly match an ORF using only the annotations.
+
+We then label ORFs from the _de novo_ assembly as follows, with respect to their relationship to the annotated transcripts. Due to the first filtering step, the following categories include only ORFs which are at least partially only supported in the _de novo_ assembly.
+
+* `novel`. The ORF does not overlap the annotations at all.
+* `novel_canonical_extended`. an ORF which starts upstream of a `canonical` ORF, but otherwise has the same structure.
+* `novel_noncoding`. an ORF from a transcript not annotated as coding, such as a lncRNA or pseudogene.
+* `novel_five_prime_overlap`. an ORF in the annotated 5' leader region of a transcript but which overlaps a `canonical` ORF; this could either be out-of-frame with respect to the `canonical` ORF of the same transcript or otherwise overlap a `canonical` ORF from another isoform.
+* `novel_three_prime_overlap`. an ORF in the annotated 3' trailer region of a transcript but which overlaps a `canonical` ORF
+* `novel_suspect`. an ORF which partially overlaps the interior of a `canonical` ORF. These can result from things like retained introns.
+* `novel_within`. an out-of-frame ORF in the interior of a `canonical` ORF
+
+The other labels, such as `novel_canonical` or `novel_five_prime` are guaranteed to be filtered in the first step based on their definitions.
+
 
 ### Output files
 
-* `genome_base_path`/`genome_name`.bed.gz. A bed12 file containing all transcripts. For coding transcripts, the thick_start and thick_end columns give the start and end of the coding region; the start codon _is_ included in the thick region, but the stop codon _is not_. For noncoding transcripts, thick_start and thick_end are both -1. This seems to behave as expected in IGV.
-* `genome_base_path`/transcript-index/`genome_name`.transcripts.fa. The sequences of all transcripts.
-* `genome_base_path`/transcript-index/`genome_name`.genomic-orfs.`orf_note`.bed.gz. A bed12+ file containing all ORFs. Besides the standard bed12 columns, this file includes columns giving the orf_type, orf_length, and orf_num. The ORF ids are of the form: `transcript`_`seqname`:`start`-`end`:`strand`. The start codon _is_ included in the ORF, but the stop codon _is not_. The thick_start and thick_end are always the same as start and end.
+
 * `ribosomal_index`. The bowtie2 index files (`ribosomal_index`.1.bt2, etc.) for the ribosomal_fasta file
+
+
 * `star_index`/. The STAR index files (`SA`, `Genome`, etc.) for the `fasta` file
+
+
+* `genome_base_path`/`genome_name`.annotated.bed.gz. A bed12 file containing all transcripts. For coding transcripts, the thick_start and thick_end columns give the start and end of the coding region; the start codon _is_ included in the thick region, but the stop codon _is not_. For noncoding transcripts, thick_start and thick_end are both -1. This seems to behave as expected in IGV.
+
+
+* From annotations
+
+  * `genome_base_path`/transcript-index/`genome_name`.transcripts.annotated.fa. The sequences of all annotated transcripts.
+    
+  * `genome_base_path`/transcript-index/`genome_name`.genomic-orfs.annotated.`orf_note`.bed.gz. A bed12+ file containing all ORFs from annotated transcripts. Besides the standard bed12 columns, this file includes columns giving the orf_type, orf_length, and orf_num. The ORF ids are of the form: `transcript_seqname:start-end:strand`. The start codon _is_ included in the ORF, but the stop codon _is not_. The thick_start and thick_end are always the same as start and end.
+    
+  * `genome_base_path`/transcript-index/`genome_name`.orfs-exons.annotated.`orf_note`.bed.gz. A bed6+2 file containing each exon from each ORF. The "id" of an exon corresponds exactly to the ORF to which it belongs; exons from the same ORF have the same "id". The extra columns are "exon_index", which gives the order of the exon in the transcript, and "transcript_start", which gives the start position of that index in transcript coordinates. Exons are always sorted by "lowest start first", so the order is really reversed for ORFs on the reverse strand.
+  
+* From _de novo_ assembly. The semantics of these files are the same of those from the annotations, but created using the `de_novo_gtf` files. N.B., ORFs which completely overlap annotations are not included.
+
+  * `genome_base_path`/transcript-index/`genome_name`.transcripts.de-novo.fa
+  * `genome_base_path`/transcript-index/`genome_name`.genomic-orfs.de-novo.`orf_note`.bed.gz
+  * `genome_base_path`/transcript-index/`genome_name`.orfs-exons.de-novo.`orf_note`.bed.gz.
+
+* From both annotations and _de novo_ assembly. The semantics are again the same as above. If a _de novo_ assembly was not provided, these are simply symlinks to the respective "annotations" files. Otherwise, they are the concatenation of the respective "annotation" and "_de novo_" files.
+
+  * `genome_base_path`/transcript-index/`genome_name`.genomic-orfs.`orf_note`.bed.gz
+  * `genome_base_path`/transcript-index/`genome_name`.orfs-exons.`orf_note`.bed.gz.
 
 
 
 ```python
-prepare-genome WBcel235.79.chrI.yaml --num-cpus 10 --mem 100G
+prepare-rpbp-genome WBcel235.79.chrI.yaml --num-cpus 2 --mem 4G --overwrite --logging-level INFO
 ```
 
 [Back to top](#toc)
 
 <a id='running-pipelines'></a>
 
-## Running the Rp-Bp and Rp-chi pipelines
+## Running the Rp-Bp pipeline
 
-The entire Rp-Bp pipeline can be run on a set of riboseq samples which all use the same genome indices using a sample sheet-like [YAML](http://www.yaml.org/start.html) configuration file with the `process-all-samples` program. The configuration file respects all of the optional configuration options specified below.
+The entire Rp-Bp pipeline can be run on a set of riboseq samples which all use the same genome indices using a sample sheet-like [YAML](http://www.yaml.org/start.html) configuration file with the `run-all-rpbp-instances` program. The configuration file respects all of the optional configuration options specified below.
 
-The script accepts a `--tmp <loc>` flag. If this flag is given, then all relevant calls will use `<loc>` as the base temporary directory. Otherwise, the program defaults will be used.
+The script accepts the following options:
 
-The script accepts a `--overwrite` flag. Unless this is given, then steps for which the output file already exists will be skipped.
+* `--tmp <loc>`. If this flag is given, then all relevant calls will use `<loc>` as the base temporary directory. Otherwise, the program defaults will be used.
+
+
+* `--overwrite`. Unless this is given, then steps for which the output file already exists will be skipped.
+
+
+* `--keep-intermediate-files`. Unless this flag is given, large intermediate files, such as fastq files output by flexbar after removing adapters, will be deleted.
+
+
+* `--flexbar-format-option`. Older versions of flexbar used `format` as the command line option to specify the format of the fastq quality scores, while newer versions use `qtrim-format`. Depending on the installed version of flexbar, this option may need to be changed. Default: `qtrim-format`
+
+
+* `--star-executable`. In principle, `STARlong` (as opposed to `STAR`) could be used for alignment. Given the nature of riboseq reads (that is, short due to the experimental protocols of degrading everything not protected by a ribosome), this is unlikely to be a good choice, though. Default: `STAR`
+
+
+* `--star-read-files-command`. The input for `STAR` will always be a gzipped fastq file. `STAR` needs the system command which means "read a gzipped text file". As discovered in [Issue #35](https://github.com/dieterich-lab/rp-bp/issues/35), the name of this command is different on OSX and ubuntu. The program now attempts to guess the name of this command based on the system operating system, but it can be explicitly specified as a command line option. Default: `gzcat` if `sys.platform.startswith("darwin")`; `zcat` otherwise. Please see [python.sys documentation](https://docs.python.org/3/library/sys.html) for more details about attempting to guess the operating system.
 
 [Logging options](#logging-options) can be given to this script.
 
@@ -122,13 +199,14 @@ These options should be exactly the same as those used in the configuration file
 
 
 ```python
-run-all-rpbp-instances c-elegans-test.yaml --tmp /home/bmalone/tmp/ --num-cpus 10 --logging-level INFO
+# do not merge replicates
+run-all-rpbp-instances c-elegans-test.yaml --tmp /scratch/bmalone/ --num-cpus 10 --logging-level INFO --keep-intermediate-files
 
 # merging the replicates, do not calculate Bayes factors and make predictions for individual datasets
-run-all-rpbp-instances c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates
+run-all-rpbp-instances c-elegans-test.yaml --tmp /scratch/bmalone/ --overwrite --num-cpus 2 --logging-level INFO --merge-replicates --keep-intermediate-files
 
 # merging the replicates and calculating Bayes factors and making predictions for individual datasets
-run-all-rpbp-instances c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates --run-replicates
+run-all-rpbp-instances c-elegans-test.yaml --tmp /scratch/bmalone/ --overwrite --num-cpus 2 --logging-level INFO --merge-replicates --run-replicates --keep-intermediate-files
 ```
 
 [Back to top](#toc)
@@ -142,6 +220,8 @@ The entire profile creation process can be run automatically using the `create-o
 The script accepts a `--overwrite` flag. Unless this is given, then steps for which the output file already exists will be skipped.
 
 It also accepts a `--do-not-call` flag. If this flag is given, then the commands below will be printed but not executed.
+
+The script accepts a `--keep-intermediate-files` flag. Unless this flag is given, large intermediate files, such as fastq files output by flexbar after removing adapters, will be deleted.
 
 [Logging options](#logging-options) can also be given to this script.
 
@@ -297,12 +377,12 @@ Indices are also created for the bam files. STAR creates parameter files in the 
 
 ### Difference from paper
 
-The fifth step of creating the base genome profile in the paper is "Everything except the 5' end of the remaining reads is removed." This profile is not explicitly constructed in the pipeline. The `sample-name`-unique.bam already contains the necessary information.
+The fifth step of creating the base genome profile in the paper is "Everything except the 5' end of the remaining reads is removed." This profile is not explicitly constructed in the pipeline. The `<sample_name>-unique.bam` file already contains the necessary information.
 
 
 
 ```python
-create-orf-profiles test-chrI.fastq.gz c-elegans-test.yaml c-elegans-chrI --num-cpus 10
+create-orf-profiles test-chrI.fastq.gz c-elegans-test.yaml c-elegans-chrI --num-cpus 2 --tmp /scratch/bmalone/ --keep-intermediate-files
 ```
 
 [Back to top](#toc)
@@ -421,7 +501,7 @@ Furthermore, there are "unfiltered" and "filtered" versions of the files. The "f
 
 
 ```python
-predict-translated-orfs c-elegans-test.yaml c-elegans-chrI --num-cpus 10 --tmp /home/bmalone/tmp/
+predict-translated-orfs c-elegans-test.yaml c-elegans-chrI --num-cpus 2  --tmp /scratch/bmalone/
 ```
 
 [Back to top](#toc)
@@ -485,7 +565,7 @@ All of the scripts accept options for running code in parallel. Furthermore, the
 # This will submit the prepare-genome script to SLURM as a single job. That job
 # will request 10 CPUs and 100G of RAM.
 
-prepare-genome WBcel235.79.chrI.yaml --num-cpus 10 --mem 100G --use-slurm
+prepare-rpbp-genome WBcel235.79.chrI.yaml --num-cpus 10 --mem 100G --overwrite --logging-level INFO --use-slurm --tmp /scratch/bmalone/
 ```
 
 
@@ -494,7 +574,13 @@ prepare-genome WBcel235.79.chrI.yaml --num-cpus 10 --mem 100G --use-slurm
 # and 100G of RAM. For example, if c-elegans-test.yaml specifies 5 samples in the riboseq_samples
 # value, then 5 jobs will be submitted to SLURM, one for each sample.
 
-process-all-samples c-elegans-test.yaml --tmp /home/bmalone/tmp/ --num-cpus 10 --mem 100G --use-slurm --logging-level INFO
+# If the --merge-replicates flag is given, then all of the profiles are first created. Then, the
+# combined profiles are created in accordance with riboseq_biological_replicates from the config
+# file. Finally, the last phase of the pipeline (predict-translated-orfs) is called.
+
+# If any step fails, then later phases will not be started.
+
+run-all-rpbp-instances c-elegans-test.yaml --tmp /scratch/bmalone/ --num-cpus 10 --mem 100G --merge-replicates --use-slurm --logging-level INFO
 ```
 
 [Back to top](#toc)

@@ -13,7 +13,7 @@ In total, creating the reference index files should take about 5 minutes and run
 * [Example dataset files](#example-dataset-files)
 * [Creating the reference index files](#creating-reference-indices)
 * [Running the Rp-Bp pipeline (also with replicates)](#running-rpbp-pipeline)
-* [Validating the Rp-Bp prediction results](#validating-results)
+* [Common problems](#common-problems)
 
 <a id="example-dataset-files"></a>
 
@@ -119,41 +119,43 @@ The replicates are specified by `riboseq_biological_replicates` in the configura
 
 N.B. These calls may also produce deprecation warnings like:
 
-`WARNING  misc.utils 2016-11-02 17:31:47,545 : [utils.check_programs_exist]: This function is deprecated. Please use the version in misc.shell_utils instead.`
+```
+WARNING  misc.utils 2016-11-02 17:31:47,545 : [utils.check_programs_exist]: This function is deprecated. Please use the version in misc.shell_utils instead.
+```
 
 These are again not problematic and will be corrected in future releases.
 
 
 ```python
-# running on each dataset separately
-process-all-samples c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO
+# do not merge replicates
+run-all-rpbp-instances c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --keep-intermediate-files
 
 # merging the replicates, do not calculate Bayes factors and make predictions for individual datasets
-process-all-samples c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates
+run-all-rpbp-instances c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates --keep-intermediate-files
 
 # merging the replicates and calculating Bayes factors and making predictions for individual datasets
-process-all-samples c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates --run-replicates
+run-all-rpbp-instances c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates --run-replicates --keep-intermediate-files
 ```
 
 [Back to top](#toc)
 
-<a id='validating-results'></a>
+<a id='common-problems'></a>
 
-## Validating the Rp-Bp prediction results
+## Common problems
 
-As described above, we do not necessarily expect every intermediate file to exactly match across different versions of the external programs. However, the final predictions should be rather similar across versions.
+Some common problems result due to versions of external programs. The can be controlled using command line options to `run-all-rpbp-instances`.
 
-With this in mind, we include a script with the Rp-Bp package which calculates the difference, in base pairs, among the ORFs predicted as translated between the "expected" outputs for the example dataset and those calculated on a particular run. While no hard threshold distinguishes between "successful" runs or not, the value should not be very large.
+* `--flexbar-format-option`. Older versions of flexbar used `format` as the command line option to specify the format of the fastq quality scores, while newer versions use `qtrim-format`. Depending on the installed version of flexbar, this option may need to be changed. Default: `qtrim-format`
 
-The following command will print the number of unique bases to the predictions and expected predictions, as well as the overlap between them. The filenames may need to be changed to account for the local paths.
+
+* `--star-executable`. In principle, `STARlong` (as opposed to `STAR`) could be used for alignment. Given the nature of riboseq reads (that is, short due to the experimental protocols of degrading everything not protected by a ribosome), this is unlikely to be a good choice, though. Default: `STAR`
+
+
+* `--star-read-files-command`. The input for `STAR` will always be a gzipped fastq file. `STAR` needs the system command which means "read a gzipped text file". As discovered in [Issue #35](https://github.com/dieterich-lab/rp-bp/issues/35), the name of this command is different on OSX and ubuntu. The program now attempts to guess the name of this command based on the system operating system, but it can be explicitly specified as a command line option. Default: `gzcat` if `sys.platform.startswith("darwin")`; `zcat` otherwise. Please see [python.sys documentation](https://docs.python.org/3/library/sys.html) for more details about attempting to guess the operating system.
+
+[Back to top](#toc)
 
 
 ```python
-# to check the predictions from Rp-Bp
-calculate-bed-overlap expected-orf-predictions/c-elegans-rep-1.test-unique.length-29.offset-12.frac-0.2.rw-0.filtered.predicted-orfs.bed.gz orf-predictions/c-elegans-rep-1.test-unique.length-29.offset-12.frac-0.2.rw-0.filtered.predicted-orfs.bed.gz
 
-# to check the predictions from Rp-chi
-calculate-bed-overlap expected-orf-predictions/c-elegans-test.expected.rpchi.predicted-orfs.bed.gz orf-predictions/c-elegans-chrI.test-unique.length-29.offset-12.chisq.predicted-orfs.bed.gz
 ```
-
-[Back to top](#toc)
