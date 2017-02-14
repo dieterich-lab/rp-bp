@@ -99,7 +99,6 @@ external_requirements =  [
     'pysam',
     'pyfasta',
     'pystan',
-    'pybedtools',
     'pyyaml',
     'psutil',
     'patsy', # used in statsmodels 
@@ -171,10 +170,6 @@ def _post_install(self):
     programs = ['bowtie2', 'bowtie2-build-s']
     shell_utils.check_programs_exist(programs, raise_on_error=False, 
         package_name='bowtie2', logger=logger)
-
-    programs = ['intersectBed', 'bedToBam']
-    shell_utils.check_programs_exist(programs, raise_on_error=False, 
-        package_name='bedtools', logger=logger)
 
     programs = ['samtools']
     shell_utils.check_programs_exist(programs, raise_on_error=False, 
