@@ -29,7 +29,6 @@ default_min_metagene_profile_bayes_factor_mean = 5
 default_max_metagene_profile_bayes_factor_var = 5
 default_min_visualization_count = 500
 default_num_cpus = 1
-default_note = None
 
 abstract = """
 This document shows the results of preprocessing steps. 
@@ -448,14 +447,16 @@ def main():
     # keep multimappers?
     is_unique = not ('keep_riboseq_multimappers' in config)
 
-    programs =  [   'create-read-length-metagene-profile-plot',
-                    'visualize-metagene-profile-bayes-factor',
-                    'get-all-read-filtering-counts',
-                    'samtools',
-                    'visualize-read-filtering-counts',
-                    'get-read-length-distribution',
-                    'plot-read-length-distribution'
-                ]
+    programs =  [   
+		'create-read-length-metagene-profile-plot',
+        'visualize-metagene-profile-bayes-factor',
+        'get-all-read-filtering-counts',
+        'samtools',
+        'visualize-read-filtering-counts',
+        'get-read-length-distribution',
+        'plot-read-length-distribution'
+    ]
+
     if args.create_fastqc_reports:
         programs.extend(['fastqc','java'])
         
@@ -493,7 +494,7 @@ def main():
 
     project_name = config.get("project_name", default_project_name)
     title = "Preprocessing results for {}".format(project_name)
-   
+  
     sample_names = sorted(config['riboseq_samples'].keys())
 
     tex_file = os.path.join(args.out, "preprocessing-report.tex")
@@ -559,7 +560,6 @@ def main():
                 
                 text = "Missing: {}\n\n".format(name)
                 latex.write(out, text)
-
 
             latex.write_column_sep(out)
             
@@ -728,7 +728,6 @@ def main():
                 if (i>0) and (i%4 != 0):
                     latex.end_figure(out)
                     latex.clearpage(out)
-
 
         latex.end_document(out)
 

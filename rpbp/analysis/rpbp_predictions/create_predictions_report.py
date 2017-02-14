@@ -110,7 +110,6 @@ def create_figures(name, is_replicate, config, args):
                 fraction=f, reweighting_iterations=rw, 
                 is_filtered=is_filtered)
 
-
         use_groups_str = ""
         if is_grouped:
             use_groups_str = "--use-groups"
