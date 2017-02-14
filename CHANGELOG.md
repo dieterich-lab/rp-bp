@@ -4,6 +4,13 @@ All notable changes to Rp-Bp will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/), 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.1.1] - 2017-02-14
+### Updated
+- Documentation to use pandoc for converting markdown to html
+
+### Fixed
+- Broken download link to example files
+
 ## [1.1.0] - 2017-02-14
 
 This is a rather significant update to the codebase and includes many small changes. Primarily, though, it addresses many installation and system issues.
