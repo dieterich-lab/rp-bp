@@ -8,12 +8,12 @@ Installation is managed through pip3. The required privileges are determined by 
 
 Installation requires running pip:
 
-``pip3 install --verbose .``
+``pip3 install --verbose -r requirements.txt``
 
 
-If possible, we recommend installing inside a virtual environment.
+If possible, we recommend installing inside a virtual environment. We also support running inside [anaconda](https://www.continuum.io/)
 
-Please see [docs/installation.md](docs/installation.md) for more detailed installation instructions, including prerequisites and step-by-step details of installing within a virtual machine. (Locally, ``docs/installation.html`` may be easier to view.)
+Please see [docs/installation.md](docs/installation.md) for more detailed installation instructions, including prerequisites and step-by-step details of installing within a virtual machine and anaconda. The instructions also include  (Locally, ``docs/installation.html`` may be easier to view.)
 
 #Uninstallation instruction
 

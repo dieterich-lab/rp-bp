@@ -11775,6 +11775,7 @@ div#notebook {
 <li><a href="#prerequisites">Prerequisites</a></li>
 <li><a href="#simple-installation">Simple installation</a></li>
 <li><a href="#virtual-environment-installation">Virtual environment installation</a></li>
+<li><a href="#anaconda-installation">Anaconda installation</a></li>
 </ul>
 <p><a id="prerequisites"></a></p>
 
@@ -11788,48 +11789,15 @@ div#notebook {
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Prerequisites">Prerequisites<a class="anchor-link" href="#Prerequisites">&#182;</a></h2><p>The pipelines make use of a number of standard bioinformatics tools. All of these must be installed and available on the <code>$PATH</code> for the pipeline to work correctly. All of the pipeline scripts check that the required programs are available before executing. If any required programs cannot be found, the script prints an error message about the missing program and does not continue. The versions used during development and testing are specified below. For most of the tools, any recent version should be sufficient. If problems arise, though, please use the version indicated below</p>
 <ul>
-<li><a href="http://bedtools.readthedocs.io/en/latest/">bedtools</a>, version 2.25.0. Importantly, <a href="http://bedtools.readthedocs.io/en/latest/content/tools/intersect.html">bedtools intersect</a> must accept the <code>-F</code> option</li>
 <li><a href="http://bowtie-bio.sourceforge.net/bowtie2/index.shtml">bowtie2</a>, version 2.2.6</li>
 <li><a href="https://github.com/seqan/flexbar">flexbar</a>, version 2.5</li>
 <li><a href="http://www.htslib.org/">SAMtools</a>, version 1.2</li>
 <li><a href="https://github.com/alexdobin/STAR">STAR</a>, version 2.4.1d</li>
 </ul>
-<h4 id="OpenBlas">OpenBlas<a class="anchor-link" href="#OpenBlas">&#182;</a></h4><p>Additionally, the <a href="http://www.openblas.net/">OpenBLAS</a> library is used for efficiency. This library is installed by default on many versions of Unix. It is also available through many standard package managers. For example:</p>
-<ul>
-<li>Ubuntu: <code>sudo apt-get install libopenblas-dev</code></li>
-<li>CentOS: <code>sudo yum install openblas-devel</code></li>
-</ul>
-<p>If the use of package managers are not an option (for example, because they require root access) or just not desired, then OpenBLAS can be installed locally. The following instructions have been tested extensively on Ubuntu, but they may require modification for other distributions.</p>
-<p>For OSX, a custom installation of numpy linking against the OpenBLAS library is required. We do not officially support this, but <a href="http://dedupe.readthedocs.io/en/latest/OSX-Install-Notes.html">example documentation</a> is available elsewhere on the web.</p>
-<p>N.B. In principle, any BLAS and ATLAS library, such as <a href="https://software.intel.com/en-us/intel-mkl">Intel's Math Kernel Library</a>, can be used. This has not been tested and is not supported, though.</p>
+<h4 id="OpenBLAS">OpenBLAS<a class="anchor-link" href="#OpenBLAS">&#182;</a></h4><p>If installation fails due to missing <code>OpenBLAS</code> dependencies for <code>scipy</code>, please follow the instructions <a href="https://gist.github.com/bmmalone/1b5f9ff72754c7d4b313c0b044c42684">here</a>.</p>
 
 </div>
 </div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># download the OpenBLAS source</span>
-<span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">xianyi</span><span class="o">/</span><span class="n">OpenBLAS</span>
-    
-<span class="c1"># compile the library</span>
-<span class="n">cd</span> <span class="n">OpenBLAS</span> <span class="o">&amp;&amp;</span> <span class="n">make</span> <span class="n">FC</span><span class="o">=</span><span class="n">gfortran</span>
-
-<span class="c1">### Lines to add to .bashrc</span>
-<span class="c1"># for the OpenBLAS library</span>
-<span class="n">export</span> <span class="n">LD_LIBRARY_PATH</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">OpenBLAS</span><span class="p">:</span><span class="err">$</span><span class="n">LD_LIBRARY_PATH</span>
-<span class="n">export</span> <span class="n">BLAS</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">libopenblas</span><span class="o">.</span><span class="n">a</span>
-<span class="n">export</span> <span class="n">ATLAS</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">libopenblas</span><span class="o">.</span><span class="n">a</span>
-    
-<span class="c1"># then, to be safe, close the current terminal and open a new one to install rp-bp</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
 </div>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
@@ -11879,10 +11847,10 @@ This can be accomplished by adding a line like <code>export PATH=$HOME/local/bin
 <span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">dieterich</span><span class="o">-</span><span class="n">lab</span><span class="o">/</span><span class="n">rp</span><span class="o">-</span><span class="n">bp</span><span class="o">.</span><span class="n">git</span>
     
 <span class="c1"># Change into the rp-bp directory and build the package. </span>
-<span class="n">cd</span> <span class="n">rp</span><span class="o">-</span><span class="n">bp</span> <span class="o">&amp;&amp;</span> <span class="n">pip3</span> <span class="n">install</span> <span class="o">--</span><span class="n">verbose</span> <span class="o">.</span>
+<span class="n">cd</span> <span class="n">rp</span><span class="o">-</span><span class="n">bp</span> <span class="o">&amp;&amp;</span> <span class="n">pip3</span> <span class="n">install</span> <span class="o">--</span><span class="n">verbose</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 
 <span class="c1"># or install the package in the user&#39;s home directory</span>
-<span class="n">cd</span> <span class="n">rp</span><span class="o">-</span><span class="n">bp</span> <span class="o">&amp;&amp;</span> <span class="n">pip3</span> <span class="n">install</span> <span class="o">--</span><span class="n">verbose</span> <span class="o">--</span><span class="n">user</span> <span class="o">.</span>
+<span class="n">cd</span> <span class="n">rp</span><span class="o">-</span><span class="n">bp</span> <span class="o">&amp;&amp;</span> <span class="n">pip3</span> <span class="n">install</span> <span class="o">--</span><span class="n">verbose</span> <span class="o">--</span><span class="n">user</span>  <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 
 </div>
@@ -11969,7 +11937,7 @@ This can be accomplished by adding a line like <code>export PATH=$HOME/local/bin
 <span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">dieterich</span><span class="o">-</span><span class="n">lab</span><span class="o">/</span><span class="n">rp</span><span class="o">-</span><span class="n">bp</span><span class="o">.</span><span class="n">git</span>
 
 <span class="c1"># Change into the rp-bp directory and build the package. </span>
-<span class="n">cd</span> <span class="n">rp</span><span class="o">-</span><span class="n">bp</span> <span class="o">&amp;&amp;</span> <span class="n">pip3</span> <span class="n">install</span> <span class="o">--</span><span class="n">verbose</span> <span class="o">.</span>
+<span class="n">cd</span> <span class="n">rp</span><span class="o">-</span><span class="n">bp</span> <span class="o">&amp;&amp;</span> <span class="n">pip3</span> <span class="n">install</span> <span class="o">--</span><span class="n">verbose</span>  <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 
 </div>
@@ -11984,8 +11952,9 @@ This can be accomplished by adding a line like <code>export PATH=$HOME/local/bin
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>The build process includes compiling several libraries for optimized numerical calculations. Due to the optimized nature of these libraries, the initial installation can take up to an hour.</p>
 <p>Due to the <code>--verbose</code> flag, much debugging information is printed. In some cases, building some libraries may initially fail; this is due to a known issue with dependency-handling in <a href="https://pip.pypa.io/en/stable/reference/pip_install/#installation-order">pip</a>. The following output (or something similar depending on packages already available) indicates installation succeeded:</p>
-<p><code>Successfully installed cython-0.25.1 docopt-0.6.2 joblib-0.10.3 numpy-1.11.2 pandas-0.19.0 patsy-0.4.1 psutil-4.4.2 pybedtools-0.7.8 pyfasta-0.5.2 pysam-0.9.1.4 pystan-2.12.0.0 python-dateutil-2.5.3 pytz-2016.7 pyyaml-3.12 rpbp-1.0 scipy-0.18.1 six-1.10.0 statsmodels-0.6.1 tqdm-4.9.0
-Cleaning up...</code></p>
+
+<pre><code>Successfully installed cython-0.25.1 docopt-0.6.2 joblib-0.10.3 numpy-1.11.2 pandas-0.19.0 patsy-0.4.1 psutil-4.4.2 pybedtools-0.7.8 pyfasta-0.5.2 pysam-0.9.1.4 pystan-2.12.0.0 python-dateutil-2.5.3 pytz-2016.7 pyyaml-3.12 rpbp-1.0 scipy-0.18.1 six-1.10.0 statsmodels-0.6.1 tqdm-4.9.0
+Cleaning up...</code></pre>
 <p>To use the programs in the future, use the <code>workon</code> command to ensure the virtual environment is active.</p>
 
 </div>
@@ -12011,9 +11980,61 @@ Cleaning up...</code></p>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="#toc">Back to top</a></p>
+<p><a id='anaconda-installation'></a></p>
 
 </div>
 </div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Anaconda-installation">Anaconda installation<a class="anchor-link" href="#Anaconda-installation">&#182;</a></h2><p>The package can also be installed within an <a href="https://www.continuum.io/">anaconda</a> environment. Importantly, the version of gcc included by default does not properly compile the Stan model files, so it must be updated first.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">salford_systems</span> <span class="n">libgcc</span><span class="o">-</span><span class="mi">6</span><span class="o">=</span><span class="mf">6.2</span><span class="o">.</span><span class="mi">0</span> <span class="c1"># update gcc</span>
+<span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">rpbp</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.5</span> <span class="n">anaconda</span> <span class="c1"># create the rpbp anaconda environment</span>
+<span class="n">source</span> <span class="n">activate</span> <span class="n">rpbp</span> <span class="c1"># activate it</span>
+<span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">dieterich</span><span class="o">-</span><span class="n">lab</span><span class="o">/</span><span class="n">rp</span><span class="o">-</span><span class="n">bp</span><span class="o">.</span><span class="n">git</span> <span class="c1"># clone the repo</span>
+<span class="n">cd</span> <span class="n">rp</span><span class="o">-</span><span class="n">bp</span><span class="o">/</span> <span class="c1"># change into the folder</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">verbose</span> <span class="o">--</span><span class="n">log</span> <span class="n">log</span><span class="o">.</span><span class="n">txt</span> <span class="c1"># install</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><a href="#toc">Back to top</a></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+</div>
+</div>
+</div>
+
 </div>
     </div>
   </div>
