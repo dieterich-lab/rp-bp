@@ -10,13 +10,11 @@ import multiprocessing
 
 import time
 
-import psutil
-
 import numpy as np
 import pandas as pd
 import scipy.io
 
-import misc.bio as bio
+import misc.bio_utils.bed_utils as bed_utils
 import misc.logging_utils as logging_utils
 import misc.parallel as parallel
 import misc.utils as utils
@@ -248,10 +246,6 @@ def get_all_bayes_factors(orfs, args):
     translated_models = [pickle.load(open(tm, 'rb')) for tm in args.translated_models]
     untranslated_models = [pickle.load(open(bm, 'rb')) for bm in args.untranslated_models]
 
-    mem = psutil.virtual_memory()
-    msg = "After reading in get_all_bayes_factors. Available memory: {}".format(mem.available)
-    logger.debug(msg)
-
     logger.debug("Applying on regions")
     bfs = []
     for idx, row in orfs.iterrows():
@@ -273,10 +267,6 @@ def get_all_bayes_factors(orfs, args):
 
     bfs = pd.DataFrame(bfs)
     
-    mem = psutil.virtual_memory()
-    msg = "End of get_all_bayes_factors. Available memory: {}".format(mem.available)
-    logger.debug(msg)
-
     return bfs
 
 def get_all_bayes_factors_args(orfs):
@@ -309,10 +299,6 @@ def get_all_bayes_factors_args(orfs):
     profiles = scipy.sparse.csr_matrix((profiles_data, profiles_indices, profiles_indptr), 
         shape=profiles_shape, copy=False)
 
-    mem = psutil.virtual_memory()
-    msg = "After starting starmap get_all_bayes_factors. Available memory: {}".format(mem.available)
-    logger.debug(msg)
-
     logger.debug("Applying on regions")
     bfs = []
     for idx, row in orfs.iterrows():
@@ -333,39 +319,7 @@ def get_all_bayes_factors_args(orfs):
         bfs.append(row)
 
     bfs = pd.DataFrame(bfs)
-    
-    mem = psutil.virtual_memory()
-    msg = "End of get_all_bayes_factors. Available memory: {}".format(mem.available)
-    logger.debug(msg)
-
     return bfs
-
-
-
-def apply_starmap_groups(groups, num_cpus, func, *args):
-    if len(groups) == 0:
-        return []
-
-    # create the worker pool
-    pool = multiprocessing.Pool(processes = num_cpus)
-
-    starmap_args = [
-        (group, *args) for name, group in groups
-    ]
-
-    results = pool.starmap(func, starmap_args)
-
-    return results
-
-def apply_starmap_split(data_frame, num_cpus, func, *args, num_groups=None):
-    
-    if num_groups is None:
-        num_groups = num_cpus
-
-    parallel_indices = np.arange(len(data_frame)) // (len(data_frame) / num_groups)
-    split_groups = data_frame.groupby(parallel_indices)
-    res = apply_starmap_groups(split_groups, num_cpus, func, *args)
-    return res
 
 def main():
     global profiles_data, profiles_indices, profiles_indptr, profiles_shape
@@ -450,7 +404,7 @@ def main():
     # read in the regions and apply the filters
     msg = "Reading and filtering ORFs"
     logger.info(msg)
-    regions = bio.read_bed(args.regions)
+    regions = bed_utils.read_bed(args.regions)
 
     # by default, keep everything
     m_filters = np.array([True] * len(regions))
@@ -469,12 +423,6 @@ def main():
         m_max_length = regions['orf_len'] <= args.max_length
         m_filters = m_max_length & m_filters
 
-    
-    mem = psutil.virtual_memory()
-    msg = "Before reading profiles. Available memory: {}".format(mem.available)
-    logger.debug(msg)
-
-
     # min profile
     profiles = scipy.io.mmread(args.profiles).tocsr()
     profiles_sums = profiles.sum(axis=1)
@@ -492,46 +440,26 @@ def main():
     msg = "Number of regions after filtering: {}".format(len(regions))
     logger.info(msg)
 
-    # read in everything else in the parallel call
-
-
-    mem = psutil.virtual_memory()
-    msg = "Before reading models. Available memory: {}".format(mem.available)
-    logger.debug(msg)
-
-
     logger.debug("Reading models")
     translated_models = [pickle.load(open(tm, 'rb')) for tm in args.translated_models]
     untranslated_models = [pickle.load(open(bm, 'rb')) for bm in args.untranslated_models]
     
-    mem = psutil.virtual_memory()
-    msg = "Before parallel call. Available memory: {}".format(mem.available)
-    logger.debug(msg)
-
-    # calculate the bayes' factor for each region
-    #bfs_l = parallel.apply_parallel_split(regions, args.num_cpus, get_all_bayes_factors, args,
-    #    num_groups=args.num_groups, progress_bar=True)
-    
-    # this still seems to create copies of profiles
-    #bfs_l = apply_starmap_split(regions, args.num_cpus,
-    #    get_all_bayes_factors_args, profiles, translated_models, untranslated_models, args,
-    #    num_groups=args.num_groups)
-
     profiles_data = multiprocessing.RawArray(ctypes.c_double, profiles.data.flat)
     profiles_indices = multiprocessing.RawArray(ctypes.c_int, profiles.indices)
     profiles_indptr = multiprocessing.RawArray(ctypes.c_int, profiles.indptr)
     profiles_shape = multiprocessing.RawArray(ctypes.c_int, profiles.shape)
 
-    bfs_l = apply_starmap_split(regions, args.num_cpus,
-        get_all_bayes_factors_args, num_groups=args.num_groups)
+    bfs_l = parallel.apply_parallel_split(
+        regions, 
+        args.num_cpus,
+        get_all_bayes_factors_args, 
+        num_groups=args.num_groups
+    )
 
-    # try passing the three internal arrays that scipy.csr uses
-    # they need to be 
     bfs = pd.concat(bfs_l)
 
     # write the results as a bed12+ file
-    bio.write_bed(bfs, args.out)
-
+    bed_utils.write_bed(bfs, args.out)
 
 if __name__ == '__main__':
     main()

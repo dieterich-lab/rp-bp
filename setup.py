@@ -204,7 +204,7 @@ def readme():
         return f.read()
 
 setup(name='rpbp',
-        version='1.1.1',
+        version='1.1.2',
         description="This package contains the Rp-Bp pipeline for predicting translation of open reading frames from ribosome profiling data.",
         long_description=readme(),
         keywords="rpbp ribosome profiling bayesian inference markov chain monte carlo translation",

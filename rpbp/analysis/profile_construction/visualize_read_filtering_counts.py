@@ -93,6 +93,7 @@ def main():
     args = parser.parse_args()
     logging_utils.update_logging(args)
 
+    
     if args.without_rrna:
         msg = "Using the default without rrna field order"
         logger.info(msg)
