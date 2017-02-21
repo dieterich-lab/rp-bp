@@ -179,15 +179,16 @@ def main():
 
     for condition_name in sorted(riboseq_replicates.keys()):
     
-        tmp_str = ""
-        if args.tmp is not None:
-            tmp = os.path.join(args.tmp, "{}_{}_rpbp".format(condition_name, note))
-            tmp_str = "--tmp {}".format(tmp)
-            
         # then we predict the ORFs
-        cmd = ("predict-translated-orfs {} {} --num-cpus {} {} {} {} {} {}".format(args.config, 
-                condition_name, args.num_cpus, tmp_str, do_not_call_str, overwrite_str, 
-                logging_str, merge_replicates_str))
+        cmd = "predict-translated-orfs {} {} --num-cpus {} {} {} {} {}".format(
+            args.config, 
+            condition_name, 
+            args.num_cpus, 
+            do_not_call_str, 
+            overwrite_str, 
+            logging_str, 
+            merge_replicates_str
+        )
 
         slurm.check_sbatch(cmd, args=args, dependencies=job_ids)
 
