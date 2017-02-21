@@ -4,6 +4,12 @@ All notable changes to Rp-Bp will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/), 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.1.3] - 2017-02-21
+### Fixed
+- Handling of Stan model paths which include spaces. See [Issue #36](https://github.com/dieterich-lab/rp-bp/issues/36) 
+  for more details. This bug was reintroduced with the commit:
+  "UPD resolve conflicts from dev for version 1.1"
+
 ## [1.1.2] - 2017-02-15
 ### Fixed
 - Backward-compatiblity syntax in `estimate-orf-bayes-factors`. See [Issue #51](https://github.com/dieterich-lab/rp-bp/issues/51#issuecomment-280024994) for more details.
