@@ -43,37 +43,37 @@ translation_prediction_scripts = [
 ]
 
 preprocessing_report_scripts = [
-    'create-read-length-metagene-profile-plot=rpbp.analysis.profile_construction.create_read_length_metagene_profile_plot:main [analysis]',
-    'visualize-metagene-profile-bayes-factor=rpbp.analysis.profile_construction.visualize_metagene_profile_bayes_factor:main [analysis]',
-    'create-preprocessing-report=rpbp.analysis.profile_construction.create_preprocessing_report:main [analysis]',
-    'get-all-read-filtering-counts=rpbp.analysis.profile_construction.get_all_read_filtering_counts:main [analysis]',
-    'visualize-read-filtering-counts=rpbp.analysis.profile_construction.visualize_read_filtering_counts:main [analysis]'
+    'create-read-length-metagene-profile-plot=rpbp.analysis.profile_construction.create_read_length_metagene_profile_plot:main',
+    'visualize-metagene-profile-bayes-factor=rpbp.analysis.profile_construction.visualize_metagene_profile_bayes_factor:main',
+    'create-preprocessing-report=rpbp.analysis.profile_construction.create_preprocessing_report:main',
+    'get-all-read-filtering-counts=rpbp.analysis.profile_construction.get_all_read_filtering_counts:main',
+    'visualize-read-filtering-counts=rpbp.analysis.profile_construction.visualize_read_filtering_counts:main'
 ]
 
 predictions_report_scripts = [
-    'visualize-orf-type-metagene-profiles=rpbp.analysis.rpbp_predictions.visualize_orf_type_metagene_profiles:main [analysis]',
-    'create-orf-types-pie-chart=rpbp.analysis.rpbp_predictions.create_orf_types_pie_chart:main [analysis]',
-    'create-orf-length-distribution-line-graph=rpbp.analysis.rpbp_predictions.create_orf_length_distribution_line_graph:main [analysis]',
-    'create-predictions-report=rpbp.analysis.rpbp_predictions.create_predictions_report:main [analysis]',
-    'create-bf-rpkm-scatter-plot=rpbp.analysis.rpbp_predictions.create_bf_rpkm_scatter_plot:main [analysis]'
+    'visualize-orf-type-metagene-profiles=rpbp.analysis.rpbp_predictions.visualize_orf_type_metagene_profiles:main',
+    'create-orf-types-pie-chart=rpbp.analysis.rpbp_predictions.create_orf_types_pie_chart:main',
+    'create-orf-length-distribution-line-graph=rpbp.analysis.rpbp_predictions.create_orf_length_distribution_line_graph:main',
+    'create-predictions-report=rpbp.analysis.rpbp_predictions.create_predictions_report:main',
+    'create-bf-rpkm-scatter-plot=rpbp.analysis.rpbp_predictions.create_bf_rpkm_scatter_plot:main'
 ]
 
 proteomics_report_scripts = [
-    'get-orf-peptide-matches=rpbp.analysis.proteomics.get_orf_peptide_matches:main [analysis]',
-    'get-all-orf-peptide-matches=rpbp.analysis.proteomics.get_all_orf_peptide_matches:main [analysis]',
-    'create-orf-peptide-coverage-line-graph=rpbp.analysis.proteomics.create_orf_peptide_coverage_line_graph:main [analysis]',
-    'filter-nonunique-peptide-matches=rpbp.analysis.proteomics.filter_nonunique_peptide_matches:main [analysis]',
-    'create-proteomics-report=rpbp.analysis.proteomics.create_proteomics_report:main [analysis]'
+    'get-orf-peptide-matches=rpbp.analysis.proteomics.get_orf_peptide_matches:main',
+    'get-all-orf-peptide-matches=rpbp.analysis.proteomics.get_all_orf_peptide_matches:main',
+    'create-orf-peptide-coverage-line-graph=rpbp.analysis.proteomics.create_orf_peptide_coverage_line_graph:main',
+    'filter-nonunique-peptide-matches=rpbp.analysis.proteomics.filter_nonunique_peptide_matches:main',
+    'create-proteomics-report=rpbp.analysis.proteomics.create_proteomics_report:main'
 ]
 
 other_scripts = [
-    'extract-orf-types=rpbp.analysis.extract_orf_types:main [analysis]',
-    'create-riboseq-test-dataset=rpbp.analysis.create_riboseq_test_dataset:main [analysis]',
-    'match-orfs-with-qti-seq-peaks=rpbp.analysis.qti_seq.match_orfs_with_qti_seq_peaks:main [analysis]',
-    'match-orfs-with-mackowiak-sorfs=rpbp.analysis.conservation.match_orfs_with_mackowiak_sorfs:main [analysis]',
-    'perform-mackowiak-permutation-test=rpbp.analysis.conservation.perform_mackowiak_permutation_test:main [analysis]',
-    'add-mygene-info-to-orfs=rpbp.analysis.rpbp_predictions.add_mygene_info_to_orfs:main [analysis]',
-    'find-differential-micropeptides=rpbp.analysis.find_differential_micropeptides:main [analysis]',
+    'extract-orf-types=rpbp.analysis.extract_orf_types:main',
+    'create-riboseq-test-dataset=rpbp.analysis.create_riboseq_test_dataset:main',
+    'match-orfs-with-qti-seq-peaks=rpbp.analysis.qti_seq.match_orfs_with_qti_seq_peaks:main',
+    'match-orfs-with-mackowiak-sorfs=rpbp.analysis.conservation.match_orfs_with_mackowiak_sorfs:main',
+    'perform-mackowiak-permutation-test=rpbp.analysis.conservation.perform_mackowiak_permutation_test:main',
+    'add-mygene-info-to-orfs=rpbp.analysis.rpbp_predictions.add_mygene_info_to_orfs:main',
+    'find-differential-micropeptides=rpbp.analysis.find_differential_micropeptides:main',
     'cluster-subcodon-counts=rpbp.analysis.profile_construction.cluster_subcodon_counts:main',
     'visualize-subcodon-clusters=rpbp.analysis.profile_construction.visualize_subcodon_clusters:main',
     'create-read-length-orf-profiles=rpbp.analysis.profile_construction.create_read_length_orf_profiles:main',
@@ -206,7 +206,7 @@ def readme():
         return f.read()
 
 setup(name='rpbp',
-        version='1.1.3',
+        version='1.1.4',
         description="This package contains the Rp-Bp pipeline for predicting translation of open reading frames from ribosome profiling data.",
         long_description=readme(),
         keywords="rpbp ribosome profiling bayesian inference markov chain monte carlo translation",
