@@ -119,7 +119,7 @@ def main():
     df = pd.DataFrame(alignment_diff_counts)
     df.columns = args.alignment_counts_names
     
-    names = alignment_counts['note'].reset_index(drop=True)
+    names = alignment_counts['name'].reset_index(drop=True)
     df['name'] = names
 
     msg = "Creating the stacked bar chart"

@@ -23,8 +23,6 @@ import misc.utils as utils
 
 logger = logging.getLogger(__name__)
 
-default_tmp = None
-
 default_num_cpus = 2
 
 def get_counts(name_data, config, args):
@@ -100,13 +98,7 @@ def get_counts(name_data, config, args):
         logger.warning(msg)
         length_count = 0
 
-    msg = ("{}: counting filtered reads does not work correctly due to counting "
-        "multiple isoforms. It is disabled.".format(name))
-    logger.warning(msg)
-    transcriptome_count = 0
-
     ret = {
-        'mapping_info_header': 'mapping_info',
         'note': name,
         'raw_data_count': raw_data_count,
         'without_adapters_count': without_adapters_count,
@@ -114,7 +106,6 @@ def get_counts(name_data, config, args):
         'genome_count': genome_count,
         'unique_count': unique_count,
         'length_count': length_count,
-        'transcriptome_count': transcriptome_count
     }
 
     return pd.Series(ret)
@@ -129,9 +120,6 @@ def main():
     parser.add_argument('-p', '--num-cpus', help="The number of processors to use", 
         type=int, default=default_num_cpus)
     parser.add_argument('--overwrite', action='store_true')
-    
-    parser.add_argument('--tmp', help="Intermediate files (such as fastqc reports when "
-        "they are first generated) will be written here", default=default_tmp)
     
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
