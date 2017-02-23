@@ -4,6 +4,11 @@ All notable changes to Rp-Bp will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/), 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [in progress]
+### Added
+- Documentation for the analysis scripts
+- Documentation for creating reference indices
+
 ## [1.1.2] - 2017-02-15
 ### Fixed
 - Backward-compatiblity syntax in `estimate-orf-bayes-factors`. See [Issue #51](https://github.com/dieterich-lab/rp-bp/issues/51#issuecomment-280024994) for more details.
