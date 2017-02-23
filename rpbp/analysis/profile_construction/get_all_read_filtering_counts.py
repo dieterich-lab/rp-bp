@@ -105,7 +105,7 @@ def get_counts(name_data, config, args):
         'without_rrna_count': without_rrna_count,
         'genome_count': genome_count,
         'unique_count': unique_count,
-        'length_count': length_count,
+        'length_count': length_count
     }
 
     return pd.Series(ret)
@@ -120,7 +120,7 @@ def main():
     parser.add_argument('-p', '--num-cpus', help="The number of processors to use", 
         type=int, default=default_num_cpus)
     parser.add_argument('--overwrite', action='store_true')
-    
+
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)

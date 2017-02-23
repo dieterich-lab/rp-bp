@@ -132,6 +132,8 @@ stan_pickle_files = [
 def _post_install(self):
     import site
     importlib.reload(site)
+
+    import shlex
     
     import riboutils.ribo_filenames as filenames
     import misc.utils as utils
@@ -154,7 +156,7 @@ def _post_install(self):
         if not os.path.exists(dirname):
             os.makedirs(dirname)
 
-        cmd = "pickle-stan {} {}".format(stan, pickle)
+        cmd = "pickle-stan {} {}".format(shlex.quote(stan), shlex.quote(pickle))
         logging.info(cmd)
         subprocess.call(cmd, shell=True)
 
@@ -204,7 +206,7 @@ def readme():
         return f.read()
 
 setup(name='rpbp',
-        version='1.1.2',
+        version='1.1.3',
         description="This package contains the Rp-Bp pipeline for predicting translation of open reading frames from ribosome profiling data.",
         long_description=readme(),
         keywords="rpbp ribosome profiling bayesian inference markov chain monte carlo translation",
