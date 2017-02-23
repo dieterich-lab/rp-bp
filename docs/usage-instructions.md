@@ -20,13 +20,23 @@ This document describes the steps to run each of these phases. It shows some sam
 
 ## Creating reference genome indices
 
-This section describes the steps necessary to prepare a reference genome and matching annotation for use in the Rp-Bp and Rp-chi pipelines. The process must only be run once for each reference genome and set of annotations.
+This section describes the steps necessary to prepare a reference genome and
+matching annotation for use in the Rp-Bp pipeline. The process must only be run
+once for each reference genome and set of annotations.
 
-The entire index creation process can be run automatically using the `prepare-rpbp-genome` scripts. It reads most of the required paths from a [YAML](http://www.yaml.org/start.html) configuration file. Additionally, it automatically creates some of the output paths.
+Please see [creating reference indices](creating-reference-indices.md) for more
+details about choosing the appropriate files from Ensemble, etc., for Rp-Bp.
 
-The script accepts a `--overwrite` flag. Unless this is given, then steps for which the output file already exists will be skipped.
+The entire index creation process can be run automatically using the
+`prepare-rpbp-genome` scripts. It reads most of the required paths from a
+[YAML](http://www.yaml.org/start.html) configuration file. Additionally, it
+automatically creates some of the output paths.
 
-It also accepts a `--do-not-call` flag. If this flag is given, then the commands below will be printed but not executed.
+The script accepts a `--overwrite` flag. Unless this is given, then steps for
+which the output file already exists will be skipped.
+
+It also accepts a `--do-not-call` flag. If this flag is given, then the commands
+below will be printed but not executed.
 
 [Logging options](#logging-options) can be given to this script.
 
