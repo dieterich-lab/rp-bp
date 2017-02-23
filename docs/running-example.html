@@ -1,23 +1,26 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta http-equiv="Content-Style-Type" content="text/css" />
-  <meta name="generator" content="pandoc" />
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title></title>
   <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
 </head>
 <body>
 <h1 id="running-the-small-example-dataset">Running the small example dataset</h1>
 <p>A small example dataset using <em>C. elegans</em> is available for <a href="http://cloud.dieterichlab.org/index.php/s/3cyluM3ZCsvf0PT/download">download</a>. Please see <a href="#example-dataset-files">below</a> for the exact contents of the download, as well as instructions for downloading it from the command line.</p>
 <p>Additionally, the expected outputs of the pipeline are included. Due to differences among versions of the external programs used in the pipeline (samtools, etc.), it is unlikely that all intermediate files will match exactly. However, we do include a script to compare the ORFs predicted as translated using the pipeline to those which are expected. If these differ significantly, it suggests something is not working correctly in the pipeline.</p>
-<p>If the results differ significantly, please run the pipeline using the &quot;DEBUG&quot; logging level (see the <a href="usage-instructions.ipynb#logging-options">usage instructions</a>). This causes the scripts to output detailed runtime information which can be helpful for tracking down problems. If the problem is still not clear, please report the problem at the <a href="https://github.com/dieterich-lab/rp-bp/issues">github bug tracker</a>.</p>
+<p>If the results differ significantly, please run the pipeline using the “DEBUG” logging level (see the <a href="usage-instructions.ipynb#logging-options">usage instructions</a>). This causes the scripts to output detailed runtime information which can be helpful for tracking down problems. If the problem is still not clear, please report the problem at the <a href="https://github.com/dieterich-lab/rp-bp/issues">github bug tracker</a>.</p>
 <p>In total, creating the reference index files should take about 5 minutes and running the main pipeline should take an additional 15 to 20 minutes on a commodity laptop.</p>
 <p><a id='toc'></a></p>
 <ul>
-<li><a href="#example-dataset-files">Example dataset files</a><br /></li>
-<li><a href="#creating-reference-indices">Creating the reference index files</a><br /></li>
-<li><a href="#running-rpbp-pipeline">Running the Rp-Bp pipeline (also with replicates)</a><br /></li>
+<li><a href="#example-dataset-files">Example dataset files</a></li>
+<li><a href="#creating-reference-indices">Creating the reference index files</a></li>
+<li><a href="#running-rpbp-pipeline">Running the Rp-Bp pipeline (also with replicates)</a></li>
 <li><a href="#common-problems">Common problems</a></li>
 </ul>
 <p><a id="example-dataset-files"></a></p>
@@ -43,11 +46,11 @@ tar -xvf c-elegans-chrI-example.tar.gz</code></pre>
 <h2 id="creating-the-reference-index-files">Creating the reference index files</h2>
 <p><strong>Before running the example</strong> the paths in the <code>WBcel235.79.chrI.yaml</code> configuration file must be updated to point to the correct locations. The following configuration values should be updated to point to the appropriate files in the example. (Mostly, <code>/home/bmalone/python-projects/rp-bp/data/</code> should be replaced to the location of the examples.)</p>
 <ul>
-<li><code>gtf</code><br /></li>
-<li><code>fasta</code><br /></li>
-<li><code>ribosomal_fasta</code><br /></li>
-<li><code>genome_base_path</code><br /></li>
-<li><code>ribosomal_index</code><br /></li>
+<li><code>gtf</code></li>
+<li><code>fasta</code></li>
+<li><code>ribosomal_fasta</code></li>
+<li><code>genome_base_path</code></li>
+<li><code>ribosomal_index</code></li>
 <li><code>star_index</code></li>
 </ul>
 <p>The following command will create the necessary reference files using 2 CPUS and 4GB of RAM for STAR. Please see the <a href="usage-instructions.ipynb#creating-reference-genome-indices">usage instructions</a> for the expected output files.</p>
@@ -64,22 +67,22 @@ tar -xvf c-elegans-chrI-example.tar.gz</code></pre>
 <p><strong>Before running the example</strong> the paths in the <code>c-elegans-test.yaml</code> configuration file must be updated to point to the correct locations. The following configuration values should be updated to point to the appropriate files in the example. (Mostly, <code>/home/bmalone/python-projects/rp-bp/data/</code> should be replaced to the location of the examples.)</p>
 <p>Reference files and locations should be exactly the same as used in the <code>WBcel235.79.chrI.yaml</code> file.</p>
 <ul>
-<li><code>gtf</code><br /></li>
-<li><code>fasta</code><br /></li>
-<li><code>genome_base_path</code><br /></li>
-<li><code>ribosomal_index</code><br /></li>
+<li><code>gtf</code></li>
+<li><code>fasta</code></li>
+<li><code>genome_base_path</code></li>
+<li><code>ribosomal_index</code></li>
 <li><code>star_index</code></li>
 </ul>
 <p>The sample and output file paths must also be updated.</p>
 <ul>
-<li><code>riboseq_samples</code><br /></li>
-<li><code>riboseq_data</code><br /></li>
+<li><code>riboseq_samples</code></li>
+<li><code>riboseq_data</code></li>
 <li><code>adapter_file</code></li>
 </ul>
 <p>The following command will run the Rp-Bp (and Rp-chi) translation prediction pipelines using 2 CPUS. Please see the <a href="usage-instructions.ipynb#running-pipelines">usage instructions</a> for the expected output files.</p>
 <p>The <code>--use-slurm</code> and related options can also be used if SLURM is available. Please see the <a href="usage-instructions.ipynb#parallel-processing-options">usage instructions</a> for more information.</p>
 <p>N.B. The <code>--overwrite</code> flag is given below to ensure all of the files are (re-)created. In typical use cases, if some of the files already exist (e.g., the quality-filtered reads), then this flag can be omitted.</p>
-<p>N.B. While performing the MCMC sampling, many messages indicating the &quot;Elapsed Time&quot; will be printed. This is a <a href="https://github.com/stan-dev/pystan/issues/98">known issue</a> with pystan. Additionally, many &quot;Informational Message: The current Metropolis proposal is about to be rejected because of the following issue&quot; may also appear. These are also expected and (typically) do not indicate an actual problem.</p>
+<p>N.B. While performing the MCMC sampling, many messages indicating the “Elapsed Time” will be printed. This is a <a href="https://github.com/stan-dev/pystan/issues/98">known issue</a> with pystan. Additionally, many “Informational Message: The current Metropolis proposal is about to be rejected because of the following issue” may also appear. These are also expected and (typically) do not indicate an actual problem.</p>
 <p><strong>Using replicates</strong></p>
 <p>The Rp-Bp pipeline handles replicates by adding the (smoothed) ORF profiles. The Bayes factors and predictions are then calculated based on the combined profiles. The <code>--merge-replicates</code> flag indicates that the replicates should be merged. By default, if the <code>--merge-replicates</code> flag is given, then predictions will not be made for the individual datasets. The <code>--run-replicates</code> flag can be given to override this and make predictions for both the merged replicates as well as the individual datasets.</p>
 <p>The replicates are specified by <code>riboseq_biological_replicates</code> in the configuration file. This value should be a dictionary, where the key of the dictionary is a string description of the condition and the value is a list that gives all of the sample replicates which belong to that condition. The names of the sample replicates must match the dataset names specified in <code>riboseq_samples</code>.</p>
@@ -101,7 +104,7 @@ run-all-rpbp-instances c-elegans-test.yaml --overwrite --num-cpus 2 --logging-le
 <ul>
 <li><p><code>--flexbar-format-option</code>. Older versions of flexbar used <code>format</code> as the command line option to specify the format of the fastq quality scores, while newer versions use <code>qtrim-format</code>. Depending on the installed version of flexbar, this option may need to be changed. Default: <code>qtrim-format</code></p></li>
 <li><p><code>--star-executable</code>. In principle, <code>STARlong</code> (as opposed to <code>STAR</code>) could be used for alignment. Given the nature of riboseq reads (that is, short due to the experimental protocols of degrading everything not protected by a ribosome), this is unlikely to be a good choice, though. Default: <code>STAR</code></p></li>
-<li><p><code>--star-read-files-command</code>. The input for <code>STAR</code> will always be a gzipped fastq file. <code>STAR</code> needs the system command which means &quot;read a gzipped text file&quot;. As discovered in <a href="https://github.com/dieterich-lab/rp-bp/issues/35">Issue #35</a>, the name of this command is different on OSX and ubuntu. The program now attempts to guess the name of this command based on the system operating system, but it can be explicitly specified as a command line option. Default: <code>gzcat</code> if <code>sys.platform.startswith(&quot;darwin&quot;)</code>; <code>zcat</code> otherwise. Please see <a href="https://docs.python.org/3/library/sys.html">python.sys documentation</a> for more details about attempting to guess the operating system.</p></li>
+<li><p><code>--star-read-files-command</code>. The input for <code>STAR</code> will always be a gzipped fastq file. <code>STAR</code> needs the system command which means “read a gzipped text file”. As discovered in <a href="https://github.com/dieterich-lab/rp-bp/issues/35">Issue #35</a>, the name of this command is different on OSX and ubuntu. The program now attempts to guess the name of this command based on the system operating system, but it can be explicitly specified as a command line option. Default: <code>gzcat</code> if <code>sys.platform.startswith(&quot;darwin&quot;)</code>; <code>zcat</code> otherwise. Please see <a href="https://docs.python.org/3/library/sys.html">python.sys documentation</a> for more details about attempting to guess the operating system.</p></li>
 </ul>
 <p><a href="#toc">Back to top</a></p>
 </body>

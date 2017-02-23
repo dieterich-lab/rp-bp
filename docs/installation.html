@@ -1,29 +1,32 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta http-equiv="Content-Style-Type" content="text/css" />
-  <meta name="generator" content="pandoc" />
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title></title>
   <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
 </head>
 <body>
 <h1 id="installing-the-rp-bp-pipeline">Installing the Rp-Bp pipeline</h1>
 <p>This document describes detailed installation instructions for the Rp-Bp pipeline. These steps have been primarily tested on Ubuntu.</p>
 <p><a id="toc"></a></p>
 <ul>
-<li><a href="#prerequisites">Prerequisites</a><br /></li>
-<li><a href="#simple-installation">Simple installation</a><br /></li>
-<li><a href="#virtual-environment-installation">Virtual environment installation</a><br /></li>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#simple-installation">Simple installation</a></li>
+<li><a href="#virtual-environment-installation">Virtual environment installation</a></li>
 <li><a href="#anaconda-installation">Anaconda installation</a></li>
 </ul>
 <p><a id="prerequisites"></a></p>
 <h2 id="prerequisites">Prerequisites</h2>
 <p>The pipelines make use of a number of standard bioinformatics tools. All of these must be installed and available on the <code>$PATH</code> for the pipeline to work correctly. All of the pipeline scripts check that the required programs are available before executing. If any required programs cannot be found, the script prints an error message about the missing program and does not continue. The versions used during development and testing are specified below. For most of the tools, any recent version should be sufficient. If problems arise, though, please use the version indicated below</p>
 <ul>
-<li><a href="http://bowtie-bio.sourceforge.net/bowtie2/index.shtml">bowtie2</a>, version 2.2.6<br /></li>
-<li><a href="https://github.com/seqan/flexbar">flexbar</a>, version 2.5<br /></li>
-<li><a href="http://www.htslib.org/">SAMtools</a>, version 1.2<br /></li>
+<li><a href="http://bowtie-bio.sourceforge.net/bowtie2/index.shtml">bowtie2</a>, version 2.2.6</li>
+<li><a href="https://github.com/seqan/flexbar">flexbar</a>, version 2.5</li>
+<li><a href="http://www.htslib.org/">SAMtools</a>, version 1.2</li>
 <li><a href="https://github.com/alexdobin/STAR">STAR</a>, version 2.4.1d</li>
 </ul>
 <h4 id="openblas">OpenBLAS</h4>
@@ -31,10 +34,10 @@
 <p><a href="#toc">Back to top</a></p>
 <p><a id='simple-installation'></a></p>
 <h2 id="simple-installation">Simple installation</h2>
-<p>We recommend installing the application in a virtual environment as described <a href="#virtual-environment-installation">below</a>. If this is not desired for some reason, the following instructions can be used to install the package without sudo access in a user's home directory.</p>
-<p>The commands below are presumably executed in a directory like <code>$HOME/install</code>. They install the python executables into <code>$HOME/local/bin</code> (or wherever the <code>prefix</code> option is located).<br />So that directory must be in the <code>$PATH</code>.<br />This can be accomplished by adding a line like <code>export PATH=$HOME/local/bin:$PATH</code> in the file <code>.bashrc</code> on Ubuntu.</p>
+<p>We recommend installing the application in a virtual environment as described <a href="#virtual-environment-installation">below</a>. If this is not desired for some reason, the following instructions can be used to install the package without sudo access in a user’s home directory.</p>
+<p>The commands below are presumably executed in a directory like <code>$HOME/install</code>. They install the python executables into <code>$HOME/local/bin</code> (or wherever the <code>prefix</code> option is located). So that directory must be in the <code>$PATH</code>. This can be accomplished by adding a line like <code>export PATH=$HOME/local/bin:$PATH</code> in the file <code>.bashrc</code> on Ubuntu.</p>
 <p><strong>N.B. It is very important that pip and wheel are upgraded!</strong></p>
-<p>N.B. The <code>--user</code> option can also be given to pip3 for installation within the user's home directory. The installation is then compatible with system-wide python3 installations without requiring sudo access.</p>
+<p>N.B. The <code>--user</code> option can also be given to pip3 for installation within the user’s home directory. The installation is then compatible with system-wide python3 installations without requiring sudo access.</p>
 <pre><code>### Lines to add to .bashrc
 
 # for the installation process
@@ -62,8 +65,8 @@ cd rp-bp &amp;&amp; pip3 install --verbose --user  -r requirements.txt</code></p
 <p><a href="#toc">Back to top</a></p>
 <p><a id='virtual-environment-installation'></a></p>
 <h2 id="virtual-environment-installation">Virtual environment installation</h2>
-<p>These instructions explain how to install the software and most dependencies from scratch without required root access.<br />It only requires standard development libraries and tools, like gcc and the gzip development headers.<br />The python build scripts will also output a line like &quot;The necessary bits to build these optional modules were not found&quot; if any optional libraries, developoment headers, etc., are not found.</p>
-<p>The commands below are presumably executed in a directory like <code>$HOME/install</code>.<br />They install the python executables into <code>$HOME/local/bin</code> (or wherever the <code>prefix</code> option is located).<br />So that directory must be in the <code>$PATH</code>.<br />This can be accomplished by adding a line like <code>export PATH=$HOME/local/bin:$PATH</code> in the file <code>.bashrc</code> on Ubuntu.</p>
+<p>These instructions explain how to install the software and most dependencies from scratch without required root access. It only requires standard development libraries and tools, like gcc and the gzip development headers. The python build scripts will also output a line like “The necessary bits to build these optional modules were not found” if any optional libraries, developoment headers, etc., are not found.</p>
+<p>The commands below are presumably executed in a directory like <code>$HOME/install</code>. They install the python executables into <code>$HOME/local/bin</code> (or wherever the <code>prefix</code> option is located). So that directory must be in the <code>$PATH</code>. This can be accomplished by adding a line like <code>export PATH=$HOME/local/bin:$PATH</code> in the file <code>.bashrc</code> on Ubuntu.</p>
 <pre><code>### Lines to add to .bashrc
 
 # for the virtual environment

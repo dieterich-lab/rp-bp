@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="downstream-analysis-of-the-rp-bp-results">Downstream analysis of the Rp-Bp results</h1>
+<h2 id="creating-read-length-specific-profiles">Creating read length-specific profiles</h2>
+<p>As described in the <a href="usage-instructions.html#output-files-1">usage instructions</a>, Rp-Bp writes the unsmoothed ORF profiles to a matrix market file. This profile merges reads of all lengths.</p>
+<p>The <code>create-read-length-orf-profiles</code> script can be used to create profile files which also include counts of individual read lengths.</p>
+<pre><code>create-read-length-orf-profiles &lt;config&gt; &lt;sample or condition name&gt; &lt;out&gt; [--is-condition]</code></pre>
+<h3 id="command-line-options">Command line options</h3>
+<ul>
+<li><p><code>config</code>. A yaml config file</p></li>
+<li><p><code>sample or condition name</code>. The name of either one of the <code>riboseq_samples</code> or <code>riboseq_biological_replicates</code> from the config file</p></li>
+<li><p><code>out</code>. The output (txt.gz) file, containing the read-length specific profiles. The format is a sparse coordinate format inspired by the <a href="http://math.nist.gov/MatrixMarket/formats.html">matrix market format</a>. See below for details about the output format.</p></li>
+<li><p>[<code>--is-condition</code>]. If the <code>sample or condition name</code> is a condition, that is, if it is a key from <code>riboseq_biological_replicates</code>, then this flag must be given.</p></li>
+</ul>
+<p>Additionally, the command can be given <a href="usage-instructions.html#logging-options">logging</a> and <a href="usage-instructions.html#parallel-processing-options">slurm</a> options.</p>
+<h3 id="output-format">Output format</h3>
+<p>Each line in the output file is a tuple containing the following values.</p>
+<ul>
+<li><p><code>read_length</code>. The (trimmed) read lengths for this position.</p></li>
+<li><p><code>orf_num</code>. An identifier which maps to <code>orf_num</code> in the <a href="usage-instructions.html#output-files">(static) list of ORFs</a> for the reference, <code>&lt;genome_base_path&gt;/transcript-index/&lt;genome_name&gt;.genomic-orfs.&lt;orf_note&gt;.bed.gz</code>.</p></li>
+<li><p><code>orf_position</code>. The base-0 position with respect to the spliced transcript (so <code>position % 3 == 0</code> implies the position is in-frame)</p></li>
+<li><p><code>read_count</code>. The sum of counts across all replicates for the condition (if <code>--is-condition</code> is given) or the single sample (otherwise) after adjusting according to P-sites and removing multimappers.</p></li>
+</ul>
+<h2 id="counting-and-visualizing-reads-filtered-at-each-step">Counting and visualizing reads filtered at each step</h2>
+<h3 id="counting">Counting</h3>
+<p>The <code>get-all-read-filtering-counts</code> script counts reads filtered at each step of the preprocessing pipeline.</p>
+<p>This script requires <code>samtools</code> to be present in <code>$PATH</code>.</p>
+<pre><code>get-all-read-filtering-counts &lt;config&gt; &lt;out&gt; [--num-cpus &lt;num_cpus&gt;]</code></pre>
+<h4 id="command-line-options-1">Command line options</h4>
+<ul>
+<li><p><code>config</code>. A yaml config file</p></li>
+<li><p><code>out</code>. The output file, in csv.gz format. See below for details.</p></li>
+<li><p>[<code>--num-cpus</code>]. The script is parallelized at the sample level. If specified, this many samples will be processed at once.</p></li>
+</ul>
+<h4 id="output-format-1">Output format</h4>
+<p>The output is a “wide” data frame which contains one row for each sample. The fields are as follows.</p>
+<ul>
+<li><code>note</code>. The name of the sample.</li>
+<li><code>raw_data_count</code>. The number of reads in the original fastq files.</li>
+<li><code>without_adapters_count</code>. The number of reads remaining after running <code>flexbar</code> to remove adapters and low-quality reads.</li>
+<li><code>without_rrna_count</code>. The number of reads remaining after removing ribosomal and other reads with <code>bowtie2</code>.</li>
+<li><code>genome_count</code>. The number of reads with at least one genome alignment.</li>
+<li><code>unique_count</code>. The number of reads with exactly one genome alignment.</li>
+<li><code>length_count</code>. The number of uniquely mapping reads which also have a “periodic” read length, as determined by BPPS.</li>
+</ul>
+<h3 id="visualizing-script">Visualizing (script)</h3>
+<p>The <code>visualize-read-filtering-counts</code> script visualizes the read counts from <code>get-all-read-filtering-counts</code>.</p>
+<pre><code>visualize-read-filtering-counts &lt;read_counts&gt; &lt;out&gt; [--without-rrna] [--title &lt;title&gt;] [--fontsize &lt;fontsize&gt;] [--legend-fontsize] &lt;legend_fontsize&gt;] [--ymax &lt;ymax&gt;] [--ystep &lt;ystep&gt;]</code></pre>
+<h4 id="command-line-options-2">Command line options</h4>
+<ul>
+<li><p><code>read_counts</code>. The output from <code>get-all-read-filtering-counts</code></p></li>
+<li><p><code>out</code>. The output image file. The extension should be something recognized by matplotlib, such as <code>png</code> or <code>pdf</code>.</p></li>
+<li><p>[<code>--without-rrna</code>]. If this flag is given, then the bar chart will not include reads filtered due to low quality or mapping to ribosomal sequences.</p></li>
+<li><p>[<code>--title</code>]. A title placed at the top of the plot</p></li>
+<li><p>[<code>--fontsize</code>]. The fontsize used for most of the text on the plot, including the tick labels (sample names and read counts), axis labels and title.</p></li>
+<li><p>[<code>--legend-fontsize</code>]. The fontsize to use for the entries in the legend (the filtering steps).</p></li>
+<li><p>[<code>--ymax</code>]. The maximum number of reads displayed on the y-axis. Typically, this value should be around 10% higher than the largest read count. However, some other value may be more appropriate if one of the samples has many more reads than the others.</p></li>
+<li><p>[<code>--ystep</code>]. The frequency of tick marks on the y-axis.</p></li>
+</ul>
+<h3 id="visualizing-ipython-notebook">Visualizing (ipython notebook)</h3>
+<p>The <code>notebooks/preprocessing/create-read-filtering-bar-chart</code> notebook can be used to visualize the read counts. It functionality is essentially the same as the <code>visualize-read-filtering-counts</code> script; however, the properties of the plot, such as the exact location of the legend, are much easier to manipulate in the notebook.</p>
+<p>Additionally, the notebook will attempt to use the <code>riboseq_sample_name_map</code> from the config file to find “pretty” names for the samples. In particular, this should be a map from the sample name given in the <code>riboseq_samples</code> to a string that will be used for the x-tick labels in the plot. If a sample name is not present in the name map, it will be left unchanged.</p>
+<h4 id="control-variables">Control variables</h4>
+<p>In the third cell, the <code>config_files</code>, <code>alignment_counts_files</code>, <code>out_files</code> and <code>without_rrna_files</code> dictionaries must be updated to include the relevant files. The key in the dictionary should be the same for all of the new files.</p>
+<p>In the fourth cell, the <code>data</code> variable should be changed to the key used in the dictionaries. The other variables (<code>without-rrna</code>, etc.) have the same interpretation as for the script.</p>
+<p>In the sixth cell, visualization aspects such as the colors, legend location, figure size, etc., can be set using the respective matplot lib options.</p>
+<h3 id="example-visualization">Example visualization</h3>
+<p><img src="images/read-filtering-counts.png" height="500"></p>
+</body>
+</html>
