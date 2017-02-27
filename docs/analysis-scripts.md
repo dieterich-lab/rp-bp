@@ -1,4 +1,11 @@
-# Downstream analysis of the Rp-Bp results
+# QC and downstream analysis of the Rp-Bp results
+
+Rp-Bp includes a number of additional scripts for quality control and downstream
+analysis.
+
+* [Creating read length-specific profiles](#Creating-read-length-specific-profiles)
+* [Counting and visualizing reads filtered at each step](#Counting-and-visualizing-reads-filtered-at each-step)
+* [Creating and visualizing read length distributions](#Creating-and-visualizing-read-length-distributions)
 
 ## Creating read length-specific profiles
 
@@ -151,3 +158,78 @@ figure size, etc., can be set using the respective matplot lib options.
 ### Example visualization
 
 <img src="images/read-filtering-counts.png" height="500">
+
+## Creating and visualizing read length distributions
+
+### Creating distributions
+
+The `get-read-length-distribution` script (part of the [misc](https://bitbucket.org/bmmalone/misc)
+package) counts the number of reads of each length in a given bam file. It can
+be used to count the read length distribution for both all aligned reads and
+only uniquely-aligning reads.
+
+**N.B.** The script handles multi-mappers to ensure they only contribute to the
+counts once.
+
+```
+get-read-length-distribution <bam_1> [<bam_2> ...] -o/--out <length-counts.csv.gz> [-p/--num-cpus <num_cpus>]
+```
+
+#### Command line options
+
+* `bam_i`. The bam files which contain the aligned reads.
+
+* `out`. The output file, in csv.gz format, which contains the counts. See
+  below for the column specifications.
+
+* [`--num-cpus`]. The number of CPUs to use; this many files will be processed
+  at once.
+
+#### Output format
+
+The output is a "long" ("tidy") data frame with the following fields.
+
+* `basename`. The name of the bam file, excluding the "`.bam`" extension.
+* `length`. The read length.
+* `count`. The number of reads of that length in the indicated file.
+
+### Visualizing the distributions (script)
+
+The `plot-read-length-distribution` script creates a bar chart of the counts
+from `get-read-length-distribution`.
+
+```
+plot-read-length-distribution <distribution> <basename> <out> [--title <title>] [--min-read-length <min_read_length>] [--max-read-length <max_read_length>] [--ymax <ymax>] [--fontsize <fontsize>]
+```
+
+### Command line options
+
+* `distribution`. The csv file created by `get-read-length-distribution`.
+* `basename`. The `basename` to visualize.
+* `out`. The output (image) file
+
+* [`--title`]. The title of the plot.
+* [`--{min, max}_read_length`]. The minimum and maximum read lengths to include in
+  the plot, inclusive. Defaults: [22, 35]
+* [`--ymax`]. The maximum value for the y-axis. Default: 1.5e6+1
+* [`--fontsize`]. The size of the fonts for the title, axis labels and ticks
+
+### Visualizing the distributions (ipython notebook)
+
+The `notebooks/preprocessing/create-read-length-distribution-bar-chart` notebook
+can be used to visualize the read counts. Its functionality is essentially the
+same as `plot-read-length-distribution`; however, the properties of the plot,
+such as the colors, are much easier to manipulate in the notebook.
+
+Additionally, the notebook will attempt to use the `riboseq_sample_name_map`
+from the config file to find "pretty" names for the samples. In particular,
+this should be a map from the sample name given in the `riboseq_samples` to a
+string that will be used for the x-tick labels in the plot. If a sample name is
+not present in the name map, it will be left unchanged.
+
+#### Control variables
+
+All of the relevant control variables in the third cell should point to the
+appropriate files.
+
+<img src="images/read-length-distribution.png" height="500">
