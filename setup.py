@@ -45,7 +45,7 @@ translation_prediction_scripts = [
 preprocessing_report_scripts = [
     'create-read-length-metagene-profile-plot=rpbp.analysis.profile_construction.create_read_length_metagene_profile_plot:main',
     'visualize-metagene-profile-bayes-factor=rpbp.analysis.profile_construction.visualize_metagene_profile_bayes_factor:main',
-    'create-preprocessing-report=rpbp.analysis.profile_construction.create_preprocessing_report:main',
+    'create-rpbp-preprocessing-report=rpbp.analysis.profile_construction.create_rpbp_preprocessing_report:main',
     'get-all-read-filtering-counts=rpbp.analysis.profile_construction.get_all_read_filtering_counts:main',
     'visualize-read-filtering-counts=rpbp.analysis.profile_construction.visualize_read_filtering_counts:main'
 ]
