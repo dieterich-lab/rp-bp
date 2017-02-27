@@ -11,7 +11,14 @@
   <![endif]-->
 </head>
 <body>
-<h1 id="downstream-analysis-of-the-rp-bp-results">Downstream analysis of the Rp-Bp results</h1>
+<h1 id="qc-and-downstream-analysis-of-the-rp-bp-results">QC and downstream analysis of the Rp-Bp results</h1>
+<p>Rp-Bp includes a number of additional scripts for quality control and downstream analysis.</p>
+<ul>
+<li><a href="#creating-read-length-specific-profiles">Creating read length-specific profiles</a></li>
+<li><a href="#counting-and-visualizing-reads-filtered-at-each-step">Counting and visualizing reads filtered at each step</a></li>
+<li><a href="#creating-and-visualizing-read-length-distributions">Creating and visualizing read length distributions</a></li>
+<li><a href="#visualizing-read-length-metagene-profiles">Visualizing read length metagene profiles</a></li>
+</ul>
 <h2 id="creating-read-length-specific-profiles">Creating read length-specific profiles</h2>
 <p>As described in the <a href="usage-instructions.html#output-files-1">usage instructions</a>, Rp-Bp writes the unsmoothed ORF profiles to a matrix market file. This profile merges reads of all lengths.</p>
 <p>The <code>create-read-length-orf-profiles</code> script can be used to create profile files which also include counts of individual read lengths.</p>
@@ -77,5 +84,62 @@
 <p>In the sixth cell, visualization aspects such as the colors, legend location, figure size, etc., can be set using the respective matplot lib options.</p>
 <h3 id="example-visualization">Example visualization</h3>
 <p><img src="images/read-filtering-counts.png" height="500"></p>
+<h2 id="creating-and-visualizing-read-length-distributions">Creating and visualizing read length distributions</h2>
+<h3 id="creating-distributions">Creating distributions</h3>
+<p>The <code>get-read-length-distribution</code> script (part of the <a href="https://bitbucket.org/bmmalone/misc">misc</a> package) counts the number of reads of each length in a given bam file. It can be used to count the read length distribution for both all aligned reads and only uniquely-aligning reads.</p>
+<p><strong>N.B.</strong> The script handles multi-mappers to ensure they only contribute to the counts once.</p>
+<pre><code>get-read-length-distribution &lt;bam_1&gt; [&lt;bam_2&gt; ...] -o/--out &lt;length-counts.csv.gz&gt; [-p/--num-cpus &lt;num_cpus&gt;]</code></pre>
+<h4 id="command-line-options-3">Command line options</h4>
+<ul>
+<li><p><code>bam_i</code>. The bam files which contain the aligned reads.</p></li>
+<li><p><code>out</code>. The output file, in csv.gz format, which contains the counts. See below for the column specifications.</p></li>
+<li><p>[<code>--num-cpus</code>]. The number of CPUs to use; this many files will be processed at once.</p></li>
+</ul>
+<h4 id="output-format-2">Output format</h4>
+<p>The output is a “long” (“tidy”) data frame with the following fields.</p>
+<ul>
+<li><code>basename</code>. The name of the bam file, excluding the “<code>.bam</code>” extension.</li>
+<li><code>length</code>. The read length.</li>
+<li><code>count</code>. The number of reads of that length in the indicated file.</li>
+</ul>
+<h3 id="visualizing-the-distributions-script">Visualizing the distributions (script)</h3>
+<p>The <code>plot-read-length-distribution</code> script creates a bar chart of the counts from <code>get-read-length-distribution</code>.</p>
+<pre><code>plot-read-length-distribution &lt;distribution&gt; &lt;basename&gt; &lt;out&gt; [--title &lt;title&gt;] [--min-read-length &lt;min_read_length&gt;] [--max-read-length &lt;max_read_length&gt;] [--ymax &lt;ymax&gt;] [--fontsize &lt;fontsize&gt;]</code></pre>
+<h3 id="command-line-options-4">Command line options</h3>
+<ul>
+<li><code>distribution</code>. The csv file created by <code>get-read-length-distribution</code>.</li>
+<li><code>basename</code>. The <code>basename</code> to visualize.</li>
+<li><p><code>out</code>. The output (image) file</p></li>
+<li>[<code>--title</code>]. The title of the plot.</li>
+<li>[<code>--{min, max}_read_length</code>]. The minimum and maximum read lengths to include in the plot, inclusive. Defaults: [22, 35]</li>
+<li>[<code>--ymax</code>]. The maximum value for the y-axis. Default: 1.5e6+1</li>
+<li><p>[<code>--fontsize</code>]. The size of the fonts for the title, axis labels and ticks</p></li>
+</ul>
+<h3 id="visualizing-the-distributions-ipython-notebook">Visualizing the distributions (ipython notebook)</h3>
+<p>The <code>notebooks/preprocessing/create-read-length-distribution-bar-chart</code> notebook can be used to visualize the read counts. Its functionality is essentially the same as <code>plot-read-length-distribution</code>; however, the properties of the plot, such as the colors, are much easier to manipulate in the notebook.</p>
+<p>Additionally, the notebook will attempt to use the <code>riboseq_sample_name_map</code> from the config file to find “pretty” names for the samples. In particular, this should be a map from the sample name given in the <code>riboseq_samples</code> to a string that will be used for the x-tick labels in the plot. If a sample name is not present in the name map, it will be left unchanged.</p>
+<h4 id="control-variables-1">Control variables</h4>
+<p>All of the relevant control variables in the third cell should point to the appropriate files.</p>
+<h3 id="example-visualization-1">Example visualization</h3>
+<p><img src="images/read-length-distribution.png" height="350"></p>
+<h2 id="visualizing-read-length-metagene-profiles">Visualizing read length metagene profiles</h2>
+<p>As described in the <a href="usage-instructions.html#output-files-1">usage instructions</a>, metagene profiles for each read lengths are created as a part of the pipeline. These can be visualized with the <code>create-read-length-metagene-profile-plot</code> script. In particular, it shows the reads aligned around the annotated translation initiation and termination sites.</p>
+<pre><code>create-read-length-metagene-profile-plot &lt;metagene_profile&gt; &lt;length&gt; &lt;out&gt; [--title &lt;title&gt;] [--xlabel-start &lt;xlabel_start&gt;] [--xlabel-end &lt;xlabel_end&gt;] [--ylabel &lt;ylabel&gt;] [--step &lt;step&gt;] [--font-size &lt;fontsize&gt;] [--start-upstream &lt;start_upstream&gt;] [--start-downstream &lt;start_downstream&gt;] [--end-upstream &lt;end_upstream&gt;] [--end-downstream &lt;end_downstream&gt;] [--use-entire-profile]</code></pre>
+<h3 id="command-line-options-5">Command line options</h3>
+<ul>
+<li><p><code>metagene_profile</code>. The metagene profile file (<code>&lt;riboseq_data&gt;/metagene-profiles/&lt;sample-name&gt;[.&lt;note&gt;]-unique.metagene-profile.csv.gz</code>)</p></li>
+<li><p><code>length</code>. The length to visualize</p></li>
+<li><p><code>out</code>. The output (image) file</p></li>
+<li><p>[<code>--title</code>]. A title for the plot</p></li>
+<li><p>[<code>--xlabel-{start,end}</code>]. Messages to include beneath the x-axis around the initiation and termination sites, respectively. Defaults: “Position of P-site relative to start (nt)\nRed: TIS. Green: TIS -12”, “Position of P-site relative to stop (nt)\nBlue: Translation termination”</p></li>
+<li><p>[<code>--ylabel</code>]. The label for the y-axis. Default: “Read count (starting at bp x)”</p></li>
+<li><p>[<code>--step</code>]. The step size for the x-axis. Default: 10</p></li>
+<li><p>[<code>--font-size</code>]. The font size for everything in the plot. Default: 15</p></li>
+<li><p>[<code>--{start,end}-{up,down}stream</code>]. The position (in bp) to start and end the visualization around the translation initiation (<code>start</code>) and terminiation (<code>end</code>) sites. <strong>N.B.</strong> The <code>upstream</code> options must be negative, and the <code>downstream</code> options must be position. Defaults: [-50, 21] (for both)</p></li>
+<li><p>[<code>--use-entire-profile</code>]. If this option is given, then the entire profile in the file will be used, rather than the positions given by the other options.</p></li>
+</ul>
+<p>There is not currently an ipython notebook to create these plots.</p>
+<h3 id="example-visualization-2">Example visualization</h3>
+<p><img src="images/read-length-metagene-profile.png" height="400"></p>
 </body>
 </html>

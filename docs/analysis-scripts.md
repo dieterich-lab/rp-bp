@@ -3,9 +3,10 @@
 Rp-Bp includes a number of additional scripts for quality control and downstream
 analysis.
 
-* [Creating read length-specific profiles](#Creating-read-length-specific-profiles)
-* [Counting and visualizing reads filtered at each step](#Counting-and-visualizing-reads-filtered-at each-step)
-* [Creating and visualizing read length distributions](#Creating-and-visualizing-read-length-distributions)
+* [Creating read length-specific profiles](#creating-read-length-specific-profiles)
+* [Counting and visualizing reads filtered at each step](#counting-and-visualizing-reads-filtered-at-each-step)
+* [Creating and visualizing read length distributions](#creating-and-visualizing-read-length-distributions)
+* [Visualizing read length metagene profiles](#visualizing-read-length-metagene-profiles)
 
 ## Creating read length-specific profiles
 
@@ -232,4 +233,55 @@ not present in the name map, it will be left unchanged.
 All of the relevant control variables in the third cell should point to the
 appropriate files.
 
-<img src="images/read-length-distribution.png" height="500">
+### Example visualization
+
+<img src="images/read-length-distribution.png" height="350">
+
+## Visualizing read length metagene profiles
+
+As described in the [usage instructions](usage-instructions.md#output-files-1),
+metagene profiles for each read lengths are created as a part of the pipeline.
+These can be visualized with the `create-read-length-metagene-profile-plot`
+script. In particular, it shows the reads aligned around the annotated
+translation initiation and termination sites.
+
+```
+create-read-length-metagene-profile-plot <metagene_profile> <length> <out> [--title <title>] [--xlabel-start <xlabel_start>] [--xlabel-end <xlabel_end>] [--ylabel <ylabel>] [--step <step>] [--font-size <fontsize>] [--start-upstream <start_upstream>] [--start-downstream <start_downstream>] [--end-upstream <end_upstream>] [--end-downstream <end_downstream>] [--use-entire-profile]
+```
+
+### Command line options
+
+* `metagene_profile`. The metagene profile file (`<riboseq_data>/metagene-profiles/<sample-name>[.<note>]-unique.metagene-profile.csv.gz`)
+
+* `length`. The length to visualize
+
+* `out`. The output (image) file
+
+* [`--title`]. A title for the plot
+
+* [`--xlabel-{start,end}`]. Messages to include beneath the x-axis around the
+  initiation and termination sites, respectively. Defaults: "Position of P-site
+  relative to start (nt)\\nRed: TIS. Green: TIS -12", "Position of P-site
+  relative to stop (nt)\\nBlue: Translation termination"
+
+* [`--ylabel`]. The label for the y-axis. Default: "Read count (starting at bp
+  x)"
+
+* [`--step`]. The step size for the x-axis. Default: 10
+
+* [`--font-size`]. The font size for everything in the plot. Default: 15
+
+* [`--{start,end}-{up,down}stream`]. The position (in bp) to start and end the
+  visualization around the translation initiation (`start`) and terminiation
+  (`end`) sites. **N.B.** The `upstream` options must be negative, and the
+  `downstream` options must be position. Defaults: [-50, 21] (for both)
+
+* [`--use-entire-profile`]. If this option is given, then the entire profile
+  in the file will be used, rather than the positions given by the other
+  options.
+
+There is not currently an ipython notebook to create these plots.
+
+### Example visualization
+
+<img src="images/read-length-metagene-profile.png" height="400">
