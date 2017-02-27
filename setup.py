@@ -30,7 +30,6 @@ profile_construction_scripts = [
     'create-orf-profiles=rpbp.orf_profile_construction.create_orf_profiles:main',
     'create-base-genome-profile=rpbp.orf_profile_construction.create_base_genome_profile:main',
     'extract-orf-profiles=rpbp.orf_profile_construction.extract_orf_profiles:main',
-    'smooth-orf-profiles=rpbp.orf_profile_construction.smooth_orf_profiles:main',
     'merge-replicate-orf-profiles=rpbp.translation_prediction.merge_replicate_orf_profiles:main',
     'run-rpbp-pipeline=rpbp.run_rpbp_pipeline:main',
     'run-all-rpbp-instances=rpbp.run_all_rpbp_instances:main',
@@ -68,7 +67,6 @@ proteomics_report_scripts = [
 ]
 
 other_scripts = [
-    'extract-orf-types=rpbp.analysis.extract_orf_types:main',
     'create-riboseq-test-dataset=rpbp.analysis.create_riboseq_test_dataset:main',
     'match-orfs-with-qti-seq-peaks=rpbp.analysis.qti_seq.match_orfs_with_qti_seq_peaks:main',
     'add-mygene-info-to-orfs=rpbp.analysis.rpbp_predictions.add_mygene_info_to_orfs:main',
