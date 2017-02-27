@@ -30,7 +30,6 @@ profile_construction_scripts = [
     'create-orf-profiles=rpbp.orf_profile_construction.create_orf_profiles:main',
     'create-base-genome-profile=rpbp.orf_profile_construction.create_base_genome_profile:main',
     'extract-orf-profiles=rpbp.orf_profile_construction.extract_orf_profiles:main',
-    'smooth-orf-profiles=rpbp.orf_profile_construction.smooth_orf_profiles:main',
     'merge-replicate-orf-profiles=rpbp.translation_prediction.merge_replicate_orf_profiles:main',
     'run-rpbp-pipeline=rpbp.run_rpbp_pipeline:main',
     'run-all-rpbp-instances=rpbp.run_all_rpbp_instances:main',
@@ -45,7 +44,7 @@ translation_prediction_scripts = [
 preprocessing_report_scripts = [
     'create-read-length-metagene-profile-plot=rpbp.analysis.profile_construction.create_read_length_metagene_profile_plot:main',
     'visualize-metagene-profile-bayes-factor=rpbp.analysis.profile_construction.visualize_metagene_profile_bayes_factor:main',
-    'create-preprocessing-report=rpbp.analysis.profile_construction.create_preprocessing_report:main',
+    'create-rpbp-preprocessing-report=rpbp.analysis.profile_construction.create_rpbp_preprocessing_report:main',
     'get-all-read-filtering-counts=rpbp.analysis.profile_construction.get_all_read_filtering_counts:main',
     'visualize-read-filtering-counts=rpbp.analysis.profile_construction.visualize_read_filtering_counts:main'
 ]
@@ -53,8 +52,9 @@ preprocessing_report_scripts = [
 predictions_report_scripts = [
     'visualize-orf-type-metagene-profiles=rpbp.analysis.rpbp_predictions.visualize_orf_type_metagene_profiles:main',
     'create-orf-types-pie-chart=rpbp.analysis.rpbp_predictions.create_orf_types_pie_chart:main',
+    'create-orf-types-bar-chart=rpbp.analysis.rpbp_predictions.create_orf_types_bar_chart:main',
     'create-orf-length-distribution-line-graph=rpbp.analysis.rpbp_predictions.create_orf_length_distribution_line_graph:main',
-    'create-predictions-report=rpbp.analysis.rpbp_predictions.create_predictions_report:main',
+    'create-rpbp-predictions-report=rpbp.analysis.rpbp_predictions.create_rpbp_predictions_report:main',
     'create-bf-rpkm-scatter-plot=rpbp.analysis.rpbp_predictions.create_bf_rpkm_scatter_plot:main'
 ]
 
@@ -67,11 +67,8 @@ proteomics_report_scripts = [
 ]
 
 other_scripts = [
-    'extract-orf-types=rpbp.analysis.extract_orf_types:main',
     'create-riboseq-test-dataset=rpbp.analysis.create_riboseq_test_dataset:main',
     'match-orfs-with-qti-seq-peaks=rpbp.analysis.qti_seq.match_orfs_with_qti_seq_peaks:main',
-    'match-orfs-with-mackowiak-sorfs=rpbp.analysis.conservation.match_orfs_with_mackowiak_sorfs:main',
-    'perform-mackowiak-permutation-test=rpbp.analysis.conservation.perform_mackowiak_permutation_test:main',
     'add-mygene-info-to-orfs=rpbp.analysis.rpbp_predictions.add_mygene_info_to_orfs:main',
     'find-differential-micropeptides=rpbp.analysis.find_differential_micropeptides:main',
     'cluster-subcodon-counts=rpbp.analysis.profile_construction.cluster_subcodon_counts:main',
@@ -80,9 +77,14 @@ other_scripts = [
     'collect-read-length-orf-profiles=rpbp.analysis.profile_construction.collect_read_length_orf_profiles:main'
 ]
 
-console_scripts = (preprocessing_scripts + profile_construction_scripts + 
-    translation_prediction_scripts + preprocessing_report_scripts + 
-    proteomics_report_scripts + predictions_report_scripts + other_scripts)
+console_scripts = (preprocessing_scripts + 
+    profile_construction_scripts + 
+    translation_prediction_scripts + 
+    preprocessing_report_scripts + 
+    proteomics_report_scripts + 
+    predictions_report_scripts + 
+    other_scripts
+)
 
 external_requirements =  [
     'cython',

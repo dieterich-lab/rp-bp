@@ -4,9 +4,14 @@ Rp-Bp includes a number of additional scripts for quality control and downstream
 analysis.
 
 * [Creating read length-specific profiles](#creating-read-length-specific-profiles)
-* [Counting and visualizing reads filtered at each step](#counting-and-visualizing-reads-filtered-at-each-step)
-* [Creating and visualizing read length distributions](#creating-and-visualizing-read-length-distributions)
-* [Visualizing read length metagene profiles](#visualizing-read-length-metagene-profiles)
+
+* [Preprocessing analysis](#preprocessing-report)
+    * [Counting and visualizing reads filtered at each step](#counting-and-visualizing-reads-filtered-at-each-step)
+    * [Creating and visualizing read length distributions](#creating-and-visualizing-read-length-distributions)
+    * [Visualizing read length metagene profiles](#visualizing-read-length-metagene-profiles)
+
+* [Predictions analysis](#predictions-report)
+    * [Counting and visualizing the predicted ORF types](#counting-and-visualizing-the-predicted-ORF-types)
 
 ## Creating read length-specific profiles
 
@@ -56,6 +61,84 @@ Each line in the output file is a tuple containing the following values.
 * `read_count`. The sum of counts across all replicates for the condition (if
   `--is-condition` is given) or the single sample (otherwise) after adjusting
     according to P-sites and removing multimappers.
+
+## Preprocessing report
+
+The `create-rpbp-preprocessing-report` script can be used to create several
+plots which summarize the preprocessing and ORF profile construction. The script
+creates all of the following plots and generates a latex document including all
+of them.
+
+* [Counting and visualizing reads filtered at each step](#counting-and-visualizing-reads-filtered-at-each-step)
+* [Creating and visualizing read length distributions](#creating-and-visualizing-read-length-distributions)
+* [Visualizing read length metagene profiles](#visualizing-read-length-metagene-profiles)
+
+Optionally, the script can also call FastQC. See more details below.
+
+
+```
+create-rpbp-preprocessing-report <config> <out> [--show-orf-periodicity] [--show-read-length-bfs] [--overwrite] [--min-visualization-count <min_visualization_count>] [--image-type <image_type>] [--note <note>] [-p/--num-cpus] [-c/--create-fastqc-reports] [--tmp <tmp>]
+```
+
+### Command line options
+
+* `config`. A yaml config file
+
+* `out`. A *directory* where the latex report will be created. If the directory
+  does not exist, it will be created.
+
+* [`--show-orf-periodicity`]. If this flag is present, metagene periodicity
+  plots will be created for ORFs of each type. (This is similar to Figure S2 in
+  the supplement, although this will include all ORFs of the respective type,
+  regardless of whether they are predicted as translated or not.) These plots
+  can be quite time-consuming to create.
+
+* [`--show-read-length-bfs`]. If this flag is present, plots showing the Bayes
+  factor for each possible P-site offset for each read length will be included.
+
+* [`--overwrite`]. By default, if an image file is already present, it will not
+  be recreated. If this flag is given, any existing images will be overwritten.
+
+* [`--min-visualization-count`]. The minimum number of reads of a given length
+  necessary to include the relevant plots for that read length in the report.
+  Default: 500
+
+* [`--image-type`]. The extension for the image files. Matplotlib uses this to
+  guess the type of the images. Default: eps. Other common types: png, pdf.
+
+* [`--note`]. An optional note to include in image file names. This takes
+  precedence over the `note` specified in the config file.
+
+* [`--num-cpus`]. The number of samples to process at once.
+
+* [`--create-fastqc-reports`]. If this flag is present, the FastQC reports
+  described below will be created. This can be rather time-consuming.
+
+* [`--tmp`]. A temp location for FastQC. It is not used by any of the other
+  reporting scripts.
+
+### FastQC reports
+
+If the `-c/--create-fastqc-reports` flag is given, then
+[FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) reports
+will be created for the following files for each sample.
+
+* Raw data. Files from `riboseq_samples` in the config file.
+
+* Trimmed and filtered reads. 
+  `<riboseq_data>/without-adapters/<sample-name>[.<note>].fastq.gz`
+  
+* Reads aligning to ribosomal sequences. 
+  `<riboseq_data>/with-rrna/<sample-name>[.<note>].fastq.gz`
+  
+* Reads not aligning to ribosomal sequences. 
+  `<riboseq_data>/without-rrna/<sample-name>[.<note>].fastq.gz`
+  
+* Reads aligned to the genome. 
+  `<riboseq_data>/without-rrna-mapping/<sample-name>[.<note>].bam`
+  
+* Reads uniquely aligned to the genome.
+  `<riboseq_data>/without-rrna-mapping/<sample-name>[.<note>]-unique.bam`
 
 ## Counting and visualizing reads filtered at each step
 
@@ -285,3 +368,68 @@ There is not currently an ipython notebook to create these plots.
 ### Example visualization
 
 <img src="images/read-length-metagene-profile.png" height="400">
+
+## Predictions report
+
+The `create-rpbp-predictions-report` script can be used to create several plots
+which summarize the predictions made by Rp-Bp. The scripts creates the following
+plots and generates a latex document including all of them.
+
+* [Counting and visualizing the predicted ORF types](#counting-and-visualizing-the-predicted-ORF-types)
+
+## Visualizing the predicted ORF types
+
+The `create-orf-types-bar-chart` and `create-orf-types-pie-chart` scripts can be
+used to show the count of each type of ORF in a given bed file (which includes
+the `orf_type` field). For example, this can be used for both the filtered and
+unfiltered prediction files.
+
+Both scripts show the number of ORFs of each type on both strands. Typically,
+there should not be a strong bias between the strands.
+
+
+```
+create-orf-types-bar-chart <orfs> <out> [--title <title>] [--use-groups] [--legend-fontsize <legend_fontsize>] [--fontsize <fontsize>] [--ymax <ymax>]
+
+create-orf-types-bar-chart <orfs> <out> [--title <title>] [--use-groups] 
+```
+
+### Command line options
+
+The shared command line options are the same for both scripts.
+
+* `orfs`. The bed file containing the ORFs
+
+* `out`. The image file
+
+* [`--title`]. A title for the plot
+
+* [`--use-groups`]. If this flag is present, then ORF types will be combined
+  as described in the supplement of the paper. In particular, the following
+  groups are used:
+
+    * Canonical: canonical
+    * Canonical variant: canonical_extended, canonical_truncated
+    * uORF: five_prime
+    * dORF: three_prime
+    * ncRNA: noncoding
+    * Other: five_prime_overlap, suspect_overlap, three_prime_overlap, within
+    * de novo only: novel
+    * de novo overlap: all other "novel" types
+
+* [`--{legend-}fontsize`]. The fontsize to use in the respective places in the
+  bar chart. Default: 15, 20
+
+* [`--ymax`]. The maximum value for the y-axis in the bar chart. Default:1e4
+
+### ipython notebooks
+
+The `notebooks/rpbp-predictions/create-orf-type-{bar,pie}-chart.ipynb` notebooks
+can be used to create the same plots. The relevant variables in the third cell
+should be updated. The notebooks allow easier control over the colors, etc.
+
+### Example visualizations
+
+<img src="images/orf-types.bar.png" height="300">
+
+<img src="images/orf-types.pie.png" height="300">

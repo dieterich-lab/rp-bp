@@ -231,8 +231,8 @@ def create_figures(config_file, config, name, offsets_df, args):
     # visualize all read counts
     title = None
     if 'riboseq_sample_name_map' in config:
-        title = config['riboseq_sample_name_map'].get(args.sample)
-    if titls is None:
+        title = config['riboseq_sample_name_map'].get(name)
+    if title is None:
         title = "{}{}".format(name, note_str)
     
     title_str = "{}, All aligned reads".format(title)        
@@ -240,10 +240,15 @@ def create_figures(config_file, config, name, offsets_df, args):
 
     # get the basename for the distribution file
     unique_str = filenames.get_unique_string(False)
-    sample_name = "{}{}{}".format(args.sample, note_str, unique_str)
+    sample_name = "{}{}{}".format(name, note_str, unique_str)
 
     read_length_distribution_image = filenames.get_riboseq_read_length_distribution_image(
-        config['riboseq_data'], name, is_unique=False, note=note, image_type=args.image_type)
+        config['riboseq_data'], 
+        name, 
+        is_unique=False, 
+        note=note, 
+        image_type=args.image_type
+    )
     
     cmd = "plot-read-length-distribution {} {} {} {} {} {}".format(
         read_length_distribution, 
@@ -266,20 +271,26 @@ def create_figures(config_file, config, name, offsets_df, args):
     title_str = "--title={}".format(shlex.quote(title_str))
 
     unique_read_length_distribution_image = filenames.get_riboseq_read_length_distribution_image(
-        config['riboseq_data'], name, is_unique=is_unique, note=note, image_type=args.image_type)
+        config['riboseq_data'], 
+        name, 
+        is_unique=is_unique, 
+        note=note, 
+        image_type=args.image_type
+    )
 
     # get the basename for the distribution file
-    unique_str = filenames.get_unique_string(False)
-    sample_name = "{}{}{}".format(args.sample, note_str, unique_str)
+    unique_str = filenames.get_unique_string(True)
+    sample_name = "{}{}{}".format(name, note_str, unique_str)
 
     cmd = "plot-read-length-distribution {} {} {} {} {} {}".format(
         read_length_distribution, 
+        sample_name,
         unique_read_length_distribution_image, 
         title_str, 
         min_read_length_str, 
         max_read_length_str
     )
-    in_files = [unique_read_length_distribution]
+    in_files = [read_length_distribution]
     out_files = [unique_read_length_distribution_image]
     shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         overwrite=args.overwrite, call=True)
@@ -335,10 +346,15 @@ def create_figures(config_file, config, name, offsets_df, args):
         # and the Bayes' factor
         if args.show_read_length_bfs:
             metagene_profile_image = filenames.get_metagene_profile_bayes_factor_image(
-                config['riboseq_data'], name, image_type=args.image_type, 
-                is_unique=is_unique, length=length, note=note)
+                config['riboseq_data'], 
+                name, 
+                image_type=args.image_type, 
+                is_unique=is_unique, 
+                length=length, 
+                note=note
+            )
 
-            title_str = "Metagene profile Bayes' factors, {}, length {}".format(, length)
+            title_str = "Metagene profile Bayes' factors: {}. length: {}".format(title, length)
             title_str = "--title {}".format(shlex.quote(title))
             fontsize_str = "--font-size 25"
 
@@ -357,7 +373,7 @@ def create_figures(config_file, config, name, offsets_df, args):
 
     # the orf-type metagene profiles
     if args.show_orf_periodicity:
-        msg = "{}: Visualizing the ORF type metagene profiles".format(name)
+        msg = "{}: Visualizing the ORF type metagene profiles".format(title)
         logger.info(msg)
 
 
@@ -386,16 +402,22 @@ def create_figures(config_file, config, name, offsets_df, args):
 
         strand = "+"
         orf_type_profiles_forward = [
-            filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, 
-                strand, args.image_type)
-                    for orf_type in ribo_utils.orf_types
+            filenames.get_orf_type_profile_image(
+                orf_type_profile_base, 
+                orf_type, 
+                strand, 
+                args.image_type
+            )   for orf_type in ribo_utils.orf_types
         ]
         
         strand = "-"
         orf_type_profiles_reverse = [
-            filenames.get_orf_type_profile_image(orf_type_profile_base, orf_type, 
-                strand, args.image_type)
-                    for orf_type in ribo_utils.orf_types
+            filenames.get_orf_type_profile_image(
+                orf_type_profile_base, 
+                orf_type, 
+                strand, 
+                args.image_type
+            )   for orf_type in ribo_utils.orf_types
         ]
 
         cmd = ("visualize-orf-type-metagene-profiles {} {} {} {} {} {}".format(
@@ -418,40 +440,55 @@ def create_read_filtering_plots(config_file, config, args):
     if args.overwrite:
         overwrite_str = "--overwrite"
 
-    tmp_str = ""
-    if args.tmp is not None:
-        tmp_str = "--tmp {}".format(args.tmp)
-
     logging_str = logging_utils.get_logging_options_string(args)
 
     cpus_str = "--num-cpus {}".format(args.num_cpus)
-    cmd = "get-all-read-filtering-counts {} {} {} {} {} {}".format(config_file, 
-        read_filtering_counts, overwrite_str, cpus_str, tmp_str, logging_str)
+    cmd = "get-all-read-filtering-counts {} {} {} {} {}".format(
+        config_file, 
+        read_filtering_counts, 
+        overwrite_str, 
+        cpus_str, 
+        logging_str
+    )
+
     in_files = [config_file]
     out_files = [read_filtering_counts]
-    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+        overwrite=args.overwrite, call=True)
 
     # and visualize them
     read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(
         config['riboseq_data'], note=note, image_type=args.image_type)
+    
     title = "Read filtering counts"
-    cmd = "visualize-read-filtering-counts {} {} --title \"{}\"".format(read_filtering_counts, 
-        read_filtering_image, title)
+    title_str = "--title {}".format(shlex.quote(title))
+    cmd = "visualize-read-filtering-counts {} {} {}".format(
+        read_filtering_counts, 
+        read_filtering_image, 
+        title_str
+    )
     in_files = [read_filtering_counts]
     out_files=[read_filtering_image]
-    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+        overwrite=args.overwrite, call=True)
 
     # and visualize the filtering without the rrna
     n = "no-rrna-{}".format(note)
     read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(
         config['riboseq_data'], note=n, image_type=args.image_type)
+    
     title = "Read filtering counts, no ribosomal matches"
-    cmd = "visualize-read-filtering-counts {} {} --title \"{}\" --without-rrna".format(
-        read_filtering_counts, read_filtering_image, title)
+    title_str = "--title {}".format(shlex.quote(title))
+    cmd = "visualize-read-filtering-counts {} {} {} --without-rrna".format(
+        read_filtering_counts, 
+        read_filtering_image, 
+        title_str
+    )
 
     in_files = [read_filtering_counts]
     out_files=[read_filtering_image]
-    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+        overwrite=args.overwrite, call=True)
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -475,15 +512,15 @@ def main():
         "number of reads will not be included in the report.", type=int, 
         default=default_min_visualization_count)
 
-    parser.add_argument('--tmp', help="Intermediate files (such as fastqc reports when "
-        "they are first generated) will be written here", default=default_tmp)
-    
     parser.add_argument('--image-type', help="The type of image types to create. This "
         "must be an extension which matplotlib can interpret.", default=default_image_type)
 
     parser.add_argument('-c', '--create-fastqc-reports', help="If this flag is given, then "
         "fastqc reports will be created for most fastq and bam files. By default, they are "
         "not created.", action='store_true')
+    
+    parser.add_argument('--tmp', help="If the fastqc reports are created, "
+        "they will use this location for temp files", default=default_tmp)
      
     parser.add_argument('--note', help="If this option is given, it will be used in the "
         "filenames.\n\nN.B. This REPLACES the note in the config file.", default=default_note)
@@ -502,7 +539,7 @@ def main():
     is_unique = not ('keep_riboseq_multimappers' in config)
 
     programs =  [   
-		'create-read-length-metagene-profile-plot',
+	'create-read-length-metagene-profile-plot',
         'visualize-metagene-profile-bayes-factor',
         'get-all-read-filtering-counts',
         'samtools',
