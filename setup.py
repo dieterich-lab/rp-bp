@@ -55,7 +55,7 @@ predictions_report_scripts = [
     'create-orf-types-pie-chart=rpbp.analysis.rpbp_predictions.create_orf_types_pie_chart:main',
     'create-orf-types-bar-chart=rpbp.analysis.rpbp_predictions.create_orf_types_bar_chart:main',
     'create-orf-length-distribution-line-graph=rpbp.analysis.rpbp_predictions.create_orf_length_distribution_line_graph:main',
-    'create-predictions-report=rpbp.analysis.rpbp_predictions.create_predictions_report:main',
+    'create-rpbp-predictions-report=rpbp.analysis.rpbp_predictions.create_rpbp_predictions_report:main',
     'create-bf-rpkm-scatter-plot=rpbp.analysis.rpbp_predictions.create_bf_rpkm_scatter_plot:main'
 ]
 
@@ -79,9 +79,14 @@ other_scripts = [
     'collect-read-length-orf-profiles=rpbp.analysis.profile_construction.collect_read_length_orf_profiles:main'
 ]
 
-console_scripts = (preprocessing_scripts + profile_construction_scripts + 
-    translation_prediction_scripts + preprocessing_report_scripts + 
-    proteomics_report_scripts + predictions_report_scripts + other_scripts)
+console_scripts = (preprocessing_scripts + 
+    profile_construction_scripts + 
+    translation_prediction_scripts + 
+    preprocessing_report_scripts + 
+    proteomics_report_scripts + 
+    predictions_report_scripts + 
+    other_scripts
+)
 
 external_requirements =  [
     'cython',
