@@ -10,6 +10,9 @@ analysis.
     * [Creating and visualizing read length distributions](#creating-and-visualizing-read-length-distributions)
     * [Visualizing read length metagene profiles](#visualizing-read-length-metagene-profiles)
 
+* [Predictions analysis](#predictions-report)
+    * [Counting and visualizing the predicted ORF types](#counting-and-visualizing-the-predicted-ORF-types)
+
 ## Creating read length-specific profiles
 
 As described in the [usage instructions](usage-instructions.md#output-files-1), 
@@ -365,3 +368,68 @@ There is not currently an ipython notebook to create these plots.
 ### Example visualization
 
 <img src="images/read-length-metagene-profile.png" height="400">
+
+## Predictions report
+
+The `create-rpbp-predictions-report` script can be used to create several plots
+which summarize the predictions made by Rp-Bp. The scripts creates the following
+plots and generates a latex document including all of them.
+
+* [Counting and visualizing the predicted ORF types](#counting-and-visualizing-the-predicted-ORF-types)
+
+## Visualizing the predicted ORF types
+
+The `create-orf-types-bar-chart` and `create-orf-types-pie-chart` scripts can be
+used to show the count of each type of ORF in a given bed file (which includes
+the `orf_type` field). For example, this can be used for both the filtered and
+unfiltered prediction files.
+
+Both scripts show the number of ORFs of each type on both strands. Typically,
+there should not be a strong bias between the strands.
+
+
+```
+create-orf-types-bar-chart <orfs> <out> [--title <title>] [--use-groups] [--legend-fontsize <legend_fontsize>] [--fontsize <fontsize>] [--ymax <ymax>]
+
+create-orf-types-bar-chart <orfs> <out> [--title <title>] [--use-groups] 
+```
+
+### Command line options
+
+The shared command line options are the same for both scripts.
+
+* `orfs`. The bed file containing the ORFs
+
+* `out`. The image file
+
+* [`--title`]. A title for the plot
+
+* [`--use-groups`]. If this flag is present, then ORF types will be combined
+  as described in the supplement of the paper. In particular, the following
+  groups are used:
+
+    * Canonical: canonical
+    * Canonical variant: canonical_extended, canonical_truncated
+    * uORF: five_prime
+    * dORF: three_prime
+    * ncRNA: noncoding
+    * Other: five_prime_overlap, suspect_overlap, three_prime_overlap, within
+    * de novo only: novel
+    * de novo overlap: all other "novel" types
+
+* [`--{legend-}fontsize`]. The fontsize to use in the respective places in the
+  bar chart. Default: 15, 20
+
+* [`--ymax`]. The maximum value for the y-axis in the bar chart. Default:1e4
+
+### ipython notebooks
+
+The `notebooks/rpbp-predictions/create-orf-type-{bar,pie}-chart.ipynb` notebooks
+can be used to create the same plots. The relevant variables in the third cell
+should be updated. The notebooks allow easier control over the colors, etc.
+
+### Example visualizations
+
+<img src="images/orf-types.bar.png" height="300">
+
+<img src="images/orf-types.pie.png" height="300">
