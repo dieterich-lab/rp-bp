@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Documentation for the analysis scripts
 - Documentation for creating reference indices
 
+### Removed
+- References to "analysis" feature
+
 ## [1.1.3] - 2017-02-21
 ### Fixed
 - Handling of Stan model paths which include spaces. See [Issue #36](https://github.com/dieterich-lab/rp-bp/issues/36) 
