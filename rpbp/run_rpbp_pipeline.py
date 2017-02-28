@@ -144,8 +144,8 @@ def main():
         return
 
     # then we predict the ORFs
-    cmd = ("predict-translated-orfs {} {} --num-cpus {} {} {} {} {}".format(args.config, 
-            args.name, args.num_cpus, tmp_str, do_not_call_str, overwrite_str, logging_str))
+    cmd = ("predict-translated-orfs {} {} --num-cpus {} {} {} {}".format(args.config, 
+            args.name, args.num_cpus, do_not_call_str, overwrite_str, logging_str))
     shell_utils.check_call(cmd)
 
 if __name__ == '__main__':
