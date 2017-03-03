@@ -347,8 +347,8 @@ def create_all_figures(config, args):
     
     is_replicate = True
     replicate_names = sorted(ribo_utils.get_riboseq_replicates(config).keys())
-    replicate_name_map = ribo_utils.get_riboseq_replicate_name_map(config)
-    conditions = [(name, replicate_name_map[name], is_replicate)
+    condition_name_map = ribo_utils.get_riboseq_condition_name_map(config)
+    conditions = [(name, condition_name_map[name], is_replicate)
         for name in replicate_names
     ]
 
