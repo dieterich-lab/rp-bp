@@ -4,6 +4,19 @@ All notable changes to Rp-Bp will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/), 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+
+## [1.1.5] - 2017-03-29
+### Added
+- Documentation for the analysis scripts
+- Documentation for creating reference indices
+
+### Fixed
+- Checks that annotation files exist before beginning index creation. See 
+  [Issue #62](https://github.com/dieterich-lab/rp-bp/issues/62)
+- Remove unnecessary `--tmp` argument for pipeline call to
+  `predict-translated-orfs`. See [Issue #63](https://github.com/dieterich-lab/rp-bp/issues/63)
+  for more details.
+
 ## [1.1.4] - 2017-02-22
 ### Removed
 - Unnecessary [analysis] package. Depending on how the package was installed,

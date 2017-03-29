@@ -14,7 +14,6 @@ default_xlabel_start = "Position of P-site relative to start (nt)\nRed: TIS. Gre
 default_xlabel_end = "Position of P-site relative to stop (nt)\nBlue: Translation termination"
 default_ylabel = "Read count (starting at bp x)"
 default_font_size = 15
-default_series_label = ""
 default_lengths = []
 
 default_start_upstream = -50
@@ -39,7 +38,6 @@ def main():
 
     parser.add_argument('--step', help="The step for the x-axis", type=int, default=default_step)
     
-    parser.add_argument('--series-label', help="The label for the legend", default=default_series_label)
     parser.add_argument('--font-size', help="The font size for the title, axis labels, and "
         "xticks labels", type=int, default=default_font_size)
 
