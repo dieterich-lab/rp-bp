@@ -5,12 +5,22 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [in progress]
+
+
+## [1.1.4] - 2017-03-29
 ### Added
 - Documentation for the analysis scripts
 - Documentation for creating reference indices
 
 ### Removed
-- References to "analysis" feature
+- References to "analysis" feature in setup
+
+### Fixed
+- Checks that annotation files exist before beginning index creation. See 
+  [Issue #62](https://github.com/dieterich-lab/rp-bp/issues/62)
+- Remove unnecessary `--tmp` argument for pipeline call to
+  `predict-translated-orfs`. See [Issue #63](https://github.com/dieterich-lab/rp-bp/issues/63)
+  for more details.
 
 ## [1.1.3] - 2017-02-21
 ### Fixed
