@@ -150,6 +150,18 @@ def main():
                     ]
     utils.check_keys_exist(config, required_keys)
 
+    # check that the required files are present
+    files = [
+        config['gtf'],
+        config['fasta'],
+        config['ribosomal_fasta']
+    ]
+
+    if 'de_novo_gtf' in config:
+        files += [config['de_novo_gtf']]
+
+    utils.check_files_exist(files, source='prepare-rpbp-genome')
+
     # now, check if we want to use slurm
     if args.use_slurm:
         cmd = ' '.join(sys.argv)
