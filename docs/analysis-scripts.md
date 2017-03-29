@@ -375,9 +375,72 @@ The `create-rpbp-predictions-report` script can be used to create several plots
 which summarize the predictions made by Rp-Bp. The scripts creates the following
 plots and generates a latex document including all of them.
 
-* [Counting and visualizing the predicted ORF types](#counting-and-visualizing-the-predicted-ORF-types)
+* [Predicted ORF types bar chart](#predicted-orf-types-bar-chart)
 
-## Visualizing the predicted ORF types
+* [Predicted ORF types length distributions](#predicted-orf-types-length-distributions) (Not documented yet)
+
+* [Predicted ORF types metagene profiles(#predicted-orf-types-metagene-profiles) (Not documented yet)
+
+```
+create-rpbp-predictions-report <config> <out> [--show-unfiltered-orfs] [--show-orf-periodicity] [--show-chisq] [--uniprot <uniprot>] [--uniprot-label <uniprot_label>] [--image-type <image_type>] [--note <note>] [--overwrite] [--num-cpus <num_cpus>]
+```
+
+### Command line options
+
+* `config`. A yaml config file
+
+* `out`. A *directory* where the latex report will be created. If the directory
+  does not exist, it will be created.
+
+* [`--show-unfiltered-orfs`]. By default, only the "filtered" ORF predictions
+  (longest ORF at each stop codon and highest Bayes factor among overlapping
+  ORFs; see "Final prediction set" in the paper). If this flag is given, then
+  additional plots will be included showing the relevant statistics for all
+  ORFs predicted as translated. Typically, the `canonical_truncated` type
+  dominates these plots, so they are often not informative.
+
+* [`--show-orf-periodicity`]. If this flag is present, metagene periodicity
+  plots will be created for ORFs predicted as translated of each type. (This is
+  similar to Figure S2 in the supplement.) These plots can be somewhat
+  time-consuming to create, especially if the `--show-unfiltered-orfs` flag is
+  given.
+
+* [`--show-chisq`]. As described in the [usage instructions](usage-instructions.md#output-files-2),
+  the pipeline also makes predictions using a simple chi square test. This is
+  very similar to the ORFscore [Bazzini _et al_., _The EMBO Journal_, 2014]. If
+  this flag is given, then all plots will be created using both the Rp-Bp and
+  the chi square predictions (filtered and unfiltered for both, if the
+  `--show-unfiltered-orfs` flag is given).
+
+* [`--uniprot`]. Optionally, the ORF type length distributions can include the
+  distribution of Uniprot (or other "reference") transcript sequences. If given,
+  then the KL-divergence will be calculated between the length distributions.
+  This is similar to Figure S3 in the paper, though the ORFs will be split by
+  type.
+
+    This should be a tab-delimited file which includes at least the fields
+    "Status" and "Length". For the paper, we created this file on the 
+    [UniProtKB](www.uniprot.org/uniprot) by filtering on the relevant organism and
+    using an identity of "90%" for the protein clusters (under the "UniRef"
+    heading on the left panel on the UniProtKB results page).
+
+* [`--uniprot-label`]. The label to use for the `--uniprot` sequence lengths, if
+  they are given.
+
+* [`--image-type`]. The extension to use for the image files. This must be
+  something matplotlib can interpret. The figures do not include large scatter
+  plots, etc., so the default is probably fine. Default: pdf. Other common
+  types: eps, png
+
+* [`--note`]. An optional note to include in image file names. This takes
+  precedence over the `note` specified in the config file.
+
+* [`--overwrite`]. By default, if an image file is already present, it will not
+  be recreated. If this flag is given, any existing images will be overwritten.
+
+* [`--num-cpus`]. The number of samples to process at once.
+
+## Predicted ORF types bar chart
 
 The `create-orf-types-bar-chart` and `create-orf-types-pie-chart` scripts can be
 used to show the count of each type of ORF in a given bed file (which includes
