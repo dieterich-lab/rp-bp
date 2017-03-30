@@ -482,8 +482,8 @@ def main():
 
         strands = ["+", "-"]
 
+        i = 0
         for sample_name in sample_names:
-            i = 0
             
             try:
                 lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
@@ -495,12 +495,12 @@ def main():
                 continue
             
             caption = "ORF types: {}".format(sample_name)
+            is_first = True
 
             # first, just dump all of the bar charts to the page            
             it = itertools.product(grouped_values, chisq_values, filtered_values)
 
             for is_grouped, is_chisq, is_filtered in it:
-                is_first = True
 
                 if is_chisq:
                     f = None
@@ -535,7 +535,7 @@ def main():
                     i += 1
                     latex.write_graphics(out, orf_types_bar_chart, height=0.15)
 
-                    if i%4 == 0:
+                    if i%6 == 0:
                         latex.write_caption(out, caption)
                         latex.end_figure(out)
                         latex.clearpage(out)
@@ -546,12 +546,12 @@ def main():
 
 
 
-            if (i > 0) and (i%4) != 0:
+            if (i > 0) and (i%6) != 0:
                 latex.write_caption(out, caption)
                 latex.end_figure(out)
                 #latex.clearpage(out)
 
-        if i%4 != 0:
+        if i%6 != 0:
             latex.clearpage(out)
 
     
@@ -604,7 +604,7 @@ def main():
                     i += 1
                     latex.write_graphics(out, orf_types_bar_chart, height=0.15)
 
-                    if i%4 == 0:
+                    if i%6 == 0:
                         latex.write_caption(out, caption)
                         latex.end_figure(out)
                         latex.clearpage(out)
@@ -614,12 +614,12 @@ def main():
                     logger.warning(msg)
 
 
-            if (i > 0) and (i%4) != 0:
+            if (i > 0) and (i%6) != 0:
                 latex.write_caption(out, caption)
                 latex.end_figure(out)
                 #latex.clearpage(out)
 
-        if i%4 != 0:
+        if i%6 != 0:
             latex.clearpage(out)
 
 
