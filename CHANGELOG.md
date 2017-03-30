@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [in progress]
 ### Updated
 - Predictions report formatting
+- Guessing read filtering plot tick marks. See 
+  [Issue #60](https://github.com/dieterich-lab/rp-bp/issues/63) for details.
 
 ## [1.1.5] - 2017-03-29
 ### Added
