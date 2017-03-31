@@ -160,7 +160,11 @@ def get_orfs(transcript_and_sequence, start_codons_re, stop_codons_re):
     transcript_length = len(transcript_sequence)
     
     # get the ORFs for this entry
-    orf_rel_positions = get_orf_positions(transcript_sequence, start_codons_re, stop_codons_re)
+    orf_rel_positions = get_orf_positions(
+        transcript_sequence,
+        start_codons_re,
+        stop_codons_re
+    )
     
     #if logger.isEnabledFor(logging.DEBUG):
     #   s = ["({},{})".format(o.start, o.end) for o in orf_rel_positions]
@@ -186,15 +190,39 @@ def get_orfs(transcript_and_sequence, start_codons_re, stop_codons_re):
 
     # we need the block information to convert between relative and genomic coordinates
     start = transcript['start']
-    block_lengths = np.fromstring(transcript['exon_lengths'], sep=',', dtype=int)
+    
+    block_lengths = np.fromstring(
+        transcript['exon_lengths'],
+        sep=',',
+        dtype=int
+    )
+
     block_starts = np.zeros(len(block_lengths), dtype=int)
     block_starts[1:] = np.cumsum(block_lengths)[:-1]
-    block_relative_starts = np.fromstring(transcript['exon_genomic_relative_starts'], sep=',', dtype=int)
 
+    block_relative_starts = np.fromstring(
+        transcript['exon_genomic_relative_starts'],
+        sep=',',
+        dtype=int
+    )
+
+    # for a discussion about why 
+    # please see Issue #64: https://github.com/dieterich-lab/rp-bp/issues/64
     orf_gen_positions = [
         orf_position(
-            start=bed_utils.get_gen_pos(o.start, start, block_lengths, block_starts, block_relative_starts),
-            end=bed_utils.get_gen_pos(o.end, start, block_lengths, block_starts, block_relative_starts)
+            start=bed_utils.get_gen_pos(
+                o.start-1,
+                start,
+                block_lengths,
+                block_starts,
+                block_relative_starts)+1,
+
+            end=bed_utils.get_gen_pos(
+                o.end-1,
+                start,
+                block_lengths,
+                block_starts,
+                block_relative_starts)+1
         ) for o in orf_rel_positions
     ]
 
