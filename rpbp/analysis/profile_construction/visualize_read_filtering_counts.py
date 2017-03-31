@@ -19,8 +19,8 @@ logger = logging.getLogger(__name__)
 default_fontsize = 20
 default_legend_fontsize = 15
 
-default_ymax = 1e8+1
-default_ystep = 2e7
+default_ymax = None # 1e8+1
+default_ystep = 1e7
 
 default_alignment_counts_order = [
     'raw_data_count', 
@@ -127,9 +127,23 @@ def main():
 
     fig, ax = plt.subplots()
 
-    pal = sns.palettes.color_palette(palette="Set3", n_colors=len(args.alignment_counts_names))
+    pal = sns.palettes.color_palette(
+        palette="Set3",
+        n_colors=len(args.alignment_counts_names)
+    )
 
     gap = 0.15
+
+    # if we aren't given information about the y-axis, try to guess
+    if args.ymax is None:
+        field = args.alignment_counts_order[-2]
+        max_count = alignment_counts[field].max()
+
+        if args.ystep > max_count:
+            args.ystep = np.ceil(max_count / 4)
+
+        args.ymax = (np.ceil(max_count / args.ystep) * args.ystep) + 1
+    
     yticks = np.arange(0, args.ymax, args.ystep)
 
     bars = mpl_utils.create_stacked_bar_graph(
