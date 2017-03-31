@@ -4,11 +4,15 @@ All notable changes to Rp-Bp will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/), 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [in progress]
+## [1.1.6] - 2017-03-31
 ### Updated
 - Predictions report formatting
 - Guessing read filtering plot tick marks. See 
-  [Issue #60](https://github.com/dieterich-lab/rp-bp/issues/63) for details.
+  [Issue #60](https://github.com/dieterich-lab/rp-bp/issues/60) for details.
+
+### Fixed
+- ORF coordinates when start and stop codons fall on an exon boundary. See
+  [Issue #64](https://github.com/dieterich-lab/rp-bp/issues/64) for more details.
 
 ## [1.1.5] - 2017-03-29
 ### Added
