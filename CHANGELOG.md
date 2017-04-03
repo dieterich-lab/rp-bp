@@ -4,6 +4,15 @@ All notable changes to Rp-Bp will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/), 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.1.7] - 2017-04-03
+### Fixed
+- Incorrect alignment of ORF data frame and profile matrix. See
+  [Issue #54](https://github.com/dieterich-lab/rp-bp/issues/54) for more details.
+- ORF coordinates for start codon on exon boundary. See
+  [Issue #64](https://github.com/dieterich-lab/rp-bp/issues/64) after the
+  reopening for more details.
+
+
 ## [1.1.6] - 2017-03-31
 ### Updated
 - Predictions report formatting
