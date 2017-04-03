@@ -230,15 +230,18 @@ def main():
     logger.info(msg)
 
     m_reverse = orfs['strand'] == '-'
-    reverse_indices = np.where(m_reverse)[0]
+    reverse_orfs = orfs[m_reverse]
 
-    for i in tqdm.tqdm(reverse_indices):
-        if sum_profiles[i].sum() == 0:
+    for idx, reverse_orf in tqdm.tqdm(reverse_orfs.iterrows()):
+        orf_num = reverse_orf['orf_num']
+
+        if sum_profiles[orf_num].sum() == 0:
             continue
-        orf_len = orfs.iloc[i]['orf_len']
-        dense = utils.to_dense(sum_profiles, i, length=orf_len)
+
+        orf_len = reverse_orf['orf_len']
+        dense = utils.to_dense(sum_profiles, orf_num, length=orf_len)
         dense = dense[::-1]
-        sum_profiles_lil[i, :orf_len] = dense
+        sum_profiles_lil[orf_num, :orf_len] = dense
 
     msg = "Writing the sparse matrix to disk"
     logger.info(msg)
