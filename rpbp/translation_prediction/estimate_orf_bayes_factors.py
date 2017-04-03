@@ -4,6 +4,7 @@ import argparse
 import json
 import pickle
 import logging
+import sys
 
 import ctypes
 import multiprocessing
@@ -17,6 +18,7 @@ import scipy.io
 import misc.bio_utils.bed_utils as bed_utils
 import misc.logging_utils as logging_utils
 import misc.parallel as parallel
+import misc.slurm as slurm
 import misc.utils as utils
 
 import riboutils.ribo_utils as ribo_utils
@@ -388,8 +390,6 @@ def main():
         type=int, default=default_num_orfs)
     parser.add_argument('--orf-num-field', default=default_orf_num_field)
 
-    parser.add_argument('--num-cpus', help="The number of CPUs to use. ", type=int,
-        default=default_num_cpus)
     parser.add_argument('--do-not-compress', help="Unless otherwise specified, the output will "
         "be written in GZip format", action='store_true')
 
@@ -397,9 +397,15 @@ def main():
         "the ORFs. More groups means the progress bar is updated more frequently but incurs "
         "more overhead because of the parallel calls.", type=int, default=default_num_groups)
 
+    slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
+
+    if args.use_slurm:
+        cmd = ' '.join(sys.argv)
+        slurm.check_sbatch(cmd, args=args)
+        return
 
     # read in the regions and apply the filters
     msg = "Reading and filtering ORFs"
@@ -426,8 +432,9 @@ def main():
     # min profile
     profiles = scipy.io.mmread(args.profiles).tocsr()
     profiles_sums = profiles.sum(axis=1)
-    m_profile = profiles_sums >= args.min_profile
-    m_profile = m_profile.A1
+    good_orf_nums = np.where(profiles_sums >= args.min_profile)
+    good_orf_nums = set(good_orf_nums[0])
+    m_profile = regions['orf_num'].isin(good_orf_nums)
     m_filters = m_profile & m_filters
 
     regions = regions[m_filters]
@@ -453,7 +460,8 @@ def main():
         regions, 
         args.num_cpus,
         get_all_bayes_factors_args, 
-        num_groups=args.num_groups
+        num_groups=args.num_groups,
+        progress_bar=True
     )
 
     bfs = pd.concat(bfs_l)

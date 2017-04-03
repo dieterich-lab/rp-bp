@@ -211,11 +211,11 @@ def get_orfs(transcript_and_sequence, start_codons_re, stop_codons_re):
     orf_gen_positions = [
         orf_position(
             start=bed_utils.get_gen_pos(
-                o.start-1,
+                o.start,
                 start,
                 block_lengths,
                 block_starts,
-                block_relative_starts)+1,
+                block_relative_starts),
 
             end=bed_utils.get_gen_pos(
                 o.end-1,
