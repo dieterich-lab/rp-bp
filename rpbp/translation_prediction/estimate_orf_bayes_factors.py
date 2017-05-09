@@ -390,8 +390,6 @@ def main():
         type=int, default=default_num_orfs)
     parser.add_argument('--orf-num-field', default=default_orf_num_field)
 
-    parser.add_argument('--num-cpus', help="The number of CPUs to use. ", type=int,
-        default=default_num_cpus)
     parser.add_argument('--do-not-compress', help="Unless otherwise specified, the output will "
         "be written in GZip format", action='store_true')
 
