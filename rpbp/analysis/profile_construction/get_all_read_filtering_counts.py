@@ -85,10 +85,13 @@ def get_counts(name_data, config, args):
     try:
         lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, name, 
             is_unique=is_unique)
-        length_counts = bam_utils.get_length_distribution(unique_bam)
-        length_count = sum(length_counts[l] for l in length_counts if str(l) in lengths)
-        
         lengths_str = ','.join(lengths)
+        length_counts = bam_utils.get_length_distribution(unique_bam)
+        lengths = set([int(l) for l in lengths])
+        m_lengths = length_counts['length'].isin(lengths)
+        length_count = np.sum(length_counts.loc[m_lengths, 'count'])
+
+        
         msg = ("{}: found the following periodic lengths: {}. The number of reads "
             "of these lengths: {}".format(name, lengths_str, length_count))
         logger.debug(msg)
