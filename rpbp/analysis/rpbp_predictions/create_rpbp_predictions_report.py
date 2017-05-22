@@ -28,6 +28,7 @@ default_image_type = 'eps'
 default_uniprot = ""
 default_uniprot_label = "UniRef"
 
+default_tmp = utils.abspath("tmp")
 
 def _create_figures(name_pretty_name_is_replicate, config, args):
     """ This function creates all of the figures in the prediction report
@@ -396,6 +397,9 @@ def main():
     parser.add_argument('--show-chisq', help="If this flag is given, then the "
         "results from Rp-chi will be included in the document; otherwise, they "
         "will not be created or shown.", action='store_true')
+
+    parser.add_argument('-t', '--tmp', help="A location for temporary files",
+        default=default_tmp)
 
     slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)
