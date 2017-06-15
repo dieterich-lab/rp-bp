@@ -4,6 +4,17 @@ All notable changes to Rp-Bp will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/), 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.1.9] - 2017-06-15
+### Added
+- Documentation for using custom alignment files. Please see
+  [Issue #73](https://github.com/dieterich-lab/rp-bp/issues/73) for more
+  details.
+
+### Fixed
+- Documentation links to old ipython notebooks. Please see
+  [Issue #71](https://github.com/dieterich-lab/rp-bp/issues/71) for more
+  details.
+
 ## [1.1.8] - 2017-05-22
 ### Fixed
 - Incorrect read filtering report. See [Issue #69](https://github.com/dieterich-lab/rp-bp/issues/69)
