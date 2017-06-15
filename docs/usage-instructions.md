@@ -13,6 +13,7 @@ This document describes the steps to run each of these phases. It shows some sam
 * [Running the Rp-Bp pipeline](#running-pipelines)
     * [Creating filtered genome profiles](#creating-filtered-genome-profiles)
     * [Predicting translated open reading frames](#predicting-translated-open-reading-frames)
+    * [Using existing alignment files](#using-existing-alignment-files)
 * [Logging options](#logging-options)
 * [Parallel processing options](#parallel-processing-options) (SLURM options)
 
@@ -126,7 +127,7 @@ The other labels, such as `novel_canonical` or `novel_five_prime` are guaranteed
 * `<genome_base_path>/<genome_name>.annotated.bed.gz`. A bed12 file containing all transcripts. For coding transcripts, the thick_start and thick_end columns give the start and end of the coding region; the start codon _is_ included in the thick region, but the stop codon _is not_. For noncoding transcripts, thick_start and thick_end are both -1. This seems to behave as expected in IGV.
 
 
-####From annotations
+#### From annotations
 
    * `<genome_base_path>/transcript-index/<genome_name>.transcripts.annotated.fa`. The sequences of all annotated transcripts.
     
@@ -134,7 +135,7 @@ The other labels, such as `novel_canonical` or `novel_five_prime` are guaranteed
     
    * `<genome_base_path>/transcript-index/<genome_name>.orfs-exons.annotated.<orf_note>.bed.gz`. A bed6+2 file containing each exon from each ORF. The "id" of an exon corresponds exactly to the ORF to which it belongs; exons from the same ORF have the same "id". The extra columns are "exon_index", which gives the order of the exon in the transcript, and "transcript_start", which gives the start position of that index in transcript coordinates. Exons are always sorted by "lowest start first", so the order is really reversed for ORFs on the reverse strand.
   
-####From _de novo_ assembly. 
+#### From _de novo_ assembly. 
 
 The semantics of these files are the same of those from the annotations, but created using the `de_novo_gtf` files. N.B., ORFs which completely overlap annotations are not included.
 
@@ -142,7 +143,7 @@ The semantics of these files are the same of those from the annotations, but cre
   * `<genome_base_path>/transcript-index/<genome_name>.genomic-orfs.de-novo.<orf_note>.bed.gz`
   * `<genome_base_path>/transcript-index/<genome_name>.orfs-exons.de-novo.<orf_note>.bed.gz`
 
-####From both annotations and _de novo_ assembly. 
+#### From both annotations and _de novo_ assembly. 
 
 The semantics are again the same as above. If a _de novo_ assembly was not provided, these are simply symlinks to the respective "annotations" files. Otherwise, they are the concatenation of the respective "annotation" and "_de novo_" files.
 
@@ -520,6 +521,21 @@ Furthermore, there are "unfiltered" and "filtered" versions of the files. The "f
 ```
 predict-translated-orfs c-elegans-test.yaml c-elegans-chrI --num-cpus 2  --tmp /scratch/bmalone/
 ```
+
+[Back to top](#toc)
+
+<a id='using-existing-alignment-files'></a>
+
+## Using existing alignment files
+
+While we found the `flexbar`-`bowtie2`-`STAR` pipeline to be effective for
+processing and aligning reads, the probabilistic models of Rp-Bp do not depend
+on any particular properties of these programs. Thus, it is possible to use any
+alignment files for the pipeline. Essentially, the alignment (bam) files need
+to be named as expected by the pipeline and placed in the correct folders.
+
+Please see the [custom alignment files](custom-alignment-files.md) documentation
+for more details.
 
 [Back to top](#toc)
 

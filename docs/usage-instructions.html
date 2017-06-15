@@ -22,6 +22,7 @@
 <ul>
 <li><a href="#creating-filtered-genome-profiles">Creating filtered genome profiles</a></li>
 <li><a href="#predicting-translated-open-reading-frames">Predicting translated open reading frames</a></li>
+<li><a href="#using-existing-alignment-files">Using existing alignment files</a></li>
 </ul></li>
 <li><a href="#logging-options">Logging options</a></li>
 <li><a href="#parallel-processing-options">Parallel processing options</a> (SLURM options)</li>
@@ -392,6 +393,11 @@ run-all-rpbp-instances c-elegans-test.yaml --tmp /scratch/bmalone/ --overwrite -
 </ul>
 <p>Furthermore, there are “unfiltered” and “filtered” versions of the files. The “filtered” versions result from performing the filtering described in the paper (taking the longest predicted ORF for each stop codon, and then selecting the ORF with the highest expected Bayes factor among each group of overlapping ORFs). The “unfiltered” version contains all predictions.</p>
 <pre><code>predict-translated-orfs c-elegans-test.yaml c-elegans-chrI --num-cpus 2  --tmp /scratch/bmalone/</code></pre>
+<p><a href="#toc">Back to top</a></p>
+<p><a id='using-existing-alignment-files'></a></p>
+<h2 id="using-existing-alignment-files">Using existing alignment files</h2>
+<p>While we found the <code>flexbar</code>-<code>bowtie2</code>-<code>STAR</code> pipeline to be effective for processing and aligning reads, the probabilistic models of Rp-Bp do not depend on any particular properties of these programs. Thus, it is possible to use any alignment files for the pipeline. Essentially, the alignment (bam) files need to be named as expected by the pipeline and placed in the correct folders.</p>
+<p>Please see the <a href="custom-alignment-files.html">custom alignment files</a> documentation for more details.</p>
 <p><a href="#toc">Back to top</a></p>
 <p><a id='logging-options'></a></p>
 <h2 id="logging-options">Logging options</h2>
