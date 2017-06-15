@@ -30,5 +30,44 @@
 </ul></li>
 </ul>
 <p>The files can also be symlinks with the appropriate name. Please see the usage instructions for more details about the expected content of each file. Only the last file must be in the expected location. For example, if trimming, filtering and aligning has been performed, only the alignment files must be present. The pipeline will issue warning messages that the earlier files are missing, but it will begin as normal once it finds the, e.g., alignment files.</p>
+<h2 id="example">Example</h2>
+<p>This example shows how to run Rp-Bp starting with the alignment files for the <a href="running-example.html">“original example”</a>. It uses the <a href="http://cloud.dieterichlab.org/index.php/s/fdrhJDKJfqhaGIT/download"><code>c-elegans.alignments-only.yaml</code></a> config file. The config file can also be downloaded with the following command.</p>
+<pre><code>wget http://cloud.dieterichlab.org/index.php/s/fdrhJDKJfqhaGIT/download -O c-elegans.alignments-only.yaml</code></pre>
+<p>Because this example uses the alignment files from the original example, it is required to run the original example first.</p>
+<p><strong>Before running this example</strong> the paths in the configuration file must be updated to point to the correct locations. (Mostly, <code>/home/bmalone/python-projects/rp-bp/data/</code> should be replaced to the location of the examples.)</p>
+<p>First, we create an empty folder for the example.</p>
+<pre><code>$ cd &lt;base_dir&gt;
+$ mkdir c-elegans.alignments-only
+$ cd c-elegans.alignments-only</code></pre>
+<p><strong>N.B.</strong> The path of the <code>c-elegans.alignments-only</code> file <strong>must</strong> exactly match the <code>riboseq_data</code> path in the config file.</p>
+<p>We then create the necessary folder structure.</p>
+<pre><code>$ mkdir without-rrna-mapping
+$ cd without-rrna-mapping</code></pre>
+<p><strong>N.B.</strong> The subfolder must exactly be named <code>without-rrna-mapping</code>.</p>
+<p>Finally, we symlink the bam and index files from running the original example.</p>
+<pre><code>$ ln -s &lt;original-example&gt;/without-rrna-mapping/c-elegans-rep-1.test.bam c-elegans-rep-1.alignments-only.bam
+$ ln -s &lt;original-example&gt;/without-rrna-mapping/c-elegans-rep-2.test.bam c-elegans-rep-2.alignments-only.bam
+$ ln -s &lt;original-example&gt;/without-rrna-mapping/c-elegans-rep-1.test.bam.bai c-elegans-rep-1.alignments-only.bam.bai
+$ ln -s &lt;original-example&gt;/without-rrna-mapping/c-elegans-rep-2.test.bam.bai c-elegans-rep-2.alignments-only.bam.bai</code></pre>
+<p><strong>N.B</strong> The filenames must <strong>exactly</strong> match the patterns described above, for example, <code>&lt;sample_name&gt;[.&lt;note&gt;].bam</code> for genome alignment files. In this particular example, the <code>note</code> in the <code>c-elegans.alignments-only.yaml</code> config file is <code>alignments-only</code>. Similarly, the <code>riboseq_samples</code> in the config file have names <code>c-elegans-rep-1</code> and <code>c-elegans-rep-2</code>. Thus, we concatenate the respective values to form the filenames.</p>
+<p>After copying the yaml config file into the directory, the folder structure is as follows.</p>
+<pre><code>$ find c-elegans.alignments-only/c-elegans.alignments-only/
+
+c-elegans.alignments-only/without-rrna-mapping
+c-elegans.alignments-only/without-rrna-mapping/c-elegans-rep-1.alignments-only.bam
+c-elegans.alignments-only/without-rrna-mapping/c-elegans-rep-2.alignments-only.bam
+c-elegans.alignments-only/without-rrna-mapping/c-elegans-rep-1.alignments-only.bam.bai
+c-elegans.alignments-only/without-rrna-mapping/c-elegans-rep-2.alignments-only.bam.bai
+c-elegans.alignments-only/c-elegans.alignments-only.yaml</code></pre>
+<p>We can now run the Rp-Bp pipeline.</p>
+<pre><code>run-all-rpbp-instances c-elegans.alignments-only.yaml --overwrite --num-cpus 2 --logging-level INFO --log-file log.alignments-only.txt --merge-replicates --run-replicates --keep-intermediate-files</code></pre>
+<p>The log file indicates that various files were missing. For example, it includes the following messages:</p>
+<pre><code>WARNING  misc.shell_utils 2017-06-15 19:02:35,224 : Some input files [&#39;/this/does/not/matter.rep-1.fastq.gz&#39;] are missing. Skipping call: 
+flexbar --qtrim-format sanger --max-uncalled 1   -n 2 --zip-output GZ -r /this/does/not/matter.rep-1.fastq.gz -t /home/bmalone/python-projects/rp-bp/c-elegans.alignments-only/without-adapters/c-elegans-rep-1.alignments-only --pre-trim-left 0
+</code></pre>
+<p>However, as desired, the pipeline finds the alignment file and proceeds from there.</p>
+<pre><code>INFO     root     2017-06-15 19:02:35,250 : remove-multimapping-reads /home/bmalone/python-projects/rp-bp/c-elegans.alignments-only/without-rrna-mapping/c-elegans-rep-1.alignments-only.bam /home/bmalone/python-projects/rp-bp/c-elegans.alignments-only/without-rrna-mapping/c-elegans-rep-1.alignments-only-unique.bam 
+INFO     root     2017-06-15 19:02:35,250 : calling</code></pre>
+<p>After running the above command, the predictions should appear as usual in the <code>orf-predictions</code> folder. Please see the <a href="usage-instructions.html#output-files-2">usage instructions</a> for the exact set of expected output files.</p>
 </body>
 </html>
