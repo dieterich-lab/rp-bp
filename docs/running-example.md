@@ -5,7 +5,7 @@ A small example dataset using _C. elegans_ is available for [download](http://cl
 
 Additionally, the expected outputs of the pipeline are included. Due to differences among versions of the external programs used in the pipeline (samtools, etc.), it is unlikely that all intermediate files will match exactly. However, we do include a script to compare the ORFs predicted as translated using the pipeline to those which are expected. If these differ significantly, it suggests something is not working correctly in the pipeline.
 
-If the results differ significantly, please run the pipeline using the "DEBUG" logging level (see the [usage instructions](usage-instructions.ipynb#logging-options)). This causes the scripts to output detailed runtime information which can be helpful for tracking down problems. If the problem is still not clear, please report the problem at the [github bug tracker](https://github.com/dieterich-lab/rp-bp/issues).
+If the results differ significantly, please run the pipeline using the "DEBUG" logging level (see the [usage instructions](usage-instructions.md#logging-options)). This causes the scripts to output detailed runtime information which can be helpful for tracking down problems. If the problem is still not clear, please report the problem at the [github bug tracker](https://github.com/dieterich-lab/rp-bp/issues).
 
 In total, creating the reference index files should take about 5 minutes and running the main pipeline should take an additional 15 to 20 minutes on a commodity laptop.
 
@@ -38,7 +38,7 @@ The example dataset is distributed as a .tar.gz file and includes the following:
 
 * `c-elegans.test-chrI.rep-2.fastq.gz`. Another small test sequencing dataset.
 
-* `expected-orf-predictions`. The expected predictions and sequence files for each replicate (c-elegans-rep-1 and c-elegans-rep-2 files) and the merged replicates (c-elegans-test files). Please see the [usage instructions](usage-instructions.ipynb#logging-options) for the meaning of each of the files.
+* `expected-orf-predictions`. The expected predictions and sequence files for each replicate (c-elegans-rep-1 and c-elegans-rep-2 files) and the merged replicates (c-elegans-test files). Please see the [usage instructions](usage-instructions.md#logging-options) for the meaning of each of the files.
 
 **Downloading from the command line**
 
@@ -65,9 +65,9 @@ tar -xvf c-elegans-chrI-example.tar.gz
 * `ribosomal_index`
 * `star_index`
 
-The following command will create the necessary reference files using 2 CPUS and 4GB of RAM for STAR. Please see the [usage instructions](usage-instructions.ipynb#creating-reference-genome-indices) for the expected output files.
+The following command will create the necessary reference files using 2 CPUS and 4GB of RAM for STAR. Please see the [usage instructions](usage-instructions.md#creating-reference-genome-indices) for the expected output files.
 
-The `--use-slurm` and related options can also be used if SLURM is available. Please see the [usage instructions](usage-instructions.ipynb#parallel-processing-options) for more information.
+The `--use-slurm` and related options can also be used if SLURM is available. Please see the [usage instructions](usage-instructions.md#parallel-processing-options) for more information.
 
 N.B. The `--overwrite` flag is given below to ensure all of the files are (re-)created. In typical use cases, if some of the files already exist (e.g., the STAR index), then this flag can be omitted.
 
@@ -106,9 +106,9 @@ The sample and output file paths must also be updated.
 * `riboseq_data`
 * `adapter_file`
 
-The following command will run the Rp-Bp (and Rp-chi) translation prediction pipelines using 2 CPUS. Please see the [usage instructions](usage-instructions.ipynb#running-pipelines) for the expected output files.
+The following command will run the Rp-Bp (and Rp-chi) translation prediction pipelines using 2 CPUS. Please see the [usage instructions](usage-instructions.md#running-pipelines) for the expected output files.
 
-The `--use-slurm` and related options can also be used if SLURM is available. Please see the [usage instructions](usage-instructions.ipynb#parallel-processing-options) for more information.
+The `--use-slurm` and related options can also be used if SLURM is available. Please see the [usage instructions](usage-instructions.md#parallel-processing-options) for more information.
 
 N.B. The `--overwrite` flag is given below to ensure all of the files are (re-)created. In typical use cases, if some of the files already exist (e.g., the quality-filtered reads), then this flag can be omitted.
 

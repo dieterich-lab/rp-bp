@@ -14,10 +14,17 @@
 <h1 id="qc-and-downstream-analysis-of-the-rp-bp-results">QC and downstream analysis of the Rp-Bp results</h1>
 <p>Rp-Bp includes a number of additional scripts for quality control and downstream analysis.</p>
 <ul>
-<li><a href="#creating-read-length-specific-profiles">Creating read length-specific profiles</a></li>
+<li><p><a href="#creating-read-length-specific-profiles">Creating read length-specific profiles</a></p></li>
+<li><a href="#preprocessing-report">Preprocessing analysis</a>
+<ul>
 <li><a href="#counting-and-visualizing-reads-filtered-at-each-step">Counting and visualizing reads filtered at each step</a></li>
 <li><a href="#creating-and-visualizing-read-length-distributions">Creating and visualizing read length distributions</a></li>
 <li><a href="#visualizing-read-length-metagene-profiles">Visualizing read length metagene profiles</a></li>
+</ul></li>
+<li><a href="#predictions-report">Predictions analysis</a>
+<ul>
+<li><a href="#counting-and-visualizing-the-predicted-ORF-types">Counting and visualizing the predicted ORF types</a></li>
+</ul></li>
 </ul>
 <h2 id="creating-read-length-specific-profiles">Creating read length-specific profiles</h2>
 <p>As described in the <a href="usage-instructions.html#output-files-1">usage instructions</a>, Rp-Bp writes the unsmoothed ORF profiles to a matrix market file. This profile merges reads of all lengths.</p>
@@ -39,12 +46,45 @@
 <li><p><code>orf_position</code>. The base-0 position with respect to the spliced transcript (so <code>position % 3 == 0</code> implies the position is in-frame)</p></li>
 <li><p><code>read_count</code>. The sum of counts across all replicates for the condition (if <code>--is-condition</code> is given) or the single sample (otherwise) after adjusting according to P-sites and removing multimappers.</p></li>
 </ul>
+<h2 id="preprocessing-report">Preprocessing report</h2>
+<p>The <code>create-rpbp-preprocessing-report</code> script can be used to create several plots which summarize the preprocessing and ORF profile construction. The script creates all of the following plots and generates a latex document including all of them.</p>
+<ul>
+<li><a href="#counting-and-visualizing-reads-filtered-at-each-step">Counting and visualizing reads filtered at each step</a></li>
+<li><a href="#creating-and-visualizing-read-length-distributions">Creating and visualizing read length distributions</a></li>
+<li><a href="#visualizing-read-length-metagene-profiles">Visualizing read length metagene profiles</a></li>
+</ul>
+<p>Optionally, the script can also call FastQC. See more details below.</p>
+<pre><code>create-rpbp-preprocessing-report &lt;config&gt; &lt;out&gt; [--show-orf-periodicity] [--show-read-length-bfs] [--overwrite] [--min-visualization-count &lt;min_visualization_count&gt;] [--image-type &lt;image_type&gt;] [--note &lt;note&gt;] [-p/--num-cpus] [-c/--create-fastqc-reports] [--tmp &lt;tmp&gt;]</code></pre>
+<h3 id="command-line-options-1">Command line options</h3>
+<ul>
+<li><p><code>config</code>. A yaml config file</p></li>
+<li><p><code>out</code>. A <em>directory</em> where the latex report will be created. If the directory does not exist, it will be created.</p></li>
+<li><p>[<code>--show-orf-periodicity</code>]. If this flag is present, metagene periodicity plots will be created for ORFs of each type. (This is similar to Figure S2 in the supplement, although this will include all ORFs of the respective type, regardless of whether they are predicted as translated or not.) These plots can be quite time-consuming to create.</p></li>
+<li><p>[<code>--show-read-length-bfs</code>]. If this flag is present, plots showing the Bayes factor for each possible P-site offset for each read length will be included.</p></li>
+<li><p>[<code>--overwrite</code>]. By default, if an image file is already present, it will not be recreated. If this flag is given, any existing images will be overwritten.</p></li>
+<li><p>[<code>--min-visualization-count</code>]. The minimum number of reads of a given length necessary to include the relevant plots for that read length in the report. Default: 500</p></li>
+<li><p>[<code>--image-type</code>]. The extension for the image files. Matplotlib uses this to guess the type of the images. Default: eps. Other common types: png, pdf.</p></li>
+<li><p>[<code>--note</code>]. An optional note to include in image file names. This takes precedence over the <code>note</code> specified in the config file.</p></li>
+<li><p>[<code>--num-cpus</code>]. The number of samples to process at once.</p></li>
+<li><p>[<code>--create-fastqc-reports</code>]. If this flag is present, the FastQC reports described below will be created. This can be rather time-consuming.</p></li>
+<li><p>[<code>--tmp</code>]. A temp location for FastQC. It is not used by any of the other reporting scripts.</p></li>
+</ul>
+<h3 id="fastqc-reports">FastQC reports</h3>
+<p>If the <code>-c/--create-fastqc-reports</code> flag is given, then <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/">FastQC</a> reports will be created for the following files for each sample.</p>
+<ul>
+<li><p>Raw data. Files from <code>riboseq_samples</code> in the config file.</p></li>
+<li><p>Trimmed and filtered reads. <code>&lt;riboseq_data&gt;/without-adapters/&lt;sample-name&gt;[.&lt;note&gt;].fastq.gz</code></p></li>
+<li><p>Reads aligning to ribosomal sequences. <code>&lt;riboseq_data&gt;/with-rrna/&lt;sample-name&gt;[.&lt;note&gt;].fastq.gz</code></p></li>
+<li><p>Reads not aligning to ribosomal sequences. <code>&lt;riboseq_data&gt;/without-rrna/&lt;sample-name&gt;[.&lt;note&gt;].fastq.gz</code></p></li>
+<li><p>Reads aligned to the genome. <code>&lt;riboseq_data&gt;/without-rrna-mapping/&lt;sample-name&gt;[.&lt;note&gt;].bam</code></p></li>
+<li><p>Reads uniquely aligned to the genome. <code>&lt;riboseq_data&gt;/without-rrna-mapping/&lt;sample-name&gt;[.&lt;note&gt;]-unique.bam</code></p></li>
+</ul>
 <h2 id="counting-and-visualizing-reads-filtered-at-each-step">Counting and visualizing reads filtered at each step</h2>
 <h3 id="counting">Counting</h3>
 <p>The <code>get-all-read-filtering-counts</code> script counts reads filtered at each step of the preprocessing pipeline.</p>
 <p>This script requires <code>samtools</code> to be present in <code>$PATH</code>.</p>
 <pre><code>get-all-read-filtering-counts &lt;config&gt; &lt;out&gt; [--num-cpus &lt;num_cpus&gt;]</code></pre>
-<h4 id="command-line-options-1">Command line options</h4>
+<h4 id="command-line-options-2">Command line options</h4>
 <ul>
 <li><p><code>config</code>. A yaml config file</p></li>
 <li><p><code>out</code>. The output file, in csv.gz format. See below for details.</p></li>
@@ -64,7 +104,7 @@
 <h3 id="visualizing-script">Visualizing (script)</h3>
 <p>The <code>visualize-read-filtering-counts</code> script visualizes the read counts from <code>get-all-read-filtering-counts</code>.</p>
 <pre><code>visualize-read-filtering-counts &lt;read_counts&gt; &lt;out&gt; [--without-rrna] [--title &lt;title&gt;] [--fontsize &lt;fontsize&gt;] [--legend-fontsize] &lt;legend_fontsize&gt;] [--ymax &lt;ymax&gt;] [--ystep &lt;ystep&gt;]</code></pre>
-<h4 id="command-line-options-2">Command line options</h4>
+<h4 id="command-line-options-3">Command line options</h4>
 <ul>
 <li><p><code>read_counts</code>. The output from <code>get-all-read-filtering-counts</code></p></li>
 <li><p><code>out</code>. The output image file. The extension should be something recognized by matplotlib, such as <code>png</code> or <code>pdf</code>.</p></li>
@@ -89,7 +129,7 @@
 <p>The <code>get-read-length-distribution</code> script (part of the <a href="https://bitbucket.org/bmmalone/misc">misc</a> package) counts the number of reads of each length in a given bam file. It can be used to count the read length distribution for both all aligned reads and only uniquely-aligning reads.</p>
 <p><strong>N.B.</strong> The script handles multi-mappers to ensure they only contribute to the counts once.</p>
 <pre><code>get-read-length-distribution &lt;bam_1&gt; [&lt;bam_2&gt; ...] -o/--out &lt;length-counts.csv.gz&gt; [-p/--num-cpus &lt;num_cpus&gt;]</code></pre>
-<h4 id="command-line-options-3">Command line options</h4>
+<h4 id="command-line-options-4">Command line options</h4>
 <ul>
 <li><p><code>bam_i</code>. The bam files which contain the aligned reads.</p></li>
 <li><p><code>out</code>. The output file, in csv.gz format, which contains the counts. See below for the column specifications.</p></li>
@@ -105,7 +145,7 @@
 <h3 id="visualizing-the-distributions-script">Visualizing the distributions (script)</h3>
 <p>The <code>plot-read-length-distribution</code> script creates a bar chart of the counts from <code>get-read-length-distribution</code>.</p>
 <pre><code>plot-read-length-distribution &lt;distribution&gt; &lt;basename&gt; &lt;out&gt; [--title &lt;title&gt;] [--min-read-length &lt;min_read_length&gt;] [--max-read-length &lt;max_read_length&gt;] [--ymax &lt;ymax&gt;] [--fontsize &lt;fontsize&gt;]</code></pre>
-<h3 id="command-line-options-4">Command line options</h3>
+<h3 id="command-line-options-5">Command line options</h3>
 <ul>
 <li><code>distribution</code>. The csv file created by <code>get-read-length-distribution</code>.</li>
 <li><code>basename</code>. The <code>basename</code> to visualize.</li>
@@ -125,7 +165,7 @@
 <h2 id="visualizing-read-length-metagene-profiles">Visualizing read length metagene profiles</h2>
 <p>As described in the <a href="usage-instructions.html#output-files-1">usage instructions</a>, metagene profiles for each read lengths are created as a part of the pipeline. These can be visualized with the <code>create-read-length-metagene-profile-plot</code> script. In particular, it shows the reads aligned around the annotated translation initiation and termination sites.</p>
 <pre><code>create-read-length-metagene-profile-plot &lt;metagene_profile&gt; &lt;length&gt; &lt;out&gt; [--title &lt;title&gt;] [--xlabel-start &lt;xlabel_start&gt;] [--xlabel-end &lt;xlabel_end&gt;] [--ylabel &lt;ylabel&gt;] [--step &lt;step&gt;] [--font-size &lt;fontsize&gt;] [--start-upstream &lt;start_upstream&gt;] [--start-downstream &lt;start_downstream&gt;] [--end-upstream &lt;end_upstream&gt;] [--end-downstream &lt;end_downstream&gt;] [--use-entire-profile]</code></pre>
-<h3 id="command-line-options-5">Command line options</h3>
+<h3 id="command-line-options-6">Command line options</h3>
 <ul>
 <li><p><code>metagene_profile</code>. The metagene profile file (<code>&lt;riboseq_data&gt;/metagene-profiles/&lt;sample-name&gt;[.&lt;note&gt;]-unique.metagene-profile.csv.gz</code>)</p></li>
 <li><p><code>length</code>. The length to visualize</p></li>
@@ -141,5 +181,59 @@
 <p>There is not currently an ipython notebook to create these plots.</p>
 <h3 id="example-visualization-2">Example visualization</h3>
 <p><img src="images/read-length-metagene-profile.png" height="400"></p>
+<h2 id="predictions-report">Predictions report</h2>
+<p>The <code>create-rpbp-predictions-report</code> script can be used to create several plots which summarize the predictions made by Rp-Bp. The scripts creates the following plots and generates a latex document including all of them.</p>
+<ul>
+<li><p><a href="#predicted-orf-types-bar-chart">Predicted ORF types bar chart</a></p></li>
+<li><p><a href="#predicted-orf-types-length-distributions">Predicted ORF types length distributions</a> (Not documented yet)</p></li>
+<li><p>[Predicted ORF types metagene profiles(#predicted-orf-types-metagene-profiles) (Not documented yet)</p></li>
+</ul>
+<pre><code>create-rpbp-predictions-report &lt;config&gt; &lt;out&gt; [--show-unfiltered-orfs] [--show-orf-periodicity] [--show-chisq] [--uniprot &lt;uniprot&gt;] [--uniprot-label &lt;uniprot_label&gt;] [--image-type &lt;image_type&gt;] [--note &lt;note&gt;] [--overwrite] [--num-cpus &lt;num_cpus&gt;]</code></pre>
+<h3 id="command-line-options-7">Command line options</h3>
+<ul>
+<li><p><code>config</code>. A yaml config file</p></li>
+<li><p><code>out</code>. A <em>directory</em> where the latex report will be created. If the directory does not exist, it will be created.</p></li>
+<li><p>[<code>--show-unfiltered-orfs</code>]. By default, only the “filtered” ORF predictions (longest ORF at each stop codon and highest Bayes factor among overlapping ORFs; see “Final prediction set” in the paper). If this flag is given, then additional plots will be included showing the relevant statistics for all ORFs predicted as translated. Typically, the <code>canonical_truncated</code> type dominates these plots, so they are often not informative.</p></li>
+<li><p>[<code>--show-orf-periodicity</code>]. If this flag is present, metagene periodicity plots will be created for ORFs predicted as translated of each type. (This is similar to Figure S2 in the supplement.) These plots can be somewhat time-consuming to create, especially if the <code>--show-unfiltered-orfs</code> flag is given.</p></li>
+<li><p>[<code>--show-chisq</code>]. As described in the <a href="usage-instructions.html#output-files-2">usage instructions</a>, the pipeline also makes predictions using a simple chi square test. This is very similar to the ORFscore [Bazzini <em>et al</em>., <em>The EMBO Journal</em>, 2014]. If this flag is given, then all plots will be created using both the Rp-Bp and the chi square predictions (filtered and unfiltered for both, if the <code>--show-unfiltered-orfs</code> flag is given).</p></li>
+<li><p>[<code>--uniprot</code>]. Optionally, the ORF type length distributions can include the distribution of Uniprot (or other “reference”) transcript sequences. If given, then the KL-divergence will be calculated between the length distributions. This is similar to Figure S3 in the paper, though the ORFs will be split by type.</p>
+<p>This should be a tab-delimited file which includes at least the fields “Status” and “Length”. For the paper, we created this file on the <a href="www.uniprot.org/uniprot">UniProtKB</a> by filtering on the relevant organism and using an identity of “90%” for the protein clusters (under the “UniRef” heading on the left panel on the UniProtKB results page).</p></li>
+<li><p>[<code>--uniprot-label</code>]. The label to use for the <code>--uniprot</code> sequence lengths, if they are given.</p></li>
+<li><p>[<code>--image-type</code>]. The extension to use for the image files. This must be something matplotlib can interpret. The figures do not include large scatter plots, etc., so the default is probably fine. Default: pdf. Other common types: eps, png</p></li>
+<li><p>[<code>--note</code>]. An optional note to include in image file names. This takes precedence over the <code>note</code> specified in the config file.</p></li>
+<li><p>[<code>--overwrite</code>]. By default, if an image file is already present, it will not be recreated. If this flag is given, any existing images will be overwritten.</p></li>
+<li><p>[<code>--num-cpus</code>]. The number of samples to process at once.</p></li>
+</ul>
+<h2 id="predicted-orf-types-bar-chart">Predicted ORF types bar chart</h2>
+<p>The <code>create-orf-types-bar-chart</code> and <code>create-orf-types-pie-chart</code> scripts can be used to show the count of each type of ORF in a given bed file (which includes the <code>orf_type</code> field). For example, this can be used for both the filtered and unfiltered prediction files.</p>
+<p>Both scripts show the number of ORFs of each type on both strands. Typically, there should not be a strong bias between the strands.</p>
+<pre><code>create-orf-types-bar-chart &lt;orfs&gt; &lt;out&gt; [--title &lt;title&gt;] [--use-groups] [--legend-fontsize &lt;legend_fontsize&gt;] [--fontsize &lt;fontsize&gt;] [--ymax &lt;ymax&gt;]
+
+create-orf-types-bar-chart &lt;orfs&gt; &lt;out&gt; [--title &lt;title&gt;] [--use-groups] </code></pre>
+<h3 id="command-line-options-8">Command line options</h3>
+<p>The shared command line options are the same for both scripts.</p>
+<ul>
+<li><p><code>orfs</code>. The bed file containing the ORFs</p></li>
+<li><p><code>out</code>. The image file</p></li>
+<li><p>[<code>--title</code>]. A title for the plot</p></li>
+<li><p>[<code>--use-groups</code>]. If this flag is present, then ORF types will be combined as described in the supplement of the paper. In particular, the following groups are used:</p>
+<ul>
+<li>Canonical: canonical</li>
+<li>Canonical variant: canonical_extended, canonical_truncated</li>
+<li>uORF: five_prime</li>
+<li>dORF: three_prime</li>
+<li>ncRNA: noncoding</li>
+<li>Other: five_prime_overlap, suspect_overlap, three_prime_overlap, within</li>
+<li>de novo only: novel</li>
+<li>de novo overlap: all other “novel” types</li>
+</ul></li>
+<li><p>[<code>--{legend-}fontsize</code>]. The fontsize to use in the respective places in the bar chart. Default: 15, 20</p></li>
+<li><p>[<code>--ymax</code>]. The maximum value for the y-axis in the bar chart. Default:1e4</p></li>
+</ul>
+<h3 id="ipython-notebooks">ipython notebooks</h3>
+<p>The <code>notebooks/rpbp-predictions/create-orf-type-{bar,pie}-chart.ipynb</code> notebooks can be used to create the same plots. The relevant variables in the third cell should be updated. The notebooks allow easier control over the colors, etc.</p>
+<h3 id="example-visualizations">Example visualizations</h3>
+<p><img src="images/orf-types.bar.png" height="300"></p>
+<p><img src="images/orf-types.pie.png" height="300"></p>
 </body>
 </html>
