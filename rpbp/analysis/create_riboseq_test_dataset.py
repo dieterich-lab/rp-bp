@@ -7,7 +7,7 @@ import yaml
 
 import pysam
 
-import misc.bio as bio
+import bio_utils.bio as bio
 import misc.utils as utils
 import riboutils.ribo_filenames as filenames
 

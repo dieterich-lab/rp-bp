@@ -6,7 +6,7 @@ import logging
 import re
 import sys
 
-import misc.bio as bio
+import bio_utils.bio as bio
 import misc.logging_utils as logging_utils
 import misc.parallel as parallel
 import misc.utils as utils

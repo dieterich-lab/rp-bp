@@ -11,7 +11,7 @@ import scipy.sparse
 import tqdm
 import yaml
 
-import misc.bio_utils.bed_utils as bed_utils
+import bio_utils.bed_utils as bed_utils
 import misc.logging_utils as logging_utils
 import misc.math_utils as math_utils
 import misc.pandas_utils as pandas_utils

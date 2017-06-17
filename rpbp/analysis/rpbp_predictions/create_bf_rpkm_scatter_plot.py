@@ -10,7 +10,7 @@ import yaml
 
 import matplotlib.pyplot as plt
 import numpy as np
-import misc.bio as bio
+import bio_utils.bio as bio
 import misc.utils as utils
 
 import riboutils.ribo_filenames as filenames

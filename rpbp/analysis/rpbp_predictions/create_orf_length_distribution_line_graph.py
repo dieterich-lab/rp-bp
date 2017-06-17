@@ -10,8 +10,8 @@ import numpy as np
 import os
 import scipy.stats
 
-import misc.bio as bio
-import misc.bio_utils.bed_utils as bed_utils
+import bio_utils.bio as bio
+import bio_utils.bed_utils as bed_utils
 import misc.latex as latex
 import misc.math_utils as math_utils
 

@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Reference to helper script to install prerequisite programs. See 
   [Issue #75](https://github.com/dieterich-lab/rp-bp/issues/75) for more
   details.
+  
+### Updated
+- Dependencies to new `pymisc-utils` and `pybio-utils` repos. See
+  [Issue #74](https://github.com/dieterich-lab/rp-bp/issues/74) for more
+  details.
 
 ## [1.1.9] - 2017-06-15
 ### Added

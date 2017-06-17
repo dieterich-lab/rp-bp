@@ -4,7 +4,7 @@ import argparse
 import pandas as pd
 import tqdm
 
-import misc.bio_utils.bed_utils as bed_utils
+import bio_utils.bed_utils as bed_utils
 import misc.logging_utils as logging_utils
 import misc.parallel as parallel
 
