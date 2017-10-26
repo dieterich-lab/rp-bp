@@ -29,6 +29,9 @@
 <li><a href="http://www.htslib.org/">SAMtools</a>, version 1.2</li>
 <li><a href="https://github.com/alexdobin/STAR">STAR</a>, version 2.4.1d</li>
 </ul>
+<h4 id="helper-script">Helper script</h4>
+<p>While not officially supported, the script <a href="https://gist.github.com/bmmalone/43752eba0af97d1085eef7db033309d0">here</a> downloads and compiles the necessary prerequisites in <code>$HOME/install</code> and installs them in <code>$HOME/local</code>.</p>
+<p>It uses <code>apt-get</code> to install the Intel thread building blocks and CMake. The direct Rp-Bp dependencies mentioned above are simply downloaded and placed in the appropriate location. The relevant locations (<code>$HOME/local/bin</code>) must be add to the <code>$PATH</code> before the executable files can be found. <code>sudo</code> permissions are required for the calls to <code>apt-get</code>.</p>
 <h4 id="openblas">OpenBLAS</h4>
 <p>If installation fails due to missing <code>OpenBLAS</code> dependencies for <code>scipy</code>, please follow the instructions <a href="https://gist.github.com/bmmalone/1b5f9ff72754c7d4b313c0b044c42684">here</a>.</p>
 <p><a href="#toc">Back to top</a></p>

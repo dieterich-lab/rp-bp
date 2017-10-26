@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns; sns.set(style='white')
 
-import misc.bio_utils.bed_utils as bed_utils
+import bio_utils.bed_utils as bed_utils
 import misc.mpl_utils as mpl_utils
 import riboutils.ribo_utils as ribo_utils
 

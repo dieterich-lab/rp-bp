@@ -9,8 +9,8 @@ import shlex
 
 import yaml
 
-import misc.bio_utils.bam_utils as bam_utils
-import misc.bio_utils.star_utils as star_utils
+import bio_utils.bam_utils as bam_utils
+import bio_utils.star_utils as star_utils
 import misc.logging_utils as logging_utils
 import misc.shell_utils as shell_utils
 import misc.utils as utils

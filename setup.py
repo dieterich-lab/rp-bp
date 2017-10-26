@@ -100,12 +100,14 @@ external_requirements =  [
     'statsmodels',
     'pysam',
     'pyfasta',
-    'pystan',
+    'pystan==2.16.0.0',
     'pyyaml',
     'psutil',
+    'biopython',
     'patsy', # used in statsmodels 
-    'misc', # this has to be installed via requirements.txt
-    'riboutils' # this, too
+    'misc==0.2.5', # this has to be installed via requirements.txt
+    'riboutils==0.2.5', # this, too,
+    'bio-utils==0.2.4'  # and me!
 ]
 
 stan_model_files = [
@@ -207,9 +209,14 @@ def readme():
     with open('README.md') as f:
         return f.read()
 
+def description():
+    description=("This package contains the Rp-Bp pipeline for predicting "
+        "translation of open reading frames from ribosome profiling data.")
+    return description
+
 setup(name='rpbp',
-        version='1.1.9',
-        description="This package contains the Rp-Bp pipeline for predicting translation of open reading frames from ribosome profiling data.",
+        version='1.1.10',
+        description=description(),
         long_description=readme(),
         keywords="rpbp ribosome profiling bayesian inference markov chain monte carlo translation",
         url="",
@@ -217,7 +224,7 @@ setup(name='rpbp',
         author_email="bmmalone@gmail.com",
         license='MIT',
         packages=find_packages(),
-        install_requires = [external_requirements], # + internal_requirements,
+        install_requires = [external_requirements],
         cmdclass={'install': my_install,  # override install
                   'develop': my_develop   # develop is used for pip install -e .
         },  

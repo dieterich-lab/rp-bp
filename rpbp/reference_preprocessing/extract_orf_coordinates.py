@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 import re
 
-import misc.bio_utils.bed_utils as bed_utils
-import misc.bio_utils.fastx_utils as fastx_utils
+import bio_utils.bed_utils as bed_utils
+import bio_utils.fastx_utils as fastx_utils
 import misc.parallel as parallel
 import misc.utils as utils
 

@@ -20,6 +20,19 @@ The pipelines make use of a number of standard bioinformatics tools. All of thes
 * [flexbar](https://github.com/seqan/flexbar), version 2.5
 * [SAMtools](http://www.htslib.org/), version 1.2
 * [STAR](https://github.com/alexdobin/STAR), version 2.4.1d
+  
+#### Helper script
+
+While not officially supported, the script
+[here](https://gist.github.com/bmmalone/43752eba0af97d1085eef7db033309d0)
+downloads and compiles the necessary prerequisites in `$HOME/install` and
+installs them in `$HOME/local`.
+
+It uses `apt-get` to install the Intel thread building blocks and CMake. The
+direct Rp-Bp dependencies mentioned above are simply downloaded and placed in
+the appropriate location. The relevant locations (`$HOME/local/bin`) must be
+add to the `$PATH` before the executable files can be found. `sudo` permissions
+are required for the calls to `apt-get`.
 
 #### OpenBLAS
 
