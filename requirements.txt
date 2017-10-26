@@ -1,4 +1,4 @@
-git+https://github.com/bmmalone/pymisc-utils.git#egg=misc
-git+https://github.com/bmmalone/pybio-utils.git#egg=bio_utils
-git+https://github.com/dieterich-lab/riboseq-utils.git#egg=riboutils
+git+https://github.com/bmmalone/pymisc-utils.git@0.2.5#egg=misc
+git+https://github.com/bmmalone/pybio-utils.git@0.2.4#egg=bio_utils
+git+https://github.com/dieterich-lab/riboseq-utils.git@0.2.5#egg=riboutils
 .

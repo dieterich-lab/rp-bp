@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   [Issue #74](https://github.com/dieterich-lab/rp-bp/issues/74) for more
   details.
 
+- Version specification of prereqs
+
+### Removed
+- `cluster-subcodon-counts`. See [Issue #78](https://github.com/dieterich-lab/rp-bp/issues/78)
+  for more details.
+
 ## [1.1.9] - 2017-06-15
 ### Added
 - Documentation for using custom alignment files. Please see
