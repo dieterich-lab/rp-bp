@@ -391,7 +391,7 @@ def create_figures(config_file, config, name, offsets_df, args):
             config['genome_name'], note=config.get('orf_note'))
              
         profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
-                length=lengths, offset=offsets, is_unique=is_unique, note=note_str)
+                length=lengths, offset=offsets, is_unique=is_unique, note=note)
 
         title_str = "{}, ORF-type periodicity".format(title)
         title_str = "--title {}".format(shlex.quote(title_str))
@@ -587,6 +587,13 @@ def main():
     title = "Preprocessing results for {}".format(project_name)
   
     sample_names = sorted(config['riboseq_samples'].keys())
+    
+    # redundant, but temporary fixes the issue (figures referenced before they are created)
+    for name in sample_names:
+        periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], 
+            name, is_unique=is_unique, note=note)
+        offsets_df = pd.read_csv(periodic_offsets)
+        create_figures(args.config, config, name, offsets_df, args)
 
     tex_file = os.path.join(args.out, "preprocessing-report.tex")
     with open(tex_file, 'w') as out:
@@ -694,7 +701,7 @@ def main():
             min_read_length = int(offsets_df['length'].min())
             max_read_length = int(offsets_df['length'].max())
     
-            create_figures(args.config, config, name, offsets_df, args)
+            #create_figures(args.config, config, name, offsets_df, args)
 
             latex.begin_table(out, "YY")
 

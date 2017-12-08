@@ -53,10 +53,10 @@ def main():
     ylim = (ymin, ymax)
 
     # and draw a line at "bf=5"
-    plt.plot(xlim, (5, 5), color='k', linewidth='2', linestyle=':')
+    plt.plot(xlim, (5, 5), color='k', linewidth=2, linestyle=':')
 
     # and a horizontal line at the maximum bf
-    plt.plot(xlim, (max(bfs), max(bfs)), color='r', linewidth='1', linestyle="-.")
+    plt.plot(xlim, (max(bfs), max(bfs)), color='r', linewidth=1, linestyle="-.")
 
     # and a vertical line at "offset=-12"
     ax.plot((-12, -12), ylim, color='g', linestyle="--")

@@ -75,7 +75,8 @@ def main():
         data=orf_type_counts,
         ax=ax,
         zorder=-1,
-        palette='Set3'
+        palette='Set3',
+        log=True
     )
 
     sns.despine()
@@ -90,8 +91,8 @@ def main():
     )
     mpl_utils.set_legend_title_fontsize(ax, args.fontsize)
 
-    ax.set_yscale('log')
-    ax.set_ylim((1, args.ymax))
+    #ax.set_yscale('log')
+    #ax.set_ylim((1, args.ymax))
 
     ax.set_ylabel("Number of ORFs", fontsize=args.fontsize)
     ax.set_xlabel("", fontsize=0)
