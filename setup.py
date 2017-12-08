@@ -215,7 +215,7 @@ def description():
     return description
 
 setup(name='rpbp',
-        version='1.1.10',
+        version='1.1.11',
         description=description(),
         long_description=readme(),
         keywords="rpbp ribosome profiling bayesian inference markov chain monte carlo translation",

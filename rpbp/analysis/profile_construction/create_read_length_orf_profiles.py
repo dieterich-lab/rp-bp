@@ -65,7 +65,8 @@ def main():
     exons = filenames.get_exons(
         config['genome_base_path'], 
         config['genome_name'],
-        note=orf_note
+        note=orf_note,
+        is_orf=True
     )
     
     # make sure the necessary files exist

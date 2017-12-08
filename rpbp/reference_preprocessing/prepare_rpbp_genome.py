@@ -13,6 +13,7 @@ import misc.logging_utils as logging_utils
 import misc.shell_utils as shell_utils
 import misc.slurm as slurm
 import misc.utils as utils
+import misc.shell_utils as shell_utils
 
 import riboutils.ribo_filenames as filenames
 
@@ -78,7 +79,8 @@ def get_orfs(gtf, args, config, is_annotated=False, is_de_novo=False):
         overwrite=args.overwrite, call=call)
 
     exons_file = filenames.get_exons(config['genome_base_path'], config['genome_name'],
-        note=config.get('orf_note'), is_annotated=is_annotated, is_de_novo=is_de_novo)
+        note=config.get('orf_note'), is_annotated=is_annotated, is_de_novo=is_de_novo,
+        is_orf=True)
 
     cmd = ("split-bed12-blocks {} {} --num-cpus {} {}".format(orfs_genomic, 
         exons_file, args.num_cpus, logging_str))
@@ -198,13 +200,13 @@ def main():
    
     annotated_exons_file = filenames.get_exons(config['genome_base_path'], 
         config['genome_name'], note=config.get('orf_note'), 
-        is_annotated=True, is_de_novo=False)
+        is_annotated=True, is_de_novo=False, is_orf=True)
 
     orfs_genomic = filenames.get_orfs(config['genome_base_path'], 
         config['genome_name'], note=config.get('orf_note'))
 
     exons_file = filenames.get_exons(config['genome_base_path'], 
-        config['genome_name'], note=config.get('orf_note'))
+        config['genome_name'], note=config.get('orf_note'), is_orf=True)
 
    
     # now, check if we have a de novo assembly
@@ -219,7 +221,7 @@ def main():
        
         de_novo_exons_file = filenames.get_exons(config['genome_base_path'], 
             config['genome_name'], note=config.get('orf_note'), 
-            is_annotated=False, is_de_novo=True)
+            is_annotated=False, is_de_novo=True, is_orf=True)
 
         orfs_files = [annotated_orfs, de_novo_orfs]
 
@@ -258,10 +260,10 @@ def main():
         # finally, make sure our files are named correctly
         
         if os.path.exists(annotated_orfs):
-            utils.create_symlink(annotated_orfs, orfs_genomic, call)
+            shell_utils.create_symlink(annotated_orfs, orfs_genomic, call)
 
         if os.path.exists(annotated_exons_file):
-            utils.create_symlink(annotated_exons_file, exons_file, call)
+            shell_utils.create_symlink(annotated_exons_file, exons_file, call)
 
 if __name__ == '__main__':
     main()

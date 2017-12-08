@@ -4,6 +4,7 @@ import argparse
 import pandas as pd
 
 import misc.utils as utils
+import misc.pandas_utils as pandas_utils
 import misc.parallel as parallel
 
 import logging
@@ -111,7 +112,7 @@ def main():
     msg = "Writing the ORFs with unique matches to disk"
     logger.info(msg)
 
-    utils.write_df(merged_unique_df, args.out, index=False)
+    pandas_utils.write_df(merged_unique_df, args.out, index=False)
 
 if __name__ == '__main__':
     main()
