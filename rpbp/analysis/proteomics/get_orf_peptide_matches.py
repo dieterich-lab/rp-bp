@@ -10,6 +10,7 @@ import bio_utils.bio as bio
 import misc.logging_utils as logging_utils
 import misc.parallel as parallel
 import misc.utils as utils
+import misc.pandas_utils as pandas_utils
 
 logger = logging.getLogger(__name__)
 
@@ -179,7 +180,7 @@ def main():
     predicted_orf_coverage = predicted_orf_coverage.fillna(0)
 
     msg = "Writing coverage information to disk"
-    utils.write_df(predicted_orf_coverage, args.out, index=False)
+    pandas_utils.write_df(predicted_orf_coverage, args.out, index=False)
 
 if __name__ == '__main__':
     main()

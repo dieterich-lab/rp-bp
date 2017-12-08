@@ -15,6 +15,7 @@ import bio_utils.mygene_utils as mygene_utils
 import misc.math_utils as math_utils
 import misc.parallel as parallel
 import misc.utils as utils
+import misc.pandas_utils as pandas_utils
 
 import riboutils.ribo_utils as ribo_utils
 import riboutils.ribo_filenames as filenames
@@ -373,7 +374,7 @@ def main():
         raise FileNotFoundError(msg)
 
     exons_file = filenames.get_exons(config['genome_base_path'], config['genome_name'],
-        note=config.get('orf_note'))
+        note=config.get('orf_note'), is_orf=True)
 
     if not os.path.exists(exons_file):
         msg = "Could not find the exons file ({}). Quitting.".format(exons_file)
@@ -583,7 +584,7 @@ def main():
     logger.info(msg)
 
     if args.append_sheet is None:
-        utils.write_df(res, args.out, index=False)
+        pandas_utils.write_df(res, args.out, index=False)
     else:
         sheet_name = "{},{}".format(args.name_a, args.name_b)
         utils.append_to_xlsx(res, args.out, sheet=sheet_name, index=False)
