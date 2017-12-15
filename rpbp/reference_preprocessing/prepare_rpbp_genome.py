@@ -13,7 +13,6 @@ import misc.logging_utils as logging_utils
 import misc.shell_utils as shell_utils
 import misc.slurm as slurm
 import misc.utils as utils
-import misc.shell_utils as shell_utils
 
 import riboutils.ribo_filenames as filenames
 

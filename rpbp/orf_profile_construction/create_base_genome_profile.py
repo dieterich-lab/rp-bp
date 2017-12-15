@@ -210,7 +210,7 @@ def main():
     genome_sorted_bam = filenames.get_riboseq_bam(config['riboseq_data'], args.name, note=note)
 
     if os.path.exists(genome_star_bam):
-        utils.create_symlink(genome_star_bam, genome_sorted_bam, call)
+        shell_utils.create_symlink(genome_star_bam, genome_sorted_bam, call)
     else:
         msg = ("Could not find the STAR genome bam alignment file. Unless "
         "--do-not-call was given, this is a problem.")
