@@ -6,7 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [1.1.11] - 2017-12-08
 ### Fixed
-- Typos in report names
+- Remove deprecated function calls from `analysis/rpbp_predictions/add_mygene_info_to_orfs`, 
+    `analysis/find_differential_micropeptides`, `analysis/proteomics/get_orf_peptide_matches` 
+    and `analysis/proteomics/filter_nonunique_peptide_matches`
+- In `create_rpbp_preprocessing_report.create_figures` call to 
+    `filenames.get_riboseq_profiles` modified to fix file name reference issue.
+- In `create_rpbp_preprocessing_report` some figures were referenced before they were created,
+    as a temporary fix, the function `create_figures` is now called earlier.
+- Typos in some of the analysis scripts.
+
+### Added
+- Flag added to differentiate between *exons* file and *orfs* file. See
+    [Issue #59](https://github.com/dieterich-lab/rp-bp/issues/59)
 
 ### Updated
 - Dependencies to new repo locations

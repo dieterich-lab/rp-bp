@@ -20,6 +20,7 @@ import misc.logging_utils as logging_utils
 import misc.parallel as parallel
 import misc.shell_utils as shell_utils
 import misc.utils as utils
+import misc.pandas_utils as pandas_utils
 
 logger = logging.getLogger(__name__)
 
@@ -139,7 +140,7 @@ def main():
     res = [r for r in res if r is not None]
     res_df = pd.DataFrame(res)
 
-    utils.write_df(res_df, args.out, index=False)
+    pandas_utils.write_df(res_df, args.out, index=False)
     
 if __name__ == '__main__':
     main()
