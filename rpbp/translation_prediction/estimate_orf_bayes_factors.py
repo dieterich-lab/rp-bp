@@ -21,6 +21,8 @@ import misc.parallel as parallel
 import misc.slurm as slurm
 import misc.utils as utils
 
+from misc.suppress_stdout_stderr import suppress_stdout_stderr
+
 import riboutils.ribo_utils as ribo_utils
 
 logger = logging.getLogger(__name__)
@@ -455,14 +457,16 @@ def main():
     profiles_indices = multiprocessing.RawArray(ctypes.c_int, profiles.indices)
     profiles_indptr = multiprocessing.RawArray(ctypes.c_int, profiles.indptr)
     profiles_shape = multiprocessing.RawArray(ctypes.c_int, profiles.shape)
-
-    bfs_l = parallel.apply_parallel_split(
-        regions, 
-        args.num_cpus,
-        get_all_bayes_factors_args, 
-        num_groups=args.num_groups,
-        progress_bar=True
-    )
+    
+    with suppress_stdout_stderr():
+        
+        bfs_l = parallel.apply_parallel_split(
+            regions, 
+            args.num_cpus,
+            get_all_bayes_factors_args, 
+            num_groups=args.num_groups,
+            progress_bar=True
+        )
 
     bfs = pd.concat(bfs_l)
 
