@@ -52,7 +52,7 @@ The following keys are read from the configuration file. Keys with [`brackets`] 
 * `ribosomal_fasta`. The path to the ribosomal sequence
 
 
-* [`de_novo_gtf`]. An additional GTF containing annotaions constructed from a _de novo_ assembly (for example, from StringTie). See below for how _de novo_ assemblies are handled.
+* [`de_novo_gtf`]. An additional GTF containing annotations constructed from a _de novo_ assembly (for example, from StringTie). See below for how _de novo_ assemblies are handled.
 
 
 * `genome_base_path`. The path to the output directory for the transcript fasta and ORFs
@@ -86,7 +86,7 @@ As part of the index creation phase, ORFs are labeled according to their locatio
 
 The required input files are those suggested by the configuration file keys.
 
-* `gtf`. The GTF/GFF3 file containing the reference annotations. The file must follow standard conventions for annotating transcripts. This means at least the `exon` features must be present, and the transcript identifiers (`transcript_id` attribute) must match for exons from the same transcript. Furthermore, the ORFs are labeled based on their positions relative to annotated coding sequences. For it to work correctly, the `CDS` features must also be present in the annotation file. The start codon should be included in the `CDS`, but the stop codon should not. Following standard conventions, the genomic locations are taken to be base-1 and inclusive. Other feature types, such as `gene`, `start_codon` and `stop_codon` may be present in the file, but they **are not used** for extracting ORFs.
+* `gtf`. The GTF/GFF file containing the reference annotations. The file must follow standard conventions for annotating transcripts. This means at least the `exon` features must be present, and the transcript identifiers (`transcript_id` attribute for GTF) must match for exons from the same transcript. Furthermore, the ORFs are labeled based on their positions relative to annotated coding sequences. For it to work correctly, the `CDS` features must also be present in the annotation file. The START codon should be included in the `CDS`, but the STOP codon should not. By default, Rp-Bp treats annotations according to the GTF2 (GTF) specifications, when the file extension is *.gtf*. Limited support is provided for [GFF3 specifications](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md). If the file extension is *.gff*, it will be treated as GFF3. In this case, it is assumed that the START and STOP codons are both included in the CDS. Rp-Bp will then automatically remove the STOP codon during processing. Following standard conventions, the genomic locations are taken to be base-1 and inclusive. Other feature types, such as `gene`, `start_codon` and `stop_codon` may be present in the file, but they **are not used** for extracting ORFs.
 
 
 * `fasta`. The input fasta file should contain all chromosome sequences. The identifiers must match those in the GTF file. Typically, the "primary assembly" file from Ensembl contains the appropriate sequences and identifiers. In particular, the "top level" Ensembl genome assembly includes haplotype information that is not used by Rp-Bp; for human, this is quite large and can substantially slow down the pipeline. Please see [Ensembl](http://www.ensembl.org/info/genome/genebuild/assembly.html) for more information about the differences between assemblies.
@@ -94,7 +94,7 @@ The required input files are those suggested by the configuration file keys.
 
 * `ribosomal_fasta`. The ribosomal DNA sequence is typically repeated many times throughout the genome. Consequently, it can be difficult to include in the genome assembly and is often omitted. Therefore, a separate fasta file is required for these sequences (which are later used to filter reads). This file could also include other sequences which should be filtered, such as tRNA sequences downloaded from [GtRNAdb](http://gtrnadb.ucsc.edu/), for example.
 
-* `de_novo_gtf`. The GTF/GFF3 file containig the _de novo_ assembled transcripts.
+* `de_novo_gtf`. The GTF/GFF file containing the _de novo_ assembled transcripts.
 
 ### _de novo_ assembled transcripts
 
@@ -133,7 +133,7 @@ The other labels, such as `novel_canonical` or `novel_five_prime` are guaranteed
     
    * `<genome_base_path>/transcript-index/<genome_name>.genomic-orfs.annotated.<orf_note>.bed.gz`. A bed12+ file containing all ORFs from annotated transcripts. Besides the standard bed12 columns, this file includes columns giving the orf_type, orf_length, and orf_num. The ORF ids are of the form: `transcript_seqname:start-end:strand`. The start codon _is_ included in the ORF, but the stop codon _is not_. The thick_start and thick_end are always the same as start and end.
     
-   * `<genome_base_path>/transcript-index/<genome_name>.orfs-exons.annotated.<orf_note>.bed.gz`. A bed6+2 file containing each exon from each ORF. The "id" of an exon corresponds exactly to the ORF to which it belongs; exons from the same ORF have the same "id". The extra columns are "exon_index", which gives the order of the exon in the transcript, and "transcript_start", which gives the start position of that index in transcript coordinates. Exons are always sorted by "lowest start first", so the order is really reversed for ORFs on the reverse strand.
+   * `<genome_base_path>/transcript-index/<genome_name>.orfs.annotated.<orf_note>.bed.gz`. A bed6+2 file containing each exon from each ORF. The "id" of an exon corresponds exactly to the ORF to which it belongs; exons from the same ORF have the same "id". The extra columns are "exon_index", which gives the order of the exon in the transcript, and "transcript_start", which gives the start position of that index in transcript coordinates. Exons are always sorted by "lowest start first", so the order is really reversed for ORFs on the reverse strand.
   
 #### From _de novo_ assembly. 
 
@@ -141,14 +141,14 @@ The semantics of these files are the same of those from the annotations, but cre
 
   * `<genome_base_path>/transcript-index/<genome_name>.transcripts.de-novo.fa`
   * `<genome_base_path>/transcript-index/<genome_name>.genomic-orfs.de-novo.<orf_note>.bed.gz`
-  * `<genome_base_path>/transcript-index/<genome_name>.orfs-exons.de-novo.<orf_note>.bed.gz`
+  * `<genome_base_path>/transcript-index/<genome_name>.orfs.de-novo.<orf_note>.bed.gz`
 
 #### From both annotations and _de novo_ assembly. 
 
 The semantics are again the same as above. If a _de novo_ assembly was not provided, these are simply symlinks to the respective "annotations" files. Otherwise, they are the concatenation of the respective "annotation" and "_de novo_" files.
 
   * `<genome_base_path>/transcript-index/<genome_name>.genomic-orfs.<orf_note>.bed.gz`
-  * `<genome_base_path>/transcript-index/<genome_name>.orfs-exons.<orf_note>.bed.gz`
+  * `<genome_base_path>/transcript-index/<genome_name>.orfs.<orf_note>.bed.gz`
 
 
 
@@ -474,7 +474,7 @@ This script requires several files created during the previous steps in the pipe
 * External files
     * **genome fasta file**. The genome fasta file. This is the same file used for `prepare-rpbp-genome`.
     * **orfs**. The ORFs (gzipped bed12+ file) created by `prepare-rpbp-genome`. It must be located at `<genome_base_path>/transcript-index/<genome_name>.genomic-orfs.<orf_note>.bed.gz`
-    * **exons**. The ORF exons (gzipped bed6+ file) created by `prepare-rpbp-genome`. It must be located at `<genome_base_path>/transcript-index/<genome_name>.orfs-exons.<orf_note>.bed.gz`
+    * **exons**. The ORF exons (gzipped bed6+ file) created by `prepare-rpbp-genome`. It must be located at `<genome_base_path>/transcript-index/<genome_name>.orfs.<orf_note>.bed.gz`
     * **models of translation**. Some compiled, pickled Stan model files must be located in the `<models_base>/translated` folder.
     * **models of lack of translation**. Some compiled, pickled Stan model files must be located in the `<models_base>/untranslated` folder.
 
@@ -493,7 +493,7 @@ This script requires several files created during the previous steps in the pipe
 ### Output files
     
 
-If replicates are merged, then these files will be created for each condition. Otherwise, they will be created for each sample (or both if the appropriate options are given).
+If replicates are merged, then these files will be created for each condition. Otherwise, they will be created for each sample (or both if the appropriate options are given). Note that the `frac-<fraction>.rw-<reweighting_iterations>` part of the file names is omitted for default values, unless specified in the configuration file.
     
 * Estimates
     * **the Bayes factor estimates**. A BED12+ file which contains the estimated values for all ORFs (which pass the thresholds mentioned above). The first 12 columns are valid BED12 entries that are simply copied from the `orfs` BED file.  `<riboseq_data>/orf-predictions/<sample_name>[.<note>]-unique.length-<lengths>.offset-<offsets>.smooth.frac-<fraction>.rw-<reweighting_iterations>.bayes-factors.bed.gz` 

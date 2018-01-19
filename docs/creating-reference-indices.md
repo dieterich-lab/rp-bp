@@ -26,23 +26,18 @@ Again, we recommend using the most recent version of annotations available. The
 annotations **must match** the version of the reference genome sequence. As
 described in the [usage instructions](usage-instructions.md), at least the
 `exon` features must be present, and the transcript identifiers (`transcript_id`
-attribute) must match for exons from the same transcript. The `CDS` features
+attribute for GTF) must match for exons from the same transcript. The `CDS` features
 must also be present in the annotation file. Rp-Bp's ORF labeling algorithm
-assumes that annotated CDSs *include* the start codon but *exclude* the stop
-codon. This can be verified by loading the annotations and sequence into a
-genome viewer such as IGV. Zooming in around the start of a CDS (the "thick"
-part) should show that the start codon begins exactly where the CDS annotations
-begins. For example:
+assumes that annotated CDSs *include* the START codon but *exclude* the STOP
+codon. 
 
-<img src="images/reverse-strand-start.png" width=750>
-
-Likewise, the stop codon *should not* be included in the "thick" part.
-
-<img src="images/reverse-strand-end.png" width=750>
-
-The Ensemble annotations follow these conventions, but others may not. If there
-is a problem with the annotations, it is likely to manifest as many `within` and
-`suspect` ORFs while very few `canonical` ORFs predicted as translated.
+There seem to be no clear consensus if the STOP codon should be part of the coding region.
+The GTF2 (GTF) specifications suggest to exclude it, and this is the default in Rp-Bp
+when the file as a *.gtf* extension. If the annotations follow the GFF3 specifications 
+(file has *.gff* extension), the STOP codon *is included* and will be automatically removed during processing. 
+This can be verified by loading the annotations and sequence into a
+genome viewer such as IGV. If there is a problem with the annotations, it is likely to manifest 
+as many `within` and `suspect` ORFs while very few `canonical` ORFs predicted as translated.
 
 Following standard conventions, the genomic locations are taken to be base-1 and
 inclusive. Other feature types, such as `gene`, `start_codon` and `stop_codon`
@@ -97,8 +92,8 @@ highly recommend creating a *de novo* assembly from the RNA-seq data. A variety
 of algorithms are available for this task. Internally, we use a custom pipeline
 which is based on the STAR aligner and StringTie assembler. Many, many other
 options exist for transcript assembly, though. The only requirement for use with
-Rp-Bp is that the assembler produces a valid GTF file (or something which can
-be converted into GTF). The coordinates in the GTF file must match those in the
+Rp-Bp is that the assembler produces a valid GTF/GFF file (or something which can
+be converted into GTF/GFF). The coordinates in the GTF/GFF file must match those in the
 reference genome.
 
 *de novo* assembly algorithms do not typically identify coding regions (that is
