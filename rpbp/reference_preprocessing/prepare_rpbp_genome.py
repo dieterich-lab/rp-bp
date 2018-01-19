@@ -34,8 +34,8 @@ def get_orfs(gtf, args, config, is_annotated=False, is_de_novo=False):
         config['genome_name'], is_merged=False, is_annotated=is_annotated, 
         is_de_novo=is_de_novo)
     
-    cmd = ("gtf-to-bed12 {} {} --num-cpus {} {} {}".format(gtf, 
-        transcript_bed, args.num_cpus, chr_name_str, logging_str))
+    cmd = ("gtf-to-bed12 {} {} {} {} {}".format(gtf,
+        transcript_bed, chr_name_str, cpus_str, logging_str))
     in_files = [gtf]
     out_files = [transcript_bed]
     shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 

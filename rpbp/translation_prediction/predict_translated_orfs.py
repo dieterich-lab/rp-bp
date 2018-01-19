@@ -112,9 +112,23 @@ def main():
         note=config.get('orf_note')
     )
 
-    # and the smoothing parameters
+    # smoothing parameters (filenames)
+    # default values are not used in the file names
     fraction = config.get('smoothing_fraction', None)
     reweighting_iterations = config.get('smoothing_reweighting_iterations', None)
+
+    # check if we are running Rp-Bp (default) or Rp-chi
+    chi_square_only_str = ""
+    chi_square_only = False
+    if 'chi_square_only' in config:
+        chi_square_only_str = "--chi-square-only"
+        chi_square_only = True
+        fraction = None
+        reweighting_iterations = None
+        msg = """ The final prediction set will be made based on the chi square test only! 
+                  The translation models will not be fit to the data, and the posterior 
+                  distributions will not be estimated. """
+        logger.info(msg)
 
     # keep multimappers?
     is_unique = not ('keep_riboseq_multimappers' in config)
@@ -210,15 +224,6 @@ def main():
     chains_str = utils.get_config_argument(config, 'chains', 'chains')
     iterations_str = utils.get_config_argument(config, 'translation_iterations', 'iterations')
 
-    chi_square_only_str = ""
-    chi_square_only = False
-    if 'chi_square_only' in config:
-        chi_square_only = True
-        chi_square_only_str = "--chi-square-only"
-        msg = """ The final prediction set will be made based on the chi square test only! 
-                  The translation models will not be fit to the data, and the posterior 
-                  distributions will not be estimated. """
-        logger.info(msg)
 
     cmd = ("estimate-orf-bayes-factors {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} "
         "--num-cpus {}".format(
@@ -311,12 +316,12 @@ def main():
             config['fasta'], 
             predicted_orfs, 
             predicted_orfs_dna, 
-            predicted_orfs_protein, 
+            predicted_orfs_protein,
             min_bf_mean_str, 
             max_bf_var_str, 
             min_bf_likelihood_str, 
             logging_str, 
-            chi_square_only_str, 
+            chi_square_only_str,
             filtered_str
         )
 
