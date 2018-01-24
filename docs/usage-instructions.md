@@ -52,7 +52,7 @@ The following keys are read from the configuration file. Keys with [`brackets`] 
 * `ribosomal_fasta`. The path to the ribosomal sequence
 
 
-* [`de_novo_gtf`]. An additional GTF containing annotations constructed from a _de novo_ assembly (for example, from StringTie). See below for how _de novo_ assemblies are handled.
+* [`de_novo_gtf`]. An additional GTF/GFF containing annotations constructed from a _de novo_ assembly (for example, from StringTie). See below for how _de novo_ assemblies are handled. This file and the reference annotation file must have the same format (both GTF or GFF3), see below regarding format specifications.
 
 
 * `genome_base_path`. The path to the output directory for the transcript fasta and ORFs
@@ -94,7 +94,7 @@ The required input files are those suggested by the configuration file keys.
 
 * `ribosomal_fasta`. The ribosomal DNA sequence is typically repeated many times throughout the genome. Consequently, it can be difficult to include in the genome assembly and is often omitted. Therefore, a separate fasta file is required for these sequences (which are later used to filter reads). This file could also include other sequences which should be filtered, such as tRNA sequences downloaded from [GtRNAdb](http://gtrnadb.ucsc.edu/), for example.
 
-* `de_novo_gtf`. The GTF/GFF file containing the _de novo_ assembled transcripts.
+* `de_novo_gtf`. The GTF/GFF file containing the _de novo_ assembled transcripts. It must have the same format specifications at the `gtf` file.
 
 ### _de novo_ assembled transcripts
 
@@ -114,6 +114,7 @@ We then label ORFs from the _de novo_ assembly as follows, with respect to their
 
 The other labels, such as `novel_canonical` or `novel_five_prime` are guaranteed to be filtered in the first step based on their definitions.
 
+In preparation to running the main pipeline, `reference` and `de_novo` annotations are concatenated in a single file which is used on the fly by `STAR` at the mapping step. Merging and sorting the resulting annotations is not necessary.
 
 ### Output files
 
@@ -147,6 +148,8 @@ The semantics of these files are the same of those from the annotations, but cre
 
 The semantics are again the same as above. If a _de novo_ assembly was not provided, these are simply symlinks to the respective "annotations" files. Otherwise, they are the concatenation of the respective "annotation" and "_de novo_" files.
 
+  * `<genome_base_path>/<genome_name>.star-input.gtf`
+  
   * `<genome_base_path>/transcript-index/<genome_name>.genomic-orfs.<orf_note>.bed.gz`
   * `<genome_base_path>/transcript-index/<genome_name>.orfs.<orf_note>.bed.gz`
 
@@ -355,10 +358,11 @@ These affect the MCMC both for estimating metagene profile periodicity and ORF t
 The required input files are only those suggested by the configuration file keys.
 
 * `ribosomal_index`.
-* `gtf`.
-* The STAR index
+* The STAR index.
 * The periodic models, taken as all `.pkl` files located in `<models_base>/periodic`.
 * The nonperiodic models, taken as all `.pkl` files located in `<models_base>/nonperiodic`.
+
+In addition, the input annotations `<genome_base_path>/<genome_name>.star-input.gtf` are used by `STAR`. For details, see [Creating reference genome indices](#creating-reference-genome-indices).
 
 ### Output files
 

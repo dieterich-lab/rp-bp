@@ -42,7 +42,7 @@
 <li><code>gtf</code>. The path to the reference annotations</li>
 <li><code>fasta</code>. The path to the reference genome sequence</li>
 <li><p><code>ribosomal_fasta</code>. The path to the ribosomal sequence</p></li>
-<li><p>[<code>de_novo_gtf</code>]. An additional GTF containing annotations constructed from a <em>de novo</em> assembly (for example, from StringTie). See below for how <em>de novo</em> assemblies are handled.</p></li>
+<li><p>[<code>de_novo_gtf</code>]. An additional GTF/GFF containing annotations constructed from a <em>de novo</em> assembly (for example, from StringTie). See below for how <em>de novo</em> assemblies are handled. This file and the reference annotation file must have the same format (both GTF or GFF3), see below regarding format specifications.</p></li>
 <li><code>genome_base_path</code>. The path to the output directory for the transcript fasta and ORFs</li>
 <li><code>genome_name</code>. A descriptive name to use for the created files</li>
 <li><code>ribosomal_index</code>. The base output path for the Bowtie2 index of the ribosomal sequence</li>
@@ -72,7 +72,7 @@
 <li><p><code>gtf</code>. The GTF/GFF file containing the reference annotations. The file must follow standard conventions for annotating transcripts. This means at least the <code>exon</code> features must be present, and the transcript identifiers (<code>transcript_id</code> attribute for GTF) must match for exons from the same transcript. Furthermore, the ORFs are labeled based on their positions relative to annotated coding sequences. For it to work correctly, the <code>CDS</code> features must also be present in the annotation file. The START codon should be included in the <code>CDS</code>, but the STOP codon should not. By default, Rp-Bp treats annotations according to the GTF2 (GTF) specifications, when the file extension is <em>.gtf</em>. Limited support is provided for <a href="https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.html">GFF3 specifications</a>. If the file extension is <em>.gff</em>, it will be treated as GFF3. In this case, it is assumed that the START and STOP codons are both included in the CDS. Rp-Bp will then automatically remove the STOP codon during processing. Following standard conventions, the genomic locations are taken to be base-1 and inclusive. Other feature types, such as <code>gene</code>, <code>start_codon</code> and <code>stop_codon</code> may be present in the file, but they <strong>are not used</strong> for extracting ORFs.</p></li>
 <li><p><code>fasta</code>. The input fasta file should contain all chromosome sequences. The identifiers must match those in the GTF file. Typically, the “primary assembly” file from Ensembl contains the appropriate sequences and identifiers. In particular, the “top level” Ensembl genome assembly includes haplotype information that is not used by Rp-Bp; for human, this is quite large and can substantially slow down the pipeline. Please see <a href="http://www.ensembl.org/info/genome/genebuild/assembly.html">Ensembl</a> for more information about the differences between assemblies.</p></li>
 <li><p><code>ribosomal_fasta</code>. The ribosomal DNA sequence is typically repeated many times throughout the genome. Consequently, it can be difficult to include in the genome assembly and is often omitted. Therefore, a separate fasta file is required for these sequences (which are later used to filter reads). This file could also include other sequences which should be filtered, such as tRNA sequences downloaded from <a href="http://gtrnadb.ucsc.edu/">GtRNAdb</a>, for example.</p></li>
-<li><p><code>de_novo_gtf</code>. The GTF/GFF file containing the <em>de novo</em> assembled transcripts.</p></li>
+<li><p><code>de_novo_gtf</code>. The GTF/GFF file containing the <em>de novo</em> assembled transcripts. It must have the same format specifications at the <code>gtf</code> file.</p></li>
 </ul>
 <h3 id="de-novo-assembled-transcripts"><em>de novo</em> assembled transcripts</h3>
 <p>In principle, there is no difference between “standard” annotated transcripts and <em>de novo</em> assembled transcripts. In both cases, ORFs are extracted from the transcripts based on the given <code>start_codons</code> and <code>stop_codons</code>. However, it is often of scientific interest to distinguish between ORFs from annotated transcripts and “novel” ones from the <em>de novo</em> assembly.</p>
@@ -88,6 +88,7 @@
 <li><code>novel_within</code>. an out-of-frame ORF in the interior of a <code>canonical</code> ORF</li>
 </ul>
 <p>The other labels, such as <code>novel_canonical</code> or <code>novel_five_prime</code> are guaranteed to be filtered in the first step based on their definitions.</p>
+<p>In preparation to running the main pipeline, <code>reference</code> and <code>de_novo</code> annotations are concatenated in a single file which is used on the fly by <code>STAR</code> at the mapping step. Merging and sorting the resulting annotations is not necessary.</p>
 <h3 id="output-files">Output files</h3>
 <ul>
 <li><p><code>&lt;genome_base_path&gt;/ribosomal_index/</code>. The bowtie2 index files (<code>ribosomal_index</code>.1.bt2, etc.) for the ribosomal_fasta file</p></li>
@@ -110,8 +111,9 @@
 <h4 id="from-both-annotations-and-de-novo-assembly.">From both annotations and <em>de novo</em> assembly.</h4>
 <p>The semantics are again the same as above. If a <em>de novo</em> assembly was not provided, these are simply symlinks to the respective “annotations” files. Otherwise, they are the concatenation of the respective “annotation” and “<em>de novo</em>” files.</p>
 <ul>
+<li><p><code>&lt;genome_base_path&gt;/&lt;genome_name&gt;.star-input.gtf</code></p></li>
 <li><code>&lt;genome_base_path&gt;/transcript-index/&lt;genome_name&gt;.genomic-orfs.&lt;orf_note&gt;.bed.gz</code></li>
-<li><code>&lt;genome_base_path&gt;/transcript-index/&lt;genome_name&gt;.orfs.&lt;orf_note&gt;.bed.gz</code></li>
+<li><p><code>&lt;genome_base_path&gt;/transcript-index/&lt;genome_name&gt;.orfs.&lt;orf_note&gt;.bed.gz</code></p></li>
 </ul>
 <pre><code>prepare-rpbp-genome WBcel235.79.chrI.yaml --num-cpus 2 --mem 4G --overwrite --logging-level INFO</code></pre>
 <p><a href="#toc">Back to top</a></p>
@@ -256,11 +258,11 @@ run-all-rpbp-instances c-elegans-test.yaml --tmp /scratch/bmalone/ --overwrite -
 <p>The required input files are only those suggested by the configuration file keys.</p>
 <ul>
 <li><code>ribosomal_index</code>.</li>
-<li><code>gtf</code>.</li>
-<li>The STAR index</li>
+<li>The STAR index.</li>
 <li>The periodic models, taken as all <code>.pkl</code> files located in <code>&lt;models_base&gt;/periodic</code>.</li>
 <li>The nonperiodic models, taken as all <code>.pkl</code> files located in <code>&lt;models_base&gt;/nonperiodic</code>.</li>
 </ul>
+<p>In addition, the input annotations <code>&lt;genome_base_path&gt;/&lt;genome_name&gt;.star-input.gtf</code> are used by <code>STAR</code>. For details, see <a href="#creating-reference-genome-indices">Creating reference genome indices</a>.</p>
 <h3 id="output-files-1">Output files</h3>
 <p>This script primarily creates the following files. (STAR also creates some temporary and log files.)</p>
 <p><strong>N.B.</strong> If the <code>keep_riboseq_multimappers</code> configuration option is given, then the “-unique” part will not be present in the output filenames.</p>
