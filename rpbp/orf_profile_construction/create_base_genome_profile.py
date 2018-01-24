@@ -186,10 +186,19 @@ def main():
     mem_bytes = utils.human2bytes(args.mem)
     star_mem_str = "--limitBAMsortRAM {}".format(mem_bytes)
 
-    cmd = ("{} --runThreadN {} {} --genomeDir {} --sjdbGTFfile {} --readFilesIn {} "
+    sjdbGTFtag_str = ""
+    # if GFF3 specs, then we need to inform STAR
+    # whether we have de novo or not, the format of "config['gtf']" has precedence
+    use_gff3_specs = config['gtf'].endswith('gff')
+    gtf_file = filenames.get_gtf(config['genome_base_path'],
+        config['genome_name'], is_gff3=use_gff3_specs, is_star_input=True)
+    if use_gff3_specs:
+        sjdbGTFtag_str = "--sjdbGTFtagExonParentTranscript Parent"
+
+    cmd = ("{} --runThreadN {} {} --genomeDir {} --sjdbGTFfile {} {} --readFilesIn {} "
         "{} {} {} {} {} {} {} {} --outFileNamePrefix {} {} {} {}".format(args.star_executable,
-        args.num_cpus, star_compression_str, config['star_index'], config['gtf'], without_rrna, 
-        align_intron_min_str, align_intron_max_str, out_filter_mismatch_n_max_str, 
+        args.num_cpus, star_compression_str, config['star_index'], gtf_file, sjdbGTFtag_str,
+        without_rrna, align_intron_min_str, align_intron_max_str, out_filter_mismatch_n_max_str,
         out_filter_type_str, out_filter_intron_motifs_str, quant_mode_str,
         out_filter_mismatch_n_over_l_max_str, out_sam_attributes_str, star_output_prefix,
         star_out_str, star_tmp_str, star_mem_str))

@@ -207,6 +207,9 @@ def main():
     exons_file = filenames.get_exons(config['genome_base_path'], 
         config['genome_name'], note=config.get('orf_note'), is_orf=True)
 
+    use_gff3_specs = config['gtf'].endswith('gff')
+    gtf_file = filenames.get_gtf(config['genome_base_path'],
+        config['genome_name'], is_gff3=use_gff3_specs, is_star_input=True)
    
     # now, check if we have a de novo assembly
     if 'de_novo_gtf' in config:
@@ -222,8 +225,8 @@ def main():
             config['genome_name'], note=config.get('orf_note'), 
             is_annotated=False, is_de_novo=True, is_orf=True)
 
-        orfs_files = [annotated_orfs, de_novo_orfs]
 
+        orfs_files = [annotated_orfs, de_novo_orfs]
 
         orfs_files_str = ' '.join(orfs_files)
         msg = ("Concatenating files. Output file: {}; Input files: {}".format(
@@ -255,6 +258,22 @@ def main():
             msg = "Skipping concatenation due to --call value"
             logger.info(msg)
 
+        # we also need to concat the annotations to inform STAR
+        # there is no particular reason to merge and sort the files, so
+        # we just concatenate them...
+        if (config['de_novo_gtf'].endswith('gff') == use_gff3_specs):
+            cmd = ("awk '!/^#/' {} {} > {}".format(config['gtf'], config['de_novo_gtf'], gtf_file))
+            in_files = [config['gtf'], config['de_novo_gtf']]
+            out_files = [gtf_file]
+            shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files,
+                overwrite=args.overwrite, call=call)
+        else:
+            msg = ("Skipping concatenation due to mismatch in format specifications (GTF2/GFF3)"
+                  "for reference and do novo annotations. Symlink to reference annotations created.")
+            logger.warning(msg)
+            if os.path.exists(config['gtf']):
+                shell_utils.create_symlink(config['gtf'], gtf_file, call)
+
     else:
         # finally, make sure our files are named correctly
         
@@ -263,6 +282,9 @@ def main():
 
         if os.path.exists(annotated_exons_file):
             shell_utils.create_symlink(annotated_exons_file, exons_file, call)
+
+        if os.path.exists(config['gtf']):
+            shell_utils.create_symlink(config['gtf'], gtf_file, call)
 
 if __name__ == '__main__':
     main()
