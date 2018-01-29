@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 default_num_cpus = 1
 default_mem = "2G"
-default_flexbar_format_option = None
 default_tmp = None # utils.abspath("tmp")
 
 default_models_base = filenames.get_default_models_base()
@@ -46,9 +45,10 @@ def main():
     parser.add_argument('--mem', help="The amount of RAM to request", 
         default=default_mem)
 
-    parser.add_argument('--flexbar-format-option', help="The name of the \"format\" "
-        "option for flexbar. This changed from \"format\" to \"qtrim-format\" in "
-        "version 2.7.", default=default_flexbar_format_option)
+    parser.add_argument('--flexbar-options', help="A space-delimited list of options to"
+        "pass to flexbar. Each option must be quoted separately and must include the"
+        "parameter value to be used, if required by flexbar. If specified, flexbar options"
+        "will override default settings.", nargs='*', type=str)
 
     parser.add_argument('--tmp', help="The location for temp files", default=default_tmp)
 
@@ -128,11 +128,10 @@ def main():
     if args.tmp is not None:
         tmp_str = "--tmp {}".format(args.tmp)
 
-    
-    flexbar_format_option_str = ""
-    if args.flexbar_format_option is not None:
-        flexbar_format_option_str = "--flexbar-format-option {}".format(
-            args.flexbar_format_option)
+    flexbar_option_str = ""
+    if args.flexbar_options is not None:
+        flexbar_option_str = "--flexbar-options {}".format(' '.join('"' + flx_op + '"'
+            for flx_op in args.flexbar_options))
 
     # check if we want to keep multimappers
     is_unique = not ('keep_riboseq_multimappers' in config)
@@ -146,7 +145,7 @@ def main():
     cmd = ("create-base-genome-profile {} {} {} --num-cpus {} {} {} {} {} {} {} {} {}"
         .format(riboseq_raw_data, args.config, args.name, args.num_cpus, 
         do_not_call_argument, overwrite_argument, logging_str, star_str, tmp_str,
-        flexbar_format_option_str, keep_intermediate_str, mem_str))
+        flexbar_option_str, keep_intermediate_str, mem_str))
 
     # There could be cases where we start somewhere in the middle of creating
     # the base genome profile. So even if the "raw data" is not available, 

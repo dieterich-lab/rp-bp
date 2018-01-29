@@ -24,8 +24,7 @@ logger = logging.getLogger(__name__)
 default_num_cpus = 1
 default_mem = "2G"
 
-default_flexbar_format_option = "qtrim-format"
-default_quality_format = 'sanger'
+# Flexbar arguments
 default_max_uncalled = 1
 default_pre_trim_left = 0
 
@@ -61,10 +60,11 @@ def main():
     
     parser.add_argument('--mem', help="The amount of RAM to request", 
         default=default_mem)
-       
-    parser.add_argument('--flexbar-format-option', help="The name of the \"format\" "
-        "option for flexbar. This changed from \"format\" to \"qtrim-format\" in "
-        "version 2.7.", default=default_flexbar_format_option)
+
+    parser.add_argument('--flexbar-options', help="A space-delimited list of options to"
+        "pass to flexbar. Each option must be quoted separately and must include the"
+        "parameter value to be used, if required by flexbar. If specified, flexbar options"
+        "will override default settings.", nargs='*', type=str)
 
     parser.add_argument('-t', '--tmp', help="The location for temporary files. If not "
             "specified, program-specific temp locations are used.", default=default_tmp)
@@ -119,14 +119,19 @@ def main():
     adapter_seq_str = utils.get_config_argument(config, 'adapter_sequence', 'adapter-seq')
     adapter_file_str = utils.get_config_argument(config, 'adapter_file', 'adapters')
 
-    quality_format_str = utils.get_config_argument(config, 'quality_format', args.flexbar_format_option, 
-        default=default_quality_format)
     max_uncalled_str = utils.get_config_argument(config, 'max_uncalled', default=default_max_uncalled)
     pre_trim_left_str = utils.get_config_argument(config, 'pre_trim_left', default=default_pre_trim_left)
 
-    cmd = "flexbar {} {} {} {} -n {} {} -r {} -t {} {}".format(quality_format_str, 
-        max_uncalled_str, adapter_seq_str, adapter_file_str, args.num_cpus, flexbar_compression_str, 
-        raw_data, flexbar_target, pre_trim_left_str)
+    flexbar_option_str = ""
+    if args.flexbar_options:
+        flexbar_option_str = "{}".format(' '.join(args.flexbar_options))
+    if 'max-uncalled' not in flexbar_option_str:
+        flexbar_option_str = "{}".format(' '.join([flexbar_option_str, max_uncalled_str]))
+    if 'pre-trim-left' not in flexbar_option_str:
+        flexbar_option_str = "{}".format(' '.join([flexbar_option_str, pre_trim_left_str]))
+
+    cmd = "flexbar -r {} -t {} {} {} {} {} -n {}".format(raw_data, flexbar_target, flexbar_compression_str,
+            adapter_seq_str, adapter_file_str, flexbar_option_str, args.num_cpus)
     in_files = [raw_data]
     out_files = [without_adapters]
     file_checkers = {

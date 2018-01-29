@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `predict_translated_orfs` and `select_final_prediction_set` modified such 
     that Rp-chi pipeline is used *only* if `chi_square_only` is in config file,
     otherwise Rp-Bp is used.
+- Handling of options passed to flexbar via arguments to `run_all_rpbp_instances`,
+    `run_rpbp_pipeline`, `create_orf_profiles` and `create_base_genome_profile`. 
 
 ### Removed
 - Removed fields `delta_l` and `delta_h` from output in `estimate_orf_bayes_factors`.
