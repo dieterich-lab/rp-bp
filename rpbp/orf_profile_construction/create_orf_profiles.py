@@ -46,9 +46,8 @@ def main():
         default=default_mem)
 
     parser.add_argument('--flexbar-options', help="A space-delimited list of options to"
-        "pass to flexbar. Each option must be quoted separately and must include the"
-        "parameter value to be used, if required by flexbar. If specified, flexbar options"
-        "will override default settings.", nargs='*', type=str)
+        "pass to flexbar. Each option must be quoted separately as in \"--flexbarOption value\""
+        "If specified, flexbar options will override default settings.", nargs='*', type=str)
 
     parser.add_argument('--tmp', help="The location for temp files", default=default_tmp)
 

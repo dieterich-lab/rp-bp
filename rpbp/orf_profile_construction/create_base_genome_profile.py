@@ -28,6 +28,8 @@ default_mem = "2G"
 default_max_uncalled = 1
 default_pre_trim_left = 0
 
+flexbar_compression_str = "--zip-output GZ"
+
 # STAR arguments
 default_star_executable = "STAR"
 
@@ -38,8 +40,7 @@ default_out_filter_mismatch_n_over_l_max = 0.04
 default_out_filter_type = "BySJout"
 default_out_filter_intron_motifs = "RemoveNoncanonicalUnannotated"
 default_out_sam_attributes = ["AS", "NH", "HI", "nM", "MD"]
-
-flexbar_compression_str = "--zip-output GZ"
+default_sjdb_overhang = 50
 
 # the Rp-Bp pipeline does not use the transcript alignments, so do not create them
 quant_mode_str = "" # '--quantMode TranscriptomeSAM'
@@ -62,9 +63,8 @@ def main():
         default=default_mem)
 
     parser.add_argument('--flexbar-options', help="A space-delimited list of options to"
-        "pass to flexbar. Each option must be quoted separately and must include the"
-        "parameter value to be used, if required by flexbar. If specified, flexbar options"
-        "will override default settings.", nargs='*', type=str)
+        "pass to flexbar. Each option must be quoted separately as in \"--flexbarOption value\""
+        "If specified, flexbar options will override default settings.", nargs='*', type=str)
 
     parser.add_argument('-t', '--tmp', help="The location for temporary files. If not "
             "specified, program-specific temp locations are used.", default=default_tmp)
@@ -164,23 +164,45 @@ def main():
     #transcriptome_bam = "{}{}".format(star_output_prefix, "Aligned.toTranscriptome.out.bam")
     genome_star_bam = "{}{}".format(star_output_prefix, "Aligned.sortedByCoord.out.bam")
 
-    star_compression_str = "--readFilesCommand {}".format(
-        shlex.quote(args.star_read_files_command))
+    # Get all default options, and add additional options if present.
+    # Additional options will override defaults/config options, except for options further below.
+    pre_defined_star_options = {}
 
     align_intron_min_str = utils.get_config_argument(config, 'align_intron_min', 
         'alignIntronMin', default=default_align_intron_min)
+    pre_defined_star_options['alignIntronMin'] = align_intron_min_str
     align_intron_max_str = utils.get_config_argument(config, 'align_intron_max', 
         'alignIntronMax', default=default_align_intron_max)
+    pre_defined_star_options['alignIntronMax'] = align_intron_max_str
     out_filter_mismatch_n_max_str = utils.get_config_argument(config, 'out_filter_mismatch_n_max', 
         'outFilterMismatchNmax', default=default_out_filter_mismatch_n_max)
+    pre_defined_star_options['outFilterMismatchNmax'] = out_filter_mismatch_n_max_str
     out_filter_mismatch_n_over_l_max_str = utils.get_config_argument(config, 'out_filter_mismatch_n_over_l_max',
         'outFilterMismatchNoverLmax', default=default_out_filter_mismatch_n_over_l_max)
+    pre_defined_star_options['outFilterMismatchNoverLmax'] = out_filter_mismatch_n_over_l_max_str
     out_filter_type_str = utils.get_config_argument(config, 'out_filter_type', 
         'outFilterType', default=default_out_filter_type)
+    pre_defined_star_options['outFilterType'] = out_filter_type_str
     out_filter_intron_motifs_str = utils.get_config_argument(config, 'out_filter_intron_motifs', 
         'outFilterIntronMotifs', default=default_out_filter_intron_motifs)
+    pre_defined_star_options['outFilterIntronMotifs'] = out_filter_intron_motifs_str
     out_sam_attributes_str = utils.get_config_argument(config, 'out_sam_attributes', 
         'outSAMattributes', default=default_out_sam_attributes)
+    pre_defined_star_options['outSAMattributes'] = out_sam_attributes_str
+    sjdb_overhang_str = utils.get_config_argument(config, 'sjdb_overhang',
+        'sjdbOverhang', default=default_sjdb_overhang)
+    pre_defined_star_options['sjdbOverhang'] = sjdb_overhang_str
+
+    all_additional_options_str = ""
+    if args.star_additional_options:
+        all_additional_options_str = "{}".format(' '.join(args.star_additional_options))
+    for star_option_key, star_option_str in pre_defined_star_options.items():
+        if star_option_key not in all_additional_options_str:
+            all_additional_options_str = "{}".format(' '.join([all_additional_options_str, star_option_str]))
+
+    # Separate options.
+    star_compression_str = "--readFilesCommand {}".format(
+        shlex.quote(args.star_read_files_command))
 
     star_tmp_str = ""
     if args.tmp is not None:
@@ -191,22 +213,20 @@ def main():
     mem_bytes = utils.human2bytes(args.mem)
     star_mem_str = "--limitBAMsortRAM {}".format(mem_bytes)
 
-    sjdbGTFtag_str = ""
-    # if GFF3 specs, then we need to inform STAR
-    # whether we have de novo or not, the format of "config['gtf']" has precedence
+    # If GFF3 specs, then we need to inform STAR.
+    # Whether we have de novo or not, the format of "config['gtf']" has precedence.
+    sjdb_gtf_tag_str = ""
     use_gff3_specs = config['gtf'].endswith('gff')
     gtf_file = filenames.get_gtf(config['genome_base_path'],
         config['genome_name'], is_gff3=use_gff3_specs, is_star_input=True)
     if use_gff3_specs:
-        sjdbGTFtag_str = "--sjdbGTFtagExonParentTranscript Parent"
+        sjdb_gtf_tag_str = "--sjdbGTFtagExonParentTranscript Parent"
 
-    cmd = ("{} --runThreadN {} {} --genomeDir {} --sjdbGTFfile {} {} --readFilesIn {} "
-        "{} {} {} {} {} {} {} {} --outFileNamePrefix {} {} {} {}".format(args.star_executable,
-        args.num_cpus, star_compression_str, config['star_index'], gtf_file, sjdbGTFtag_str,
-        without_rrna, align_intron_min_str, align_intron_max_str, out_filter_mismatch_n_max_str,
-        out_filter_type_str, out_filter_intron_motifs_str, quant_mode_str,
-        out_filter_mismatch_n_over_l_max_str, out_sam_attributes_str, star_output_prefix,
-        star_out_str, star_tmp_str, star_mem_str))
+    cmd = ("{} --runThreadN {} {} {} --genomeDir {} --sjdbGTFfile {} {} --readFilesIn {} "
+        "{} {} --outFileNamePrefix {} {} {}".format(args.star_executable,
+        args.num_cpus, star_mem_str, star_compression_str, config['star_index'], gtf_file,
+        sjdb_gtf_tag_str, without_rrna, all_additional_options_str, quant_mode_str,
+         star_output_prefix, star_out_str, star_tmp_str))
     in_files = [without_rrna]
     in_files.extend(star_utils.get_star_index_files(config['star_index']))
     #out_files = [transcriptome_bam, genome_star_bam]

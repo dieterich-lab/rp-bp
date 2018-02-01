@@ -33,9 +33,8 @@ def main():
     parser.add_argument('--tmp', help="The temp directory", default=default_tmp)
 
     parser.add_argument('--flexbar-options', help="A space-delimited list of options to"
-        "pass to flexbar. Each option must be quoted separately and must include the"
-        "parameter value to be used, if required by flexbar. If specified, flexbar options"
-        "will override default settings.", nargs='*', type=str)
+        "pass to flexbar. Each option must be quoted separately as in \"--flexbarOption value\""
+        "If specified, flexbar options will override default settings.", nargs='*', type=str)
     
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
