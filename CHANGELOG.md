@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     otherwise Rp-Bp is used.
 - Handling of options passed to flexbar via arguments to `run_all_rpbp_instances`,
     `run_rpbp_pipeline`, `create_orf_profiles` and `create_base_genome_profile`. 
+- Handling of additional options passed to star via arguments, mainly 
+    to `create_base_genome_profile`. 
 
 ### Removed
 - Removed fields `delta_l` and `delta_h` from output in `estimate_orf_bayes_factors`.
@@ -32,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     `rpbp/analysis/profile_construction/create_rpbp_preprocessing_report` and 
     `rpbp/analysis/profile_construction/visualize_metagene_profile_bayes_factor`. 
     See [ISSUE #87](https://github.com/dieterich-lab/rp-bp/issues/87). In progress.
+- Added default *sjdbOverhang* option to star during mapping.
 
 ## [1.1.11] - 2017-12-08
 ### Removed

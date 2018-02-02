@@ -22,3 +22,6 @@ data
 
 c-elegans*
 
+docs/_build/
+docs/_static/
+docs/_templates/

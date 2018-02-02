@@ -1,159 +1,131 @@
 
-# Running the small example dataset
-
-A small example dataset using _C. elegans_ is available for [download](http://cloud.dieterichlab.org/index.php/s/7XHsCqZqU9AbQqB/download). Please see [below](#example-dataset-files) for the exact contents of the download, as well as instructions for downloading it from the command line.
-
-Additionally, the expected outputs of the pipeline are included. Due to differences among versions of the external programs used in the pipeline (samtools, etc.), it is unlikely that all intermediate files will match exactly. However, we do include a script to compare the ORFs predicted as translated using the pipeline to those which are expected. If these differ significantly, it suggests something is not working correctly in the pipeline.
-
-If the results differ significantly, please run the pipeline using the "DEBUG" logging level (see the [usage instructions](usage-instructions.md#logging-options)). This causes the scripts to output detailed runtime information which can be helpful for tracking down problems. If the problem is still not clear, please report the problem at the [github bug tracker](https://github.com/dieterich-lab/rp-bp/issues).
-
-In total, creating the reference index files should take about 5 minutes and running the main pipeline should take an additional 15 to 20 minutes on a commodity laptop.
+# Running Rp-Bp on the example dataset
 
 <a id='toc'></a>
 
-* [Example dataset files](#example-dataset-files)
-* [Creating the reference index files](#creating-reference-indices)
-* [Running the Rp-Bp pipeline (also with replicates)](#running-rpbp-pipeline)
-* [Common problems](#common-problems)
+* [Download the dataset](#download)
+* [Content of the file](#example-dataset-files)
+* [Running Rp-Bp on the example](#running-example)
+    * [Creating the reference index files](#creating-reference-indices)
+    * [Running the main pipeline (with replicates)](#running-rpbp-pipeline)
+    * [Troubleshooting](#common-problems)
 
-<a id="example-dataset-files"></a>
+---
 
-## Example dataset files
+<a name="download"></a>
 
-The example dataset is distributed as a .tar.gz file and includes the following:
+## Download the dataset
 
-* `WBcel235.79.chrI.yaml`. The configuration file for creating the reference index files. It includes all possible options for creating the indices as well as detailed descriptions.
-
-* `WBcel235.chrI.fa`. The reference sequence of Chromosome I for _C. elegans_.
-
-* `WBcel235.79.chrI.gtf`. The Ensembl, version 79 annotations for Chromosome I for _C. elegans_.
-
-* `X03680_1.fasta`. The sequences of the ribosomal subunits for _C. elegans_. The reference accession is X03680.1.
-
-* `c-elegans-test.yaml`. The configuration file for running the prediction pipeline. This example configuration file includes all possible options for the pipeline with detailed explanations of the options. The **exception** is the `min_metagene_profile_count` option, which has a value of 10 rather than its default of 1000. This is set artificially low because of the small number of reads in the sample dataset.
-
-* `riboseq-adapters.fa`. An example adapter file for use with `flexbar`. It includes typical TruSeq and ArtSeq adapters, as well as a few adapters from the literature. It also includes a custom adapter used to create the sample dataset.
-
-* `c-elegans.test-chrI.rep-1.fastq.gz`. A small test sequencing dataset. It has been constructed to include some reads which uniquely map to the annotated transcripts, some reads which map to ribosomal sequences, some reads which do not uniquely map to the genome and some reads which are filtered due to quality issues.
-
-* `c-elegans.test-chrI.rep-2.fastq.gz`. Another small test sequencing dataset.
-
-* `expected-orf-predictions`. The expected predictions and sequence files for each replicate (c-elegans-rep-1 and c-elegans-rep-2 files) and the merged replicates (c-elegans-test files). Please see the [usage instructions](usage-instructions.md#logging-options) for the meaning of each of the files.
-
-**Downloading from the command line**
-
-The following commands can be used to download and extract the example .tar.gz file:
-
+A small example dataset using _C. elegans_ is available to [download](http://cloud.dieterichlab.org/index.php/s/7XHsCqZqU9AbQqB/download). Alternatively, the 
+following commands can be used to download and extract the example .tar.gz file:
 
 ```
 wget http://cloud.dieterichlab.org/index.php/s/7XHsCqZqU9AbQqB/download -O c-elegans-chrI-example.tar.gz
 tar -xvf c-elegans-chrI-example.tar.gz
 ```
 
+<a id="example-dataset-files"></a>
+
+## Content of the file
+
+The example dataset is distributed as a .tar.gz file and includes the following:
+
+* `c-elegans-test.yaml`. The configuration file, used for creating the reference index files and for running the prediction pipeline. It includes all default options for creating the indices and for running the main pipeline, as well as detailed descriptions. 
+The **exception** is the `min_metagene_profile_count` option, which has a value of 10 rather than its default of 1000. This is set artificially low because of the small number of reads in the sample dataset. Similarly, when plotting the results, `--min-visualization-count` has to be set to a lower value, see [Preprocessing analysis](analysis-script.md#preprocessing-report).
+* `WBcel235.chrI.fa`. The reference sequence of Chromosome I for _C. elegans_.
+* `WBcel235.79.chrI.gtf`. The Ensembl, version 79 annotations for Chromosome I for _C. elegans_.
+* `X03680_1.fasta`. The sequences of the ribosomal subunits for _C. elegans_. The reference accession is X03680.1.
+* `riboseq-adapters.fa`. An example adapter file to use with `flexbar`. It includes typical TruSeq and ArtSeq adapters, as well as a few adapters from the literature. It also includes a custom adapter used to create the sample dataset.
+* `c-elegans.test-chrI.rep-1.fastq.gz`. A small test Ribo-seq dataset. It has been constructed to include some reads which uniquely map to the annotated transcripts, some reads which map to ribosomal sequences, some reads which do not uniquely map to the genome and some reads which are filtered due to quality issues.
+* `c-elegans.test-chrI.rep-2.fastq.gz`. Another small test Ribo-seq dataset.
+* `expected-orf-predictions`. The expected predictions and sequence files for each replicate (c-elegans-rep-1 and c-elegans-rep-2 files) and the merged replicates (c-elegans-test files). For an explanation of the output files and format, see [Predicting translated open reading frames](usage-instructions.md#predicting-translated-open-reading-frames).
+
+Comparing your results with the expected output can be done *e.g.* using `bedtools` with the BED files containing the list of predicted ORFs. 
+
+Due to differences among versions of the external programs used in the pipeline, it is however unlikely that all files will match exactly. If these differ significantly, it is possible that something is not working correctly in the pipeline. In such case, you can run the pipeline using the "DEBUG" logging level (see the [usage instructions](usage-instructions.md#logging-options)). This causes the scripts to output detailed runtime information which can be helpful for tracking down problems. If the problem is still not clear, please report the problem at the [github bug tracker](https://github.com/dieterich-lab/rp-bp/issues).
+
 [Back to top](#toc)
 
-<a id='creating-reference-indices'></a>
+<a id="running-example"></a>
 
-## Creating the reference index files
+## Running Rp-Bp on the example
 
-**Before running the example** the paths in the `WBcel235.79.chrI.yaml` configuration file must be updated to point to the correct locations. The following configuration values should be updated to point to the appropriate files in the example. (Mostly, `/home/bmalone/python-projects/rp-bp/data/` should be replaced to the location of the examples.)
+**Before running the example** the paths in the `c-elegans-test.yaml` configuration file for each items below must be updated (*i.e.* `/path/to/your/c-elegans-example/` needs to be changed to point to the correct location/files).
 
+* `genome_base_path`
 * `gtf`
 * `fasta`
 * `ribosomal_fasta`
-* `genome_base_path`
+* `adapter_file`
+
 * `ribosomal_index`
 * `star_index`
+* `riboseq_samples`
+* `riboseq_data`
 
-The following command will create the necessary reference files using 2 CPUS and 4GB of RAM for STAR. Please see the [usage instructions](usage-instructions.md#creating-reference-genome-indices) for the expected output files.
+<a id='creating-reference-indices'></a>
 
-The `--use-slurm` and related options can also be used if SLURM is available. Please see the [usage instructions](usage-instructions.md#parallel-processing-options) for more information.
+### Creating the reference index files
 
-N.B. The `--overwrite` flag is given below to ensure all of the files are (re-)created. In typical use cases, if some of the files already exist (e.g., the STAR index), then this flag can be omitted.
-
-This command should only take about 5 minutes on recent commodity hardware (such as a laptop).
-
-N.B. This command may print some warning messages such as:
-
-`WARNING  misc.utils 2016-11-02 17:25:05,023 : [utils.call_if_not_exists]: This function is deprecated. Please use the version in misc.shell_utils instead.`
-
-These are not problematic and will be updated in future releases.
-
-
+The following command will create the necessary reference indices:
+ 
 ```
-prepare-rpbp-genome WBcel235.79.chrI.yaml --num-cpus 2 --mem 4G --overwrite --logging-level INFO
+prepare-rpbp-genome c-elegans-test.yaml [--overwrite] [logging options] [processing options]
 ```
+
+#### Command line options
+
+* [`--overwrite`] Unless this flag is given, then steps for which the output files already exist will be skipped.
+* [`logging options`] See [logging options](#logging-options).
+* [`processing options`] See [parallel processing options](#parallel-processing-options).
+
+**N.B The script reads all of the required paths from the configuration file, so it is important that all the paths point to the correct locations, as explained above.**
+
+In total, creating the reference index files should take about 5 minutes.
+
 
 [Back to top](#toc)
 
 <a id='running-rpbp-pipeline'></a>
 
-## Running the Rp-Bp pipeline
+### Running the Rp-Bp pipeline
 
-**Before running the example** the paths in the `c-elegans-test.yaml` configuration file must be updated to point to the correct locations. The following configuration values should be updated to point to the appropriate files in the example. (Mostly, `/home/bmalone/python-projects/rp-bp/data/` should be replaced to the location of the examples.)
+Example calls:
 
-Reference files and locations should be exactly the same as used in the  `WBcel235.79.chrI.yaml` file.
+```
+# Do not merge the replicates.
+run-all-rpbp-instances c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --keep-intermediate-files
 
-* `gtf`
-* `fasta`
-* `genome_base_path`
-* `ribosomal_index`
-* `star_index`
+# Merge the replicates, do not calculate Bayes factors nor make predictions for individual samples.
+run-all-rpbp-instances c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates --keep-intermediate-files
 
-The sample and output file paths must also be updated.
+# Merge the replicates and also calculate Bayes factors and make predictions for individual samples.
+run-all-rpbp-instances c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates --run-replicates --keep-intermediate-files
+```
 
-* `riboseq_samples`
-* `riboseq_data`
-* `adapter_file`
+The call to `run-all-rpbp-instances` requires the configuration file. All other arguments are optional. In all the example calls above, the command will run the Rp-Bp complete translation prediction pipeline using 2 CPUS. For more details regarding the options and the expected output files, please consult the [usage instructions](usage-instructions.md#running-pipelines).
 
-The following command will run the Rp-Bp (and Rp-chi) translation prediction pipelines using 2 CPUS. Please see the [usage instructions](usage-instructions.md#running-pipelines) for the expected output files.
-
-The `--use-slurm` and related options can also be used if SLURM is available. Please see the [usage instructions](usage-instructions.md#parallel-processing-options) for more information.
-
-N.B. The `--overwrite` flag is given below to ensure all of the files are (re-)created. In typical use cases, if some of the files already exist (e.g., the quality-filtered reads), then this flag can be omitted.
-
-N.B. While performing the MCMC sampling, many messages indicating the "Elapsed Time" will be printed. This is a [known issue](https://github.com/stan-dev/pystan/issues/98) with pystan. Additionally, many "Informational Message: The current Metropolis proposal is about to be rejected because of the following issue" may also appear. These are also expected and (typically) do not indicate an actual problem.
+N.B. The `--overwrite` flag is given above to ensure that all of the files are (re-)created. In typical use cases, if some of the files already exist (*e.g.* the quality-filtered reads), then this flag can be omitted.
 
 **Using replicates**
 
-The Rp-Bp pipeline handles replicates by adding the (smoothed) ORF profiles. The Bayes factors and predictions are then calculated based on the combined profiles. The `--merge-replicates` flag indicates that the replicates should be merged. By default, if the `--merge-replicates` flag is given, then predictions will not be made for the individual datasets. The `--run-replicates` flag can be given to override this and make predictions for both the merged replicates as well as the individual datasets.
+The Rp-Bp pipeline handles replicates by adding the (smoothed) ORF profiles. The Bayes factors and predictions are then calculated based on the combined profiles. The `--merge-replicates` flag indicates that the replicates should be merged. By default, if the `--merge-replicates` flag is given, then predictions will not be made for the individual datasets, unless the `--run-replicates` flag is also given, in which case predictions will be made for both the merged replicates as well as the individual samples.
 
-The replicates are specified by `riboseq_biological_replicates` in the configuration file. This value should be a dictionary, where the key of the dictionary is a string description of the condition and the value is a list that gives all of the sample replicates which belong to that condition. The names of the sample replicates must match the dataset names specified in `riboseq_samples`.
+The replicates are specified by `riboseq_biological_replicates` in the configuration file. This value should be a dictionary, where the key of the dictionary is a string description of the condition and the value is a list that gives all of the sample replicates which belong to that condition. The names of the sample replicates must match the sample names specified in `riboseq_samples`. 
 
-N.B. These calls may also produce deprecation warnings like:
-
-```
-WARNING  misc.utils 2016-11-02 17:31:47,545 : [utils.check_programs_exist]: This function is deprecated. Please use the version in misc.shell_utils instead.
-```
-
-These are again not problematic and will be corrected in future releases.
-
-
-```
-# do not merge replicates
-run-all-rpbp-instances c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --keep-intermediate-files
-
-# merging the replicates, do not calculate Bayes factors and make predictions for individual datasets
-run-all-rpbp-instances c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates --keep-intermediate-files
-
-# merging the replicates and calculating Bayes factors and making predictions for individual datasets
-run-all-rpbp-instances c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates --run-replicates --keep-intermediate-files
-```
 
 [Back to top](#toc)
 
 <a id='common-problems'></a>
 
-## Common problems
+### Troubleshooting
 
 Some common problems result due to versions of external programs. The can be controlled using command line options to `run-all-rpbp-instances`.
-
-* `--flexbar-format-option`. Older versions of flexbar used `format` as the command line option to specify the format of the fastq quality scores, while newer versions use `qtrim-format`. Depending on the installed version of flexbar, this option may need to be changed. Default: `qtrim-format`
 
 
 * `--star-executable`. In principle, `STARlong` (as opposed to `STAR`) could be used for alignment. Given the nature of riboseq reads (that is, short due to the experimental protocols of degrading everything not protected by a ribosome), this is unlikely to be a good choice, though. Default: `STAR`
 
 
-* `--star-read-files-command`. The input for `STAR` will always be a gzipped fastq file. `STAR` needs the system command which means "read a gzipped text file". As discovered in [Issue #35](https://github.com/dieterich-lab/rp-bp/issues/35), the name of this command is different on OSX and ubuntu. The program now attempts to guess the name of this command based on the system operating system, but it can be explicitly specified as a command line option. Default: `gzcat` if `sys.platform.startswith("darwin")`; `zcat` otherwise. Please see [python.sys documentation](https://docs.python.org/3/library/sys.html) for more details about attempting to guess the operating system.
+* `--star-read-files-command`. The input for `STAR` will always be a gzipped fastq file. `STAR` needs the system command which means "read a gzipped text file". As discovered in [Issue #35](https://github.com/dieterich-lab/rp-bp/issues/35), the name of this command is different on OSX and Ubuntu. The program now attempts to guess the name of this command based on the operating system, but it can be explicitly specified as a command line option. Default: `gzcat` if `sys.platform.startswith("darwin")`; `zcat` otherwise. Please see [python.sys documentation](https://docs.python.org/3/library/sys.html) for more details about attempting to guess the operating system.
 
 [Back to top](#toc)
