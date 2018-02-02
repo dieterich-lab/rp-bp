@@ -216,7 +216,7 @@ figure size, *etc.*, can be set using the respective matplot lib options.
 
 ##### Example visualization
 
-<img src="read-filtering-counts.png" height="500"></img>
+<img src="read-filtering-counts.png" height="500">
 
 
 <a id="creating-and-visualizing-read-length-distributions"></a>
@@ -287,7 +287,7 @@ appropriate files.
 
 #### Example visualization
 
-<img src="read-length-distribution.png" height="350"></img>
+<img src="read-length-distribution.png" height="350">
 
 
 <a id="visualizing-read-length-metagene-profiles"></a>
@@ -336,7 +336,7 @@ create-read-length-metagene-profile-plot <metagene_profile> <length> <out> [--ti
 
 #### Example visualization
 
-<img src="read-length-metagene-profile.png" height="400"></img>
+<img src="read-length-metagene-profile.png" height="400">
 
 
 <a id="predictions-report"></a>
@@ -464,9 +464,9 @@ should be updated. The notebooks allow easier control over the colors, *etc.*
 
 ### Example visualizations
 
-<img src="orf-types.bar.png" height="300"></img>
+<img src="orf-types.bar.png" height="300">
 
-<img src="orf-types.pie.png" height="300"></img>
+<img src="orf-types.pie.png" height="300">
 
 
 <a id="predicted-orf-types-length-distributions"></a>
@@ -516,7 +516,7 @@ should be updated. The notebooks allow easier control over the rendering of the 
 
 ### Example visualizations
 
-<img src="orf-length-distribution.png" height="300"></img>
+<img src="orf-length-distribution.png" height="300">
 
 
 <a id="predicted-orf-types-metagene-profiles"></a>
