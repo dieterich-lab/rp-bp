@@ -195,7 +195,7 @@ In the second phase, the ORFs which show evidence of translation in the profile 
 [More details about biological replicates](#more-about-replicates) are given below.
 
 
-The entire Rp-Bp pipeline can be run on a set of riboseq samples (including any biological replicates) which all use the same genome indices using a sample sheet-like [YAML](http://www.yaml.org/start.html) configuration file with the following command:
+The entire Rp-Bp pipeline can be run on a set of riboseq samples (including any biological replicates) which all use the same genome indices with the following command:
 
 ```
 # Do not merge the replicates.
@@ -226,7 +226,7 @@ run-all-rpbp-instances <config> --merge-replicates --run-replicates [--tmp] [--o
 ### Configuration file for running the pipeline
 
 The following keys are read from the configuration file. Keys with [`brackets`] are optional.
-Additional details about the configuration file options are given in *More about the configuration file for running the pipeline* [(part 1)](config-file-more-1) and [(part 2)](config-file-more-2).
+Additional details about the configuration file options are given in *More about the configuration file for running the pipeline* [(part 1)](#config-file-more-1) and [(part 2)](#config-file-more-2).
 
 * `riboseq_data` The base output location for all created files.
 * [`note`] An optional string which will be added to all file names. It should not contain spaces or any other special characters.
@@ -259,12 +259,14 @@ The Rp-Bp pipeline handles replicates by adding the (smoothed) ORF profiles. The
 The entire profile creation process can be run automatically using the `create-orf-profiles` script. This script is called by default when running the main pipeline (when calling `run-all-rpbp-instances`). If one is interested in only creating the filtered genome profiles, then `create-orf-profiles` can be called separately:
 
 ```
-create-orf-profiles <raw_data> <config> <sample name> [--tmp] [--overwrite] [-k/--keep-intermediate-files] [--flexbar-options] [--star-executable] [--star-read-files-command] [--star-additional-options] [logging options] [processing options]
+create-orf-profiles <raw data> <config> <sample name> [--tmp] [--overwrite] [-k/--keep-intermediate-files] [--flexbar-options] [--star-executable] [--star-read-files-command] [--star-additional-options] [logging options] [processing options]
 ```
 
 #### Command line options
 
+* `raw data` The raw data file or the value of one entry for a particular sample (*i.e.* the fastq[.gz] file) in `riboseq_samples`.
 * `config` The [YAML](http://www.yaml.org/start.html) configuration file, as described below. *The script reads most of the required paths from the configuration file, so if running separately, the arguments must be consistent with the paths given in the configuration file.*
+* `sample name` The name for the dataset or the key (matching `raw data`) of one entry for a particular sample in `riboseq_samples`. 
 * [`--tmp <loc>`] If this flag is given, then all relevant calls will use `<loc>` as the base temporary directory. Otherwise, the program defaults will be used.
 * [`--overwrite`] Unless this flag is given, then steps for which the output files already exist will be skipped.
 * [`-k/--keep-intermediate-files`] Unless this flag is given, large intermediate files, such as fastq files output by flexbar after removing adapters, will be deleted.

@@ -37,6 +37,11 @@ def main():
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
 
+    parser.add_argument('--profiles-only', help="If this flag is present, then only "
+        "the pre-processing part of the pipeline will be called, i.e. profiles "
+        "will be created for each sample specified in the config file, but no predictions"
+        "will be made.", action='store_true')
+
     parser.add_argument('--merge-replicates', help="If this flag is present, then "
         "the ORF profiles from the replicates will be merged before making the final "
         "predictions", action='store_true')
@@ -114,14 +119,23 @@ def main():
     if args.keep_intermediate_files:
         keep_intermediate_str = "--keep-intermediate-files"
 
-    # if we merge the replicates, then we only use the rpbp script to create
-    # the ORF profiles
+    # check if we only want to create the profiles, in this case
+    # we call run-rpbp-pipeline with the --profiles-only option
     profiles_only_str = ""
+    if args.profiles_only:
+        args.merge_replicates = False
+        profiles_only_str = "--profiles-only"
+        msg = ("The --profiles-only option was given, this will override --merge-replicates "
+               "and/or --run-replicates, if these options were also given!")
+        logger.info(msg)
+
+    # if we merge the replicates, then we only use the rpbp script to create
+    # the ORF profiles, but we still make predictions
     if args.merge_replicates and not args.run_replicates:
         profiles_only_str = "--profiles-only"
 
     if args.run_replicates and not args.merge_replicates:
-        msg = ("The --run-replicates option was given with the --merge-replicates "
+        msg = ("The --run-replicates option was given without the --merge-replicates "
             "option. It will be ignored.")
         logger.warning(msg)
     
