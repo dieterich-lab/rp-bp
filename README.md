@@ -18,7 +18,7 @@ This package is written in Python3. It has a number of external dependencies, mo
 
 ## Usage
 
-Please see [Running the Rp-Bp pipeline step-by-step](http://rp-bp.readthedocs.io/en/latest/usage-instructions.html) for more detailed usage instructions. We also provide a number of tools to "post-process" and visualise the results, see [QC and downstream analysis of the Rp-Bp results](http://rp-bp.readthedocs.io/en/latest/usage-instructions.html). To get started, the package also includes a small example using a *C. elegans* dataset. Please see [Running Rp-Bp on the example dataset](http://rp-bp.readthedocs.io/en/latest/running-example.html) for instructions on running the example.
+Please see [Running the Rp-Bp pipeline step-by-step](http://rp-bp.readthedocs.io/en/latest/usage-instructions.html) for more detailed usage instructions. We also provide a number of tools to "post-process" and visualise the results, see [QC and downstream analysis of the Rp-Bp results](http://rp-bp.readthedocs.io/en/latest/analysis-scripts.html). To get started, the package also includes a small example using a *C. elegans* dataset. Please see [Running Rp-Bp on the example dataset](http://rp-bp.readthedocs.io/en/latest/running-example.html) for instructions on running the example.
 
 <a name="get-start-cite"></a>
 

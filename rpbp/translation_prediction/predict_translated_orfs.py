@@ -51,12 +51,8 @@ def get_profile(name, config, args):
 def main():
     
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description="This script runs all of the processing necessary to produce the "
-        "signals used for later processing. In particular, it runs the standard "
-        "rnaseq and riboseq preprocessing, estimates the abundance of transcripts with "
-        "the rnaseq data, and selects the most-expressed isoforms and ORFs. Next, it removes "
-        "multimapping and non-periodic-length riboseq reads. Finally, it extracts the riboseq "
-        "signal for the most-expressed transcripts.")
+        description="This script runs the second part of the pipeline: it estimate ORF Bayes"
+            "factors using the ORF profiles, then make the final prediction set.")
     parser.add_argument('config', help="The (yaml) config file")
     parser.add_argument('name', help="The name for the dataset, used in the created files")
 
