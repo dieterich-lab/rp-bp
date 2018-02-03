@@ -50,7 +50,7 @@ prepare-rpbp-genome <config> [--overwrite] [logging options] [processing options
 
 ### Command line options
 
-* `config` A [YAML](http://www.yaml.org/start.html) configuration file, as described below. A sample configuration file is also available with the example ([Download the dataset](#running-example)). 
+* `config` A [YAML](http://www.yaml.org/start.html) configuration file, as described below. A sample configuration file is also available to download with the [example dataset](running-example.html). 
 * [`--overwrite`] Unless this flag is given, then steps for which the output files already exist will be skipped.
 * [`logging options`] See [logging options](#logging-options).
 * [`processing options`] See [parallel processing options](#parallel-processing-options).
@@ -79,7 +79,7 @@ The following keys are read from the configuration file. Keys with [`brackets`] 
 
 ### Input files
 
-The required input files are those suggested by the configuration file keys described above. Please see [More about creating reference indices](#creating-reference-indices.md) for additional
+The required input files are those suggested by the configuration file keys described above. Please see [More about creating reference indices](creating-reference-indices.html) for additional
 details about choosing the appropriate files (*e.g.* from Ensembl).
 
 * `gtf` The GTF/GFF file containing the reference annotations. The `exon` features must be present, and the transcript identifiers (`transcript_id` attribute for GTF) must match for exons from the same transcript. As the ORFs are labeled based on their positions relative to annotated coding sequences, the `CDS` features must also be present in the annotations. The `START codon` should be included in the CDS, but the `STOP codon` should not. *By default, Rp-Bp treats annotations according to the GTF2 (GTF) specifications, when the file extension is .gtf. Limited support is provided for [GFF3 format specifications](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md). When the file extension is .gff, it will be treated according to the GFF3 format specifications. In this case, it is assumed that the START and STOP codons are both included in the CDS. Rp-Bp will then automatically remove the STOP codon during processing.*
@@ -198,19 +198,22 @@ In the second phase, the ORFs which show evidence of translation in the profile 
 The entire Rp-Bp pipeline can be run on a set of riboseq samples (including any biological replicates) which all use the same genome indices with the following command:
 
 ```
-# Do not merge the replicates.
+# Only create the ORF profiles (first phase) for all samples in the configuration file.
+run-all-rpbp-instances <config> --profiles-only [--tmp] [--overwrite] [-k/--keep-intermediate-files] [--flexbar-options] [--star-executable] [--star-read-files-command] [--star-additional-options] [logging options] [processing options]
+
+# Run the complete pipeline for all samples in the configuration file, but do not merge the replicates.
 run-all-rpbp-instances <config> [--tmp] [--overwrite] [-k/--keep-intermediate-files] [--flexbar-options] [--star-executable] [--star-read-files-command] [--star-additional-options] [logging options] [processing options]
 
-# Merge the replicates, do not calculate Bayes factors nor make predictions for individual samples.
+# Run the complete pipeline, merge the replicates, but do not calculate Bayes factors nor make predictions for individual samples.
 run-all-rpbp-instances <config> --merge-replicates [--tmp] [--overwrite] [-k/--keep-intermediate-files] [--flexbar-options] [--star-executable] [--star-read-files-command] [--star-additional-options] [logging options] [processing options]
 
-# Merge the replicates and also calculate Bayes factors and make predictions for individual samples.
+# Run the complete pipeline, merge the replicates and also calculate Bayes factors and make predictions for individual samples.
 run-all-rpbp-instances <config> --merge-replicates --run-replicates [--tmp] [--overwrite] [-k/--keep-intermediate-files] [--flexbar-options] [--star-executable] [--star-read-files-command] [--star-additional-options] [logging options] [processing options]
 ``` 
     
 ### Command line options
 
-* `config` The [YAML](http://www.yaml.org/start.html) configuration file, as described below. A sample configuration file is also available with the example ([Download the dataset](#running-example)). 
+* `config` The [YAML](http://www.yaml.org/start.html) configuration file, as described below. A sample configuration file is also available with the [example dataset](running-example.html). 
 * [`--tmp <loc>`] If this flag is given, then all relevant calls will use `<loc>` as the base temporary directory. Otherwise, the program defaults will be used.
 * [`--overwrite`] Unless this flag is given, then steps for which the output files already exist will be skipped.
 * [`-k/--keep-intermediate-files`] Unless this flag is given, large intermediate files, such as fastq files output by flexbar after removing adapters, will be deleted.
@@ -318,6 +321,8 @@ If the same option is used in both locations (in the configuration file and pass
 * [`out_filter_type`] Default: BySJout.
 * [`out_sam_attributes`] Default: AS NH HI nM MD.
 * [`sjdb_overhang`] Default: 50.
+
+**N.B.** If using GFF3 format specifications, STAR may log a `WARNING: while processing sjdbGTFfile ... no gene_id for line ...` during the mapping step. Most GFF3 files do not include the parent gene for each exon, but only a parent transcript. This is likely to be required if using `--quantMode GeneCounts`, but Rp-Bp does not use this information; so these warnings can be safely ignored.
 
 ##### Rp-Bp specific options (via the configuration file only)
 
@@ -558,7 +563,7 @@ on any particular properties of these programs. Thus, it is possible to use any
 alignment files for the pipeline. Essentially, the alignment (bam) files need
 to be named as expected by the pipeline and placed in the correct folders.
 
-Please see the [custom alignment files](#custom-alignment-files.md) documentation
+Please see the [custom alignment files](custom-alignment-files.html) documentation
 for more details.
 
 [Back to top](#toc)

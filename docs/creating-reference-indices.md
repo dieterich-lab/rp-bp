@@ -1,6 +1,6 @@
 # More about creating reference indices
 
-The [usage instructions](usage-instructions.md#creating-reference-genome-indices) give the necessary commands to
+The [usage instructions](usage-instructions.html) give the necessary commands to
 create the reference indices required for Rp-Bp. This document describes how to
 download or otherwise find the necessary files and sequences.
 
@@ -25,7 +25,7 @@ step (with STAR). Most importantly, though, if these extra sequences
 substantially overlap the main reference, reads which align to both will be
 called as multimappers and discarded.
 
-As mentioned in the [usage instructions](usage-instructions.md#creating-reference-genome-indices), the "primary
+As mentioned in the [usage instructions](usage-instructions.html), the "primary
 assembly" file from Ensembl contains the appropriate sequences and identifiers.
 The "top level" Ensembl genome assembly includes haplotype information. Please
 see [Ensembl](http://www.ensembl.org/info/genome/genebuild/assembly.html) for
@@ -53,7 +53,7 @@ If unsure, this can be verified by loading the annotations and sequence into a
 genome viewer such as IGV. If there is a problem with the annotations, it is likely to manifest 
 as many `within` and `suspect` ORFs while very few `canonical` ORFs predicted as translated.
 
-**N.B** If the annotation file has a .gff extension, it will be treated according to the GFF3 format specifications. *Note that there is currently no "check" based on the format, and the selection is made solely based on the extension, as read from the configuration file.*
+**N.B** If the annotation file has a .gff extension, it will be treated according to the GFF3 format specifications. *Note that there is currently no "check" based on the format, and the selection is made solely based on the extension, as read from the configuration file.* 
 
 **N.B.** In case CDS annotations are *not* available, Rp-Bp can still be run as
 normal. The only difference is that the ORF labels will not be meaningful!

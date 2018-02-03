@@ -20,12 +20,12 @@ Then, the files produced by the external processing pipelines must be placed at 
     * **aligned reads which map uniquely to the genome**. A sorted BAM file containing all alignments of reads to the genome with multimapping reads filtered out. 
     `<riboseq_data>/without-rrna-mapping/<sample_name>[.<note>]-unique.bam`
     
-The files can also be symlinks with the appropriate name. Please see the [usage instructions](usage-instructions.md) for more details about the expected content of each file. Only the last file must be in the expected location. For example, if trimming, filtering and aligning has been performed, only the alignment files must be present. The pipeline will issue warning messages that the earlier files are missing, but it will begin as normal once it finds the, *e.g.* alignment files.
+The files can also be symlinks with the appropriate name. Please see the [usage instructions](usage-instructions.html) for more details about the expected content of each file. Only the last file must be in the expected location. For example, if trimming, filtering and aligning has been performed, only the alignment files must be present. The pipeline will issue warning messages that the earlier files are missing, but it will begin as normal once it finds the, *e.g.* alignment files.
 
 ## Example
 
 This example shows how to run Rp-Bp starting with the alignment files for the
-[*C. elegans* example](running-example.md). It uses the
+[*C. elegans* example](running-example.html). It uses the
 [c-elegans.alignments-only.yaml](http://cloud.dieterichlab.org/index.php/s/fdrhJDKJfqhaGIT/download)
 config file. The config file can also be downloaded with the following
 command.
@@ -108,5 +108,5 @@ INFO     root     2017-06-15 19:02:35,250 : calling
 
 After running the above command, the predictions should appear as usual in
 the `orf-predictions` folder. Please see the 
-[usage instructions](usage-instructions.md#running-pipelines-output-2) for the exact set
+[usage instructions](usage-instructions.html) for the exact set
 of expected output files.

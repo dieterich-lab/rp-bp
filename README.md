@@ -2,7 +2,7 @@
 
 An unsupervised Bayesian approach to predict translated open reading frames (ORFs) from ribosome profiles, using an automatic **B**ayesian **P**eriodic fragment length and ribosome **P**-site offset **S**election (BPPS).
 
-<img src="images/logo-rpbp-final.png" height="300">
+![rpbp](images/images/logo-rpbp-final.png)
 
 ---
 

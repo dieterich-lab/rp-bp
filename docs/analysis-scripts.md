@@ -20,7 +20,7 @@ Rp-Bp includes a number of additional scripts for quality control and downstream
 
 ## Creating read length-specific profiles
 
-As described in the [usage instructions](usage-instructions.md#running-pipelines-output-1), 
+As described in the [usage instructions](usage-instructions.html), 
 Rp-Bp writes the unsmoothed ORF profiles to a matrix market file. This profile 
 merges reads of all lengths.
 
@@ -37,15 +37,15 @@ create-read-length-orf-profiles <config> <sample or condition name> <out> [--is-
 * `sample or condition name`. The name of either one of the `riboseq_samples` or `riboseq_biological_replicates` from the config file
 * `out`. The output (txt.gz) file, containing the read-length specific profiles. See below for details about the output format.
 * [`--is-condition`]. If the `sample or condition name` is a condition, *i.e.* if it is a key from `riboseq_biological_replicates`, then this flag must be given.
-* [`logging options`]. See [logging options](usage-instructions.md#logging-options).
-* [`processing options`]. See [parallel processing options](usage-instructions.md#parallel-processing-options).
+* [`logging options`]. See [logging options](usage-instructions.html#logging-options).
+* [`processing options`]. See [parallel processing options](usage-instructions.html#parallel-processing-options).
 
 ### Output format
 
 Each line in the output file is a tuple containing the following values.
 
 * `read_length`. The (trimmed) read lengths for this position.
-* `orf_num`. An identifier which maps to `orf_num` in the [list of ORFs](usage-instructions.md#creating-reference-genome-indices-output-files) for the reference, 
+* `orf_num`. An identifier which maps to `orf_num` in the [list of ORFs](usage-instructions.html#creating-reference-genome-indices-output-files) for the reference, 
   `<genome_base_path>/transcript-index/<genome_name>.genomic-orfs.<orf_note>.bed.gz`.
 * `orf_position`. The base-0 position with respect to the spliced transcript (so *position % 3 == 0* implies the position is in-frame)
 * `read_count`. The sum of counts across all replicates for the condition (if `--is-condition` is given) or otherwise the single sample, after adjusting according to P-sites and removing multimappers.
@@ -216,8 +216,7 @@ figure size, *etc.*, can be set using the respective matplot lib options.
 
 ##### Example visualization
 
-<img src="read-filtering-counts.png" height="500">
-
+![read filtering counts](images/read-filtering-counts.png)
 
 <a id="creating-and-visualizing-read-length-distributions"></a>
  
@@ -287,14 +286,13 @@ appropriate files.
 
 #### Example visualization
 
-<img src="read-length-distribution.png" height="350">
-
+![read length distribution](images/read-length-distribution.png)
 
 <a id="visualizing-read-length-metagene-profiles"></a>
 
 ### Visualizing read length metagene profiles
 
-As described in the [usage instructions](usage-instructions.md#running-pipelines-output-1),
+As described in the [usage instructions](usage-instructions.html#running-pipelines-output-1),
 metagene profiles for each read lengths are created as a part of the pipeline.
 These can be visualized with the `create-read-length-metagene-profile-plot`
 script. In particular, it shows the reads aligned around the annotated
@@ -336,8 +334,7 @@ create-read-length-metagene-profile-plot <metagene_profile> <length> <out> [--ti
 
 #### Example visualization
 
-<img src="read-length-metagene-profile.png" height="400">
-
+![metagene profile](images/read-length-metagene-profile.png)
 
 <a id="predictions-report"></a>
 
@@ -374,7 +371,7 @@ create-rpbp-predictions-report <config> <out> [--show-unfiltered-orfs] [--show-o
   time-consuming to create, especially if the `--show-unfiltered-orfs` flag is
   given.
 
-* [`--show-chisq`] As described in the [usage instructions](usage-instructions.md#predicting-translated-open-reading-frames),
+* [`--show-chisq`] As described in the [usage instructions](usage-instructions.html#predicting-translated-open-reading-frames),
   the Rp-chi pipeline also can also make predictions using a simple chi square test. This is
   very similar to the ORFscore [Bazzini _et al_., _The EMBO Journal_, 2014]. If
   this flag is given, then plots will be created for the chi square predictions (filtered and unfiltered, if the
@@ -464,9 +461,8 @@ should be updated. The notebooks allow easier control over the colors, *etc.*
 
 ### Example visualizations
 
-<img src="orf-types.bar.png" height="300">
-
-<img src="orf-types.pie.png" height="300">
+![bar](images/orf-types.bar.png)
+![pie](images/orf-types.pie.png)
 
 
 <a id="predicted-orf-types-length-distributions"></a>
@@ -516,8 +512,7 @@ should be updated. The notebooks allow easier control over the rendering of the 
 
 ### Example visualizations
 
-<img src="orf-length-distribution.png" height="300">
-
+![lenght distribution](images/orf-length-distribution.png)
 
 <a id="predicted-orf-types-metagene-profiles"></a>
 
