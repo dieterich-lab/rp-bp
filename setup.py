@@ -105,7 +105,7 @@ external_requirements =  [
     'psutil',
     'biopython',
     'patsy', # used in statsmodels 
-    'misc==0.2.5', # this has to be installed via requirements.txt
+    'misc==0.2.7', # this has to be installed via requirements.txt
     'riboutils==0.2.6', # this, too,
     'bio-utils==0.2.5'  # and me!
 ]
