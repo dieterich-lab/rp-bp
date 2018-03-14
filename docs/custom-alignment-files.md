@@ -22,16 +22,14 @@ Then, the files produced by the external processing pipelines must be placed at 
     
 The files can also be symlinks with the appropriate name. Please see the [usage instructions](usage-instructions.html) for more details about the expected content of each file. Only the last file must be in the expected location. For example, if trimming, filtering and aligning has been performed, only the alignment files must be present. The pipeline will issue warning messages that the earlier files are missing, but it will begin as normal once it finds the, *e.g.* alignment files.
 
+<a id="custom-example"></a>
+
 ## Example
 
 This example shows how to run Rp-Bp starting with the alignment files for the
 [*C. elegans* example](running-example.html). It uses the
-[c-elegans.alignments-only.yaml](http://cloud.dieterichlab.org/index.php/s/fdrhJDKJfqhaGIT/download)
-config file. The config file can also be downloaded with the following
-command.
-```
-wget http://cloud.dieterichlab.org/index.php/s/fdrhJDKJfqhaGIT/download -O c-elegans.alignments-only.yaml
-```
+[c-elegans.alignments-only.yaml](https://data.dieterichlab.org/s/9qOW2PsoA8V1LVR/download)
+config file. 
 
 **N.B.** Because this example uses the alignment files from the original example, it is
 required to run the original example first!

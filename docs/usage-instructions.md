@@ -332,8 +332,6 @@ If the same option is used in both locations (in the configuration file and pass
 * [`keep_riboseq_multimappers`] If this variable is present in the configuration file with any value (even something like "no" or "null" or "false"), then multimapping riboseq reads *will not* be removed. They be treated as "normal" reads in every place they map, *i.e.* the weight of the read will not be distributed fractionally, probabilistically, *etc.*
 
 ###### Metagene periodicity options
-* [`seqids_to_keep`] If this list is given, then only transcripts appearing on these identifiers will be used to construct the metagene profiles (and other downstream analysis). The identifiers must match exactly (*e.g.* "2" and "chr2" do not match).
-
 * [`metagene_profile_start_upstream`] The number of bases upstream of the translation initiation site to begin constructing the metagene profile. Default: 50.
 * [`metagene_profile_start_downstream`] The number of bases downstream of the translation initiation site to end the metagene profile. Default: 20.
 * [`metagene_profile_end_upstream`] The number of bases upstream of the translation termination site to begin constructing the metagene profile. Default: 50.

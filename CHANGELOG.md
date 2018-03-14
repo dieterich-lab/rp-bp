@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Changed
+- Example dataset updated and moved to new address. Updated documentation.
 - `predict_translated_orfs` and `select_final_prediction_set` modified such 
     that Rp-chi pipeline is used *only* if `chi_square_only` is in config file,
     otherwise Rp-Bp is used.
@@ -15,6 +16,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     to `create_base_genome_profile`. 
 
 ### Removed
+- Removed config option `seqids_to_keep` for compatibility with `extract_metagene_profiles`
+    that does not use this option anymore. This has also been removed from the example. 
+    Updated documentation.
 - Removed fields `delta_l` and `delta_h` from output in `estimate_orf_bayes_factors`.
 - Removed deprecated function calls from 
     `analysis/profile_construction/get_all_read_filtering_counts`,

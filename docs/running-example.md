@@ -16,12 +16,11 @@
 
 ## Download the dataset
 
-A small example dataset using _C. elegans_ is available to [download](http://cloud.dieterichlab.org/index.php/s/7XHsCqZqU9AbQqB/download). Alternatively, the 
-following commands can be used to download and extract the example .tar.gz file:
+A small example dataset using _C. elegans_ is available to [download](https://data.dieterichlab.org/s/9qOW2PsoA8V1LVR/download). Alternatively, the 
+following command can be used to download the compressed file:
 
 ```
-wget http://cloud.dieterichlab.org/index.php/s/7XHsCqZqU9AbQqB/download -O c-elegans-chrI-example.tar.gz
-tar -xvf c-elegans-chrI-example.tar.gz
+wget https://data.dieterichlab.org/s/9qOW2PsoA8V1LVR/download -O c-elegans-chrI-example.zip
 ```
 
 <a id="example-dataset-files"></a>
@@ -32,6 +31,7 @@ The example dataset is distributed as a .tar.gz file and includes the following:
 
 * `c-elegans-test.yaml`. The configuration file, used for creating the reference index files and for running the prediction pipeline. It includes all default options for creating the indices and for running the main pipeline, as well as detailed descriptions. 
 The **exception** is the `min_metagene_profile_count` option, which has a value of 10 rather than its default of 1000. This is set artificially low because of the small number of reads in the sample dataset. Similarly, when plotting the results, `--min-visualization-count` has to be set to a lower value, see [Preprocessing analysis](analysis-scripts.html#preprocessing-report).
+* `c-elegans.alignments-only.yaml`. An additional example configuration file if using custom alignment files, see [Using custom alignment files](custom-alignment-files.html#custom-example).
 * `WBcel235.chrI.fa`. The reference sequence of Chromosome I for _C. elegans_.
 * `WBcel235.79.chrI.gtf`. The Ensembl, version 79 annotations for Chromosome I for _C. elegans_.
 * `X03680_1.fasta`. The sequences of the ribosomal subunits for _C. elegans_. The reference accession is X03680.1.

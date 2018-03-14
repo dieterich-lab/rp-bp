@@ -160,7 +160,6 @@ def main():
     metagene_profiles = filenames.get_metagene_profiles(config['riboseq_data'], 
         args.name, is_unique=is_unique, note=note)
 
-    seqids_to_keep_str = utils.get_config_argument(config, 'seqids_to_keep')
     start_upstream_str = utils.get_config_argument(config, 
         'metagene_profile_start_upstream', 'start-upstream')
     start_downstream_str = utils.get_config_argument(config, 
@@ -176,7 +175,7 @@ def main():
 
     cmd = ("extract-metagene-profiles {} {} {} --num-cpus {} {} {} {} {} {} {}"
         .format(riboseq_bam_filename, transcript_bed, metagene_profiles, 
-        args.num_cpus, logging_str, seqids_to_keep_str, start_upstream_str, 
+        args.num_cpus, logging_str, start_upstream_str,
         start_downstream_str, end_upstream_str, end_downstream_str))
 
     in_files = [riboseq_bam_filename, orfs_genomic]
