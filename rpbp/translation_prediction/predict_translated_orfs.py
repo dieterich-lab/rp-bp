@@ -51,12 +51,8 @@ def get_profile(name, config, args):
 def main():
     
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description="This script runs all of the processing necessary to produce the "
-        "signals used for later processing. In particular, it runs the standard "
-        "rnaseq and riboseq preprocessing, estimates the abundance of transcripts with "
-        "the rnaseq data, and selects the most-expressed isoforms and ORFs. Next, it removes "
-        "multimapping and non-periodic-length riboseq reads. Finally, it extracts the riboseq "
-        "signal for the most-expressed transcripts.")
+        description="This script runs the second part of the pipeline: it estimate ORF Bayes"
+            "factors using the ORF profiles, then make the final prediction set.")
     parser.add_argument('config', help="The (yaml) config file")
     parser.add_argument('name', help="The name for the dataset, used in the created files")
 
@@ -112,9 +108,23 @@ def main():
         note=config.get('orf_note')
     )
 
-    # and the smoothing parameters
+    # smoothing parameters (filenames)
+    # default values are not used in the file names
     fraction = config.get('smoothing_fraction', None)
     reweighting_iterations = config.get('smoothing_reweighting_iterations', None)
+
+    # check if we are running Rp-Bp (default) or Rp-chi
+    chi_square_only_str = ""
+    chi_square_only = False
+    if 'chi_square_only' in config:
+        chi_square_only_str = "--chi-square-only"
+        chi_square_only = True
+        fraction = None
+        reweighting_iterations = None
+        msg = """ The final prediction set will be made based on the chi square test only! 
+                  The translation models will not be fit to the data, and the posterior 
+                  distributions will not be estimated. """
+        logger.info(msg)
 
     # keep multimappers?
     is_unique = not ('keep_riboseq_multimappers' in config)
@@ -210,11 +220,6 @@ def main():
     chains_str = utils.get_config_argument(config, 'chains', 'chains')
     iterations_str = utils.get_config_argument(config, 'translation_iterations', 'iterations')
 
-    chi_square_only_str = ""
-    chi_square_only = False
-    if 'chi_square_only' in config:
-        chi_square_only = True
-        chi_square_only_str = "--chi-square-only"
 
     cmd = ("estimate-orf-bayes-factors {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} "
         "--num-cpus {}".format(
@@ -249,98 +254,87 @@ def main():
     shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
         file_checkers=file_checkers, overwrite=args.overwrite, call=call)
 
-    is_chisq_values = [True, False]
-    if chi_square_only:
-        is_chisq_values = [True]
-
     for is_filtered in [True, False]:
             
-        for is_chisq in is_chisq_values:
+        filtered_str = ""
+        if is_filtered:
+            filtered_str = "--select-longest-by-stop --select-best-overlapping"
 
-            filtered_str = ""
-            if is_filtered:
-                filtered_str = "--select-longest-by-stop --select-best-overlapping"
-                
-            if is_chisq:
-                chisq_str = "--use-chi-square"
-            else:
-                chisq_str = ""
+        # now, select the ORFs (longest for each stop codon) which pass the prediction filters
+        predicted_orfs = filenames.get_riboseq_predicted_orfs(
+            config['riboseq_data'], 
+            args.name, 
+            length=lengths, 
+            offset=offsets, 
+            is_unique=is_unique, 
+            note=note_str, 
+            fraction=fraction, 
+            reweighting_iterations=reweighting_iterations,
+            is_filtered=is_filtered, 
+            is_chisq=chi_square_only
+        )
 
-            # now, select the ORFs (longest for each stop codon) which pass the prediction filters
-            predicted_orfs = filenames.get_riboseq_predicted_orfs(
-                config['riboseq_data'], 
-                args.name, 
-                length=lengths, 
-                offset=offsets, 
-                is_unique=is_unique, 
-                note=note_str, 
-                fraction=fraction, 
-                reweighting_iterations=reweighting_iterations,
-                is_filtered=is_filtered, 
-                is_chisq=is_chisq
-            )
+        predicted_orfs_dna = filenames.get_riboseq_predicted_orfs_dna(
+            config['riboseq_data'], 
+            args.name, 
+            length=lengths, 
+            offset=offsets, 
+            is_unique=is_unique, 
+            note=note_str, 
+            fraction=fraction, 
+            reweighting_iterations=reweighting_iterations,
+            is_filtered=is_filtered, 
+            is_chisq=chi_square_only
+        )
 
-            predicted_orfs_dna = filenames.get_riboseq_predicted_orfs_dna(
-                config['riboseq_data'], 
-                args.name, 
-                length=lengths, 
-                offset=offsets, 
-                is_unique=is_unique, 
-                note=note_str, 
-                fraction=fraction, 
-                reweighting_iterations=reweighting_iterations,
-                is_filtered=is_filtered, 
-                is_chisq=is_chisq
-            )
+        predicted_orfs_protein = filenames.get_riboseq_predicted_orfs_protein(
+            config['riboseq_data'], 
+            args.name, 
+            length=lengths, 
+            offset=offsets, 
+            is_unique=is_unique, 
+            note=note_str,
+            fraction=fraction, 
+            reweighting_iterations=reweighting_iterations,
+            is_filtered=is_filtered, 
+            is_chisq=chi_square_only
+        )
 
-            predicted_orfs_protein = filenames.get_riboseq_predicted_orfs_protein(
-                config['riboseq_data'], 
-                args.name, 
-                length=lengths, 
-                offset=offsets, 
-                is_unique=is_unique, 
-                note=note_str,
-                fraction=fraction, 
-                reweighting_iterations=reweighting_iterations,
-                is_filtered=is_filtered, 
-                is_chisq=is_chisq
-            )
+        min_bf_mean_str = utils.get_config_argument(config, 'min_bf_mean')
+        max_bf_var_str = utils.get_config_argument(config, 'max_bf_var')
+        min_bf_likelihood_str = utils.get_config_argument(config, 'min_bf_likelihood')
+    
+        chisq_significance_level_str = utils.get_config_argument(config, 'chisq_significance_level')
+        min_profile_str = utils.get_config_argument(config, 'min_signal', 'minimum-profile-sum')
 
-            min_bf_mean_str = utils.get_config_argument(config, 'min_bf_mean')
-            max_bf_var_str = utils.get_config_argument(config, 'max_bf_var')
-            min_bf_likelihood_str = utils.get_config_argument(config, 'min_bf_likelihood')
-        
-            chisq_significance_level_str = utils.get_config_argument(config, 'chisq_significance_level')
-            min_profile_str = utils.get_config_argument(config, 'min_signal', 'minimum-profile-sum')
+        cmd = "select-final-prediction-set {} {} {} {} {} {} {} {} {} {} {}".format(
+            bayes_factors, 
+            config['fasta'], 
+            predicted_orfs, 
+            predicted_orfs_dna, 
+            predicted_orfs_protein,
+            min_bf_mean_str, 
+            max_bf_var_str, 
+            min_bf_likelihood_str, 
+            logging_str, 
+            chi_square_only_str,
+            filtered_str
+        )
 
-            cmd = "select-final-prediction-set {} {} {} {} {} {} {} {} {} {} {}".format(
-                bayes_factors, 
-                config['fasta'], 
-                predicted_orfs, 
-                predicted_orfs_dna, 
-                predicted_orfs_protein, 
-                min_bf_mean_str, 
-                max_bf_var_str, 
-                min_bf_likelihood_str, 
-                logging_str, 
-                chisq_str, 
-                filtered_str
-            )
+        in_files = [bayes_factors, config['fasta']]
+        out_files = [
+            predicted_orfs, 
+            predicted_orfs_dna, 
+            predicted_orfs_protein
+        ]
 
-            in_files = [bayes_factors, config['fasta']]
-            out_files = [
-                predicted_orfs, 
-                predicted_orfs_dna, 
-                predicted_orfs_protein
-            ]
+        file_checkers = {
+            predicted_orfs: utils.check_gzip_file
+        }
 
-            file_checkers = {
-                predicted_orfs: utils.check_gzip_file
-            }
-
-            # todo: implement file checker for fasta files
-            shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-                file_checkers=file_checkers, overwrite=args.overwrite, call=call)
+        # todo: implement file checker for fasta files
+        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
+            file_checkers=file_checkers, overwrite=args.overwrite, call=call)
     
 
 if __name__ == '__main__':

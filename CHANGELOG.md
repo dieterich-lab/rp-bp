@@ -4,19 +4,71 @@ All notable changes to Rp-Bp will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/), 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.1.11] - 2017-12-08
+## [Unreleased]
+
+## [1.1.12] - 2018-03-14
+### Changed
+- Example dataset updated and moved to new address. Updated documentation.
+- `predict_translated_orfs` and `select_final_prediction_set` modified such 
+    that Rp-chi pipeline is used *only* if `chi_square_only` is in config file,
+    otherwise Rp-Bp is used.
+- Handling of options passed to flexbar via arguments to `run_all_rpbp_instances`,
+    `run_rpbp_pipeline`, `create_orf_profiles` and `create_base_genome_profile`. 
+- Handling of additional options passed to star via arguments, mainly 
+    to `create_base_genome_profile`. 
+
+### Removed
+- Removed config option `seqids_to_keep` for compatibility with `extract_metagene_profiles`
+    that does not use this option anymore. This has also been removed from the example. 
+    Updated documentation.
+- Removed fields `delta_l` and `delta_h` from output in `estimate_orf_bayes_factors`.
+- Removed deprecated function calls from 
+    `analysis/profile_construction/get_all_read_filtering_counts`,
+    `prepare_rpbp_genome`, `create_base_genome_profile`
+
+### Added
+- Utility for supressing pystan (or other compiled function) output. For more
+    details see [Issue #10](https://github.com/dieterich-lab/rp-bp/issues/10).
+- Added *limited support* for GFF3 specifications, in particular this requires removing the
+    STOP codons from the CDSs and passing the right option to `STAR`. 
+    `Prepare_rpbp_genome` and `create_base_genome_profile` modified.
+- If using de_novo, all annotations are concatenated automatically in preparation of
+    running the main pipeline.
+
 ### Fixed
-- Typos in report names
+- Minor changes to plotting options, typos and/or redundant features in 
+    `rpbp/analysis/profile_construction/create_rpbp_preprocessing_report` and 
+    `rpbp/analysis/profile_construction/visualize_metagene_profile_bayes_factor`. 
+    See [ISSUE #87](https://github.com/dieterich-lab/rp-bp/issues/87). In progress.
+- Added default *sjdbOverhang* option to star during mapping.
+
+## [1.1.11] - 2017-12-08
+### Removed
+- Removed deprecated function calls from `analysis/rpbp_predictions/add_mygene_info_to_orfs`, 
+    `analysis/find_differential_micropeptides`, `analysis/proteomics/get_orf_peptide_matches` 
+    and `analysis/proteomics/filter_nonunique_peptide_matches`
+
+### Fixed
+- In `create_rpbp_preprocessing_report.create_figures` call to 
+    `filenames.get_riboseq_profiles` modified to fix file name reference issue.
+- In `create_rpbp_preprocessing_report` some figures were referenced before they were created,
+    as a *temporary fix*, the function `create_figures` is now called earlier.
+- Minor typos in some of the analysis scripts.
+
+### Added
+- Flag added to differentiate between *exons* file (list of exons for any given transcript),
+    and *orfs* file (technically, a list of exons per orf). 
+    See [Issue #59](https://github.com/dieterich-lab/rp-bp/issues/59) for more details.
 
 ### Updated
-- Dependencies to new repo locations
+- Dependencies to new repo locations.
 
 ## [1.1.10] - 2017-10-27
 ### Added
 - Reference to helper script to install prerequisite programs. See 
   [Issue #75](https://github.com/dieterich-lab/rp-bp/issues/75) for more
   details.
-  
+
 ### Updated
 - Dependencies to new `pymisc-utils` and `pybio-utils` repos. See
   [Issue #74](https://github.com/dieterich-lab/rp-bp/issues/74) for more

@@ -10,7 +10,7 @@ import pandas as pd
 import logging
 
 default_title = "Metagene profile Bayes' factors"
-default_xlabel = "Offset, relative to translation initiation site"
+default_xlabel = "Offset, relative to translation \ninitiation site"
 default_ylabel = "Bayes' factor"
 default_font_size = 15
 
@@ -65,7 +65,7 @@ def main():
     ax.set_ylim(ylim)
 
     # finally, add the labels, etc.
-    ax.set_title(args.title, fontsize=args.font_size)
+    plt.suptitle(args.title, fontsize=args.font_size, y=1.03)
     ax.set_xlabel(args.xlabel, fontsize=args.font_size)
     ax.set_ylabel(args.ylabel, fontsize=args.font_size)
 
@@ -73,7 +73,7 @@ def main():
     #ax.legend(loc="upper right")
 
     fig.tight_layout()
-    fig.savefig(args.out)
+    fig.savefig(args.out, bbox_inches='tight')
 
 if __name__ == '__main__':
     main()

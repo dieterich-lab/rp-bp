@@ -106,7 +106,7 @@ def main():
         "on the likelihood of translation (use --help for more details)", 
         type=float, default=default_min_bf_likelihood)
    
-    parser.add_argument('--use-chi-square', help="If this flag is present, the the "
+    parser.add_argument('--chi-square-only', help="If this flag is present, then the "
         "chi square value will be used to predict ORFs rather than the Bayes' factor",
         action='store_true')
     parser.add_argument('--chisq-significance-level', help="If using chi square, then this "
@@ -146,20 +146,16 @@ def main():
     msg = "Identifying ORFs which meet the prediction thresholds"
     logger.info(msg)
 
-    all_orfs, bf_orfs, chisq_orfs = ribo_utils.get_predicted_orfs(
+    all_orfs, predicted_orfs = ribo_utils.get_predicted_orfs(
         bayes_factors, 
         min_bf_mean=args.min_bf_mean, 
         max_bf_var=args.max_bf_var, 
         min_bf_likelihood=args.min_bf_likelihood,
         min_length=args.min_length,
         chisq_alpha=args.chisq_significance_level,
-        select_longest_by_stop=args.select_longest_by_stop
+        select_longest_by_stop=args.select_longest_by_stop,
+        use_chi_square=args.chi_square_only
     )
-    
-    if args.use_chi_square:
-        predicted_orfs = chisq_orfs
-    else:
-        predicted_orfs = bf_orfs
 
     msg = "Number of selected ORFs: {}".format(len(predicted_orfs))
     logger.info(msg)

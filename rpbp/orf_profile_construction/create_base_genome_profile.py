@@ -24,10 +24,11 @@ logger = logging.getLogger(__name__)
 default_num_cpus = 1
 default_mem = "2G"
 
-default_flexbar_format_option = "qtrim-format"
-default_quality_format = 'sanger'
+# Flexbar arguments
 default_max_uncalled = 1
 default_pre_trim_left = 0
+
+flexbar_compression_str = "--zip-output GZ"
 
 # STAR arguments
 default_star_executable = "STAR"
@@ -39,8 +40,7 @@ default_out_filter_mismatch_n_over_l_max = 0.04
 default_out_filter_type = "BySJout"
 default_out_filter_intron_motifs = "RemoveNoncanonicalUnannotated"
 default_out_sam_attributes = ["AS", "NH", "HI", "nM", "MD"]
-
-flexbar_compression_str = "--zip-output GZ"
+default_sjdb_overhang = 50
 
 # the Rp-Bp pipeline does not use the transcript alignments, so do not create them
 quant_mode_str = "" # '--quantMode TranscriptomeSAM'
@@ -61,10 +61,10 @@ def main():
     
     parser.add_argument('--mem', help="The amount of RAM to request", 
         default=default_mem)
-       
-    parser.add_argument('--flexbar-format-option', help="The name of the \"format\" "
-        "option for flexbar. This changed from \"format\" to \"qtrim-format\" in "
-        "version 2.7.", default=default_flexbar_format_option)
+
+    parser.add_argument('--flexbar-options', help="A space-delimited list of options to"
+        "pass to flexbar. Each option must be quoted separately as in \"--flexbarOption value\""
+        "If specified, flexbar options will override default settings.", nargs='*', type=str)
 
     parser.add_argument('-t', '--tmp', help="The location for temporary files. If not "
             "specified, program-specific temp locations are used.", default=default_tmp)
@@ -119,14 +119,19 @@ def main():
     adapter_seq_str = utils.get_config_argument(config, 'adapter_sequence', 'adapter-seq')
     adapter_file_str = utils.get_config_argument(config, 'adapter_file', 'adapters')
 
-    quality_format_str = utils.get_config_argument(config, 'quality_format', args.flexbar_format_option, 
-        default=default_quality_format)
     max_uncalled_str = utils.get_config_argument(config, 'max_uncalled', default=default_max_uncalled)
     pre_trim_left_str = utils.get_config_argument(config, 'pre_trim_left', default=default_pre_trim_left)
 
-    cmd = "flexbar {} {} {} {} -n {} {} -r {} -t {} {}".format(quality_format_str, 
-        max_uncalled_str, adapter_seq_str, adapter_file_str, args.num_cpus, flexbar_compression_str, 
-        raw_data, flexbar_target, pre_trim_left_str)
+    flexbar_option_str = ""
+    if args.flexbar_options:
+        flexbar_option_str = "{}".format(' '.join(args.flexbar_options))
+    if 'max-uncalled' not in flexbar_option_str:
+        flexbar_option_str = "{}".format(' '.join([flexbar_option_str, max_uncalled_str]))
+    if 'pre-trim-left' not in flexbar_option_str:
+        flexbar_option_str = "{}".format(' '.join([flexbar_option_str, pre_trim_left_str]))
+
+    cmd = "flexbar -r {} -t {} {} {} {} {} -n {}".format(raw_data, flexbar_target, flexbar_compression_str,
+            adapter_seq_str, adapter_file_str, flexbar_option_str, args.num_cpus)
     in_files = [raw_data]
     out_files = [without_adapters]
     file_checkers = {
@@ -159,23 +164,45 @@ def main():
     #transcriptome_bam = "{}{}".format(star_output_prefix, "Aligned.toTranscriptome.out.bam")
     genome_star_bam = "{}{}".format(star_output_prefix, "Aligned.sortedByCoord.out.bam")
 
-    star_compression_str = "--readFilesCommand {}".format(
-        shlex.quote(args.star_read_files_command))
+    # Get all default options, and add additional options if present.
+    # Additional options will override defaults/config options, except for options further below.
+    pre_defined_star_options = {}
 
     align_intron_min_str = utils.get_config_argument(config, 'align_intron_min', 
         'alignIntronMin', default=default_align_intron_min)
+    pre_defined_star_options['alignIntronMin'] = align_intron_min_str
     align_intron_max_str = utils.get_config_argument(config, 'align_intron_max', 
         'alignIntronMax', default=default_align_intron_max)
+    pre_defined_star_options['alignIntronMax'] = align_intron_max_str
     out_filter_mismatch_n_max_str = utils.get_config_argument(config, 'out_filter_mismatch_n_max', 
         'outFilterMismatchNmax', default=default_out_filter_mismatch_n_max)
+    pre_defined_star_options['outFilterMismatchNmax'] = out_filter_mismatch_n_max_str
     out_filter_mismatch_n_over_l_max_str = utils.get_config_argument(config, 'out_filter_mismatch_n_over_l_max',
         'outFilterMismatchNoverLmax', default=default_out_filter_mismatch_n_over_l_max)
+    pre_defined_star_options['outFilterMismatchNoverLmax'] = out_filter_mismatch_n_over_l_max_str
     out_filter_type_str = utils.get_config_argument(config, 'out_filter_type', 
         'outFilterType', default=default_out_filter_type)
+    pre_defined_star_options['outFilterType'] = out_filter_type_str
     out_filter_intron_motifs_str = utils.get_config_argument(config, 'out_filter_intron_motifs', 
         'outFilterIntronMotifs', default=default_out_filter_intron_motifs)
+    pre_defined_star_options['outFilterIntronMotifs'] = out_filter_intron_motifs_str
     out_sam_attributes_str = utils.get_config_argument(config, 'out_sam_attributes', 
         'outSAMattributes', default=default_out_sam_attributes)
+    pre_defined_star_options['outSAMattributes'] = out_sam_attributes_str
+    sjdb_overhang_str = utils.get_config_argument(config, 'sjdb_overhang',
+        'sjdbOverhang', default=default_sjdb_overhang)
+    pre_defined_star_options['sjdbOverhang'] = sjdb_overhang_str
+
+    all_additional_options_str = ""
+    if args.star_additional_options:
+        all_additional_options_str = "{}".format(' '.join(args.star_additional_options))
+    for star_option_key, star_option_str in pre_defined_star_options.items():
+        if star_option_key not in all_additional_options_str:
+            all_additional_options_str = "{}".format(' '.join([all_additional_options_str, star_option_str]))
+
+    # Separate options.
+    star_compression_str = "--readFilesCommand {}".format(
+        shlex.quote(args.star_read_files_command))
 
     star_tmp_str = ""
     if args.tmp is not None:
@@ -186,13 +213,20 @@ def main():
     mem_bytes = utils.human2bytes(args.mem)
     star_mem_str = "--limitBAMsortRAM {}".format(mem_bytes)
 
-    cmd = ("{} --runThreadN {} {} --genomeDir {} --sjdbGTFfile {} --readFilesIn {} "
-        "{} {} {} {} {} {} {} {} --outFileNamePrefix {} {} {} {}".format(args.star_executable,
-        args.num_cpus, star_compression_str, config['star_index'], config['gtf'], without_rrna, 
-        align_intron_min_str, align_intron_max_str, out_filter_mismatch_n_max_str, 
-        out_filter_type_str, out_filter_intron_motifs_str, quant_mode_str,
-        out_filter_mismatch_n_over_l_max_str, out_sam_attributes_str, star_output_prefix,
-        star_out_str, star_tmp_str, star_mem_str))
+    # If GFF3 specs, then we need to inform STAR.
+    # Whether we have de novo or not, the format of "config['gtf']" has precedence.
+    sjdb_gtf_tag_str = ""
+    use_gff3_specs = config['gtf'].endswith('gff')
+    gtf_file = filenames.get_gtf(config['genome_base_path'],
+        config['genome_name'], is_gff3=use_gff3_specs, is_star_input=True)
+    if use_gff3_specs:
+        sjdb_gtf_tag_str = "--sjdbGTFtagExonParentTranscript Parent"
+
+    cmd = ("{} --runThreadN {} {} {} --genomeDir {} --sjdbGTFfile {} {} --readFilesIn {} "
+        "{} {} --outFileNamePrefix {} {} {}".format(args.star_executable,
+        args.num_cpus, star_mem_str, star_compression_str, config['star_index'], gtf_file,
+        sjdb_gtf_tag_str, without_rrna, all_additional_options_str, quant_mode_str,
+         star_output_prefix, star_out_str, star_tmp_str))
     in_files = [without_rrna]
     in_files.extend(star_utils.get_star_index_files(config['star_index']))
     #out_files = [transcriptome_bam, genome_star_bam]
@@ -210,7 +244,7 @@ def main():
     genome_sorted_bam = filenames.get_riboseq_bam(config['riboseq_data'], args.name, note=note)
 
     if os.path.exists(genome_star_bam):
-        utils.create_symlink(genome_star_bam, genome_sorted_bam, call)
+        shell_utils.create_symlink(genome_star_bam, genome_sorted_bam, call)
     else:
         msg = ("Could not find the STAR genome bam alignment file. Unless "
         "--do-not-call was given, this is a problem.")

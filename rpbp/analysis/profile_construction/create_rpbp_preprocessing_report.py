@@ -355,8 +355,8 @@ def create_figures(config_file, config, name, offsets_df, args):
             )
 
             title_str = "Metagene profile Bayes' factors: {}. length: {}".format(title, length)
-            title_str = "--title {}".format(shlex.quote(title))
-            fontsize_str = "--font-size 25"
+            title_str = "--title {}".format(shlex.quote(title_str))
+            fontsize_str = "--font-size 15"
 
             cmd = ("visualize-metagene-profile-bayes-factor {} {} {} {} {}".format(
                 profile_bayes_factor, 
@@ -532,8 +532,11 @@ def main():
 
     config = yaml.load(open(args.config))
 
-    if args.note is not None:
+    if args.note is not default_note:
         config['note'] = args.note
+    note = config.get('note', None)
+    
+    sample_names = sorted(config['riboseq_samples'].keys())
     
     # keep multimappers?
     is_unique = not ('keep_riboseq_multimappers' in config)
@@ -558,19 +561,17 @@ def main():
         slurm.check_sbatch(cmd, args=args)
         return
 
-    config = yaml.load(open(args.config))
-
-    if args.note is not default_note:
-        config['note'] = args.note
-
-    note = config.get('note', None)
-
     # make sure the path to the output file exists
     os.makedirs(args.out, exist_ok=True)
-
    
-    # first, create the read filtering information
+    # first, create the read filtering information... 
     create_read_filtering_plots(args.config, config, args)
+    # ... and all the other figures.
+    for name in sample_names:
+        periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], 
+            name, is_unique=is_unique, note=note)
+        offsets_df = pd.read_csv(periodic_offsets)
+        create_figures(args.config, config, name, offsets_df, args)
 
     min_metagene_profile_count = config.get(
         "min_metagene_profile_count", default_min_metagene_profile_count)
@@ -585,15 +586,6 @@ def main():
 
     project_name = config.get("project_name", default_project_name)
     title = "Preprocessing results for {}".format(project_name)
-  
-    sample_names = sorted(config['riboseq_samples'].keys())
-    
-    # redundant, but temporary fixes the issue (figures referenced before they are created)
-    for name in sample_names:
-        periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], 
-            name, is_unique=is_unique, note=note)
-        offsets_df = pd.read_csv(periodic_offsets)
-        create_figures(args.config, config, name, offsets_df, args)
 
     tex_file = os.path.join(args.out, "preprocessing-report.tex")
     with open(tex_file, 'w') as out:
@@ -609,7 +601,6 @@ def main():
         latex.write(out, mapping_and_filtering_text)
 
         # the read filtering figures
-
         read_filtering_image = filenames.get_riboseq_read_filtering_counts_image(
             config['riboseq_data'], note=note, image_type=args.image_type)
     
@@ -618,8 +609,8 @@ def main():
             config['riboseq_data'], note=n, image_type=args.image_type)
 
         latex.begin_figure(out)
-        latex.write_graphics(out, read_filtering_image, height=0.45)
-        latex.write_graphics(out, no_rrna_read_filtering_image, height=0.45)
+        latex.write_graphics(out, read_filtering_image, width=0.45)
+        latex.write_graphics(out, no_rrna_read_filtering_image, width=0.45)
         latex.write_caption(out, read_filtering_caption, label=read_filtering_label)
         latex.end_figure(out)
 
@@ -701,7 +692,6 @@ def main():
             min_read_length = int(offsets_df['length'].min())
             max_read_length = int(offsets_df['length'].max())
     
-            #create_figures(args.config, config, name, offsets_df, args)
 
             latex.begin_table(out, "YY")
 
@@ -746,9 +736,17 @@ def main():
                     config['riboseq_data'], name, image_type=args.image_type, 
                     is_unique=is_unique, length=length, note=note)
                 
-                title = ("length: {}. P-site offset: {}. \\newline status: {}"
-                    "\n".format(length, offset, offset_status))
-                latex.write(out, title, size="scriptsize")
+                #title = ("length: {}. P-site offset: {}. \\newline status: {}"
+                    #"\n".format(length, offset, offset_status))
+                #latex.write(out, title, size="scriptsize")
+                title = ("Length: {}. P-site offset: {}. Status: {}\n".format(length, offset, offset_status))
+                if args.show_read_length_bfs:
+                    title = "\scriptsize{" + title + "}"
+                    title = "\\multicolumn{2}{c}{" + title + "}"
+                    latex.write(out, title)
+                    latex.write_row_sep(out)
+                else:
+                    latex.write(out, title, size="scriptsize")
 
                 latex.write_graphics(out, metagene_profile_image, width=0.45)
                                
@@ -765,7 +763,7 @@ def main():
                         config['riboseq_data'], name, image_type=args.image_type, 
                         is_unique=is_unique, length=length, note=note)
 
-                    latex.centering(out)
+                    #latex.centering(out)
                     latex.write_graphics(out, bayes_factor_image, width=0.45)
                         
                     i += 1

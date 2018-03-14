@@ -5,7 +5,6 @@ from setuptools.command.develop import develop as _develop
 import importlib
 import logging
 import os
-import shutil
 import subprocess
 
 logger = logging.getLogger(__name__)
@@ -105,9 +104,9 @@ external_requirements =  [
     'psutil',
     'biopython',
     'patsy', # used in statsmodels 
-    'misc==0.2.5', # this has to be installed via requirements.txt
-    'riboutils==0.2.5', # this, too,
-    'bio-utils==0.2.4'  # and me!
+    'misc==0.2.8', # this has to be installed via requirements.txt
+    'bio-utils==0.2.6',  # and me!
+    'riboutils==0.2.7'  # this, too,
 ]
 
 stan_model_files = [
@@ -117,8 +116,6 @@ stan_model_files = [
     os.path.join("periodic", "start-high-low-low.stan"),
     os.path.join("untranslated", "gaussian-naive-bayes.stan"),
     os.path.join("translated", "periodic-gaussian-mixture.stan")
-    #os.path.join("translated", "periodic-cauchy-mixture.stan"),
-    #os.path.join("translated", "zero-inflated-periodic-cauchy-mixture.stan")
 ]
 
 stan_pickle_files = [
@@ -128,8 +125,6 @@ stan_pickle_files = [
     os.path.join("periodic", "start-high-low-low.pkl"),
     os.path.join("untranslated", "gaussian-naive-bayes.pkl"),
     os.path.join("translated", "periodic-gaussian-mixture.pkl")
-    #os.path.join("translated", "periodic-cauchy-mixture.pkl"),
-    #os.path.join("translated", "zero-inflated-periodic-cauchy-mixture.pkl")
 ]
 
 
@@ -140,7 +135,6 @@ def _post_install(self):
     import shlex
     
     import riboutils.ribo_filenames as filenames
-    import misc.utils as utils
     import misc.shell_utils as shell_utils
     
     smf = [os.path.join("rpbp_models", s) for s in stan_model_files]
@@ -151,7 +145,7 @@ def _post_install(self):
     # compile and pickle the stans models
     for stan, pickle in zip(smf, spf):
         if os.path.exists(pickle):
-            msg = "A model alread exists at: {}. Skipping.".format(pickle)
+            msg = "A model already exists at: {}. Skipping.".format(pickle)
             logging.warning(msg)
             continue
 
@@ -215,7 +209,7 @@ def description():
     return description
 
 setup(name='rpbp',
-        version='1.1.11',
+        version='1.1.12',
         description=description(),
         long_description=readme(),
         keywords="rpbp ribosome profiling bayesian inference markov chain monte carlo translation",

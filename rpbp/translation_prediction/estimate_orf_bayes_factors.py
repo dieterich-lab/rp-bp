@@ -21,6 +21,8 @@ import misc.parallel as parallel
 import misc.slurm as slurm
 import misc.utils as utils
 
+from misc.suppress_stdout_stderr import suppress_stdout_stderr
+
 import riboutils.ribo_utils as ribo_utils
 
 logger = logging.getLogger(__name__)
@@ -86,7 +88,6 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
                     background_scale
 
                 the chi-square p-value
-                the delta_l and delta_h values
     """
     profile_sum = sum(profile)
     
@@ -116,8 +117,6 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
         "bayes_factor_mean": float('-inf'),
         "bayes_factor_var": float('-inf'),
         "chi_square_p": float('-inf'),
-        "delta_l": float('-inf'),
-        "delta_h": float('-inf'),
         "x_1_sum": x_1_sum,
         "x_2_sum": x_2_sum,
         "x_3_sum": x_3_sum,
@@ -130,7 +129,6 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
     if (T != len(x_2)) or (T != len(x_3)):
         return ret
 
-     
     # and make sure we have more reads in x_1 than each of the others
     if (x_1_sum < x_2_sum) or (x_1_sum < x_3_sum):
         return ret
@@ -206,14 +204,6 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
 
     ret['background_scale_mean'] = np.mean(m_background_ex['background_scale'])
     ret['background_scale_var'] = np.var(m_background_ex['background_scale'])
-
-    # these were important for some previous models; the current set of models
-    # do not use these variables, though. This can probably be removed at some
-    # point in the future.
-    if 'delta_l' in m_translated_ex:
-        ret['delta_l'] = np.mean(m_translated_ex['delta_l'])
-    if 'delta_h' in m_translated_ex:
-        ret['delta_h'] = np.mean(m_translated_ex['delta_h'])
 
     # the (log of) the Bayes factor is the difference between two normals:
     # (the best translated model) - (the best background model)
@@ -455,14 +445,16 @@ def main():
     profiles_indices = multiprocessing.RawArray(ctypes.c_int, profiles.indices)
     profiles_indptr = multiprocessing.RawArray(ctypes.c_int, profiles.indptr)
     profiles_shape = multiprocessing.RawArray(ctypes.c_int, profiles.shape)
-
-    bfs_l = parallel.apply_parallel_split(
-        regions, 
-        args.num_cpus,
-        get_all_bayes_factors_args, 
-        num_groups=args.num_groups,
-        progress_bar=True
-    )
+    
+    with suppress_stdout_stderr():
+        
+        bfs_l = parallel.apply_parallel_split(
+            regions, 
+            args.num_cpus,
+            get_all_bayes_factors_args, 
+            num_groups=args.num_groups,
+            progress_bar=True
+        )
 
     bfs = pd.concat(bfs_l)
 
