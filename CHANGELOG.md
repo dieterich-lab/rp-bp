@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [1.1.12] - 2018-03-14
 ### Changed
 - Example dataset updated and moved to new address. Updated documentation.
 - `predict_translated_orfs` and `select_final_prediction_set` modified such 
@@ -27,7 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Utility for supressing pystan (or other compiled function) output. For more
     details see [Issue #10](https://github.com/dieterich-lab/rp-bp/issues/10).
-- Added restricted support for GFF3 specifications, in particular this requires removing the
+- Added *limited support* for GFF3 specifications, in particular this requires removing the
     STOP codons from the CDSs and passing the right option to `STAR`. 
     `Prepare_rpbp_genome` and `create_base_genome_profile` modified.
 - If using de_novo, all annotations are concatenated automatically in preparation of
