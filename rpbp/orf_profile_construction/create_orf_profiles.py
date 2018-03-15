@@ -173,7 +173,7 @@ def main():
     transcript_bed = filenames.get_bed(config['genome_base_path'], 
         config['genome_name'], is_merged=False, is_annotated=True)
 
-    cmd = ("extract-metagene-profiles {} {} {} --num-cpus {} {} {} {} {} {} {}"
+    cmd = ("extract-metagene-profiles {} {} {} --num-cpus {} {} {} {} {} {}"
         .format(riboseq_bam_filename, transcript_bed, metagene_profiles, 
         args.num_cpus, logging_str, start_upstream_str,
         start_downstream_str, end_upstream_str, end_downstream_str))
