@@ -28,7 +28,7 @@ The `create-read-length-orf-profiles` script can be used to create profile files
 which also include counts of individual read lengths.
 
 ```
-create-read-length-orf-profiles <config> <sample or condition name> <out> [--is-condition] [logging options] [processing options]
+create-read-length-orf-profiles <config> <sample or condition name> <out> [--is-condition] [--add-ids] [logging options] [processing options]
 ```
 
 ### Command line options
@@ -37,6 +37,7 @@ create-read-length-orf-profiles <config> <sample or condition name> <out> [--is-
 * `sample or condition name`. The name of either one of the `riboseq_samples` or `riboseq_biological_replicates` from the config file
 * `out`. The output (txt.gz) file, containing the read-length specific profiles. See below for details about the output format.
 * [`--is-condition`]. If the `sample or condition name` is a condition, *i.e.* if it is a key from `riboseq_biological_replicates`, then this flag must be given.
+* [`--add-ids`]. If this flag is present, then `orf_id` will be added to the final output (see below). 
 * [`logging options`]. See [logging options](usage-instructions.html#logging-options).
 * [`processing options`]. See [parallel processing options](usage-instructions.html#parallel-processing-options).
 
@@ -44,10 +45,11 @@ create-read-length-orf-profiles <config> <sample or condition name> <out> [--is-
 
 Each line in the output file is a tuple containing the following values.
 
-* `read_length`. The (trimmed) read lengths for this position.
 * `orf_num`. An identifier which maps to `orf_num` in the [list of ORFs](usage-instructions.html#creating-reference-genome-indices-output-files) for the reference, 
   `<genome_base_path>/transcript-index/<genome_name>.genomic-orfs.<orf_note>.bed.gz`.
-* `orf_position`. The base-0 position with respect to the spliced transcript (so *position % 3 == 0* implies the position is in-frame)
+* [`orf_id`]. Optionally, the `orf_id`.
+* `orf_position`. The base-0 position or offset with respect to the spliced transcript (so *position % 3 == 0* implies the position is in-frame)
+* `read_length`. The (trimmed) read length for this position.
 * `read_count`. The sum of counts across all replicates for the condition (if `--is-condition` is given) or otherwise the single sample, after adjusting according to P-sites and removing multimappers.
 
 **N.B. The output uses base-0 indexing, contrary to the unsmoothed ORF profiles, which are written using the matrix market format (base-1 indexing).**
