@@ -119,7 +119,7 @@ def main():
 
                 for row, col, val in zip(mtx.row, mtx.col, mtx.data):
                     # orf_num are both zero-based, since we are now using coo
-                    orf_id = orfs.loc[orfs['orf_num'] == row]['id']
+                    orf_id = orfs.loc[orfs['orf_num'] == row]['id'].values[0]
                     s = "{} {} {} {} {}\n".format(row, orf_id, col, length, val)
                     target_gz.write(s.encode())
     else:
