@@ -45,9 +45,11 @@ def main():
     parser.add_argument('--mem', help="The amount of RAM to request", 
         default=default_mem)
 
-    parser.add_argument('--flexbar-options', help="A space-delimited list of options to"
-        "pass to flexbar. Each option must be quoted separately as in \"--flexbarOption value\""
-        "If specified, flexbar options will override default settings.", nargs='*', type=str)
+    parser.add_argument('--flexbar-options', help="""Optional argument: a space-delimited 
+        list of options to pass to flexbar. Each option must be quoted separately as in 
+        "--flexbarOption value", using hard, then soft quotes, where "--flexbarOption" 
+        is the long parameter name from flexbar and "value" is the value given to this parameter. 
+        If specified, flexbar options will override default settings.""", nargs='*', type=str)
 
     parser.add_argument('--tmp', help="The location for temp files", default=default_tmp)
 
@@ -129,8 +131,8 @@ def main():
 
     flexbar_option_str = ""
     if args.flexbar_options is not None:
-        flexbar_option_str = "--flexbar-options {}".format(' '.join('"' + flx_op + '"'
-            for flx_op in args.flexbar_options))
+        flexbar_option_str = "--flexbar-options {}".format(' '.join("'" + flx_op + "'"
+                                            for flx_op in args.flexbar_options))
 
     # check if we want to keep multimappers
     is_unique = not ('keep_riboseq_multimappers' in config)

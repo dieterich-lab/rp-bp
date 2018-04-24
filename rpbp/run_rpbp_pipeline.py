@@ -32,9 +32,11 @@ def main():
 
     parser.add_argument('--tmp', help="The temp directory", default=default_tmp)
 
-    parser.add_argument('--flexbar-options', help="A space-delimited list of options to"
-        "pass to flexbar. Each option must be quoted separately as in \"--flexbarOption value\""
-        "If specified, flexbar options will override default settings.", nargs='*', type=str)
+    parser.add_argument('--flexbar-options', help="""Optional argument: a space-delimited 
+        list of options to pass to flexbar. Each option must be quoted separately as in 
+        "--flexbarOption value", using hard, then soft quotes, where "--flexbarOption" 
+        is the long parameter name from flexbar and "value" is the value given to this parameter. 
+        If specified, flexbar options will override default settings.""", nargs='*', type=str)
     
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
@@ -96,8 +98,10 @@ def main():
     msg = "use_slurm: {}".format(args.use_slurm)
     logger.debug(msg)
 
+    # if using slurm, submit the script, but we cannot use sys.argv directly
+    # as the shell strips the quotes around the arguments
     if args.use_slurm:
-        cmd = ' '.join(sys.argv)
+        cmd = "{}".format(' '.join("'" + s + "'" if '"' in s else s for s in sys.argv))
         slurm.check_sbatch(cmd, args=args)
         return
 
@@ -127,8 +131,8 @@ def main():
 
     flexbar_option_str = ""
     if args.flexbar_options is not None:
-        flexbar_option_str = "--flexbar-options {}".format(' '.join('"' + flx_op + '"'
-            for flx_op in args.flexbar_options))
+        flexbar_option_str = "--flexbar-options {}".format(' '.join("'" + flx_op + "'"
+                                                    for flx_op in args.flexbar_options))
 
     mem_str = "--mem {}".format(shlex.quote(args.mem))
 

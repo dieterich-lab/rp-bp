@@ -27,6 +27,7 @@ default_mem = "2G"
 # Flexbar arguments
 default_max_uncalled = 1
 default_pre_trim_left = 0
+default_qtrim = "sanger"
 
 flexbar_compression_str = "--zip-output GZ"
 
@@ -62,9 +63,11 @@ def main():
     parser.add_argument('--mem', help="The amount of RAM to request", 
         default=default_mem)
 
-    parser.add_argument('--flexbar-options', help="A space-delimited list of options to"
-        "pass to flexbar. Each option must be quoted separately as in \"--flexbarOption value\""
-        "If specified, flexbar options will override default settings.", nargs='*', type=str)
+    parser.add_argument('--flexbar-options', help="""Optional argument: a space-delimited 
+        list of options to pass to flexbar. Each option must be quoted separately as in 
+        "--flexbarOption value", using hard, then soft quotes, where "--flexbarOption" 
+        is the long parameter name from flexbar and "value" is the value given to this parameter. 
+        If specified, flexbar options will override default settings.""", nargs='*', type=str)
 
     parser.add_argument('-t', '--tmp', help="The location for temporary files. If not "
             "specified, program-specific temp locations are used.", default=default_tmp)
@@ -121,14 +124,17 @@ def main():
 
     max_uncalled_str = utils.get_config_argument(config, 'max_uncalled', default=default_max_uncalled)
     pre_trim_left_str = utils.get_config_argument(config, 'pre_trim_left', default=default_pre_trim_left)
+    quality_format_str = utils.get_config_argument(config, "qtrim_format", default=default_qtrim)
 
     flexbar_option_str = ""
     if args.flexbar_options:
-        flexbar_option_str = "{}".format(' '.join(args.flexbar_options))
+        flexbar_option_str = "{}".format(' '.join(flx_op.strip('"') for flx_op in args.flexbar_options))
     if 'max-uncalled' not in flexbar_option_str:
         flexbar_option_str = "{}".format(' '.join([flexbar_option_str, max_uncalled_str]))
     if 'pre-trim-left' not in flexbar_option_str:
         flexbar_option_str = "{}".format(' '.join([flexbar_option_str, pre_trim_left_str]))
+    if 'format' not in flexbar_option_str:
+        flexbar_option_str = "{}".format(' '.join([flexbar_option_str, quality_format_str]))
 
     cmd = "flexbar -r {} -t {} {} {} {} {} -n {}".format(raw_data, flexbar_target, flexbar_compression_str,
             adapter_seq_str, adapter_file_str, flexbar_option_str, args.num_cpus)
@@ -195,7 +201,8 @@ def main():
 
     all_additional_options_str = ""
     if args.star_additional_options:
-        all_additional_options_str = "{}".format(' '.join(args.star_additional_options))
+        all_additional_options_str = "{}".format(' '.join(star_op.strip('"') for star_op
+                                                          in args.star_additional_options))
     for star_option_key, star_option_str in pre_defined_star_options.items():
         if star_option_key not in all_additional_options_str:
             all_additional_options_str = "{}".format(' '.join([all_additional_options_str, star_option_str]))

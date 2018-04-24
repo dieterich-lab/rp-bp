@@ -30,9 +30,11 @@ def main():
 
     parser.add_argument('--tmp', help="The temp directory", default=default_tmp)
 
-    parser.add_argument('--flexbar-options', help="A space-delimited list of options to"
-        "pass to flexbar. Each option must be quoted separately as in \"--flexbarOption value\""
-        "If specified, flexbar options will override default settings.", nargs='*', type=str)
+    parser.add_argument('--flexbar-options', help="""Optional argument: a space-delimited 
+            list of options to pass to flexbar. Each option must be quoted separately as in 
+            "--flexbarOption value", using hard, then soft quotes, where "--flexbarOption" 
+            is the long parameter name from flexbar and "value" is the value given to this parameter. 
+            If specified, flexbar options will override default settings.""", nargs='*', type=str)
 
     parser.add_argument('--overwrite', help="If this flag is present, existing files "
         "will be overwritten.", action='store_true')
@@ -142,11 +144,11 @@ def main():
     tmp_str = ""
     if args.tmp is not None:
         tmp_str = "--tmp {}".format(args.tmp)
-    
+
     flexbar_option_str = ""
     if args.flexbar_options is not None:
-        flexbar_option_str = "--flexbar-options {}".format(' '.join('"' + flx_op + '"'
-            for flx_op in args.flexbar_options))
+        flexbar_option_str = "--flexbar-options {}".format(' '.join("'" + flx_op + "'"
+                                                for flx_op in args.flexbar_options))
 
     
     # collect the job_ids in case we are using slurm and need to merge replicates
