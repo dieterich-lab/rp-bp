@@ -44,7 +44,6 @@ default_out_sam_attributes = ["AS", "NH", "HI", "nM", "MD"]
 default_sjdb_overhang = 50
 
 # the Rp-Bp pipeline does not use the transcript alignments, so do not create them
-quant_mode_str = "" # '--quantMode TranscriptomeSAM'
 star_out_str = "--outSAMtype BAM SortedByCoordinate"
 
 default_tmp = None
@@ -198,7 +197,13 @@ def main():
     sjdb_overhang_str = utils.get_config_argument(config, 'sjdb_overhang',
         'sjdbOverhang', default=default_sjdb_overhang)
     pre_defined_star_options['sjdbOverhang'] = sjdb_overhang_str
+    star_compression_str = "--readFilesCommand {}".format(shlex.quote(args.star_read_files_command))
+    pre_defined_star_options['readFilesCommand'] = star_compression_str
+    mem_bytes = utils.human2bytes(args.mem)
+    star_mem_str = "--limitBAMsortRAM {}".format(mem_bytes)
+    pre_defined_star_options['limitBAMsortRAM'] = star_mem_str
 
+    # add additional arguments and/or override defaults
     all_additional_options_str = ""
     if args.star_additional_options:
         all_additional_options_str = "{}".format(' '.join(star_op.strip('"') for star_op
@@ -207,18 +212,12 @@ def main():
         if star_option_key not in all_additional_options_str:
             all_additional_options_str = "{}".format(' '.join([all_additional_options_str, star_option_str]))
 
-    # Separate options.
-    star_compression_str = "--readFilesCommand {}".format(
-        shlex.quote(args.star_read_files_command))
-
+    # tmp directory not handled via star additional options
     star_tmp_str = ""
     if args.tmp is not None:
-        star_tmp_name = "STAR_rpbp"
+        star_tmp_name = str(args.name + "_STARtmp")
         star_tmp_dir = star_utils.create_star_tmp(args.tmp, star_tmp_name)
         star_tmp_str = "--outTmpDir {}".format(star_tmp_dir)
-
-    mem_bytes = utils.human2bytes(args.mem)
-    star_mem_str = "--limitBAMsortRAM {}".format(mem_bytes)
 
     # If GFF3 specs, then we need to inform STAR.
     # Whether we have de novo or not, the format of "config['gtf']" has precedence.
@@ -229,10 +228,10 @@ def main():
     if use_gff3_specs:
         sjdb_gtf_tag_str = "--sjdbGTFtagExonParentTranscript Parent"
 
-    cmd = ("{} --runThreadN {} {} {} --genomeDir {} --sjdbGTFfile {} {} --readFilesIn {} "
-        "{} {} --outFileNamePrefix {} {} {}".format(args.star_executable,
-        args.num_cpus, star_mem_str, star_compression_str, config['star_index'], gtf_file,
-        sjdb_gtf_tag_str, without_rrna, all_additional_options_str, quant_mode_str,
+    cmd = ("{} --runThreadN {} --genomeDir {} --sjdbGTFfile {} {} --readFilesIn {} "
+        "{} --outFileNamePrefix {} {} {}".format(args.star_executable,
+        args.num_cpus, config['star_index'], gtf_file,
+        sjdb_gtf_tag_str, without_rrna, all_additional_options_str,
          star_output_prefix, star_out_str, star_tmp_str))
     in_files = [without_rrna]
     in_files.extend(star_utils.get_star_index_files(config['star_index']))
