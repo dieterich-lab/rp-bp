@@ -4,6 +4,8 @@ import matplotlib
 matplotlib.use('agg')
 
 import argparse
+import yaml
+import logging
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,9 +13,11 @@ import matplotlib.ticker as mtick
 import seaborn as sns; sns.set(style='white')
 
 import misc.mpl_utils as mpl_utils
-
-import logging
 import misc.logging_utils as logging_utils
+
+import riboutils.ribo_utils as ribo_utils
+
+
 logger = logging.getLogger(__name__)
 
 default_fontsize = 20
@@ -76,6 +80,10 @@ def main():
         "a default set of fields excluding the reads mapping to ribosomal "
         "sequences will be used.", action='store_true')
 
+    parser.add_argument('--config', help="""The config file, if using 
+        pretty names, "riboseq_sample_name_map" must be defined""", type=str,
+        default=None)
+
     parser.add_argument('--title', help="The title of the plot", default=None)
 
     parser.add_argument('--fontsize', help="The font size to use for most of "
@@ -122,6 +130,19 @@ def main():
     names = alignment_counts['note'].reset_index(drop=True)
     df['name'] = names
 
+    if args.config:
+        try:
+            config = yaml.load(open(args.config))
+            sample_name_map = ribo_utils.get_sample_name_map(config)
+            df['display_name'] = df['name'].apply(lambda x: sample_name_map[x])
+        except:
+            msg = 'Fall back to "name", cannot fetch "display_name" from config file.'
+            logger.warning(msg)
+            df['display_name'] = df['name']
+    else:
+        df['display_name'] = df['name']
+
+
     msg = "Creating the stacked bar chart"
     logger.info(msg)
 
@@ -150,7 +171,7 @@ def main():
         ax,
         alignment_diff_counts,
         colors=pal,
-        x_tick_labels=df['name'],
+        x_tick_labels=df['display_name'],
         y_ticks=yticks,
         y_tick_labels=yticks,
         gap=gap,

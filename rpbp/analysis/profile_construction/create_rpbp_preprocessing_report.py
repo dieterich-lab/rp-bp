@@ -462,10 +462,11 @@ def create_read_filtering_plots(config_file, config, args):
     
     title = "Read filtering counts"
     title_str = "--title {}".format(shlex.quote(title))
-    cmd = "visualize-read-filtering-counts {} {} {}".format(
+    cmd = "visualize-read-filtering-counts {} {} {} --config {}".format(
         read_filtering_counts, 
         read_filtering_image, 
-        title_str
+        title_str,
+        config_file
     )
     in_files = [read_filtering_counts]
     out_files=[read_filtering_image]
@@ -479,10 +480,11 @@ def create_read_filtering_plots(config_file, config, args):
     
     title = "Read filtering counts, no ribosomal matches"
     title_str = "--title {}".format(shlex.quote(title))
-    cmd = "visualize-read-filtering-counts {} {} {} --without-rrna".format(
+    cmd = "visualize-read-filtering-counts {} {} {} --config {} --without-rrna".format(
         read_filtering_counts, 
         read_filtering_image, 
-        title_str
+        title_str,
+        config_file
     )
 
     in_files = [read_filtering_counts]
