@@ -3,13 +3,12 @@
 import argparse
 import pandas as pd
 import logging
-import re
+
 import sys
 
-import bio_utils.bio as bio
+import bio_utils.fastx_utils as fastx_utils
 import misc.logging_utils as logging_utils
 import misc.parallel as parallel
-import misc.utils as utils
 import misc.pandas_utils as pandas_utils
 
 logger = logging.getLogger(__name__)
@@ -136,7 +135,7 @@ def main():
     logger.info(msg)
 
     # TODO: use read iterator
-    predicted_orfs = bio.get_read_iterator(args.predicted_proteins)
+    predicted_orfs = fastx_utils.get_read_iterator(args.predicted_proteins)
     orf_ids = []
     orf_sequences = []
 
