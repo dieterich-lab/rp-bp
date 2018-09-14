@@ -1,11 +1,14 @@
-from setuptools import find_packages, setup
-from setuptools.command.install import install as _install
-from setuptools.command.develop import develop as _develop
+#! /usr/bin/env python3
 
 import importlib
 import logging
 import os
 import subprocess
+
+from setuptools import find_packages, setup
+from setuptools.command.install import install as _install
+from setuptools.command.develop import develop as _develop
+
 
 logger = logging.getLogger(__name__)
 
@@ -213,9 +216,10 @@ setup(name='rpbp',
         description=description(),
         long_description=readme(),
         keywords="rpbp ribosome profiling bayesian inference markov chain monte carlo translation",
-        url="",
+        url="https://github.com/dieterich-lab/rp-bp",
         author="Brandon Malone",
-        author_email="bmmalone@gmail.com",
+        maintainer="Etienne Boileau",
+        maintainer_email="boileau@uni-heidelberg.de",
         license='MIT',
         packages=find_packages(),
         install_requires = [external_requirements],
