@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Extra column to ORFs file with list of all associated transcripts.
+
+### Fixed
+- ORF labels in `label_orfs.py` and `extract_orf_coordinates`, see
+    [ISSUE #96](https://github.com/dieterich-lab/rp-bp/issues/96).
+    
+    
 ## [1.1.12] - 2018-03-14
 ### Changed
 - Example dataset updated and moved to new address. Updated documentation.

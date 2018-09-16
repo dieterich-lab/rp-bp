@@ -505,7 +505,7 @@ def main():
             if pd.notna(row.assoc_trx):
                 orf_type = row.orf_type
                 # if canonical, it does not matter
-                if 'canonical' in orf_type:
+                if orf_type == 'canonical':
                     continue
                 match_pairs = type_to_matches[orf_type]
                 orf_id = change_orf_id(row, match_pairs)
