@@ -283,6 +283,11 @@ def main():
         as start codons when extracting the ORFs.''', nargs='+', default=default_start_codons)
     parser.add_argument('--stop-codons', help='''A list of codons which will be treated 
         as stop codons when extracting the ORFs.''', nargs='+', default=default_stop_codons)
+    parser.add_argument('--add-trx-match', help='''If this flag is present, an additional
+            column is added to the ORFs file containing for each ORF a list of annotated 
+            transcripts to which it belongs. This is not used as part of the Rp-Bp pipeline, 
+            but may be useful for downstream analysis, this however significantly increase 
+            the running time to extract the ORFs.''', action='store_true')
 
     slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)
@@ -337,21 +342,24 @@ def main():
 
     # this is done arbitrarily, but we will make sure the labels remain
     # consistent with the "orf_id"
-    # we also keep track of all transcripts to which belong these ORFs,
-    # this could be useful for downstream analysis
-    duplicated = orfs[orfs.duplicated(subset=DUPLICATE_FIELDS, keep=False)
-                      & ~orfs.duplicated(subset=DUPLICATE_FIELDS, keep='first')]
+    # if [--add-trx-match] we also keep track of all transcripts to
+    # which belong these ORFs for downstream analysis
+    m_all_duplicated = orfs.duplicated(subset=DUPLICATE_FIELDS, keep=False)
+    orfs['is_duplicated'] = m_all_duplicated
 
-    duplicate_trx_matches = parallel.apply_parallel_split(duplicated,
-                                                          args.num_cpus,
-                                                          parse_matches,
-                                                          orfs,
-                                                          progress_bar=True,
-                                                          num_groups=default_num_groups)
+    if args.add_trx_match:
+        duplicated = orfs[m_all_duplicated & ~orfs.duplicated(subset=DUPLICATE_FIELDS, keep='first')]
 
-    duplicate_trx_matches = utils.flatten_lists(duplicate_trx_matches)
-    duplicate_trx_matches = dict(collections.ChainMap(*duplicate_trx_matches))
-    orfs['assoc_trx'] = orfs['id'].map(duplicate_trx_matches)
+        duplicate_trx_matches = parallel.apply_parallel_split(duplicated,
+                                                              args.num_cpus,
+                                                              parse_matches,
+                                                              orfs,
+                                                              progress_bar=True,
+                                                              num_groups=default_num_groups)
+
+        duplicate_trx_matches = utils.flatten_lists(duplicate_trx_matches)
+        duplicate_trx_matches = dict(collections.ChainMap(*duplicate_trx_matches))
+        orfs['assoc_trx'] = orfs['id'].map(duplicate_trx_matches)
 
     orfs.drop_duplicates(subset=DUPLICATE_FIELDS, inplace=True, keep='first')
 

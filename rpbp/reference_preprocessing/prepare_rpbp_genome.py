@@ -29,6 +29,9 @@ def get_orfs(gtf, args, config, is_annotated=False, is_de_novo=False):
 
     logging_str = logging_utils.get_logging_options_string(args)
     cpus_str = "--num-cpus {}".format(args.num_cpus)
+    add_option_str = ''
+    if args.add_trx_match:
+        add_option_str = '--add-trx-match'
 
     # extract a BED12 of the annotated ORFs
     transcript_bed = filenames.get_bed(config['genome_base_path'],
@@ -91,7 +94,8 @@ def get_orfs(gtf, args, config, is_annotated=False, is_de_novo=False):
                                                                 cpus_str,
                                                                 start_codons_str,
                                                                 stop_codons_str,
-                                                                logging_str)
+                                                                logging_str,
+                                                                add_option_str)
     in_files = [transcript_fasta, transcript_bed]
     out_files = [orfs_genomic]
     shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files,
@@ -147,6 +151,12 @@ def main():
 
     parser.add_argument('--overwrite', help='''If this flag is present, existing files
         will be overwritten.''', action='store_true')
+
+    parser.add_argument('--add-trx-match', help='''If this flag is present, an additional
+        column is added to the ORFs file containing for each ORF a list of annotated 
+        transcripts to which it belongs. This is not used as part of the Rp-Bp pipeline, 
+        but may be useful for downstream analysis, this however significantly increase 
+        the running time to extract the ORFs.''', action='store_true')
 
     star_utils.add_star_options(parser)
     slurm.add_sbatch_options(parser)
@@ -257,7 +267,10 @@ def main():
         if call:
             concatenated_bed = bed_utils.concatenate(orfs_files, sort_bed=True)
             concatenated_bed['orf_num'] = range(len(concatenated_bed))
-            fields = bed_utils.bed12_field_names + ['orf_num', 'orf_len', 'orf_type', 'assoc_trx']
+            additional_columns = ['orf_num', 'orf_len', 'orf_type']
+            if 'assoc_trx' in concatenated_bed.columns:
+                additional_columns.extend(['assoc_trx'])
+            fields = bed_utils.bed12_field_names + additional_columns
             bed_utils.write_bed(concatenated_bed[fields], orfs_genomic)
         else:
             msg = "Skipping concatenation due to --call value"

@@ -502,7 +502,7 @@ def main():
     if not args.skip_check:
         orf_id_mapping = {}
         for row in extracted_orfs.itertuples():
-            if pd.notna(row.assoc_trx):
+            if row.is_duplicated:
                 orf_type = row.orf_type
                 # if canonical, it does not matter
                 if orf_type == 'canonical':
@@ -519,7 +519,10 @@ def main():
     msg = "Writing ORFs with types to disk"
     logger.info(msg)
 
-    fields = bed_utils.bed12_field_names + ['orf_num', 'orf_len', 'orf_type', 'assoc_trx']
+    additional_columns = ['orf_num', 'orf_len', 'orf_type']
+    if 'assoc_trx' in extracted_orfs.columns:
+        additional_columns.extend(['assoc_trx'])
+    fields = bed_utils.bed12_field_names + additional_columns
     extracted_orfs = extracted_orfs[fields]
     extracted_orfs = bed_utils.sort(extracted_orfs)
 

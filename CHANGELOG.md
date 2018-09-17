@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Added
-- Extra column to ORFs file with list of all associated transcripts.
+- Extra column to ORFs file with list of all associated transcripts. Currently added
+    as an option in `prepare-rpbp-genome`, but may be moved later on to post-processing.
 
 ### Fixed
 - ORF labels in `label_orfs.py` and `extract_orf_coordinates`, see
