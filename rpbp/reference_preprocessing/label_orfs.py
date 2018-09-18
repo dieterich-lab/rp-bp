@@ -7,6 +7,7 @@ import tqdm
 import pandas as pd
 
 import misc.logging_utils as logging_utils
+import misc.parallel as parallel
 
 import bio_utils.bed_utils as bed_utils
 
@@ -23,15 +24,31 @@ def change_orf_id(row, match_pairs):
     """Make sure the label matches the transcript part of the
     orf id, i.e. we want the label to be consistent with the
     transcript to which the ORF is associated."""
+
     orf_id = row.id
-    split_id = orf_id.rpartition('_')
-    transcript_id = split_id[0]
-    if (transcript_id, orf_id) not in match_pairs:
-        # just pick the first one, all associated transcripts
-        # share the same relationship with this ORF
-        transcript_id = [pair[0] for pair in match_pairs if pair[1] == orf_id][0]
-        orf_id = transcript_id + ''.join(split_id[1:])
+    if row.is_duplicated:
+        split_id = orf_id.rpartition('_')
+        transcript_id = split_id[0]
+        if (transcript_id, orf_id) not in match_pairs:
+            # just pick the first one, all associated transcripts
+            # share the same relationship with this ORF
+            transcript_id = [pair[0] for pair in match_pairs if pair[1] == orf_id][0]
+            orf_id = transcript_id + ''.join(split_id[1:])
+
     return orf_id
+
+
+def check_orf_ids(orf_group, type_to_matches):
+
+    orf_type = orf_group['orf_type'].iloc[0]
+    match_pairs = type_to_matches[orf_type]
+
+    orf_group['id'] = orf_group.apply(change_orf_id,
+                                      match_pairs=match_pairs,
+                                      axis=1)
+
+    return orf_group
+
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -79,8 +96,6 @@ def main():
     logger.info(msg)
     extracted_orfs = bed_utils.read_bed(args.extracted_orfs)
     extracted_orf_exons = bed_utils.read_bed(args.orf_exons)
-    if not args.skip_check:
-        extracted_orf_exons_copy = extracted_orf_exons.copy()
 
     msg = "Found {} extracted ORFs with {} exons".format(len(extracted_orfs),
                                                          len(extracted_orf_exons))
@@ -500,31 +515,26 @@ def main():
     logger.info(msg)
 
     if not args.skip_check:
-        orf_id_mapping = {}
-        for row in extracted_orfs.itertuples():
-            if row.is_duplicated:
-                orf_type = row.orf_type
-                # if canonical, it does not matter
-                if orf_type == 'canonical':
-                    continue
-                match_pairs = type_to_matches[orf_type]
-                orf_id = change_orf_id(row, match_pairs)
-                orf_id_mapping[row.id] = orf_id
-                extracted_orfs.loc[row.Index, 'id'] = orf_id
 
-        extracted_orf_exons_copy['id'] = \
-            extracted_orf_exons_copy['id'].map(orf_id_mapping).fillna(extracted_orf_exons_copy['id'])
-        bed_utils.write_bed(extracted_orf_exons_copy, args.orf_exons)
+        grouped = extracted_orfs.groupby('orf_type')
+        grouped_canonical = grouped.get_group('canonical')
+        orfs_group = extracted_orfs.drop(grouped_canonical.index).groupby('orf_type')
+
+        relabeled_orfs = parallel.apply_parallel_groups(orfs_group, args.num_cpus,
+                                                        check_orf_ids, type_to_matches,
+                                                        progress_bar=True)
+        relabeled_orfs.append(grouped_canonical)
+        extracted_orfs = pd.concat(relabeled_orfs)
 
     msg = "Writing ORFs with types to disk"
     logger.info(msg)
 
+    extracted_orfs = bed_utils.sort(extracted_orfs)
     additional_columns = ['orf_num', 'orf_len', 'orf_type']
     if 'assoc_trx' in extracted_orfs.columns:
         additional_columns.extend(['assoc_trx'])
     fields = bed_utils.bed12_field_names + additional_columns
     extracted_orfs = extracted_orfs[fields]
-    extracted_orfs = bed_utils.sort(extracted_orfs)
 
     bed_utils.write_bed(extracted_orfs, args.out)
 

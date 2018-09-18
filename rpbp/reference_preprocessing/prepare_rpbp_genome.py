@@ -124,8 +124,10 @@ def get_orfs(gtf, args, config, is_annotated=False, is_de_novo=False):
                                       is_annotated=True)
 
     de_novo_str = ""
+    overwrite_exons = True
     if is_de_novo:
         de_novo_str = '--label-prefix "novel_" --filter --nonoverlapping-label "novel" -s'
+        overwrite_exons = False
 
     cmd = "label-orfs {} {} {} {} {} {} {}".format(annotated_bed,
                                                    orfs_genomic,
@@ -139,6 +141,17 @@ def get_orfs(gtf, args, config, is_annotated=False, is_de_novo=False):
     out_files = None  # [] # [labeled_orfs]
     shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files,
                                    overwrite=args.overwrite, call=call)
+
+    # after checking orf ids, we need to re-write the exons, unless [--skip-check]
+    # has been used, with de novo
+    cmd = ("split-bed12-blocks {} {} --num-cpus {} {}".format(orfs_genomic,
+                                                              exons_file,
+                                                              args.num_cpus,
+                                                              logging_str))
+    in_files = [orfs_genomic]
+    out_files = [exons_file]
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files,
+                                   overwrite=overwrite_exons, call=call)
 
 
 def main():
