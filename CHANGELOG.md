@@ -6,7 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [2.0.0] - started 2019-05-24
+
+This is a major version upgrade due to changes in API and package dependencies. 
+
+### Changed
+- Configure setup() using setup.cfg
+
 ### Added
+- Add option to force the pickling of the Stan models during installation 
+    [ISSUE #88](https://github.com/dieterich-lab/rp-bp/issues/88).
 - Extra column to ORFs file with list of all associated transcripts. Currently added
     as an option in `prepare-rpbp-genome`, but may be moved later on to post-processing.
 
