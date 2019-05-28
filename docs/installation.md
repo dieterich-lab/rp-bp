@@ -9,7 +9,7 @@ This document describes detailed installation instructions for the Rp-Bp pipelin
 * [Installation](#installation)
     * [Virtual environment installation](#virtual-environment-installation)
     * [Anaconda installation](#anaconda-installation)
-    * [Local installation](#local-installation)
+    * [Debugging](#debugging)
 * [Uninstallation](#uninstallation)
 
 ---
@@ -48,18 +48,39 @@ If installation fails due to missing `OpenBLAS` dependencies for `scipy`, please
 
 ## Installation
 
-The installation currently uses the requirement file `requirements.txt` to install a number of required packages, as explained below. 
+To install from the command line:
+
+```
+# Clone the git repository.
+git clone https://github.com/dieterich-lab/rp-bp.git
+cd rp-bp
+   
+# To install in editable mode, replace "install" with "develop"...
+python setup.py install [--force-recompile] --verbose --user
+# ... or use pip (add option -e to install in editable mode).
+pip3 --verbose --user install [--install-option="--force-recompile"] [-e] .
+```
+
+The `--user` option instructs `setup.py` to install the package in the user site-packages directory for the running Python.
+Python automatically searches this directory, so it is not necessary to add this path to the PYTHONPATH variable.
+The `--force-recompile` flag is used to force pickling of the Stan models, and does not normally have
+to be set, unless one has to re-install `Rp-Bp` (*e.g* after upgrade or changing versions of Pystan). We recommend to
+upgrade pip and wheel to the latest versions before installing `Rp-Bp`.
+
 
 <a id='virtual-environment-installation'></a>
 
 ## Virtual environment installation
 
-We encourage installing Rp-Bp and dependencies in a virtual environment. The `venv` module provides support for creating environments with their own site directories. See [venv](https://docs.python.org/3/library/venv.html) for more information about Python virtual environments. To create a virtual environment:
+We encourage installing `Rp-Bp` and dependencies in a virtual environment. The `venv` module provides support for 
+creating environments with their own site directories. See [venv](https://docs.python.org/3/library/venv.html) for 
+more information about Python virtual environments. To create a virtual environment:
 
 ```
 python3 -m venv /path/to/virtual/environment
 ```
-To activate the new virtual environment and install Rp-Bp:
+
+To activate the new virtual environment and install `Rp-Bp`:
 
 ```
 # Activate the new virtual environment.
@@ -70,22 +91,11 @@ pip install --upgrade pip
 
 # Clone the git repository
 git clone git@github.com:dieterich-lab/rp-bp.git
+cd rp-bp
 
-# Change to the rp-bp directory and build the package. 
-cd rp-bp && pip install --verbose -r requirements.txt
-
-```
-
-The build process includes compiling several libraries for optimized numerical calculations. Due to the optimized nature of these libraries, the initial installation can take up to an hour.
-
-Due to the `--verbose` flag, much debugging information is printed. In some cases, building some libraries may initially fail; this is due to a known issue with dependency-handling in [pip](https://pip.pypa.io/en/stable/reference/pip_install/#installation-order). The following output (or something similar depending on packages already available) indicates that installation succeeded:
+pip --verbose install [--install-option="--force-recompile"] [-e] .
 
 ```
-Successfully installed cython-0.25.1 docopt-0.6.2 joblib-0.10.3 numpy-1.11.2 pandas-0.19.0 patsy-0.4.1 psutil-4.4.2 pyfasta-0.5.2 pysam-0.9.1.4 pystan-2.12.0.0 python-dateutil-2.5.3 pytz-2016.7 pyyaml-3.12 rpbp-1.0 scipy-0.18.1 six-1.10.0 statsmodels-0.6.1 tqdm-4.9.0
-Cleaning up...
-```
-
-To use the programs in the future, use the `source` command to activate the virtual environment, as described above.
 
 [Back to top](#toc)
 
@@ -96,7 +106,7 @@ To use the programs in the future, use the `source` command to activate the virt
 The package can also be installed within an [anaconda](https://www.continuum.io/) environment. 
 
    * The version of gcc included by default may not properly compile the Stan model files, so it must be updated first.
-   * In addition, `llvm` may have to be installed (required for `pymisc`):
+   * In addition, `llvm` may have to be installed (required for `pbio`):
     
 ```
 # Update gcc if necessary.
@@ -114,56 +124,27 @@ source activate my_new_environment
 
 # Clone the git repository
 git clone git@github.com:dieterich-lab/rp-bp.git
+cd rp-bp
 
-# Change to the rp-bp directory and build the package. 
-cd rp-bp && pip install --verbose -r requirements.txt
+pip --verbose install [--install-option="--force-recompile"] [-e] .
 ```
 
 [Back to top](#toc)
 
-<a id='local-installation'></a>
+<a id='debugging'></a>
 
-## Local installation
+## Debugging
 
-We recommend installing Rp-Bp in a virtual environment as described [above](#virtual-environment-installation). However if needed, the following instructions can be used to install the package without sudo access in a user's home directory.
+Building and installing `Rp-Bp` can take some time, so don't worry. 
+If install fails due to installation order, see [pip documentation](https://pip.pypa.io/en/stable/reference/pip_install/#installation-order). 
 
-The commands below are presumably executed in a directory like `$HOME/install`. They install the python executables into `$HOME/local/bin` (or wherever the `prefix` option is located), so that directory must be in the `$PATH`.
-This can be accomplished by adding a line like `export PATH=$HOME/local/bin:$PATH` in the file `.bashrc` on Ubuntu.
-
-   * It is very important that pip and wheel are upgraded!
-
-   * The `--user` option can also be given to `pip3` for installation within the user's home directory. The installation is then compatible with system-wide Python3 installations without requiring sudo access.
+The following output (or something similar depending on packages already available) indicates that installation succeeded:
 
 ```
-# Lines to add to .bashrc for the installation process.
-export PATH=$HOME/local/bin:$PATH
-
-### Downloading and installing the required software.
-
-# Download, extract and install (locally) Python 3.  
-wget https://www.python.org/ftp/python/3.5.1/Python-3.5.1.tgz && tar -xvf Python-3.5.1.tgz && cd Python-3.5.1 && ./configure --prefix=$HOME/local --with-ensurepip=upgrade && make && make install && cd ..
-
-# Upgrade pip. 
-pip3 install --upgrade pip wheel
-
-# Clone the git repository. 
-git clone git@github.com:dieterich-lab/rp-bp.git
-    
-# Change into the rp-bp directory and build the package... 
-cd rp-bp && pip3 install --verbose -r requirements.txt
-
-# ...or install the package in the user's home directory
-cd rp-bp && pip3 install --verbose --user  -r requirements.txt
-```
-
-The build process includes compiling several libraries for optimized numerical calculations. Due to the optimized nature of these libraries, the initial installation can take up to an hour.
-
-Due to the `--verbose` flag, much debugging information is printed. In some cases, building some libraries may initially fail; this is due to a known issue with dependency-handling in [pip](https://pip.pypa.io/en/stable/reference/pip_install/#installation-order). The following output (or something similar depending on packages already available) indicates installation succeeded:
-
-```
-Successfully installed cython-0.25.1 docopt-0.6.2 joblib-0.10.3 numpy-1.11.2 pandas-0.19.0 patsy-0.4.1 psutil-4.4.2 pyfasta-0.5.2 pysam-0.9.1.4 pystan-2.12.0.0 python-dateutil-2.5.3 pytz-2016.7 pyyaml-3.12 rpbp-1.0 scipy-0.18.1 six-1.10.0 statsmodels-0.6.1 tqdm-4.9.0
+Successfully installed cython-0.25.1 joblib-0.10.3 numpy-1.11.2 pandas-0.19.0 patsy-0.4.1 psutil-4.4.2 pyfasta-0.5.2 pysam-0.9.1.4 pystan-2.12.0.0 python-dateutil-2.5.3 pytz-2016.7 pyyaml-3.12 rpbp-1.0 scipy-0.18.1 six-1.10.0 statsmodels-0.6.1 tqdm-4.9.0
 Cleaning up...
 ```
+
 
 [Back to top](#toc)
 
@@ -173,6 +154,6 @@ Cleaning up...
 
 The `rpbp` python and required packages can be removed with pip:
 
-``pip3 uninstall misc bio-utils riboutils rpbp``
+``pip3 uninstall pbio rpbp``
 
 If the packages were installed in a dedicated virtual environment, this environment can simply be removed.

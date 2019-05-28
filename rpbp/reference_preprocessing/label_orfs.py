@@ -6,10 +6,10 @@ import tqdm
 
 import pandas as pd
 
-import misc.logging_utils as logging_utils
-import misc.parallel as parallel
+import pbio.misc.logging_utils as logging_utils
+import pbio.misc.parallel as parallel
 
-import bio_utils.bed_utils as bed_utils
+import pbio.utils.bed_utils as bed_utils
 
 logger = logging.getLogger(__name__)
 

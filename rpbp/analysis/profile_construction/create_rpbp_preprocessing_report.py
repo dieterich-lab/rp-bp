@@ -8,15 +8,15 @@ import pandas as pd
 import shlex
 import sys
 
-import misc.latex as latex
-import misc.logging_utils as logging_utils
-import misc.parallel as parallel
-import misc.shell_utils as shell_utils
-import misc.slurm as slurm
+import pbio.misc.latex as latex
+import pbio.misc.logging_utils as logging_utils
+import pbio.misc.parallel as parallel
+import pbio.misc.shell_utils as shell_utils
+import pbio.misc.slurm as slurm
 
 import misc.utils as utils
-import riboutils.ribo_filenames as filenames
-import riboutils.ribo_utils as ribo_utils
+import pbio.ribo.ribo_filenames as filenames
+import pbio.ribo.ribo_utils as ribo_utils
 
 logger = logging.getLogger(__name__)
 

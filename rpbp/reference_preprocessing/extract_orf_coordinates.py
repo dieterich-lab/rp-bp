@@ -9,13 +9,13 @@ import re
 import numpy as np
 import pandas as pd
 
-import misc.parallel as parallel
-import misc.utils as utils
-import misc.slurm as slurm
-import misc.logging_utils as logging_utils
+import pbio.misc.parallel as parallel
+import pbio.misc.utils as utils
+import pbio.misc.slurm as slurm
+import pbio.misc.logging_utils as logging_utils
 
-import bio_utils.bed_utils as bed_utils
-import bio_utils.fastx_utils as fastx_utils
+import pbio.utils.bed_utils as bed_utils
+import pbio.utils.fastx_utils as fastx_utils
 
 logger = logging.getLogger(__name__)
 

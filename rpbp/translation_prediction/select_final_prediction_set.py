@@ -6,14 +6,12 @@ import pandas as pd
 
 import Bio.Seq
 
-import bio_utils.bio as bio
-import bio_utils.bed_utils as bed_utils
-import bio_utils.fastx_utils as fastx_utils
-import misc.logging_utils as logging_utils
-import misc.utils as utils
-import misc.parallel as parallel
+import pbio.utils.bed_utils as bed_utils
+import pbio.utils.fastx_utils as fastx_utils
+import pbio.misc.logging_utils as logging_utils
+import pbio.misc.parallel as parallel
 
-import riboutils.ribo_utils as ribo_utils
+import pbio.ribo.ribo_utils as ribo_utils
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +36,7 @@ non_canonical_overlap_orf_types = [
 ]
 non_canonical_overlap_orf_types_str = ','.join(non_canonical_overlap_orf_types)
 
+
 def get_best_overlapping_orf(merged_ids, predicted_orfs):
     if len(merged_ids) == 1:
         m_id = predicted_orfs['id'] == merged_ids[0]
@@ -48,6 +47,7 @@ def get_best_overlapping_orf(merged_ids, predicted_orfs):
     sorted_orfs = predicted_orfs[m_orfs].sort_values('bayes_factor_mean', ascending=False)
     best_overlapping_orf_id = sorted_orfs.iloc[0]
     return best_overlapping_orf_id
+
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -73,55 +73,64 @@ def main():
         "and frame filters.")
 
     parser.add_argument('bayes_factors', help="The file containing the ORFs and Bayes' "
-        "factors (BED12+)")
+                                              "factors (BED12+)")
     parser.add_argument('fasta', help="The *genome* fasta file")
     parser.add_argument('predicted_orfs', help="The (output) BED12+ file containing "
-        "the predicted ORFs.")
+                                               "the predicted ORFs.")
     parser.add_argument('predicted_dna_sequences', help="The (output) fasta file "
-        "containing the predicted ORF sequences, as DNA sequences")
+                                                        "containing the predicted ORF sequences, "
+                                                        "as DNA sequences")
     parser.add_argument('predicted_protein_sequences', help="The (output) fasta file "
-        "containing the predicted ORF sequences, as protein sequences")
+                                                            "containing the predicted ORF sequences, "
+                                                            "as protein sequences")
 
     parser.add_argument('--select-longest-by-stop', help="If this flag is given, then "
-        "the selected ORFs will be merged based on stop codons. In particular, only the "
-        "longest translated ORF at each stop codon will be selected.", action='store_true')
+                                                         "the selected ORFs will be merged based on "
+                                                         "stop codons. In particular, only the "
+                                                         "longest translated ORF at each stop codon "
+                                                         "will be selected.", action='store_true')
 
     parser.add_argument('--select-best-overlapping', help="If this flag is given, then "
-        "only the ORF with the highest estimated Bayes factor will be kept among each "
-        "set of overlapping ORFs. N.B. This filter is applied *AFTER* selecting the "
-        "longest ORF at each stop codon, if the --select-longest-by-stop flag is "
-        "given.", action='store_true')
+                                                          "only the ORF with the highest estimated "
+                                                          "Bayes factor will be kept among each "
+                                                          "set of overlapping ORFs. N.B. This filter "
+                                                          "is applied *AFTER* selecting the "
+                                                          "longest ORF at each stop codon, if "
+                                                          "the --select-longest-by-stop flag is given.",
+                        action='store_true')
 
-    parser.add_argument('--min-length', help="The minimum length to predict an ORF "
-        "as translated", type=int, default=default_min_length)
+    parser.add_argument('--min-length', help="The minimum length to predict an ORF as translated",
+                        type=int, default=default_min_length)
     
     parser.add_argument('--min-bf-mean', help="The minimum Bayes' factor mean to predict "
-        "an ORF as translated (use --help for more details)", 
-        type=float, default=default_min_bf_mean)
+                                              "an ORF as translated (use --help for more details)",
+                        type=float, default=default_min_bf_mean)
     parser.add_argument('--max-bf-var', help="The maximum Bayes' factor variance to predict "
-        "an ORF as translated (use --help for more details)", 
-        type=float, default=default_max_bf_var)
+                                             "an ORF as translated (use --help for more details)",
+                        type=float, default=default_max_bf_var)
 
     parser.add_argument('--min-bf-likelihood', help="If given, then this is taken a threshold "
-        "on the likelihood of translation (use --help for more details)", 
-        type=float, default=default_min_bf_likelihood)
+                                                    "on the likelihood of translation (use --help for more details)",
+                        type=float, default=default_min_bf_likelihood)
    
     parser.add_argument('--chi-square-only', help="If this flag is present, then the "
-        "chi square value will be used to predict ORFs rather than the Bayes' factor",
-        action='store_true')
+                                                  "chi square value will be used to predict ORFs "
+                                                  "rather than the Bayes' factor",
+                        action='store_true')
     parser.add_argument('--chisq-significance-level', help="If using chi square, then this "
-        "value is Bonferroni corrected and used as the significance cutoff", type=float, 
-        default=default_chisq_significance_level)
+                                                           "value is Bonferroni corrected and used "
+                                                           "as the significance cutoff",
+                        type=float, default=default_chisq_significance_level)
 
     parser.add_argument('--filtered-orf-types', help="A list of ORF types which will be "
-        "removed before selecting the final prediction set.", nargs='*', 
-        default=default_filtered_orf_types)
+                                                     "removed before selecting the final prediction set.",
+                        nargs='*', default=default_filtered_orf_types)
 
-    parser.add_argument('--filter-non-canonical-overlaps', help="If this flag is given, then "
-        "--filtered-orf-types will be extended with the non-canonical overlap types ({})."
-        .format(non_canonical_overlap_orf_types_str), action='store_true')
-        
-    
+    parser.add_argument('--filter-non-canonical-overlaps', help="If this flag is given, then --filtered-orf-types"
+                                                                " will be extended with the non-canonical overlap "
+                                                                "types ({}).".format(non_canonical_overlap_orf_types_str),
+                        action='store_true')
+
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
@@ -200,7 +209,7 @@ def main():
     )
 
     fastx_utils.write_fasta(transcript_sequences, args.predicted_dna_sequences,
-        compress=False)
+                            compress=False)
 
     # translate the remaining ORFs into protein sequences
     msg = "Converting predicted ORF sequences to amino acids"
@@ -217,6 +226,6 @@ def main():
         compress=False
     )
 
+
 if __name__ == '__main__':
     main()
-

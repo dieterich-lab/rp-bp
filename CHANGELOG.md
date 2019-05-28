@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 This is a major version upgrade due to changes in API and package dependencies. 
 
 ### Changed
-- Configure setup() using setup.cfg
+- Configure setup() using setup.cfg, add `pbio`.
 
 ### Added
 - Add option to force the pickling of the Stan models during installation 

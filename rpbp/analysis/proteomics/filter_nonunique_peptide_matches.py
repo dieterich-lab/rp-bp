@@ -3,12 +3,12 @@
 import argparse
 import pandas as pd
 
-import misc.utils as utils
-import misc.pandas_utils as pandas_utils
-import misc.parallel as parallel
+import pbio.misc.utils as utils
+import pbio.misc.pandas_utils as pandas_utils
+import pbio.misc.parallel as parallel
 
 import logging
-import misc.logging_utils as logging_utils
+import pbio.misc.logging_utils as logging_utils
 logger = logging.getLogger(__name__)
 
 default_num_cpus = 1

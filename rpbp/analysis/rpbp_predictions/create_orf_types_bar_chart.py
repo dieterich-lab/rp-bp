@@ -9,12 +9,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns; sns.set(style='white')
 
-import bio_utils.bed_utils as bed_utils
-import misc.mpl_utils as mpl_utils
-import riboutils.ribo_utils as ribo_utils
+import pbio.utils.bed_utils as bed_utils
+import pbio.misc.mpl_utils as mpl_utils
+import pbio.ribo.ribo_utils as ribo_utils
 
 import logging
-import misc.logging_utils as logging_utils
+import pbio.misc.logging_utils as logging_utils
 logger = logging.getLogger(__name__)
 
 default_title = None

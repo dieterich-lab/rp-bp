@@ -3,23 +3,22 @@
 import logging
 import sys
 import argparse
-import os
-import pandas as pd
 
 import yaml
 
-import misc.logging_utils as logging_utils
-import misc.shell_utils as shell_utils
-import misc.utils as utils
+import pbio.misc.logging_utils as logging_utils
+import pbio.misc.shell_utils as shell_utils
+import pbio.misc.utils as utils
 
-import riboutils.ribo_utils as ribo_utils
-import riboutils.ribo_filenames as filenames
+import pbio.ribo.ribo_utils as ribo_utils
+import pbio.ribo.ribo_filenames as filenames
 
 logger = logging.getLogger(__name__)
 
 default_models_base = filenames.get_default_models_base()
 
 default_num_cpus = 2
+
 
 def get_profile(name, config, args):
     """ This helper function constructs the name of the smooth profile file
@@ -29,21 +28,23 @@ def get_profile(name, config, args):
     is_unique = not ('keep_riboseq_multimappers' in config)
 
     # get the lengths and offsets which meet the required criteria from the config file
-    lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, 
-        name, args.do_not_call, is_unique=is_unique)
+    lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config,
+                                                                   name,
+                                                                   args.do_not_call,
+                                                                   is_unique=is_unique)
 
     note_str = config.get('note', None)
-    
 
     if len(lengths) == 0:
         msg = ("No periodic read lengths and offsets were found. Try relaxing "
-            "min_metagene_profile_count, min_metagene_bf_mean, max_metagene_bf_var, "
-            "and/or min_metagene_bf_likelihood.")
+               "min_metagene_profile_count, min_metagene_bf_mean, max_metagene_bf_var, "
+               "and/or min_metagene_bf_likelihood.")
         logger.critical(msg)
         return
 
-    profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name, 
-        length=lengths, offset=offsets, is_unique=is_unique, note=note_str)
+    profiles = filenames.get_riboseq_profiles(config['riboseq_data'], name,
+                                              length=lengths, offset=offsets,
+                                              is_unique=is_unique, note=note_str)
 
     return profiles
 
@@ -51,23 +52,27 @@ def get_profile(name, config, args):
 def main():
     
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description="This script runs the second part of the pipeline: it estimate ORF Bayes"
-            "factors using the ORF profiles, then make the final prediction set.")
+                                     description="This script runs the second part of the pipeline: "
+                                                 "it estimate ORF Bayes factors using the ORF profiles, "
+                                                 "then make the final prediction set.")
     parser.add_argument('config', help="The (yaml) config file")
     parser.add_argument('name', help="The name for the dataset, used in the created files")
 
     parser.add_argument('-p', '--num-cpus', help="The number of processors to use",
-        type=int, default=default_num_cpus)
+                        type=int, default=default_num_cpus)
     
     parser.add_argument('--do-not-call', action='store_true')
-    parser.add_argument('--overwrite', help="If this flag is present, existing files "
-        "will be overwritten.", action='store_true')
+    parser.add_argument('--overwrite', help="If this flag is present, existing files will be overwritten.",
+                        action='store_true')
 
     parser.add_argument('--merge-replicates', help="If this flag is present, then the ORF "
-        "profiles will be merged for all replicates in the condition given by <name>. The "
-        "filenames, etc., will reflect the condition name, but not the lengths and offsets "
-        "of the individual replicates.\n\nN.B. If this flag is is present, the --overwrite "
-        "flag will automatically be set!", action='store_true')
+                                                   "profiles will be merged for all replicates in "
+                                                   "the condition given by <name>. The "
+                                                   "filenames, etc., will reflect the condition name, "
+                                                   "but not the lengths and offsets "
+                                                   "of the individual replicates.\n\nN.B. If this flag "
+                                                   "is is present, the --overwrite "
+                                                   "flag will automatically be set!", action='store_true')
         
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
@@ -82,14 +87,13 @@ def main():
     call = not args.do_not_call
 
     # check that all of the necessary programs are callable
-    programs =  [   
+    programs = [
         'estimate-orf-bayes-factors',
         'select-final-prediction-set'
     ]
     shell_utils.check_programs_exist(programs)
-
     
-    required_keys = [   
+    required_keys = [
         'riboseq_data',
         'fasta',
         'genome_base_path',
@@ -134,8 +138,7 @@ def main():
     # either way, the following variables need to have values for the rest of
     # the pipeline: lengths, offsets, smooth_profiles
     if args.merge_replicates:
-        msg = ("The --merge-replicates option was given, so --overwrite is "
-            "being set to True.")
+        msg = "The --merge-replicates option was given, so --overwrite is being set to True."
         logger.warning(msg)
         args.overwrite = True
 
@@ -148,17 +151,17 @@ def main():
 
         # we will also merge all of unsmoothed profiles
         replicate_profiles = [
-            get_profile(name, config, args) 
-                for name in riboseq_replicates[args.name]
+            get_profile(name, config, args) for name in riboseq_replicates[args.name]
         ]
 
         replicate_profiles_str = ' '.join(replicate_profiles)
 
-        profiles = filenames.get_riboseq_profiles(config['riboseq_data'], args.name, 
-            length=lengths, offset=offsets, is_unique=is_unique, note=note_str)
+        profiles = filenames.get_riboseq_profiles(config['riboseq_data'], args.name,
+                                                  length=lengths, offset=offsets,
+                                                  is_unique=is_unique, note=note_str)
 
         cmd = "merge-replicate-orf-profiles {} {} {}".format(replicate_profiles_str,
-            profiles, logging_str)
+                                                             profiles, logging_str)
         in_files = replicate_profiles
         out_files = [profiles]
 
@@ -171,13 +174,14 @@ def main():
             call=call
         )
 
-
     else:
         # otherwise, just treat things as normal
         # get the lengths and offsets which meet the required criteria from 
         # the config file
-        lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, 
-            args.name, args.do_not_call, is_unique=is_unique)
+        lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config,
+                                                                       args.name,
+                                                                       args.do_not_call,
+                                                                       is_unique=is_unique)
         
         profiles = get_profile(args.name, config, args)
         
@@ -199,8 +203,9 @@ def main():
     min_profile_str = utils.get_config_argument(config, 'min_signal', 'min-profile')
 
     fraction_str = utils.get_config_argument(config, 'smoothing_fraction', 'fraction')
-    reweighting_iterations_str = utils.get_config_argument(config, 
-        'smoothing_reweighting_iterations', 'reweighting-iterations')
+    reweighting_iterations_str = utils.get_config_argument(config,
+                                                           'smoothing_reweighting_iterations',
+                                                           'reweighting-iterations')
     
     # parse out all of the options from the config file, if they are present
     translated_models = filenames.get_models(models_base, 'translated')
@@ -251,8 +256,9 @@ def main():
     }
     msg = "estimate-bayes-factors in_files: {}".format(in_files)
     logger.debug(msg)
-    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-        file_checkers=file_checkers, overwrite=args.overwrite, call=call)
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files,
+                                   file_checkers=file_checkers,
+                                   overwrite=args.overwrite, call=call)
 
     for is_filtered in [True, False]:
             
@@ -333,10 +339,10 @@ def main():
         }
 
         # todo: implement file checker for fasta files
-        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files, 
-            file_checkers=file_checkers, overwrite=args.overwrite, call=call)
+        shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files,
+                                       file_checkers=file_checkers,
+                                       overwrite=args.overwrite, call=call)
     
 
 if __name__ == '__main__':
     main()
-

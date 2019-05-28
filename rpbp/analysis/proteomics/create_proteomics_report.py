@@ -5,11 +5,11 @@ import logging
 import os
 import yaml
 
-import misc.latex as latex
-import misc.utils as utils
+import pbio.misc.latex as latex
+import pbio.misc.utils as utils
 
-import riboutils.ribo_utils
-import riboutils.ribo_filenames as filenames
+import pbio.ribo.ribo_utils
+import pbio.ribo.ribo_filenames as filenames
 
 
 default_tmp = None

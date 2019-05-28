@@ -9,16 +9,16 @@ import numpy as np
 import pandas as pd
 import scipy.stats
 
-import bio_utils.bio as bio
-import bio_utils.bed_utils as bed_utils
-import bio_utils.mygene_utils as mygene_utils
-import misc.math_utils as math_utils
-import misc.parallel as parallel
-import misc.utils as utils
-import misc.pandas_utils as pandas_utils
+import pbio.utils.bio as bio
+import pbio.utils.bed_utils as bed_utils
+import pbio.utils.mygene_utils as mygene_utils
+import pbio.misc.math_utils as math_utils
+import pbio.misc.parallel as parallel
+import pbio.misc.utils as utils
+import pbio.misc.pandas_utils as pandas_utils
 
-import riboutils.ribo_utils as ribo_utils
-import riboutils.ribo_filenames as filenames
+import pbio.ribo.ribo_utils as ribo_utils
+import pbio.ribo.ribo_filenames as filenames
 
 import pyensembl
 
@@ -28,7 +28,7 @@ import pyensembl
 pd.options.mode.chained_assignment = None
 
 import logging
-import misc.logging_utils as logging_utils
+import pbio.misc.logging_utils as logging_utils
 logger = logging.getLogger(__name__)
 
 default_fields_to_keep = ['id', 'orf_type', 'x_1_sum', 'x_2_sum', 'x_3_sum']

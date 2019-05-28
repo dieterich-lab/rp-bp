@@ -5,13 +5,13 @@ import gzip
 import scipy.io
 import yaml
 
-import riboutils.ribo_filenames as filenames
-import riboutils.ribo_utils as ribo_utils
+import pbio.ribo.ribo_filenames as filenames
+import pbio.ribo.ribo_utils as ribo_utils
 
-import bio_utils.bed_utils as bed_utils
+import pbio.utils.bed_utils as bed_utils
 
 import logging
-import misc.logging_utils as logging_utils
+import pbio.misc.logging_utils as logging_utils
 logger = logging.getLogger(__name__)
 
 default_lengths = []

@@ -6,16 +6,16 @@ import yaml
 import argparse
 import logging
 
-import misc.logging_utils as logging_utils
-import misc.shell_utils as shell_utils
-import misc.slurm as slurm
-import misc.utils as utils
+import pbio.misc.logging_utils as logging_utils
+import pbio.misc.shell_utils as shell_utils
+import pbio.misc.slurm as slurm
+import pbio.misc.utils as utils
 
-import bio_utils.bio as bio
-import bio_utils.bed_utils as bed_utils
-import bio_utils.star_utils as star_utils
+import pbio.utils.bio as bio
+import pbio.utils.bed_utils as bed_utils
+import pbio.utils.star_utils as star_utils
 
-import riboutils.ribo_filenames as filenames
+import pbio.ribo.ribo_filenames as filenames
 
 logger = logging.getLogger(__name__)
 

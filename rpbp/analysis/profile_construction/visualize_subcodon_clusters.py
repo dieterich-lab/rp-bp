@@ -5,13 +5,13 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-import misc.mpl_utils as mpl_utils
-import misc.np_utils as np_utils
+import pbio.misc.mpl_utils as mpl_utils
+import pbio.misc.math_utils as math_utils
 
 import pickle
 
 import logging
-import misc.logging_utils as logging_utils
+import pbio.misc.logging_utils as logging_utils
 logger = logging.getLogger(__name__)
 
 default_title = ""
@@ -62,7 +62,7 @@ def main():
     y = model_pkl[0][periodic_clusters, 2]
     s = model_pkl[1][periodic_clusters]
 
-    fit = np_utils.fit_with_least_squares(x, y, w=s)
+    fit = math_utils.fit_with_least_squares(x, y, w=s)
     (slope, intercept, power, r_sqr) = fit
 
     msg = "Plotting clusters"
