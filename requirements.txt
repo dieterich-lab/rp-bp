@@ -1,0 +1,12 @@
+# Currently use this option (PEP 517 has no support for direct installs from source),
+# this is to avoid `ERROR: Failed building wheel for rpbp`.
+--no-binary :all:
+
+# NOTE: -e git+https://github.com/dieterich-lab/pybio-utils.git@dev#egg=pbio for editable mode,
+# Pin version of the pbio package and related dependencies:
+git+https://github.com/dieterich-lab/pybio-utils.git@dev#egg=pbio
+
+# NOTE: -e . for editable mode,
+#       [-e] . --install-option="--force-recompile" to force Stan models recompilation,
+#       ** The use of --install-option disables all use of wheels.
+.

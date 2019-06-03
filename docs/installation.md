@@ -9,7 +9,6 @@ This document describes detailed installation instructions for the Rp-Bp pipelin
 * [Installation](#installation)
     * [Virtual environment installation](#virtual-environment-installation)
     * [Anaconda installation](#anaconda-installation)
-    * [Debugging](#debugging)
 * [Uninstallation](#uninstallation)
 
 ---
@@ -48,76 +47,62 @@ If installation fails due to missing `OpenBLAS` dependencies for `scipy`, please
 
 ## Installation
 
-To install from the command line:
+The `rpbp` package can be installed in editable mode by adding the `-e` option to 
+the `requirements.txt` file. 
 
-```
-# Clone the git repository.
-git clone https://github.com/dieterich-lab/rp-bp.git
-cd rp-bp
-   
-# To install in editable mode, replace "install" with "develop"...
-python setup.py install [--force-recompile] --verbose --user
-# ... or use pip (add option -e to install in editable mode).
-pip3 --verbose --user install [--install-option="--force-recompile"] [-e] .
-```
-
-The `--user` option instructs `setup.py` to install the package in the user site-packages directory for the running Python.
-Python automatically searches this directory, so it is not necessary to add this path to the PYTHONPATH variable.
-The `--force-recompile` flag is used to force pickling of the Stan models, and does not normally have
-to be set, unless one has to re-install `Rp-Bp` (*e.g* after upgrade or changing versions of Pystan). We recommend to
-upgrade pip and wheel to the latest versions before installing `Rp-Bp`.
+The `--force-recompile` flag can also be passed via `install-option` in the `requirements.txt` file 
+to force the recompilation of the Stan models. This flag does not normally have to be set, unless one 
+has to re-install `rpbp` (*e.g* after upgrade or changing versions of Pystan). 
 
 
 <a id='virtual-environment-installation'></a>
 
-## Virtual environment installation
+## Installation (virtual environment)
 
-We encourage installing `Rp-Bp` and dependencies in a virtual environment. The `venv` module provides support for 
-creating environments with their own site directories. See [venv](https://docs.python.org/3/library/venv.html) for 
-more information about Python virtual environments. To create a virtual environment:
-
+To install `rpbp` and dependencies, first create a virtual environment:
+ 
 ```
 python3 -m venv /path/to/virtual/environment
 ```
 
-To activate the new virtual environment and install `Rp-Bp`:
+For information about Python virtual environments, see the [venv](https://docs.python.org/3/library/venv.html) documentation.
+To activate the new virtual environment and install `rpbp`:
 
 ```
 # Activate the new virtual environment.
 source /path/to/virtual/environment/bin/activate
 
-# If necessary, upgrade pip and additional packages (such as setuptools if installing in editable mode).
-pip install --upgrade pip
+# If necessary, upgrade pip and wheel or additional packages (such as setuptools if installing in editable mode).
+pip install --upgrade pip setuptools wheel
 
 # Clone the git repository
 git clone git@github.com:dieterich-lab/rp-bp.git
 cd rp-bp
 
-pip --verbose install [--install-option="--force-recompile"] [-e] .
+pip --verbose install -r requirements.txt
 
 ```
 
 [Back to top](#toc)
-
-<a id='anaconda-installation'></a>
 
 ## Anaconda installation
 
 The package can also be installed within an [anaconda](https://www.continuum.io/) environment. 
 
    * The version of gcc included by default may not properly compile the Stan model files, so it must be updated first.
-   * In addition, `llvm` may have to be installed (required for `pbio`):
+   * In addition, `llvm` and `libyaml-dev` may have to be installed (required for `pbio`):
+   
     
 ```
-# Update gcc if necessary.
+# Optional: update gcc if necessary.
 conda install -c salford_systems libgcc-6=6.2.0
 
-# Install llvm
+# Optional: install llvm
 conda install -c anaconda llvm
 conda install -c numba llvmlite
 
 # Create the anaconda environment.
-conda create -n my_new_environment python=3.5 anaconda
+conda create -n my_new_environment python=3.6 anaconda
 
 # Activate the new environment.
 source activate my_new_environment
@@ -126,25 +111,8 @@ source activate my_new_environment
 git clone git@github.com:dieterich-lab/rp-bp.git
 cd rp-bp
 
-pip --verbose install [--install-option="--force-recompile"] [-e] .
+pip --verbose install -r requirements.txt
 ```
-
-[Back to top](#toc)
-
-<a id='debugging'></a>
-
-## Debugging
-
-Building and installing `Rp-Bp` can take some time, so don't worry. 
-If install fails due to installation order, see [pip documentation](https://pip.pypa.io/en/stable/reference/pip_install/#installation-order). 
-
-The following output (or something similar depending on packages already available) indicates that installation succeeded:
-
-```
-Successfully installed cython-0.25.1 joblib-0.10.3 numpy-1.11.2 pandas-0.19.0 patsy-0.4.1 psutil-4.4.2 pyfasta-0.5.2 pysam-0.9.1.4 pystan-2.12.0.0 python-dateutil-2.5.3 pytz-2016.7 pyyaml-3.12 rpbp-1.0 scipy-0.18.1 six-1.10.0 statsmodels-0.6.1 tqdm-4.9.0
-Cleaning up...
-```
-
 
 [Back to top](#toc)
 
@@ -152,8 +120,8 @@ Cleaning up...
 
 ## Uninstallation
 
-The `rpbp` python and required packages can be removed with pip:
+The `rpbp` package and related dependencies can be removed with pip:
 
-``pip3 uninstall pbio rpbp``
+``pip uninstall pbio rpbp``
 
-If the packages were installed in a dedicated virtual environment, this environment can simply be removed.
+If the packages were installed in a dedicated virtual environment, this environment can also be cleared or removed.
