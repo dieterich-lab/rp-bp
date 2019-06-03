@@ -20,22 +20,22 @@ transformed data {
     vector[3*T] background;
     vector[2*T] temp;
 
-    temp <- append_row(x_1, x_2);
-    background <- append_row(temp, x_3);
+    temp = append_row(x_1, x_2);
+    background = append_row(temp, x_3);
     
     // we just use the emprical values to model "background"
-    background_location_prior_location <- mean(background);
-    background_scale_prior_location <- variance(background);
+    background_location_prior_location = mean(background);
+    background_scale_prior_location = variance(background);
     
     // the scale cannot be 0, so adjust if necessary
-    background_scale_prior_location <- fmax(background_scale_prior_location, 0.1);
+    background_scale_prior_location = fmax(background_scale_prior_location, 0.1);
     
-    background_location_prior_scale <- sqrt(background_location_prior_location);
-    background_scale_prior_scale <- sqrt(background_scale_prior_location);
+    background_location_prior_scale = sqrt(background_location_prior_location);
+    background_scale_prior_scale = sqrt(background_scale_prior_location);
 
     // and fix these scales, in case they are 0
-    background_location_prior_scale <- fmax(background_location_prior_scale, 0.1);
-    background_scale_prior_scale <- fmax(background_scale_prior_scale, 0.1);
+    background_location_prior_scale = fmax(background_location_prior_scale, 0.1);
+    background_scale_prior_scale = fmax(background_scale_prior_scale, 0.1);
 
     //print("background:", background);
 

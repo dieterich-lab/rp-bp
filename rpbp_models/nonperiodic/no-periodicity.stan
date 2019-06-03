@@ -19,18 +19,18 @@ transformed data {
     vector[3*T] profile;
     vector[2*T] temp;
 
-    temp <- append_row(x_1, x_2);
-    profile <- append_row(temp, x_3);
+    temp = append_row(x_1, x_2);
+    profile = append_row(temp, x_3);
 
-    location_prior_location <- mean(temp);
-    scale_prior_location <- variance(temp);
+    location_prior_location = mean(temp);
+    scale_prior_location = variance(temp);
 
-    location_prior_scale <- sqrt(location_prior_location);
-    scale_prior_scale <- sqrt(scale_prior_location);
+    location_prior_scale = sqrt(location_prior_location);
+    scale_prior_scale = sqrt(scale_prior_location);
 
     // the prior scales cannot be 0
-    location_prior_scale <- fmax(location_prior_scale, 0.1);
-    scale_prior_scale <- fmax(scale_prior_scale, 0.1);
+    location_prior_scale = fmax(location_prior_scale, 0.1);
+    scale_prior_scale = fmax(scale_prior_scale, 0.1);
 }
 
 parameters {
