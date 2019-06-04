@@ -457,7 +457,8 @@ def main():
             args.num_cpus,
             get_all_bayes_factors_args, 
             num_groups=args.num_groups,
-            progress_bar=True
+            progress_bar=True,
+            backend='multiprocessing'
         )
 
     bfs = pd.concat(bfs_l)
