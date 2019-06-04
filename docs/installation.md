@@ -1,7 +1,9 @@
 
 # Installing the Rp-Bp pipeline
 
-This document describes detailed installation instructions for the Rp-Bp pipeline. These steps have been primarily tested on Ubuntu.
+This document describes how to install the `rpbp` package. 
+
+The `rpbp` package was developed and tested on Debian-based systems, but should also run with any distribution.
 
 <a id="toc"></a>
 
@@ -17,12 +19,18 @@ This document describes detailed installation instructions for the Rp-Bp pipelin
 
 ## Prerequisites
 
-The pipelines make use of a number of standard bioinformatics tools. All of these must be installed and available on the `$PATH` for the pipeline to work correctly. All of the pipeline scripts check that the required programs are available before executing. If any required programs cannot be found, the script prints an error message about the missing program and does not continue. The versions used during development and testing are specified below. For most of the tools, any recent version should be sufficient. If problems arise, though, please use the version indicated below
+The `rpbp` package requires the following external dependencies:
 
-* [bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml), version 2.2.6
-* [flexbar](https://github.com/seqan/flexbar), version 2.5
-* [SAMtools](http://www.htslib.org/), version 1.2
-* [STAR](https://github.com/alexdobin/STAR), version 2.4.1d
+* [Flexbar](https://github.com/seqan/flexbar), version 3.5.0
+* [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml), version 2.3.0
+* [STAR](https://github.com/alexdobin/STAR), version 2.6.1d
+* [Samtools](http://www.htslib.org), version 1.7
+
+These dependencies are *NOT* installed automatically, and must be installed prior to installing
+the `rpbp` package. Do not forget to add these programs to your `$PATH` or to symlink the executable/binary files
+to your `~/.local/bin` directory! Alternatively, if your are installing `rpbp` in 
+an [anaconda virtual environment](#anaconda-installation), these dependencies (except for STAR) can
+be installed with `conda`.
 
 #### Helper script
 
@@ -47,19 +55,22 @@ If installation fails due to missing `OpenBLAS` dependencies for `scipy`, please
 
 ## Installation
 
-The `rpbp` package can be installed in editable mode by adding the `-e` option to 
-the `requirements.txt` file. 
+To install the local VCS project in development mode, use the `--editable` or `-e` option, otherwise
+this flag can be ignored. 
 
-The `--force-recompile` flag can also be passed via `install-option` in the `requirements.txt` file 
-to force the recompilation of the Stan models. This flag does not normally have to be set, unless one 
-has to re-install `rpbp` (*e.g* after upgrade or changing versions of Pystan). 
+The `--force-recompile` flag can also be passed via `install-option` to force the recompilation of the Stan models.
+This flag does *NOT* normally have to be set, unless one has to 
+re-install the `rpbp` package (*e.g* after upgrade or changing versions of Pystan). Note that 
+the use of `--install-option` currently disables all use of wheels.
 
+Pinned version of selected dependencies are installed with the `pbio` package via
+the `requirements.txt` file for reproducible installation.
 
 <a id='virtual-environment-installation'></a>
 
 ## Installation (virtual environment)
 
-To install `rpbp` and dependencies, first create a virtual environment:
+To install the `rpbp` package and its dependencies, first create a virtual environment:
  
 ```
 python3 -m venv /path/to/virtual/environment
@@ -76,28 +87,28 @@ source /path/to/virtual/environment/bin/activate
 pip install --upgrade pip setuptools wheel
 
 # Clone the git repository
-git clone git@github.com:dieterich-lab/rp-bp.git
+git clone https://github.com/dieterich-lab/rp-bp.git
 cd rp-bp
 
-pip --verbose install -r requirements.txt
+# The period is required, it is the local project path (rp-bp)
+pip --verbose install -r requirements.txt [-e] . [--install-option="--force-recompile"] 2>&1 | tee install.log
 
 ```
 
 [Back to top](#toc)
+
+<a id='anaconda-installation'></a>
 
 ## Anaconda installation
 
 The package can also be installed within an [anaconda](https://www.continuum.io/) environment. 
 
    * The version of gcc included by default may not properly compile the Stan model files, so it must be updated first.
-   * In addition, `llvm` and `libyaml-dev` may have to be installed (required for `pbio`):
-   
+   * In addition, `llvm` may have to be installed (required for `pbio`):
     
 ```
-# Optional: update gcc if necessary.
+# Optional: update gcc and install llvm.
 conda install -c salford_systems libgcc-6=6.2.0
-
-# Optional: install llvm
 conda install -c anaconda llvm
 conda install -c numba llvmlite
 
@@ -107,11 +118,18 @@ conda create -n my_new_environment python=3.6 anaconda
 # Activate the new environment.
 source activate my_new_environment
 
+# Optional: install external dependencies (except STAR)
+conda install -c bioconda flexbar=3.5.0
+conda install -c bioconda bowtie2=2.3.0
+conda install -c bioconda samtools=1.7
+
 # Clone the git repository
-git clone git@github.com:dieterich-lab/rp-bp.git
+git clone https://github.com/dieterich-lab/rp-bp.git
 cd rp-bp
 
-pip --verbose install -r requirements.txt
+# The period is required, it is the local project path (rp-bp)
+pip --verbose install -r requirements.txt [-e] . [--install-option="--force-recompile"] 2>&1 | tee install.log
+
 ```
 
 [Back to top](#toc)
@@ -120,7 +138,7 @@ pip --verbose install -r requirements.txt
 
 ## Uninstallation
 
-The `rpbp` package and related dependencies can be removed with pip:
+The `rpbp` package and related Python dependencies can be removed with pip:
 
 ``pip uninstall pbio rpbp``
 
