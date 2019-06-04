@@ -406,7 +406,7 @@ def main():
     args = parser.parse_args()
     logging_utils.update_logging(args)
 
-    config = yaml.load(open(args.config))
+    config = yaml.load(open(args.config), Loader=yaml.FullLoader)
     
     # keep multimappers?
     is_unique = not ('keep_riboseq_multimappers' in config)

@@ -88,7 +88,7 @@ def main():
     msg = "[create-base-genome-profile]: {}".format(' '.join(sys.argv))
     logger.info(msg)
 
-    config = yaml.load(open(args.config))
+    config = yaml.load(open(args.config), Loader=yaml.FullLoader)
     call = not args.do_not_call
     keep_delete_files = args.keep_intermediate_files or args.do_not_call
 

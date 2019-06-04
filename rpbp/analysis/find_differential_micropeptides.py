@@ -310,7 +310,7 @@ def main():
     msg = "Extracting file names"
     logger.info(msg)
 
-    config = yaml.load(open(args.config))
+    config = yaml.load(open(args.config), Loader=yaml.FullLoader)
 
     note_str = config.get('note', None)
 

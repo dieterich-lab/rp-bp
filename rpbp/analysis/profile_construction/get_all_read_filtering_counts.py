@@ -132,7 +132,7 @@ def main():
     programs = ['samtools']
     shell_utils.check_programs_exist(programs)
 
-    config = yaml.load(open(args.config))
+    config = yaml.load(open(args.config), Loader=yaml.FullLoader)
 
     res = parallel.apply_parallel_iter(config['riboseq_samples'].items(), 
                                         args.num_cpus, 

@@ -54,7 +54,7 @@ def main():
     args = parser.parse_args()
     utils.update_logging(args)
 
-    config = yaml.load(open(args.config))
+    config = yaml.load(open(args.config), Loader=yaml.FullLoader)
     note = config.get('note', None)
 
     if args.is_replicate:

@@ -532,7 +532,7 @@ def main():
     args = parser.parse_args()
     logging_utils.update_logging(args)
 
-    config = yaml.load(open(args.config))
+    config = yaml.load(open(args.config), Loader=yaml.FullLoader)
 
     if args.note is not default_note:
         config['note'] = args.note

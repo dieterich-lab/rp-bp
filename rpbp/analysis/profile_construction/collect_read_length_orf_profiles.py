@@ -46,7 +46,7 @@ def main():
     
     msg = "Reading config file"
     logger.info(msg)
-    config = yaml.load(open(args.config))
+    config = yaml.load(open(args.config), Loader=yaml.FullLoader)
 
     # pull out what we need from the config file
     is_unique = not ('keep_riboseq_multimappers' in config)

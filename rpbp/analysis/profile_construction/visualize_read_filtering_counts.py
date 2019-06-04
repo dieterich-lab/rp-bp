@@ -132,7 +132,7 @@ def main():
 
     if args.config:
         try:
-            config = yaml.load(open(args.config))
+            config = yaml.load(open(args.config), Loader=yaml.FullLoader)
             sample_name_map = ribo_utils.get_sample_name_map(config)
             df['display_name'] = df['name'].apply(lambda x: sample_name_map[x])
         except:

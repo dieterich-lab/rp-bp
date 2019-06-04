@@ -20,6 +20,8 @@ This is a major version upgrade due to changes in API and package dependencies.
     as an option in `prepare-rpbp-genome`, but may be moved later on to post-processing.
 
 ### Fixed
+- [YAMLLoadWarning](https://msg.pyyaml.org/load)
+- Fall back to multiprocessing in `estimate_orf_bayes_factors`
 - ORF labels in `label_orfs.py` and `extract_orf_coordinates`, see
     [ISSUE #96](https://github.com/dieterich-lab/rp-bp/issues/96).
     
