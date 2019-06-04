@@ -26,7 +26,9 @@ default_mem = "2G"
 # Flexbar arguments
 default_max_uncalled = 1
 default_pre_trim_left = 0
-default_qtrim = "sanger"
+default_qtrim_format = "sanger"
+default_qtrim = 'TAIL'
+default_qtrim_threshold = 10
 
 flexbar_compression_str = "--zip-output GZ"
 
@@ -124,7 +126,9 @@ def main():
 
     max_uncalled_str = utils.get_config_argument(config, 'max_uncalled', default=default_max_uncalled)
     pre_trim_left_str = utils.get_config_argument(config, 'pre_trim_left', default=default_pre_trim_left)
-    quality_format_str = utils.get_config_argument(config, "qtrim_format", default=default_qtrim)
+    quality_format_str = utils.get_config_argument(config, "qtrim_format", default=default_qtrim_format)
+    quality_mode_str = utils.get_config_argument(config, "qtrim", default=default_qtrim)
+    quality_threshold_str = utils.get_config_argument(config, "qtrim_threshold", default=default_qtrim_threshold)
 
     flexbar_option_str = ""
     if args.flexbar_options:
@@ -133,8 +137,12 @@ def main():
         flexbar_option_str = "{}".format(' '.join([flexbar_option_str, max_uncalled_str]))
     if 'pre-trim-left' not in flexbar_option_str:
         flexbar_option_str = "{}".format(' '.join([flexbar_option_str, pre_trim_left_str]))
-    if 'format' not in flexbar_option_str:
+    if 'qtrim-format' not in flexbar_option_str:
         flexbar_option_str = "{}".format(' '.join([flexbar_option_str, quality_format_str]))
+    if 'qtrim' not in flexbar_option_str:
+        flexbar_option_str = "{}".format(' '.join([flexbar_option_str, quality_mode_str]))
+    if 'qtrim-threshold' not in flexbar_option_str:
+        flexbar_option_str = "{}".format(' '.join([flexbar_option_str, quality_threshold_str]))
 
     cmd = "flexbar -r {} -t {} {} {} {} {} -n {}".format(raw_data, flexbar_target, flexbar_compression_str,
                                                          adapter_seq_str, adapter_file_str,
