@@ -275,7 +275,7 @@ def main():
                                       note=config.get('orf_note'))
 
     exons_file = filenames.get_exons(config['genome_base_path'], config['genome_name'],
-                                     note=config.get('orf_note'), is_orf=True)
+                                     note=config.get('orf_note'))
 
     cmd = ("extract-orf-profiles {} {} {} {} --lengths {} --offsets {} {} {} --num-cpus {} ".format(
         unique_filename, orfs_genomic, exons_file, profiles_filename, lengths_str,

@@ -1,5 +1,16 @@
 #! /usr/bin/env python3
 
+"""This script extract the ORFs from the transcripts and
+write them as a BED12+2 file, using genomic coordinates.
+
+Contains:
+    get_orf_positions
+    get_matching_stop_position
+    get_orf_bed_entry
+    get_orfs
+    get_transcript
+"""
+
 import sys
 import logging
 import argparse
@@ -151,17 +162,18 @@ def get_orf_bed_entry(orf_gen_pos, transcript):
     orf_len = bed_utils.get_bed_12_feature_length(orf)
     orf['orf_len'] = orf_len
 
-    # use Mackowiak-type orf_ids
-    orf_id = "{}_{}:{}-{}:{}".format(orf['id'], orf['seqname'],
-                                     orf['start'], orf['end'], orf['strand'])
+    # use Mackowiak-type orf_ids, without the transcript part of the id
+    # which is added after labelling the ORFs
+    # see https://github.com/dieterich-lab/rp-bp/issues/96
+    orf_id = "{}:{}-{}:{}".format(orf['seqname'], orf['start'],
+                                  orf['end'], orf['strand'])
     orf['id'] = orf_id
 
     return orf
 
 
 def get_orfs(transcript_and_sequence, start_codons_re, stop_codons_re):
-    """ This function extracts all of the ORFs from the given transcript and
-        sequence. It returns them as a BED12+1 data frame.
+    """ This function extracts all ORFs and return them as a BED12+1 data frame.
     """
 
     transcript, transcript_sequence = transcript_and_sequence
@@ -172,11 +184,6 @@ def get_orfs(transcript_and_sequence, start_codons_re, stop_codons_re):
         start_codons_re,
         stop_codons_re
     )
-
-    # if logger.isEnabledFor(logging.DEBUG):
-    #   s = ["({},{})".format(o.start, o.end) for o in orf_rel_positions]
-    #    s = ' '.join(s)
-    #    logger.debug(s)
 
     # if the strand is negative, we need to "flip" the relative positions
     # but start < stop always
@@ -243,51 +250,26 @@ def get_transcript(transcript_id, transcripts_bed):
     return transcript
 
 
-def parse_match(row, orfs):
-    """Find matching duplicates and add transcript ids for reference.
-    """
-
-    orf_id = row['id']
-    # field_values_match = {field: getattr(row, field) for field in DUPLICATE_FIELDS}
-    # m_match = pd.DataFrame([orfs[k] == v for k, v in field_values_match.items()]).all()
-    m_match = (orfs['seqname'] == row['seqname']) & \
-              (orfs['start'] == row['start']) & \
-              (orfs['end'] == row['end']) & \
-              (orfs['strand'] == row['strand']) & \
-              (orfs['num_exons'] == row['num_exons']) & \
-              (orfs['exon_lengths'] == row['exon_lengths']) & \
-              (orfs['exon_genomic_relative_starts'] == row['exon_genomic_relative_starts'])
-    matches = orfs[m_match]['id'].unique()
-    ids = ','.join(m.rpartition('_')[0] for m in matches if m != orf_id)
-    match = {orf_id: ids}
-
-    return match
-
-
-def parse_matches(orf_groups, orfs):
-
-    return parallel.apply_df_simple(orf_groups, parse_match, orfs)
-
-
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                      description='''Extract the ORFs from the given transcripts and
-                                     write as a BED12+1 file. The additional field, 'orf_len', gives
-                                     the length of the ORF. All duplicate ORFs are removed.''')
+        write as a BED12+2 file. The additional fields, 'orf_len' and 'orf_num' give the length 
+        of each ORF and it's index (used to write the ORF profiles). All duplicate ORFs are removed.''')
+
     parser.add_argument('transcripts_bed', help='''The BED12 file containing the 
         transcript information.''')
+
     parser.add_argument('transcripts_fasta', help='''The fasta file containing the 
         spliced transcript sequences.''')
-    parser.add_argument('out', help='''The output (BED12+1 gz) file.''')
+
+    parser.add_argument('out', help='''The output (BED12+2 gz) file.''')
+
     parser.add_argument('--start-codons', help='''A list of codons which will be treated 
         as start codons when extracting the ORFs.''', nargs='+', default=default_start_codons)
+
     parser.add_argument('--stop-codons', help='''A list of codons which will be treated 
         as stop codons when extracting the ORFs.''', nargs='+', default=default_stop_codons)
-    parser.add_argument('--add-trx-match', help='''If this flag is present, an additional
-            column is added to the ORFs file containing for each ORF a list of annotated 
-            transcripts to which it belongs. This is not used as part of the Rp-Bp pipeline, 
-            but may be useful for downstream analysis, this however significantly increase 
-            the running time to extract the ORFs.''', action='store_true')
+
 
     slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)
@@ -339,27 +321,6 @@ def main():
 
     msg = "Marking and removing duplicate ORFs"
     logger.info(msg)
-
-    # this is done arbitrarily, but we will make sure the labels remain
-    # consistent with the "orf_id"
-    # if [--add-trx-match] we also keep track of all transcripts to
-    # which belong these ORFs for downstream analysis
-    m_all_duplicated = orfs.duplicated(subset=DUPLICATE_FIELDS, keep=False)
-    orfs['is_duplicated'] = m_all_duplicated
-
-    if args.add_trx_match:
-        duplicated = orfs[m_all_duplicated & ~orfs.duplicated(subset=DUPLICATE_FIELDS, keep='first')]
-
-        duplicate_trx_matches = parallel.apply_parallel_split(duplicated,
-                                                              args.num_cpus,
-                                                              parse_matches,
-                                                              orfs,
-                                                              progress_bar=True,
-                                                              num_groups=default_num_groups)
-
-        duplicate_trx_matches = utils.flatten_lists(duplicate_trx_matches)
-        duplicate_trx_matches = dict(collections.ChainMap(*duplicate_trx_matches))
-        orfs['assoc_trx'] = orfs['id'].map(duplicate_trx_matches)
 
     orfs.drop_duplicates(subset=DUPLICATE_FIELDS, inplace=True, keep='first')
 

@@ -25,6 +25,9 @@ This is a major version upgrade due to changes in API and package dependencies.
 - ORF labels in `label_orfs.py` and `extract_orf_coordinates`, see
     [ISSUE #96](https://github.com/dieterich-lab/rp-bp/issues/96).
     
+### Removed
+- Transcript exons file (unused)
+ 
     
 ## [1.1.12] - 2018-03-14
 ### Changed

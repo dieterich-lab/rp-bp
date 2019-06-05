@@ -374,7 +374,7 @@ def main():
         raise FileNotFoundError(msg)
 
     exons_file = filenames.get_exons(config['genome_base_path'], config['genome_name'],
-        note=config.get('orf_note'), is_orf=True)
+        note=config.get('orf_note'))
 
     if not os.path.exists(exons_file):
         msg = "Could not find the exons file ({}). Quitting.".format(exons_file)
