@@ -133,15 +133,15 @@ def main():
     flexbar_option_str = ""
     if args.flexbar_options:
         flexbar_option_str = "{}".format(' '.join(flx_op.strip('"') for flx_op in args.flexbar_options))
-    if 'max-uncalled' not in flexbar_option_str:
+    if '--max-uncalled' not in flexbar_option_str.split():
         flexbar_option_str = "{}".format(' '.join([flexbar_option_str, max_uncalled_str]))
-    if 'pre-trim-left' not in flexbar_option_str:
+    if '--pre-trim-left' not in flexbar_option_str.split():
         flexbar_option_str = "{}".format(' '.join([flexbar_option_str, pre_trim_left_str]))
-    if 'qtrim-format' not in flexbar_option_str:
+    if '--qtrim-format' not in flexbar_option_str.split():
         flexbar_option_str = "{}".format(' '.join([flexbar_option_str, quality_format_str]))
-    if 'qtrim' not in flexbar_option_str:
+    if '--qtrim' not in flexbar_option_str.split():
         flexbar_option_str = "{}".format(' '.join([flexbar_option_str, quality_mode_str]))
-    if 'qtrim-threshold' not in flexbar_option_str:
+    if '--qtrim-threshold' not in flexbar_option_str.split():
         flexbar_option_str = "{}".format(' '.join([flexbar_option_str, quality_threshold_str]))
 
     cmd = "flexbar -r {} -t {} {} {} {} {} -n {}".format(raw_data, flexbar_target, flexbar_compression_str,
