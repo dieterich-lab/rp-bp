@@ -215,12 +215,16 @@ def main():
     # get the ORFs
     get_orfs(config['gtf'], args, config, is_annotated=True, is_de_novo=False)
 
-    # eventually, we will use these names
+    # we will use these files later in the pipeline
     annotated_orfs = filenames.get_orfs(config['genome_base_path'],
                                         config['genome_name'],
                                         note=config.get('orf_note'),
                                         is_annotated=True,
                                         is_de_novo=False)
+
+    orfs_genomic = filenames.get_orfs(config['genome_base_path'],
+                                      config['genome_name'],
+                                      note=config.get('orf_note'))
 
     annotated_exons_file = filenames.get_exons(config['genome_base_path'],
                                                config['genome_name'],
@@ -228,13 +232,19 @@ def main():
                                                is_annotated=True,
                                                is_de_novo=False)
 
-    orfs_genomic = filenames.get_orfs(config['genome_base_path'],
-                                      config['genome_name'],
-                                      note=config.get('orf_note'))
-
     exons_file = filenames.get_exons(config['genome_base_path'],
                                      config['genome_name'],
                                      note=config.get('orf_note'))
+
+    annotated_labeled_orfs = filenames.get_labels(config['genome_base_path'],
+                                                  config['genome_name'],
+                                                  note=config.get('orf_note'),
+                                                  is_annotated=True,
+                                                  is_de_novo=False)
+
+    labeled_orfs = filenames.get_labels(config['genome_base_path'],
+                                        config['genome_name'],
+                                        note=config.get('orf_note'))
 
     use_gff3_specs = config['gtf'].endswith('gff')
     gtf_file = filenames.get_gtf(config['genome_base_path'],
@@ -250,12 +260,6 @@ def main():
                                           note=config.get('orf_note'),
                                           is_annotated=False,
                                           is_de_novo=True)
-
-        de_novo_exons_file = filenames.get_exons(config['genome_base_path'],
-                                                 config['genome_name'],
-                                                 note=config.get('orf_note'),
-                                                 is_annotated=False,
-                                                 is_de_novo=True)
 
         orfs_files = [annotated_orfs, de_novo_orfs]
 
@@ -274,6 +278,12 @@ def main():
             msg = "Skipping concatenation due to --call value"
             logger.info(msg)
 
+        de_novo_exons_file = filenames.get_exons(config['genome_base_path'],
+                                                 config['genome_name'],
+                                                 note=config.get('orf_note'),
+                                                 is_annotated=False,
+                                                 is_de_novo=True)
+
         exons_files = [annotated_exons_file, de_novo_exons_file]
 
         exons_files_str = ' '.join(exons_files)
@@ -285,6 +295,27 @@ def main():
             concatenated_bed = bed_utils.concatenate(exons_files, sort_bed=True)
             fields = bed_utils.bed6_field_names + ['exon_index', 'transcript_start']
             bed_utils.write_bed(concatenated_bed[fields], exons_file)
+        else:
+            msg = "Skipping concatenation due to --call value"
+            logger.info(msg)
+
+        de_novo_labeled_orfs = filenames.get_labels(config['genome_base_path'],
+                                                    config['genome_name'],
+                                                    note=config.get('orf_note'),
+                                                    is_annotated=False,
+                                                    is_de_novo=True)
+
+        label_files = [annotated_labeled_orfs, de_novo_labeled_orfs]
+
+        label_files_str = ' '.join(label_files)
+        msg = ("Concatenating files. Output file: {}; Input files: {}".format(
+            labeled_orfs, label_files_str))
+        logger.info(msg)
+
+        if call:
+            # not sorted, as is
+            concatenated_bed = bed_utils.concatenate(label_files, sort_bed=False)
+            bed_utils.write_bed(concatenated_bed, labeled_orfs)
         else:
             msg = "Skipping concatenation due to --call value"
             logger.info(msg)
@@ -313,6 +344,9 @@ def main():
 
         if os.path.exists(annotated_exons_file):
             shell_utils.create_symlink(annotated_exons_file, exons_file, call)
+
+        if os.path.exists(annotated_labeled_orfs):
+            shell_utils.create_symlink(annotated_labeled_orfs, labeled_orfs, call)
 
         if os.path.exists(config['gtf']):
             shell_utils.create_symlink(config['gtf'], gtf_file, call)

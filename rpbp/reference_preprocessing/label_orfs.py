@@ -478,7 +478,7 @@ def main():
     orfs_genomic = extracted_orfs[fields]
     bed_utils.write_bed(orfs_genomic, args.extracted_orfs)
 
-    label_columns = ['orf_num', 'id', 'duplicates', 'orf_type']
+    label_columns = ['id', 'duplicates', 'orf_type']
     extracted_orfs = extracted_orfs[label_columns]
     bed_utils.write_bed(extracted_orfs, args.out)
 
