@@ -90,42 +90,50 @@ def get_orfs(gtf, args, config, is_annotated=False, is_de_novo=False):
     shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files,
                                    overwrite=args.overwrite, call=call)
 
-    # label the ORFs
-    labeled_orfs = orfs_genomic
-    annotated_bed = filenames.get_bed(config['genome_base_path'],
-                                      config['genome_name'],
-                                      is_merged=False,
-                                      is_annotated=True)
-
-    de_novo_str = ""
-    if is_de_novo:
-        de_novo_str = '--label-prefix "novel_" --filter --nonoverlapping-label "novel"'
-
-    cmd = "label-orfs {} {} {} {} {} {}".format(annotated_bed,
-                                                orfs_genomic,
-                                                labeled_orfs,
-                                                de_novo_str,
-                                                logging_str,
-                                                cpus_str)
-    in_files = [annotated_bed, orfs_genomic]
-    #  overwrites the input file
-    out_files = None
-    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files,
-                                   overwrite=args.overwrite, call=call)
-
-    # now write the ORF exons
+    # write the ORF exons, used to label the ORFs
     exons_file = filenames.get_exons(config['genome_base_path'],
                                      config['genome_name'],
                                      note=config.get('orf_note'),
                                      is_annotated=is_annotated,
                                      is_de_novo=is_de_novo)
 
-    cmd = ("split-bed12-blocks {} {} --num-cpus {} {}".format(labeled_orfs,
+    cmd = ("split-bed12-blocks {} {} --num-cpus {} {}".format(orfs_genomic,
                                                               exons_file,
                                                               args.num_cpus,
                                                               logging_str))
-    in_files = [labeled_orfs]
+    in_files = [orfs_genomic]
     out_files = [exons_file]
+    shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files,
+                                   overwrite=args.overwrite, call=call)
+
+    # label the ORFs
+    labeled_orfs = filenames.get_labels(config['genome_base_path'],
+                                        config['genome_name'],
+                                        note=config.get('orf_note'),
+                                        is_annotated=is_annotated,
+                                        is_de_novo=is_de_novo)
+
+    annotated_bed = filenames.get_bed(config['genome_base_path'],
+                                      config['genome_name'],
+                                      is_merged=False,
+                                      is_annotated=True)
+
+    orf_exons_str = '--orf-exons {}'.format(exons_file)
+
+    de_novo_str = ""
+    if is_de_novo:
+        de_novo_str = '--label-prefix "novel_" --filter --nonoverlapping-label "novel"'
+
+    cmd = "label-orfs {} {} {} {} {} {} {}".format(annotated_bed,
+                                                   orfs_genomic,
+                                                   labeled_orfs,
+                                                   orf_exons_str,
+                                                   de_novo_str,
+                                                   logging_str,
+                                                   cpus_str)
+    in_files = [annotated_bed, orfs_genomic, exons_file]
+    #  ** this function overwrites the input file `orfs_genomic`
+    out_files = [labeled_orfs]
     shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files,
                                    overwrite=args.overwrite, call=call)
 

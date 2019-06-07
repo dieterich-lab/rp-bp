@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 """This script extract the ORFs from the transcripts and
-write them as a BED12+2 file, using genomic coordinates.
+write them as a BED12+ file, using genomic coordinates.
 
 Contains:
     get_orf_positions
@@ -162,11 +162,9 @@ def get_orf_bed_entry(orf_gen_pos, transcript):
     orf_len = bed_utils.get_bed_12_feature_length(orf)
     orf['orf_len'] = orf_len
 
-    # use Mackowiak-type orf_ids, without the transcript part of the id
-    # which is added after labelling the ORFs
-    # see https://github.com/dieterich-lab/rp-bp/issues/96
-    orf_id = "{}:{}-{}:{}".format(orf['seqname'], orf['start'],
-                                  orf['end'], orf['strand'])
+    # use Mackowiak-type orf_ids,
+    orf_id = "{}_{}:{}-{}:{}".format(orf['id'], orf['seqname'], orf['start'],
+                                     orf['end'], orf['strand'])
     orf['id'] = orf_id
 
     return orf
@@ -253,8 +251,9 @@ def get_transcript(transcript_id, transcripts_bed):
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                      description='''Extract the ORFs from the given transcripts and
-        write as a BED12+2 file. The additional fields, 'orf_len' and 'orf_num' give the length 
-        of each ORF and it's index (used to write the ORF profiles). All duplicate ORFs are removed.''')
+        write as a BED12+ file. Additional fields, 'orf_len' and 'orf_num', give the length 
+        of each ORF and it's index (used to write the ORF profiles). A third additional field
+        records duplicated ORFs from transcript variants.''')
 
     parser.add_argument('transcripts_bed', help='''The BED12 file containing the 
         transcript information.''')
@@ -262,14 +261,13 @@ def main():
     parser.add_argument('transcripts_fasta', help='''The fasta file containing the 
         spliced transcript sequences.''')
 
-    parser.add_argument('out', help='''The output (BED12+2 gz) file.''')
+    parser.add_argument('out', help='''The output (BED12+ gz) file.''')
 
     parser.add_argument('--start-codons', help='''A list of codons which will be treated 
         as start codons when extracting the ORFs.''', nargs='+', default=default_start_codons)
 
     parser.add_argument('--stop-codons', help='''A list of codons which will be treated 
         as stop codons when extracting the ORFs.''', nargs='+', default=default_stop_codons)
-
 
     slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)
@@ -319,10 +317,15 @@ def main():
     orfs = pd.concat(orfs)
     orfs.reset_index(drop=True, inplace=True)
 
+    #  This is done arbitrarily, however we keep all matching
+    #  transcripts for reference
     msg = "Marking and removing duplicate ORFs"
     logger.info(msg)
 
+    groupby_duplicates = orfs.groupby(DUPLICATE_FIELDS, as_index=False).agg({'id': ','.join})
+    orfs = orfs.merge(groupby_duplicates, how='left', on=DUPLICATE_FIELDS)
     orfs.drop_duplicates(subset=DUPLICATE_FIELDS, inplace=True, keep='first')
+    orfs.rename(columns={'id_x': 'id', 'id_y': 'duplicates'}, inplace=True)
 
     msg = "Numbering remaining ORFs"
     logger.info(msg)

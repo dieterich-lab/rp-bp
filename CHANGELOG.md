@@ -16,13 +16,11 @@ This is a major version upgrade due to changes in API and package dependencies.
 ### Added
 - Add option to force the pickling of the Stan models during installation 
     [ISSUE #88](https://github.com/dieterich-lab/rp-bp/issues/88).
-- Extra column to ORFs file with list of all associated transcripts. Currently added
-    as an option in `prepare-rpbp-genome`, but may be moved later on to post-processing.
 
 ### Fixed
 - [YAMLLoadWarning](https://msg.pyyaml.org/load)
 - Fall back to multiprocessing in `estimate_orf_bayes_factors`
-- ORF labels in `label_orfs.py` and `extract_orf_coordinates`, see
+- ORF labels in `prepare_rpbp_genome`, `label_orfs` and `extract_orf_coordinates`, see
     [ISSUE #96](https://github.com/dieterich-lab/rp-bp/issues/96).
     
 ### Removed
