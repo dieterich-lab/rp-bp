@@ -87,30 +87,30 @@ def main():
                         action='store_true')
 
     parser.add_argument('--min-length', help="The minimum length to predict an ORF as translated",
-                        type=int, default=translation_options['min-length'])
+                        type=int, default=translation_options['orf_min_length'])
     
     parser.add_argument('--min-bf-mean', help="""The minimum Bayes' factor mean to predict
         an ORF as translated (use --help for more details)""",
-                        type=float, default=translation_options['min-bf-mean'])
+                        type=float, default=translation_options['min_bf_mean'])
 
     parser.add_argument('--max-bf-var', help="""The maximum Bayes' factor variance to predict
         an ORF as translated (use --help for more details).""",
-                        type=float, default=translation_options['max-bf-var'])
+                        type=float, default=translation_options['max_bf_var'])
 
     parser.add_argument('--min-bf-likelihood', help="""If given, then this is taken a threshold 
         on the likelihood of translation (use --help for more details).""",
-                        type=float, default=translation_options['min-bf-likelihood'])
+                        type=float, default=translation_options['min_bf_likelihood'])
 
     parser.add_argument('--min-profile', help="""The minimum sum across all reading frames to consider
-        an ORF as translated""", type=float, default=translation_options['min-profile'])
+        an ORF as translated""", type=float, default=translation_options['orf_min_profile_count'])
    
     parser.add_argument('--chi-square-only', help="""If this flag is present, then the
         chi square value will be used to predict ORFs rather than the Bayes' factor.""",
                         action='store_true')
 
     parser.add_argument('--chisq-significance-level', help="""If using chi square, then this
-        value is Bonferroni corrected and used as the significance cutoff.""",
-                        type=float, default=translation_options['chisq-sig'])
+        value is Bonferroni corrected and used as the significance cutoff, else it is ignored.""",
+                        type=float, default=translation_options['chisq_alpha'])
 
     parser.add_argument('--filtered-orf-types', help=""""A list of ORF types which will be
         removed before selecting the final prediction set.""", nargs='*', default=[])

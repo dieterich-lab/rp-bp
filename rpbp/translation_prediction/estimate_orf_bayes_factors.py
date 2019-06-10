@@ -334,28 +334,28 @@ def main():
 
     # filtering options
     parser.add_argument('--orf-types', help="If values are given, then only orfs with those types are processed.",
-                        nargs='*', default=translation_options['orf-types'])
+                        nargs='*', default=translation_options['orf_types'])
 
     parser.add_argument('--orf-type-field', default=default_orf_type_field)
 
     parser.add_argument('--min-length', help="ORFs with length less than this value will not be processed",
-                        type=int, default=translation_options['min-length-pre'])
+                        type=int, default=translation_options['orf_min_length_pre'])
 
     parser.add_argument('--max-length', help="ORFs with length greater than this value will not be processed",
-                        type=int, default=translation_options['max-length-pre'])
+                        type=int, default=translation_options['orf_max_length_pre'])
 
     parser.add_argument('--min-profile', help="""ORFs with profile sum (i.e., number of reads) less than this
-        value will not be processed.""", type=float, default=translation_options['min-profile-pre'])
+        value will not be processed.""", type=float, default=translation_options['orf_min_profile_count_pre'])
 
     # smoothing options
     parser.add_argument('--fraction', help="The fraction of signal to use in LOWESS",
-                        type=float, default=translation_options['fraction'])
+                        type=float, default=translation_options['smoothing_fraction'])
 
     parser.add_argument('--reweighting-iterations', help="The number of reweighting "
                                                          "iterations to use in LOWESS. "
                                                          "Please see the statsmodels documentation for a "
                                                          "detailed description of this parameter.",
-                        type=int, default=translation_options['reweighting-iterations'])
+                        type=int, default=translation_options['smoothing_reweighting_iterations'])
 
     # MCMC options
     parser.add_argument('-s', '--seed', help="The random seeds to use for inference",
@@ -363,7 +363,7 @@ def main():
     parser.add_argument('-c', '--chains', help="The number of MCMC chains to use", type=int,
                         default=translation_options['chains'])
     parser.add_argument('-i', '--iterations', help="The number of MCMC iterations to use for each chain",
-                        type=int, default=translation_options['iterations'])
+                        type=int, default=translation_options['translation_iterations'])
     
     # behavior options
     parser.add_argument('--num-orfs', help="If n>0, then only this many ORFs will be processed",

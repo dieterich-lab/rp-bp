@@ -164,21 +164,21 @@ def main():
     # Extract the metagene profiles
 
     start_upstream_str = utils.get_config_argument(config,
-                                                   'metagene_profile_start_upstream',
+                                                   'metagene_start_upstream',
                                                    'start-upstream',
-                                                   default=metagene_options['start-upstream'])
+                                                   default=metagene_options['metagene_start_upstream'])
     start_downstream_str = utils.get_config_argument(config,
-                                                     'metagene_profile_start_downstream',
+                                                     'metagene_start_downstream',
                                                      'start-downstream',
-                                                     default=metagene_options['start-downstream'])
+                                                     default=metagene_options['metagene_start_downstream'])
     end_upstream_str = utils.get_config_argument(config,
-                                                 'metagene_profile_end_upstream',
+                                                 'metagene_end_upstream',
                                                  'end-upstream',
-                                                 default=metagene_options['end-upstream'])
+                                                 default=metagene_options['metagene_end_upstream'])
     end_downstream_str = utils.get_config_argument(config,
-                                                   'metagene_profile_end_downstream',
+                                                   'metagene_end_downstream',
                                                    'end-downstream',
-                                                   default=metagene_options['end-downstream'])
+                                                   default=metagene_options['metagene_end_downstream'])
 
     metagene_profiles = filenames.get_metagene_profiles(config['riboseq_data'],
                                                         args.name,
@@ -229,13 +229,13 @@ def main():
 
     periodic_offset_start_str = utils.get_config_argument(config,
                                                           'periodic_offset_start',
-                                                          default=metagene_options['periodic-offset-start'])
+                                                          default=metagene_options['periodic_offset_start'])
     periodic_offset_end_str = utils.get_config_argument(config,
                                                         'periodic_offset_end',
-                                                        default=metagene_options['periodic-offset-end'])
+                                                        default=metagene_options['periodic_offset_end'])
     metagene_profile_length_str = utils.get_config_argument(config,
                                                             'metagene_profile_length',
-                                                            default=metagene_options['metagene-profile-length'])
+                                                            default=metagene_options['metagene_profile_length'])
     seed_str = utils.get_config_argument(config,
                                          'seed',
                                          default=metagene_options['seed'])
@@ -243,9 +243,9 @@ def main():
                                            'chains',
                                            default=metagene_options['chains'])
     iterations_str = utils.get_config_argument(config,
-                                               'metagene_profile_iterations',
+                                               'metagene_iterations',
                                                'iterations',
-                                               default=metagene_options['iterations'])
+                                               default=metagene_options['metagene_iterations'])
 
     cmd = ("estimate-metagene-profile-bayes-factors {} {} --num-cpus {} {} {} "
            "{} {} {} {} {} {} {}".format(metagene_profiles,
@@ -294,7 +294,8 @@ def main():
     lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config,
                                                                    args.name,
                                                                    args.do_not_call,
-                                                                   is_unique=is_unique)
+                                                                   is_unique=is_unique,
+                                                                   default_params=metagene_options)
 
     if len(lengths) == 0:
         msg = ("No periodic read lengths and offsets were found. Try relaxing "

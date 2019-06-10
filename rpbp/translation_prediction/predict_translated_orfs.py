@@ -13,7 +13,7 @@ import pbio.misc.utils as utils
 import pbio.ribo.ribo_utils as ribo_utils
 import pbio.ribo.ribo_filenames as filenames
 
-from rpbp.defaults import default_num_cpus, translation_options
+from rpbp.defaults import default_num_cpus, translation_options, metagene_options
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,8 @@ def get_profile(name, config, args):
     lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config,
                                                                    name,
                                                                    args.do_not_call,
-                                                                   is_unique=is_unique)
+                                                                   is_unique=is_unique,
+                                                                   default_params=metagene_options)
 
     note_str = config.get('note', None)
 
@@ -183,7 +184,8 @@ def main():
         lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config,
                                                                        args.name,
                                                                        args.do_not_call,
-                                                                       is_unique=is_unique)
+                                                                       is_unique=is_unique,
+                                                                       default_params=metagene_options)
         
         profiles = get_profile(args.name, config, args)
         
@@ -203,27 +205,27 @@ def main():
     min_length_str = utils.get_config_argument(config,
                                                'min_orf_length',
                                                'min-length',
-                                               default=translation_options['min-length-pre'])
+                                               default=translation_options['orf_min_length_pre'])
 
     max_length_str = utils.get_config_argument(config,
                                                'max_orf_length',
                                                'max-length',
-                                               default=translation_options['max-length-pre'])
+                                               default=translation_options['orf_max_length_pre'])
 
     min_profile_str = utils.get_config_argument(config,
                                                 'min_signal',
                                                 'min-profile',
-                                                default=translation_options['min-profile-pre'])
+                                                default=translation_options['orf_min_profile_count_pre'])
 
     fraction_str = utils.get_config_argument(config,
                                              'smoothing_fraction',
                                              'fraction',
-                                             default=translation_options['fraction'])
+                                             default=translation_options['smoothing_fraction'])
 
     reweighting_iterations_str = utils.get_config_argument(config,
                                                            'smoothing_reweighting_iterations',
                                                            'reweighting-iterations',
-                                                           default=translation_options['reweighting-iterations'])
+                                                           default=translation_options['smoothing_reweighting_iterations'])
     
     # parse out all of the options from the config file, if they are present
     models_base = config.get('models_base', default_models_base)
@@ -240,7 +242,7 @@ def main():
     
     orf_types_str = utils.get_config_argument(config,
                                               'orf_types',
-                                              default=translation_options['orf-types'])
+                                              default=translation_options['orf_types'])
     
     seed_str = utils.get_config_argument(config,
                                          'seed',
@@ -253,7 +255,7 @@ def main():
     iterations_str = utils.get_config_argument(config,
                                                'translation_iterations',
                                                'iterations',
-                                               default=translation_options['iterations'])
+                                               default=translation_options['translation_iterations'])
 
     cmd = ("estimate-orf-bayes-factors {} {} {} {} {} {} {} {} {} {} {} "
            "{} {} {} {} {} --num-cpus {}".format(profiles,
@@ -335,29 +337,30 @@ def main():
 
         min_bf_mean_str = utils.get_config_argument(config,
                                                     'min_bf_mean',
-                                                    default=translation_options['min-bf-mean'])
+                                                    default=translation_options['min_bf_mean'])
 
         max_bf_var_str = utils.get_config_argument(config,
                                                    'max_bf_var',
-                                                   default=translation_options['max-bf-var'])
+                                                   default=translation_options['max_bf_var'])
 
         min_bf_likelihood_str = utils.get_config_argument(config,
                                                           'min_bf_likelihood',
-                                                          default=translation_options['min-bf-likelihood'])
+                                                          default=translation_options['min_bf_likelihood'])
 
         min_profile_str = utils.get_config_argument(config,
-                                                    'min_signal',
+                                                    'orf_min_profile_count',
                                                     'min-profile',
-                                                    default=translation_options['min-profile'])
+                                                    default=translation_options['orf_min_profile_count'])
 
         min_length_str = utils.get_config_argument(config,
-                                                   'min_length',
+                                                   'orf_min_length',
                                                    'min-length',
-                                                   default=translation_options['min-length'])
+                                                   default=translation_options['orf_min_length'])
 
         chisq_significance_level_str = utils.get_config_argument(config,
-                                                                 'chisq_significance_level',
-                                                                 default=translation_options['chisq-sig'])
+                                                                 'chisq_alpha',
+                                                                 'chisq-significance-level',
+                                                                 default=translation_options['chisq_alpha'])
 
         cmd = "select-final-prediction-set {} {} {} {} {} {} {} {} {} {} {} {} {} {}".format(
             bayes_factors, 

@@ -3,6 +3,13 @@ import sys
 
 """Define all default parameters and options.
 
+** NOTE: Modifying the default parameter values set in this file
+will have NO effect. To override a given parameter value, you must
+either provide it via command argument when calling the Rp-Bp
+pipeline, or else set the desired value in the configuration file.
+Please refer to the documentation: https://rp-bp.readthedocs.io/en/latest/usage-instructions.html#
+
+
 Default options for external programs (Flexbar, STAR) are
 overridden via command line. Currently, call to Bowtie2 is not customisable.
 
@@ -74,16 +81,20 @@ flexbar_options = {
 # overridden via config file
 
 metagene_options = {
-    'start-upstream': 300,
-    'start-downstream': 300,
-    'end-upstream': 300,
-    'end-downstream': 300,
-    'periodic-offset-start': -20,
-    'periodic-offset-end': 0,
-    'metagene-profile-length': 21,
+    'metagene_start_upstream': 300,
+    'metagene_start_downstream': 300,
+    'metagene_end_upstream': 300,
+    'metagene_end_downstream': 300,
+    'periodic_offset_start': -20,
+    'periodic_offset_end': 0,
+    'metagene_profile_length': 21,
     'seed': 8675309,
     'chains': 2,
-    'iterations': 500
+    'metagene_iterations': 500,
+    'min_metagene_profile_count': 1000,
+    'min_metagene_bf_mean': 5,
+    'max_metagene_bf_var': None,
+    'min_metagene_bf_likelihood': 0.5
 }
 
 
@@ -91,19 +102,19 @@ metagene_options = {
 # overridden via config file
 
 translation_options = {
-    'fraction': 0.2,  # defaults are not written in the filenames
-    'reweighting-iterations': 0,
-    'min-length-pre': 0, # ORF with length < min-length are not processed, 0 ignore option
-    'max-length-pre': 0, # ORF with length > max-length are not processed, 0 ignore option
-    'min-profile-pre': 5, # ORF with profile sum < min-profile are not processed
+    'smoothing_fraction': 0.2,  # defaults are not written in the filenames
+    'smoothing_reweighting_iterations': 0,
+    'orf_min_length_pre': 0,  # ORF with length < min-length are not processed, 0 ignore option
+    'orf_max_length_pre': 0,  # ORF with length > max-length are not processed, 0 ignore option
+    'orf_min_profile_count_pre': 5,  # ORF with profile sum < min-profile are not processed
     'seed': 8675309,
     'chains': 2,
-    'iterations': 500,
-    'orf-types': [], # predict only these, if empty predict all types
-    'min-bf-mean': 5,
-    'min-bf-likelihood': 0.5,
-    'max-bf-var': None,
-    'min-length': 20,  # ORF > min-length (nucleotides) are kept in the final set
-    'min-profile': None,    # ORF with sum across all frame > minimum-profile-sum are kept
-    'chisq-sig': 0.01 # only relevant with the Chi2 pipeline
+    'translation_iterations': 500,
+    'orf_types': [], # predict only these, if empty predict all types
+    'min_bf_mean': 5,
+    'min_bf_likelihood': 0.5,
+    'max_bf_var': None,
+    'orf_min_length': 20,  # ORF > min-length (nucleotides) are kept in the final set
+    'orf_min_profile_count': None,    # ORF with sum across all frame > minimum-profile-sum are kept
+    'chisq_alpha': 0.01 # only relevant with the Chi2 pipeline
 }

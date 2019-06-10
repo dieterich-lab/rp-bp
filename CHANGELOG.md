@@ -14,10 +14,12 @@ This is a major version upgrade due to changes in API and package dependencies.
 - Configure setup() using setup.cfg, add `pbio`, update install via requirements.
 
 ### Added
+- Module with all defaults parameters
 - Add option to force the pickling of the Stan models during installation 
     [ISSUE #88](https://github.com/dieterich-lab/rp-bp/issues/88).
 
 ### Fixed
+- Missing parameters in function calls, hard coded defaults
 - [YAMLLoadWarning](https://msg.pyyaml.org/load)
 - Fall back to multiprocessing in `estimate_orf_bayes_factors`
 - ORF labels in `prepare_rpbp_genome`, `label_orfs` and `extract_orf_coordinates`, see
