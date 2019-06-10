@@ -10,9 +10,9 @@ import logging
 import pbio.misc.logging_utils as logging_utils
 import pbio.utils.bed_utils as bed_utils
 
-logger = logging.getLogger(__name__)
+from rpbp.defaults import default_num_cpus
 
-default_num_cpus = 1
+logger = logging.getLogger(__name__)
 
 
 def main():

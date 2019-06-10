@@ -22,6 +22,8 @@ from pbio.misc.suppress_stdout_stderr import suppress_stdout_stderr
 
 import pbio.ribo.ribo_utils as ribo_utils
 
+from rpbp.defaults import default_num_cpus, default_num_groups, translation_options
+
 logger = logging.getLogger(__name__)
 
 # we will use global variables to share the (read-only) scipy.sparse.csr_matrix
@@ -38,25 +40,12 @@ translated_models = 0
 untranslated_models = 0
 args = 0
 
+# Not passed as arguments, unlikely to be required
+
 default_orf_num_field = 'orf_num'
 default_orf_type_field = 'orf_type'
 
-default_orf_types = []
-
-default_min_length = 0
-default_max_length = 0
-default_min_profile = 5
-
-default_fraction = 0.2
-default_reweighting_iterations = 0
-
-default_num_orfs = 0
-default_num_cpus = 1
-default_num_groups = 100
-
-default_iterations = 200
-default_chains = 2
-default_seed = 8675309
+# --num-orfs is not used in the the Rp-Bp pipeline
 
 
 def get_bayes_factor(profile, translated_models, untranslated_models, args):
@@ -247,7 +236,7 @@ def get_all_bayes_factors(orfs, args):
         # sometimes the orf_len is off...
         if orf_len % 3 != 0:
             msg = "Found an ORF whose length was not 0 mod 3. Skipping. orf_id: {}".format(row['id'])
-            logger.warn(msg)
+            logger.warning(msg)
             continue
 
         profile = utils.to_dense(profiles, orf_num, float, length=orf_len)
@@ -301,7 +290,7 @@ def get_all_bayes_factors_args(orfs):
         # sometimes the orf_len is off...
         if orf_len % 3 != 0:
             msg = "Found an ORF whose length was not 0 mod 3. Skipping. orf_id: {}".format(row['id'])
-            logger.warn(msg)
+            logger.warning(msg)
             continue
 
         profile = utils.to_dense(profiles, orf_num, float, length=orf_len)
@@ -322,64 +311,64 @@ def main():
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                      description="""This script uses Hamiltonian MCMC with Stan 
-                                     to estimate translation parameters for a set of regions 
-                                     (presumably ORFs). Roughly, it takes as input: 
-                                     (1) a set of regions (ORFs) and their corresponding profiles
-                                     (2) a "translated" model which gives the probability that a region 
-                                     is translated
-                                     (3) an "untranslated" model which gives the probability that a region 
-                                     is not translated
-                                     The script first smoothes the profiles using LOWESS. It then calculates
-                                     both the Bayes' factor (using the smoothed profile) and chi2 value
-                                     (using the raw counts) for each ORF.""")
+        to estimate translation parameters for a set of regions (presumably ORFs). Roughly, it takes 
+        as input: (1) a set of regions (ORFs) and their corresponding profiles
+                  (2) a "translated" model which gives the probability that a region is translated
+                  (3) an "untranslated" model which gives the probability that a region is not translated.
+        The script first smoothes the profiles using LOWESS. It then calculates both the Bayes' factor 
+        (using the smoothed profile) and chi2 value (using the raw counts) for each ORF.""")
 
     parser.add_argument('profiles', help="The ORF profiles (counts) (mtx)")
+
     parser.add_argument('regions', help="The regions (ORFs) for which predictions will be made (BED12+)")
     
     parser.add_argument('out', help="The output file for the Bayes' factors (BED12+)")
 
-    parser.add_argument('--chi-square-only', help="If this flag is present, then only the chi "
-                                                  "square test will be performed for each ORF. This can "
-                                                  "also be a way to get the counts within each of the ORFs.",
-                        action='store_true')
+    parser.add_argument('--chi-square-only', help="""If this flag is present, then only the chi
+        square test will be performed for each ORF. This can also be a way to get the counts within 
+        each of the ORFs.""", action='store_true')
     
     parser.add_argument('--translated-models', help="The models to use as H_t (pkl)", nargs='+')
+
     parser.add_argument('--untranslated-models', help="The models to use as H_u (pkl)", nargs='+')
 
     # filtering options
     parser.add_argument('--orf-types', help="If values are given, then only orfs with those types are processed.",
-                        nargs='*', default=default_orf_types)
+                        nargs='*', default=translation_options['orf-types'])
+
     parser.add_argument('--orf-type-field', default=default_orf_type_field)
 
     parser.add_argument('--min-length', help="ORFs with length less than this value will not be processed",
-                        type=int, default=default_min_length)
+                        type=int, default=translation_options['min-length-pre'])
+
     parser.add_argument('--max-length', help="ORFs with length greater than this value will not be processed",
-                        type=int, default=default_max_length)
-    parser.add_argument('--min-profile', help="ORFs with profile sum (i.e., number of reads) less than this "
-                                              "value will not be processed.", type=float,
-                        default=default_min_profile)
+                        type=int, default=translation_options['max-length-pre'])
+
+    parser.add_argument('--min-profile', help="""ORFs with profile sum (i.e., number of reads) less than this
+        value will not be processed.""", type=float, default=translation_options['min-profile-pre'])
 
     # smoothing options
     parser.add_argument('--fraction', help="The fraction of signal to use in LOWESS",
-                        type=float, default=default_fraction)
+                        type=float, default=translation_options['fraction'])
 
     parser.add_argument('--reweighting-iterations', help="The number of reweighting "
                                                          "iterations to use in LOWESS. "
                                                          "Please see the statsmodels documentation for a "
                                                          "detailed description of this parameter.",
-                        type=int, default=default_reweighting_iterations)
+                        type=int, default=translation_options['reweighting-iterations'])
 
     # MCMC options
     parser.add_argument('-s', '--seed', help="The random seeds to use for inference",
-                        type=int, default=default_seed)
+                        type=int, default=translation_options['seed'])
     parser.add_argument('-c', '--chains', help="The number of MCMC chains to use", type=int,
-                        default=default_chains)
+                        default=translation_options['chains'])
     parser.add_argument('-i', '--iterations', help="The number of MCMC iterations to use for each chain",
-                        type=int, default=default_iterations)
+                        type=int, default=translation_options['iterations'])
     
     # behavior options
     parser.add_argument('--num-orfs', help="If n>0, then only this many ORFs will be processed",
-                        type=int, default=default_num_orfs)
+                        type=int, default=0)
+
     parser.add_argument('--orf-num-field', default=default_orf_num_field)
 
     parser.add_argument('--do-not-compress', help="Unless otherwise specified, the output will "

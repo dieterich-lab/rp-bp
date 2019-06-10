@@ -3,7 +3,9 @@
 """This is the main script used to create the reference
 genome indices, identify and label the ORFs.
 
-Calls: extract-orf-coordinates and label-orfs
+Calls:
+    extract-orf-coordinates
+    label-orfs
 """
 
 import os
@@ -17,11 +19,13 @@ import pbio.misc.shell_utils as shell_utils
 import pbio.misc.slurm as slurm
 import pbio.misc.utils as utils
 
-import pbio.utils.bio as bio
 import pbio.utils.bed_utils as bed_utils
-import pbio.utils.star_utils as star_utils
+import pbio.utils.pgrm_utils as pgrm_utils
 
 import pbio.ribo.ribo_filenames as filenames
+
+from rpbp.defaults import default_num_cpus, default_mem, star_executable, \
+    default_start_codons, default_stop_codons
 
 logger = logging.getLogger(__name__)
 
@@ -75,8 +79,14 @@ def get_orfs(gtf, args, config, is_annotated=False, is_de_novo=False):
                                       note=config.get('orf_note'),
                                       is_annotated=is_annotated,
                                       is_de_novo=is_de_novo)
-    start_codons_str = utils.get_config_argument(config, 'start_codons')
-    stop_codons_str = utils.get_config_argument(config, 'stop_codons')
+
+    start_codons_str = utils.get_config_argument(config,
+                                                 'start_codons',
+                                                 default=default_start_codons)
+
+    stop_codons_str = utils.get_config_argument(config,
+                                                'stop_codons',
+                                                default=default_stop_codons)
 
     cmd = "extract-orf-coordinates {} {} {} {} {} {} {}".format(transcript_bed,
                                                                 transcript_fasta,
@@ -149,14 +159,13 @@ def main():
     parser.add_argument('--overwrite', help='''If this flag is present, existing files
         will be overwritten.''', action='store_true')
 
-    star_utils.add_star_options(parser)
-    slurm.add_sbatch_options(parser)
+    slurm.add_sbatch_options(parser, num_cpus=default_num_cpus, mem=default_mem)
     logging_utils.add_logging_options(parser)
+    pgrm_utils.add_star_options(parser, star_executable)
     args = parser.parse_args()
     logging_utils.update_logging(args)
 
     config = yaml.load(open(args.config), Loader=yaml.FullLoader)
-    call = not args.do_not_call
 
     # check required callable programs, config keys and files
     programs = ['extract-orf-coordinates',
@@ -189,12 +198,14 @@ def main():
         slurm.check_sbatch(cmd, args=args)
         return
 
+    call = not args.do_not_call
+
     # the rRNA index
     cmd = "bowtie2-build-s {} {}".format(config['ribosomal_fasta'],
                                          config['ribosomal_index'])
 
     in_files = [config['ribosomal_fasta']]
-    out_files = bio.get_bowtie2_index_files(config['ribosomal_index'])
+    out_files = pgrm_utils.get_bowtie2_index_files(config['ribosomal_index'])
     shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files,
                                    overwrite=args.overwrite, call=call)
 
@@ -208,7 +219,7 @@ def main():
                                                                 mem))
 
     in_files = [config['fasta']]
-    out_files = star_utils.get_star_index_files(config['star_index'])
+    out_files = pgrm_utils.get_star_index_files(config['star_index'])
     shell_utils.call_if_not_exists(cmd, out_files, in_files=in_files,
                                    overwrite=args.overwrite, call=call)
 

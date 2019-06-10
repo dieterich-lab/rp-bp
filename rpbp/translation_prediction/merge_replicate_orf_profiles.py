@@ -12,13 +12,12 @@ logger = logging.getLogger(__name__)
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                     description="This script adds the ORF profiles from a set "
-                                                 "of profiles (presumably, each file corresponds "
-                                                 "to one replicate from a condition). The script "
-                                                 "keeps the profiles in sparse matrix format, "
-                                                 "so it is fairly efficient.")
+                                     description="""This script adds the ORF profiles from a set
+        of profiles (presumably, each file corresponds to one replicate from a condition). 
+        The script keeps the profiles in sparse matrix format, so it is fairly efficient.""")
 
     parser.add_argument('profiles', help="The (mtx) files containing the ORF profiles", nargs='+')
+
     parser.add_argument('out', help="The (mtx.gz) output file containing the merged profiles")
     
     logging_utils.add_logging_options(parser)

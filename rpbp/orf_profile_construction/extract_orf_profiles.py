@@ -20,18 +20,17 @@ import pbio.misc.slurm as slurm
 
 import pbio.ribo.ribo_utils as ribo_utils
 
+from rpbp.defaults import default_num_groups
+
 logger = logging.getLogger(__name__)
 
-default_num_exons = 0
-default_num_groups = 100
-
-default_lengths = []
-default_offsets = []
-
-default_seqname_prefix = ''
+# --num-exons is not used in the the Rp-Bp pipeline
+# --seqname-prefix can be overriden via config arguments, but not
+# specified in defaults, as mostly unused
 
 
 def get_p_site_intersections(seqname, strand, p_sites, exons_df):
+
     # only the things in the right direction, etc.
     m_exons_seqname = exons_df['seqname'] == seqname
     m_p_sites_seqname = p_sites['seqname'] == seqname
@@ -87,34 +86,35 @@ def get_all_p_site_intersections(exons_psites, num_orfs, max_orf_len):
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                      description="""This script constructs the profile for each ORF. It
-                                     first adjusts the mapped read positions to properly align with
-                                     the P-sites. Second, it uses a custom chrom-sweep algorithm to
-                                     find the coverage of each position in each exon of each ORF. Finally,
-                                     the ORF exons are glued together to find the profile of the entire ORF.""")
+        first adjusts the mapped read positions to properly align with the P-sites. Second, it uses 
+        a custom chrom-sweep algorithm to find the coverage of each position in each exon of each ORF. 
+        Finally, the ORF exons are glued together to find the profile of the entire ORF.""")
     
     parser.add_argument('bam', help="The bam file including filtered (unique, etc.) alignments")
+
     parser.add_argument('orfs', help="The (bed12) file containing the ORFs")
+
     parser.add_argument('exons', help="The (bed6+2) file containing the exons")
+
     parser.add_argument('out', help="The (mtx.gz) output file containing the ORF profiles")
 
-    parser.add_argument('-l', '--lengths', help="If any values are given, then only reads which have "
-                                                "those lengths will be included in the signal construction.",
-                        type=int, default=default_lengths, nargs='*')
-    parser.add_argument('-o', '--offsets', help="The 5' end of reads will be shifted by this amount. "
-                                                "There must be one offset value for each length "
-                                                "(given by the --lengths argument.", type=int,
-                        default=default_offsets, nargs='*')
-       
-    parser.add_argument('-k', '--num-exons', help="If  k>0, then only the first k exons will be processed.",
-                        type=int, default=default_num_exons)
-    parser.add_argument('-g', '--num-groups', help="The number of groups into "
-                                                   "which to split the exons. More groups means the progress bar is "
-                                                   "updated more frequently but incurs more overhead because of the "
-                                                   "parallel calls.", type=int, default=default_num_groups)
+    parser.add_argument('-l', '--lengths', help="""If any values are given, then only reads which have
+        those lengths will be included in the signal construction.""",
+                        type=int, default=[], nargs='*')
 
-    parser.add_argument('--seqname-prefix', help="If present, this string "
-                                                 "will be prepended to the seqname field of the ORFs.",
-                        default=default_seqname_prefix)
+    parser.add_argument('-o', '--offsets', help="""The 5' end of reads will be shifted by this amount.
+        There must be one offset value for each length (given by the --lengths argument.""",
+                        type=int, default=[], nargs='*')
+       
+    parser.add_argument('-k', '--num-exons', help="If k>0, then only the first k exons will be processed.",
+                        type=int, default=0)
+
+    parser.add_argument('-g', '--num-groups', help=""""The number of groups into which to split the exons. 
+        More groups means the progress bar is updated more frequently but incurs more overhead because of the
+        parallel calls.""", type=int, default=default_num_groups)
+
+    parser.add_argument('--seqname-prefix', help="""If present, this string will be prepended to the 
+        seqname field of the ORFs.""", default='')
         
     slurm.add_sbatch_options(parser)
     logging_utils.add_logging_options(parser)

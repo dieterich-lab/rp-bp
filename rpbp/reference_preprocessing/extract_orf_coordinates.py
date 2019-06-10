@@ -28,12 +28,10 @@ import pbio.misc.logging_utils as logging_utils
 import pbio.utils.bed_utils as bed_utils
 import pbio.utils.fastx_utils as fastx_utils
 
+from rpbp.defaults import default_num_groups, default_start_codons, default_stop_codons
+
 logger = logging.getLogger(__name__)
 
-default_num_groups = 100
-
-default_start_codons = ['ATG']
-default_stop_codons = ['TAA', 'TGA', 'TAG']
 
 # these fields will be used to detect duplicate ORFs
 DUPLICATE_FIELDS = ['seqname',

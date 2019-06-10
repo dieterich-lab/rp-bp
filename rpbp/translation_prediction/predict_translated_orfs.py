@@ -13,11 +13,11 @@ import pbio.misc.utils as utils
 import pbio.ribo.ribo_utils as ribo_utils
 import pbio.ribo.ribo_filenames as filenames
 
+from rpbp.defaults import default_num_cpus, translation_options
+
 logger = logging.getLogger(__name__)
 
 default_models_base = filenames.get_default_models_base()
-
-default_num_cpus = 2
 
 
 def get_profile(name, config, args):
@@ -52,27 +52,26 @@ def get_profile(name, config, args):
 def main():
     
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                     description="This script runs the second part of the pipeline: "
-                                                 "it estimate ORF Bayes factors using the ORF profiles, "
-                                                 "then make the final prediction set.")
+                                     description=""""This script runs the second part of the pipeline:
+        it estimate ORF Bayes factors using the ORF profiles, then make the final prediction set.""")
+
     parser.add_argument('config', help="The (yaml) config file")
+
     parser.add_argument('name', help="The name for the dataset, used in the created files")
 
     parser.add_argument('-p', '--num-cpus', help="The number of processors to use",
                         type=int, default=default_num_cpus)
     
     parser.add_argument('--do-not-call', action='store_true')
+
     parser.add_argument('--overwrite', help="If this flag is present, existing files will be overwritten.",
                         action='store_true')
 
-    parser.add_argument('--merge-replicates', help="If this flag is present, then the ORF "
-                                                   "profiles will be merged for all replicates in "
-                                                   "the condition given by <name>. The "
-                                                   "filenames, etc., will reflect the condition name, "
-                                                   "but not the lengths and offsets "
-                                                   "of the individual replicates.\n\nN.B. If this flag "
-                                                   "is is present, the --overwrite "
-                                                   "flag will automatically be set!", action='store_true')
+    parser.add_argument('--merge-replicates', help="""If this flag is present, then the ORF profiles 
+        will be merged for all replicates in the condition given by <name>. The filenames, etc., 
+        will reflect the condition name, but not the lengths and offsets of the individual replicates.
+        N.B. If this flag is is present, the --overwrite flag will automatically be set!""",
+                        action='store_true')
         
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
@@ -101,8 +100,6 @@ def main():
     ]
     utils.check_keys_exist(config, required_keys)
 
-    models_base = config.get('models_base', default_models_base)
-
     note_str = config.get('note', None)
 
     # we always need the ORFs
@@ -112,10 +109,10 @@ def main():
         note=config.get('orf_note')
     )
 
-    # smoothing parameters (filenames)
+    # smoothing parameters (only for filenames), get actual arguments below
     # default values are not used in the file names
-    fraction = config.get('smoothing_fraction', None)
-    reweighting_iterations = config.get('smoothing_reweighting_iterations', None)
+    fraction_name = config.get('smoothing_fraction', None)
+    reweighting_iterations_name = config.get('smoothing_reweighting_iterations', None)
 
     # check if we are running Rp-Bp (default) or Rp-chi
     chi_square_only_str = ""
@@ -123,8 +120,8 @@ def main():
     if 'chi_square_only' in config:
         chi_square_only_str = "--chi-square-only"
         chi_square_only = True
-        fraction = None
-        reweighting_iterations = None
+        fraction_name = None
+        reweighting_iterations_name = None
         msg = """ The final prediction set will be made based on the chi square test only! 
                   The translation models will not be fit to the data, and the posterior 
                   distributions will not be estimated. """
@@ -156,12 +153,17 @@ def main():
 
         replicate_profiles_str = ' '.join(replicate_profiles)
 
-        profiles = filenames.get_riboseq_profiles(config['riboseq_data'], args.name,
-                                                  length=lengths, offset=offsets,
-                                                  is_unique=is_unique, note=note_str)
+        profiles = filenames.get_riboseq_profiles(config['riboseq_data'],
+                                                  args.name,
+                                                  length=lengths,
+                                                  offset=offsets,
+                                                  is_unique=is_unique,
+                                                  note=note_str)
 
         cmd = "merge-replicate-orf-profiles {} {} {}".format(replicate_profiles_str,
-                                                             profiles, logging_str)
+                                                             profiles,
+                                                             logging_str)
+
         in_files = replicate_profiles
         out_files = [profiles]
 
@@ -193,21 +195,38 @@ def main():
         offset=offsets, 
         is_unique=is_unique, 
         note=note_str, 
-        fraction=fraction, 
-        reweighting_iterations=reweighting_iterations
+        fraction=fraction_name,
+        reweighting_iterations=reweighting_iterations_name
     )
 
     # the smoothing options
-    min_length_str = utils.get_config_argument(config, 'min_orf_length', 'min-length')
-    max_length_str = utils.get_config_argument(config, 'max_orf_length', 'max-length')
-    min_profile_str = utils.get_config_argument(config, 'min_signal', 'min-profile')
+    min_length_str = utils.get_config_argument(config,
+                                               'min_orf_length',
+                                               'min-length',
+                                               default=translation_options['min-length-pre'])
 
-    fraction_str = utils.get_config_argument(config, 'smoothing_fraction', 'fraction')
+    max_length_str = utils.get_config_argument(config,
+                                               'max_orf_length',
+                                               'max-length',
+                                               default=translation_options['max-length-pre'])
+
+    min_profile_str = utils.get_config_argument(config,
+                                                'min_signal',
+                                                'min-profile',
+                                                default=translation_options['min-profile-pre'])
+
+    fraction_str = utils.get_config_argument(config,
+                                             'smoothing_fraction',
+                                             'fraction',
+                                             default=translation_options['fraction'])
+
     reweighting_iterations_str = utils.get_config_argument(config,
                                                            'smoothing_reweighting_iterations',
-                                                           'reweighting-iterations')
+                                                           'reweighting-iterations',
+                                                           default=translation_options['reweighting-iterations'])
     
     # parse out all of the options from the config file, if they are present
+    models_base = config.get('models_base', default_models_base)
     translated_models = filenames.get_models(models_base, 'translated')
     untranslated_models = filenames.get_models(models_base, 'untranslated')
 
@@ -219,33 +238,41 @@ def main():
     untranslated_models_str = "--untranslated-models {}".format(
         untranslated_models_str)
     
-    orf_types_str = utils.get_config_argument(config, 'orf_types')
+    orf_types_str = utils.get_config_argument(config,
+                                              'orf_types',
+                                              default=translation_options['orf-types'])
     
-    seed_str = utils.get_config_argument(config, 'seed')
-    chains_str = utils.get_config_argument(config, 'chains', 'chains')
-    iterations_str = utils.get_config_argument(config, 'translation_iterations', 'iterations')
+    seed_str = utils.get_config_argument(config,
+                                         'seed',
+                                         default=translation_options['seed'])
 
+    chains_str = utils.get_config_argument(config,
+                                           'chains',
+                                           default=translation_options['chains'])
 
-    cmd = ("estimate-orf-bayes-factors {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} "
-        "--num-cpus {}".format(
-        profiles, 
-        orfs_genomic, 
-        bayes_factors, 
-        translated_models_str, 
-        untranslated_models_str, 
-        logging_str, 
-        orf_types_str, 
-        min_length_str, 
-        max_length_str, 
-        min_profile_str, 
-        fraction_str, 
-        reweighting_iterations_str,
-        seed_str, 
-        iterations_str, 
-        chains_str, 
-        chi_square_only_str, 
-        args.num_cpus)
-    )
+    iterations_str = utils.get_config_argument(config,
+                                               'translation_iterations',
+                                               'iterations',
+                                               default=translation_options['iterations'])
+
+    cmd = ("estimate-orf-bayes-factors {} {} {} {} {} {} {} {} {} {} {} "
+           "{} {} {} {} {} --num-cpus {}".format(profiles,
+                                                 orfs_genomic,
+                                                 bayes_factors,
+                                                 translated_models_str,
+                                                 untranslated_models_str,
+                                                 logging_str,
+                                                 orf_types_str,
+                                                 min_length_str,
+                                                 max_length_str,
+                                                 min_profile_str,
+                                                 fraction_str,
+                                                 reweighting_iterations_str,
+                                                 seed_str,
+                                                 iterations_str,
+                                                 chains_str,
+                                                 chi_square_only_str,
+                                                 args.num_cpus))
     
     in_files = [profiles, orfs_genomic]
     in_files.extend(translated_models)
@@ -274,8 +301,8 @@ def main():
             offset=offsets, 
             is_unique=is_unique, 
             note=note_str, 
-            fraction=fraction, 
-            reweighting_iterations=reweighting_iterations,
+            fraction=fraction_name,
+            reweighting_iterations=reweighting_iterations_name,
             is_filtered=is_filtered, 
             is_chisq=chi_square_only
         )
@@ -287,8 +314,8 @@ def main():
             offset=offsets, 
             is_unique=is_unique, 
             note=note_str, 
-            fraction=fraction, 
-            reweighting_iterations=reweighting_iterations,
+            fraction=fraction_name,
+            reweighting_iterations=reweighting_iterations_name,
             is_filtered=is_filtered, 
             is_chisq=chi_square_only
         )
@@ -300,20 +327,39 @@ def main():
             offset=offsets, 
             is_unique=is_unique, 
             note=note_str,
-            fraction=fraction, 
-            reweighting_iterations=reweighting_iterations,
+            fraction=fraction_name,
+            reweighting_iterations=reweighting_iterations_name,
             is_filtered=is_filtered, 
             is_chisq=chi_square_only
         )
 
-        min_bf_mean_str = utils.get_config_argument(config, 'min_bf_mean')
-        max_bf_var_str = utils.get_config_argument(config, 'max_bf_var')
-        min_bf_likelihood_str = utils.get_config_argument(config, 'min_bf_likelihood')
-    
-        chisq_significance_level_str = utils.get_config_argument(config, 'chisq_significance_level')
-        min_profile_str = utils.get_config_argument(config, 'min_signal', 'minimum-profile-sum')
+        min_bf_mean_str = utils.get_config_argument(config,
+                                                    'min_bf_mean',
+                                                    default=translation_options['min-bf-mean'])
 
-        cmd = "select-final-prediction-set {} {} {} {} {} {} {} {} {} {} {}".format(
+        max_bf_var_str = utils.get_config_argument(config,
+                                                   'max_bf_var',
+                                                   default=translation_options['max-bf-var'])
+
+        min_bf_likelihood_str = utils.get_config_argument(config,
+                                                          'min_bf_likelihood',
+                                                          default=translation_options['min-bf-likelihood'])
+
+        min_profile_str = utils.get_config_argument(config,
+                                                    'min_signal',
+                                                    'min-profile',
+                                                    default=translation_options['min-profile'])
+
+        min_length_str = utils.get_config_argument(config,
+                                                   'min_length',
+                                                   'min-length',
+                                                   default=translation_options['min-length'])
+
+        chisq_significance_level_str = utils.get_config_argument(config,
+                                                                 'chisq_significance_level',
+                                                                 default=translation_options['chisq-sig'])
+
+        cmd = "select-final-prediction-set {} {} {} {} {} {} {} {} {} {} {} {} {} {}".format(
             bayes_factors, 
             config['fasta'], 
             predicted_orfs, 
@@ -321,9 +367,12 @@ def main():
             predicted_orfs_protein,
             min_bf_mean_str, 
             max_bf_var_str, 
-            min_bf_likelihood_str, 
+            min_bf_likelihood_str,
+            min_profile_str,
+            min_length_str,
             logging_str, 
             chi_square_only_str,
+            chisq_significance_level_str,
             filtered_str
         )
 
