@@ -20,6 +20,6 @@ build:
 python:
   version: 3.6
   install:
-    - path: rpbp
+    - path: .
     - method: pip
     - requirements: requirements.txt
