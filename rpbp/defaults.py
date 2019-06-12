@@ -28,7 +28,7 @@ command line.
 default_num_cpus = 1
 default_mem = '2G'
 
-default_num_groups = 100 # currently cannot be overridden
+default_num_groups = 100  # currently cannot be overridden
 
 
 # default: Rp-Bp (genome index creation, ORF identification)
@@ -59,13 +59,17 @@ star_options = {
     'alignIntronMin': 20,
     'alignIntronMax': 100000,
     'outFilterMismatchNmax': 1,
-    'outFilterMismatchNoverLmax': 0.04,
+    'outFilterMismatchNoverLmax': 0.04,  # would require a minimum *mapped* length of 25 given max mismatch of 1
     'outFilterType': 'BySJout',
     'outFilterIntronMotifs': 'RemoveNoncanonicalUnannotated',
     'outSAMattributes': ['AS', 'NH', 'HI', 'nM', 'MD'],
     'outSAMtype': 'BAM SortedByCoordinate',
-    'sjdbOverhang': 50
+    'sjdbOverhang': 33,  # roughly 90 percentile of a large dataset of varying Ribo-seq fragment lengths
+    'seedSearchStartLmaxOverLread': 0.5,  # default seedSearchStartLmax normalised to read length
+    'winAnchorMultimapNmax': 100  # increase number of loci anchors are allowed to map to
 }
+
+# leave outFilterMultimapNmax to default 20, we filter the multimappers afterwards if desired
 
 flexbar_options = {
     'max-uncalled': 1,
@@ -102,7 +106,7 @@ metagene_options = {
 # overridden via config file
 
 translation_options = {
-    'smoothing_fraction': 0.2,  # defaults are not written in the filenames
+    'smoothing_fraction': 0.2,  # defaults are not written to the file names
     'smoothing_reweighting_iterations': 0,
     'orf_min_length_pre': 0,  # ORF with length < min-length are not processed, 0 ignore option
     'orf_max_length_pre': 0,  # ORF with length > max-length are not processed, 0 ignore option
@@ -110,11 +114,11 @@ translation_options = {
     'seed': 8675309,
     'chains': 2,
     'translation_iterations': 500,
-    'orf_types': [], # predict only these, if empty predict all types
+    'orf_types': [],  # predict only these, if empty predict all types
     'min_bf_mean': 5,
     'min_bf_likelihood': 0.5,
     'max_bf_var': None,
-    'orf_min_length': 20,  # ORF > min-length (nucleotides) are kept in the final set
-    'orf_min_profile_count': None,    # ORF with sum across all frame > minimum-profile-sum are kept
-    'chisq_alpha': 0.01 # only relevant with the Chi2 pipeline
+    'orf_min_length': 8,  # ORF > min-length (nucleotides) are kept in the final set
+    'orf_min_profile_count': None,  # ORF with sum across all frame > minimum-profile-sum are kept
+    'chisq_alpha': 0.01  # only relevant with the Chi2 pipeline
 }

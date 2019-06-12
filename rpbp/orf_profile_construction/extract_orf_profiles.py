@@ -25,7 +25,7 @@ from rpbp.defaults import default_num_groups
 logger = logging.getLogger(__name__)
 
 # --num-exons is not used in the the Rp-Bp pipeline
-# --seqname-prefix can be overriden via config arguments, but not
+# --seqname-prefix can be overridden via config arguments, but not
 # specified in defaults, as mostly unused
 
 
@@ -203,7 +203,8 @@ def main():
         num_orfs,
         max_orf_len,
         progress_bar=True,
-        total=args.num_groups
+        total=len(exons_dfs),
+        backend='multiprocessing'
     )
 
     msg = "Combining the ORF profiles into one matrix"

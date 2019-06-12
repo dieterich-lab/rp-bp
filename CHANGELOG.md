@@ -21,7 +21,8 @@ This is a major version upgrade due to changes in API and package dependencies.
 ### Fixed
 - Missing parameters in function calls, hard coded defaults
 - [YAMLLoadWarning](https://msg.pyyaml.org/load)
-- Fall back to multiprocessing in `estimate_orf_bayes_factors`
+- Fall back to multiprocessing in `estimate_orf_bayes_factors`, and 
+    `extract_orf_profiles`
 - ORF labels in `prepare_rpbp_genome`, `label_orfs` and `extract_orf_coordinates`, see
     [ISSUE #96](https://github.com/dieterich-lab/rp-bp/issues/96).
     
