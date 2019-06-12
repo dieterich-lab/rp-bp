@@ -28,7 +28,6 @@ import recommonmark
 from recommonmark.parser import CommonMarkParser
 from recommonmark.transform import AutoStructify
 
-autodoc_mock_imports = ['pbio']
 
 source_parsers = {
     '.md': CommonMarkParser
@@ -46,6 +45,11 @@ source_suffix = ['.rst', '.md']
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autodoc']
+autodoc_mock_imports = ['pbio', 'cython', 'numpy', 'scipy', 'dask', 'pandas',
+                        'pystan', 'joblib', 'statsmodels', 'biopython',
+                        'pysam', 'pyyaml', 'llvmlite', 'sklearn', 'appdirs',
+                        'tqdm', 'mygene', 'openpyxl', 'fastparquet', 'more_itertools',
+                        'matplotlib', 'matplotlib_venn', 'seaborn']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
