@@ -14,11 +14,13 @@ This is a major version upgrade due to changes in API and package dependencies.
 - Configure setup() using setup.cfg, add `pbio`, update install via requirements.
 
 ### Added
+- Config file for RTD
 - Module with all defaults parameters
 - Add option to force the pickling of the Stan models during installation 
     [ISSUE #88](https://github.com/dieterich-lab/rp-bp/issues/88).
 
 ### Fixed
+- Build RTD documentation (add `autodoc_mock_imports`, empty `docs/requirements.txt`)
 - Missing parameters in function calls, hard coded defaults
 - [YAMLLoadWarning](https://msg.pyyaml.org/load)
 - Fall back to multiprocessing in `estimate_orf_bayes_factors`, and 
