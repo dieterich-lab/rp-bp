@@ -110,7 +110,9 @@ class SetupInstall(install):
                             format='%(levelname)-8s : %(message)s')
 
         install.run(self)
-        _post_install(force_recompile)
+        # skip if RTD
+        if not os.environ.get('READTHEDOCS') == 'True':
+            _post_install(force_recompile)
 
 
 class SetupDevelop(develop):
@@ -134,7 +136,9 @@ class SetupDevelop(develop):
                             format='%(levelname)-8s : %(message)s')
 
         develop.run(self)
-        _post_install(force_recompile)
+        # skip if RTD
+        if not os.environ.get('READTHEDOCS') == 'True':
+            _post_install(force_recompile)
 
 
 setup(
