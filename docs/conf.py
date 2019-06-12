@@ -28,6 +28,8 @@ import recommonmark
 from recommonmark.parser import CommonMarkParser
 from recommonmark.transform import AutoStructify
 
+autodoc_mock_imports = ['pbio']
+
 source_parsers = {
     '.md': CommonMarkParser
 }
