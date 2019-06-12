@@ -6,4 +6,4 @@
 python:
   version: 3.6
 
-requirements_file: null
+#requirements_file: requirements-docs.txt
