@@ -12,10 +12,11 @@ import pbio.utils.bed_utils as bed_utils
 
 import logging
 import pbio.misc.logging_utils as logging_utils
+
 logger = logging.getLogger(__name__)
 
-default_lengths = []
-default_offsets = []
+from rpbp.defaults import metagene_options
+
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -78,7 +79,8 @@ def main():
         lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
             config, 
             name, 
-            is_unique=is_unique
+            is_unique=is_unique,
+            default_params=metagene_options
         )
 
         if len(lengths) == 0:
@@ -134,6 +136,7 @@ def main():
                 for row, col, val in zip(mtx.row, mtx.col, mtx.data):
                     s = "{} {} {} {}\n".format(row, col, length, val)
                     target_gz.write(s.encode())
+
 
 if __name__ == '__main__':
     main()

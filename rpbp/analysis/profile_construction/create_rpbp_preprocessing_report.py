@@ -5,6 +5,8 @@ import yaml
 import logging
 import os
 import pandas as pd
+import numpy as np
+import scipy.stats
 import shlex
 import sys
 
@@ -14,22 +16,17 @@ import pbio.misc.parallel as parallel
 import pbio.misc.shell_utils as shell_utils
 import pbio.misc.slurm as slurm
 
-import misc.utils as utils
 import pbio.ribo.ribo_filenames as filenames
 import pbio.ribo.ribo_utils as ribo_utils
 
+from rpbp.defaults import default_num_cpus, metagene_options
+
 logger = logging.getLogger(__name__)
 
-default_note = None
-default_tmp = None
 default_image_type = 'eps'
 
 default_project_name = "ribosome profiling data"
-default_min_metagene_profile_count = 1000
-default_min_metagene_profile_bayes_factor_mean = 5
-default_max_metagene_profile_bayes_factor_var = 5
-default_min_visualization_count = 500
-default_num_cpus = 1
+
 
 abstract = """
 This document shows the results of preprocessing steps. 
@@ -378,8 +375,10 @@ def create_figures(config_file, config, name, offsets_df, args):
 
 
         try:
-            lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config, 
-                name, is_unique=is_unique)
+            lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config,
+                                                                           name,
+                                                                           is_unique=is_unique,
+                                                                           default_params=metagene_options)
         except FileNotFoundError:
             msg = ("Could not parse out lengths and offsets for sample: {}. "
                 "Skipping".format(name))
@@ -512,7 +511,7 @@ def main():
 
     parser.add_argument('--min-visualization-count', help="Read lengths with fewer than this "
         "number of reads will not be included in the report.", type=int, 
-        default=default_min_visualization_count)
+        default=metagene_options['min_metagene_image_count'])
 
     parser.add_argument('--image-type', help="The type of image types to create. This "
         "must be an extension which matplotlib can interpret.", default=default_image_type)
@@ -522,19 +521,19 @@ def main():
         "not created.", action='store_true')
     
     parser.add_argument('--tmp', help="If the fastqc reports are created, "
-        "they will use this location for temp files", default=default_tmp)
+        "they will use this location for temp files", default=None)
      
     parser.add_argument('--note', help="If this option is given, it will be used in the "
-        "filenames.\n\nN.B. This REPLACES the note in the config file.", default=default_note)
+        "filenames.\n\nN.B. This REPLACES the note in the config file.", default=None)
 
-    slurm.add_sbatch_options(parser)
+    slurm.add_sbatch_options(parser, num_cpus=default_num_cpus)
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
 
     config = yaml.load(open(args.config), Loader=yaml.FullLoader)
 
-    if args.note is not default_note:
+    if args.note is not None:
         config['note'] = args.note
     note = config.get('note', None)
     
@@ -543,18 +542,16 @@ def main():
     # keep multimappers?
     is_unique = not ('keep_riboseq_multimappers' in config)
 
-    programs =  [   
-	'create-read-length-metagene-profile-plot',
-        'visualize-metagene-profile-bayes-factor',
-        'get-all-read-filtering-counts',
-        'samtools',
-        'visualize-read-filtering-counts',
-        'get-read-length-distribution',
-        'plot-read-length-distribution'
-    ]
+    programs = ['create-read-length-metagene-profile-plot',
+                'visualize-metagene-profile-bayes-factor',
+                'get-all-read-filtering-counts',
+                'samtools',
+                'visualize-read-filtering-counts',
+                'get-read-length-distribution',
+                'plot-read-length-distribution']
 
     if args.create_fastqc_reports:
-        programs.extend(['fastqc','java'])
+        programs.extend(['fastqc', 'java'])
         
     shell_utils.check_programs_exist(programs)
 
@@ -570,21 +567,25 @@ def main():
     create_read_filtering_plots(args.config, config, args)
     # ... and all the other figures.
     for name in sample_names:
-        periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], 
-            name, is_unique=is_unique, note=note)
+        periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'],
+                                                          name,
+                                                          is_unique=is_unique,
+                                                          note=note)
         offsets_df = pd.read_csv(periodic_offsets)
         create_figures(args.config, config, name, offsets_df, args)
 
-    min_metagene_profile_count = config.get(
-        "min_metagene_profile_count", default_min_metagene_profile_count)
+    min_metagene_profile_count = config.get('min_metagene_profile_count',
+                                            metagene_options['min_metagene_profile_count'])
 
-    min_metagene_profile_bayes_factor_mean = config.get(
-        "min_metagene_profile_bayes_factor_mean", 
-        default_min_metagene_profile_bayes_factor_mean)
+    min_bf_mean = config.get('min_metagene_bf_mean',
+                             metagene_options['min_metagene_bf_mean'])
 
-    max_metagene_profile_bayes_factor_var = config.get(
-        "max_metagene_profile_bayes_factor_var", 
-        default_max_metagene_profile_bayes_factor_var)
+    max_bf_var = config.get('max_metagene_bf_var',
+                            metagene_options['max_metagene_bf_var'])
+
+    min_bf_likelihood = config.get('min_metagene_bf_likelihood',
+                                   metagene_options['min_metagene_bf_likelihood'])
+
 
     project_name = config.get("project_name", default_project_name)
     title = "Preprocessing results for {}".format(project_name)
@@ -687,8 +688,10 @@ def main():
 
             logger.debug("overwrite: {}".format(args.overwrite))
     
-            periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'], 
-                name, is_unique=is_unique, note=note)
+            periodic_offsets = filenames.get_periodic_offsets(config['riboseq_data'],
+                                                              name,
+                                                              is_unique=is_unique,
+                                                              note=note)
             offsets_df = pd.read_csv(periodic_offsets)
 
             min_read_length = int(offsets_df['length'].min())
@@ -719,12 +722,21 @@ def main():
                 # now, check all of the filters
                 offset = int(length_row['highest_peak_offset'])
                 offset_status = "Used for analysis"
-                
-                if length_row['highest_peak_bf_mean'] < min_metagene_profile_bayes_factor_mean:
-                    offset_status = "BF mean too small"
 
-                if length_row['highest_peak_bf_var'] > max_metagene_profile_bayes_factor_var:
-                    offset_status = "BF variance too high"
+                if max_bf_var is not None:
+                    if ((length_row['highest_peak_bf_mean'] <= min_bf_mean) or
+                            length_row['highest_peak_bf_var'] >= max_bf_var):
+                        offset_status = "BF mean too small or BF var too high"
+
+                if min_bf_likelihood is not None:
+                    likelihood = 1 - scipy.stats.norm.cdf(min_bf_mean, length_row['highest_peak_bf_mean'],
+                                                          np.sqrt(length_row['highest_peak_bf_var']))
+                    if likelihood <= min_bf_likelihood:
+                        offset_status = "Likehood too small"
+
+                if (max_bf_var is None) and (min_bf_likelihood is None):
+                    if length_row['highest_peak_bf_mean'] <= min_bf_mean:
+                        offset_status = "BF mean too small"
 
                 if length_row['highest_peak_profile_sum'] < min_metagene_profile_count:
                     offset_status = "Count too small"
@@ -791,8 +803,10 @@ def main():
                 i = 0
 
                 try:
-                    lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
-                        config, sample_name, is_unique=is_unique)
+                    lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config,
+                                                                                   sample_name,
+                                                                                   is_unique=is_unique,
+                                                                                   default_params=metagene_options)
                 except FileNotFoundError:
                     msg = ("Could not parse out lengths and offsets for sample: {}. "
                         "Skipping".format(sample_name))

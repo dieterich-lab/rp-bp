@@ -96,6 +96,7 @@ metagene_options = {
     'chains': 2,
     'metagene_iterations': 500,
     'min_metagene_profile_count': 1000,
+    'min_metagene_image_count': 500,  # profiles with count < min_metagene_image_count will not be displayed (only for report)
     'min_metagene_bf_mean': 5,
     'max_metagene_bf_var': None,
     'min_metagene_bf_likelihood': 0.5
