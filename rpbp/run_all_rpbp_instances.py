@@ -6,6 +6,8 @@ import os
 import shlex
 import yaml
 
+from collections import defaultdict
+
 import pbio.utils.pgrm_utils as pgrm_utils
 import pbio.misc.logging_utils as logging_utils
 import pbio.misc.shell_utils as shell_utils
@@ -137,7 +139,8 @@ def main():
         logger.warning(msg)
 
     # collect the job_ids in case we are using slurm and need to merge replicates
-    job_ids = []
+    rep_to_condition = ribo_utils.get_riboseq_replicates_reverse_map(config)
+    job_ids_mapping = defaultdict(list)
 
     sample_names = sorted(config['riboseq_samples'].keys())
 
@@ -166,8 +169,7 @@ def main():
         )
 
         job_id = slurm.check_sbatch(cmd, args=args)
-
-        job_ids.append(job_id)
+        job_ids_mapping[rep_to_condition[sample_name]].append(job_id)
 
     # now, if we are running the "standard" pipeline, we are done
     if not args.merge_replicates:
@@ -190,6 +192,7 @@ def main():
             merge_replicates_str
         )
 
+        job_ids = job_ids_mapping[condition_name]
         slurm.check_sbatch(cmd, args=args, dependencies=job_ids)
 
 
