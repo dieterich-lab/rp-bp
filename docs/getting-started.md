@@ -39,3 +39,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## How to report issues
+
+To report bugs and issues with the `rpbp` package, please use the [bug tracker](https://github.com/dieterich-lab/rp-bp/issues). Please
+follow the instructions and guidelines given in the template.

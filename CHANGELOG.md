@@ -4,9 +4,9 @@ All notable changes to Rp-Bp will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/), 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [Unreleased] - started 2019-10-16
 
-## [2.0.0] - started 2019-05-24
+## [2.0.0] 2019-05-24
 
 This is a major version upgrade due to changes in API and package dependencies. 
 
@@ -15,7 +15,7 @@ This is a major version upgrade due to changes in API and package dependencies.
 
 ### Added
 - Config file for RTD
-- Module with all defaults parameters
+- Module with all defaults parameters, handling options for external dependencies
 - Add option to force the pickling of the Stan models during installation 
     [ISSUE #88](https://github.com/dieterich-lab/rp-bp/issues/88).
 
@@ -25,6 +25,7 @@ This is a major version upgrade due to changes in API and package dependencies.
 - [YAMLLoadWarning](https://msg.pyyaml.org/load)
 - Fall back to multiprocessing in `estimate_orf_bayes_factors`, and 
     `extract_orf_profiles`
+- Stan assignment operator in models
 - ORF labels in `prepare_rpbp_genome`, `label_orfs` and `extract_orf_coordinates`, see
     [ISSUE #96](https://github.com/dieterich-lab/rp-bp/issues/96).
     

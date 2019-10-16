@@ -63,6 +63,9 @@ This flag does *NOT* normally have to be set, unless one has to
 re-install the `rpbp` package (*e.g* after upgrade or changing versions of Pystan). Note that 
 the use of `--install-option` currently disables all use of wheels.
 
+** Note: `install-option` seems to leak across lines... Until further testing is done,
+use of the `--force-recompile` flag is not recommended.
+
 Pinned version of selected dependencies are installed with the `pbio` package via
 the `requirements.txt` file for reproducible installation.
 
