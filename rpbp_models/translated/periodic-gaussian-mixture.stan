@@ -26,37 +26,37 @@ transformed data {
     vector[T] signal;
     vector[2*T] background;
 
-    signal <- x_1;
-    background <- append_row(x_2, x_3);
+    signal = x_1;
+    background = append_row(x_2, x_3);
     
     // we just use the emprical values for hyperparameters
-    background_location_prior_location <- mean(background);
-    background_scale_prior_location <- variance(background);
+    background_location_prior_location = mean(background);
+    background_scale_prior_location = variance(background);
 
     // the scale cannot be 0, so adjust if necessary
-    background_scale_prior_location <- fmax(background_scale_prior_location, 0.1);
+    background_scale_prior_location = fmax(background_scale_prior_location, 0.1);
 
-    background_location_prior_scale <- sqrt(background_location_prior_location);
-    background_scale_prior_scale <- sqrt(background_scale_prior_location);
+    background_location_prior_scale = sqrt(background_location_prior_location);
+    background_scale_prior_scale = sqrt(background_scale_prior_location);
 
     // and fix these scales, in case they are 0 (or very, very small)
-    background_location_prior_scale <- fmax(background_location_prior_scale, 0.1);
-    background_scale_prior_scale <- fmax(background_scale_prior_scale, 0.1);
+    background_location_prior_scale = fmax(background_location_prior_scale, 0.1);
+    background_scale_prior_scale = fmax(background_scale_prior_scale, 0.1);
 
     
     // signal hyperparameters
-    signal_location_prior_location <- mean(signal);
-    signal_scale_prior_location <- variance(signal);
+    signal_location_prior_location = mean(signal);
+    signal_scale_prior_location = variance(signal);
 
     // the scale cannot be 0, so adjust if necessary
-    signal_scale_prior_location <- fmax(signal_scale_prior_location, 0.1);
+    signal_scale_prior_location = fmax(signal_scale_prior_location, 0.1);
 
-    signal_location_prior_scale <- sqrt(signal_location_prior_location);
-    signal_scale_prior_scale <- sqrt(signal_scale_prior_location);
+    signal_location_prior_scale = sqrt(signal_location_prior_location);
+    signal_scale_prior_scale = sqrt(signal_scale_prior_location);
 
     // and fix these scales, in case they are 0 (or very, very small)
-    signal_location_prior_scale <- fmax(signal_location_prior_scale, 0.1);
-    signal_scale_prior_scale <- fmax(signal_scale_prior_scale, 0.1);
+    signal_location_prior_scale = fmax(signal_location_prior_scale, 0.1);
+    signal_scale_prior_scale = fmax(signal_scale_prior_scale, 0.1);
 }
 
 parameters {

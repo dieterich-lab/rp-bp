@@ -9,18 +9,18 @@ import os
 import numpy as np
 import scipy.io
 
-import riboutils.ribo_filenames as ribo_filenames
-import riboutils.ribo_utils as ribo_utils
+import pbio.ribo.ribo_filenames as ribo_filenames
+import pbio.ribo.ribo_utils as ribo_utils
 
 
-import bio_utils.bio as bio
-import bio_utils.bam_utils as bam_utils
-import bio_utils.fastx_utils as fastx_utils
-import misc.logging_utils as logging_utils
-import misc.parallel as parallel
-import misc.shell_utils as shell_utils
-import misc.utils as utils
-import misc.pandas_utils as pandas_utils
+import pbio.utils.bio as bio
+import pbio.utils.bam_utils as bam_utils
+import pbio.utils.fastx_utils as fastx_utils
+import pbio.misc.logging_utils as logging_utils
+import pbio.misc.parallel as parallel
+import pbio.misc.shell_utils as shell_utils
+import pbio.misc.utils as utils
+import pbio.misc.pandas_utils as pandas_utils
 
 logger = logging.getLogger(__name__)
 
@@ -132,7 +132,7 @@ def main():
     programs = ['samtools']
     shell_utils.check_programs_exist(programs)
 
-    config = yaml.load(open(args.config))
+    config = yaml.load(open(args.config), Loader=yaml.FullLoader)
 
     res = parallel.apply_parallel_iter(config['riboseq_samples'].items(), 
                                         args.num_cpus, 

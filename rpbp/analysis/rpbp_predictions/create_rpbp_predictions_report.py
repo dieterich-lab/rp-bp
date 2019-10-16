@@ -8,27 +8,26 @@ import shlex
 import sys
 import yaml
 
-import misc.latex as latex
-import misc.logging_utils as logging_utils
-import misc.parallel as parallel
-import misc.shell_utils as shell_utils
-import misc.slurm as slurm
-import misc.utils as utils
+import pbio.misc.latex as latex
+import pbio.misc.logging_utils as logging_utils
+import pbio.misc.parallel as parallel
+import pbio.misc.shell_utils as shell_utils
+import pbio.misc.slurm as slurm
+import pbio.misc.utils as utils
 
-import riboutils.ribo_filenames as filenames
-import riboutils.ribo_utils as ribo_utils
+import pbio.ribo.ribo_filenames as filenames
+import pbio.ribo.ribo_utils as ribo_utils
+
+from rpbp.defaults import default_num_cpus, metagene_options
 
 logger = logging.getLogger(__name__)
 
 default_project_name = "riboseq"
-default_note = None
-default_num_cpus = 1
 default_image_type = 'eps'
 
 default_uniprot = ""
 default_uniprot_label = "UniRef"
 
-default_tmp = utils.abspath("tmp")
 
 def _create_figures(name_pretty_name_is_replicate, config, args):
     """ This function creates all of the figures in the prediction report
@@ -69,8 +68,10 @@ def _create_figures(name_pretty_name_is_replicate, config, args):
         offsets = None
     else:
         try:
-            lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
-                config, name, is_unique=is_unique)
+            lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config,
+                                                                           name,
+                                                                           is_unique=is_unique,
+                                                                           default_params=metagene_options)
         except FileNotFoundError:
             msg = ("Could not parse out lengths and offsets for sample: {}. "
                 "Skipping".format(name))
@@ -392,21 +393,21 @@ def main():
         "be overwritten.", action='store_true')
         
     parser.add_argument('--note', help="If this option is given, it will be used in the "
-        "filenames.\n\nN.B. This REPLACES the note in the config file.", default=default_note)
+        "filenames.\n\nN.B. This REPLACES the note in the config file.", default=None)
 
     parser.add_argument('--show-chisq', help="If this flag is given, then the "
         "results from Rp-chi will be included in the document; otherwise, they "
         "will not be created or shown.", action='store_true')
 
     parser.add_argument('-t', '--tmp', help="A location for temporary files",
-        default=default_tmp)
+        default=None)
 
-    slurm.add_sbatch_options(parser)
+    slurm.add_sbatch_options(parser, num_cpus=default_num_cpus)
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
 
-    config = yaml.load(open(args.config))
+    config = yaml.load(open(args.config), Loader=yaml.FullLoader)
     
     # keep multimappers?
     is_unique = not ('keep_riboseq_multimappers' in config)
@@ -490,8 +491,10 @@ def main():
         for sample_name in sample_names:
             
             try:
-                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
-                    config, sample_name, is_unique=is_unique)
+                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config,
+                                                                               sample_name,
+                                                                               is_unique=is_unique,
+                                                                               default_params=metagene_options)
             except FileNotFoundError:
                 msg = ("Could not parse out lengths and offsets for sample: {}. "
                     "Skipping".format(sample_name))
@@ -635,8 +638,10 @@ def main():
         for sample_name in sample_names:
             
             try:
-                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
-                    config, sample_name, is_unique=is_unique)
+                lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config,
+                                                                               sample_name,
+                                                                               is_unique=is_unique,
+                                                                               default_params=metagene_options)
             except FileNotFoundError:
                 msg = ("Could not parse out lengths and offsets for sample: {}. "
                     "Skipping".format(sample_name))
@@ -767,8 +772,10 @@ def main():
             for sample_name in sample_names:
                 
                 try:
-                    lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
-                        config, sample_name, is_unique=is_unique)
+                    lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(config,
+                                                                                   sample_name,
+                                                                                   is_unique=is_unique,
+                                                                                   default_params=metagene_options)
                 except FileNotFoundError:
                     msg = ("Could not parse out lengths and offsets for sample: {}. "
                         "Skipping".format(sample_name))

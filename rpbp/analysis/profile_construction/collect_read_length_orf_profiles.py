@@ -5,17 +5,18 @@ import gzip
 import scipy.io
 import yaml
 
-import riboutils.ribo_filenames as filenames
-import riboutils.ribo_utils as ribo_utils
+import pbio.ribo.ribo_filenames as filenames
+import pbio.ribo.ribo_utils as ribo_utils
 
-import bio_utils.bed_utils as bed_utils
+import pbio.utils.bed_utils as bed_utils
 
 import logging
-import misc.logging_utils as logging_utils
+import pbio.misc.logging_utils as logging_utils
+
 logger = logging.getLogger(__name__)
 
-default_lengths = []
-default_offsets = []
+from rpbp.defaults import metagene_options
+
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -46,7 +47,7 @@ def main():
     
     msg = "Reading config file"
     logger.info(msg)
-    config = yaml.load(open(args.config))
+    config = yaml.load(open(args.config), Loader=yaml.FullLoader)
 
     # pull out what we need from the config file
     is_unique = not ('keep_riboseq_multimappers' in config)
@@ -78,7 +79,8 @@ def main():
         lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
             config, 
             name, 
-            is_unique=is_unique
+            is_unique=is_unique,
+            default_params=metagene_options
         )
 
         if len(lengths) == 0:
@@ -134,6 +136,7 @@ def main():
                 for row, col, val in zip(mtx.row, mtx.col, mtx.data):
                     s = "{} {} {} {}\n".format(row, col, length, val)
                     target_gz.write(s.encode())
+
 
 if __name__ == '__main__':
     main()

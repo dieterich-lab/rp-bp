@@ -26,34 +26,34 @@ transformed data {
     vector[T-1] high;
     vector[2*T] low;
 
-    very_high <- head(x_1, 1);
-    high <- tail(x_1, T-1);
-    low <- append_row(x_2, x_3);
+    very_high = head(x_1, 1);
+    high = tail(x_1, T-1);
+    low = append_row(x_2, x_3);
 
     // we just use the emprical values to model "low"
 
     // we pick the lower of the two
-    low_location_prior_location <- mean(x_2);
+    low_location_prior_location = mean(x_2);
     if (mean(x_3) < low_location_prior_location) {
-        low_location_prior_location <- mean(x_3);
+        low_location_prior_location = mean(x_3);
     }
 
-    low_scale_prior_location <- variance(x_2);
+    low_scale_prior_location = variance(x_2);
     if (variance(x_3) < low_scale_prior_location) {
-        low_scale_prior_location <- variance(x_3);
+        low_scale_prior_location = variance(x_3);
     }
     
-    low_location_prior_scale <- sqrt(low_location_prior_location);
-    low_scale_prior_scale <- sqrt(low_scale_prior_location);
+    low_location_prior_scale = sqrt(low_location_prior_location);
+    low_scale_prior_scale = sqrt(low_scale_prior_location);
      
     // the prior scales cannot be 0
-    low_location_prior_scale <- fmax(low_location_prior_scale, 0.1);
-    low_scale_prior_scale <- fmax(low_scale_prior_scale, 0.1);
+    low_location_prior_scale = fmax(low_location_prior_scale, 0.1);
+    low_scale_prior_scale = fmax(low_scale_prior_scale, 0.1);
 
     // the deltas are picked such that the location and scale reflect
     // the difference present in the empirical distributions
-    delta_location <- mean(high) - low_location_prior_location;
-    delta_location <- fmax(delta_location, 3*low_location_prior_location);
+    delta_location = mean(high) - low_location_prior_location;
+    delta_location = fmax(delta_location, 3*low_location_prior_location);
 
     /*
     print("very_high:", very_high);

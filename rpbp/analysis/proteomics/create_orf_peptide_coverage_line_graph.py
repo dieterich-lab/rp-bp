@@ -13,8 +13,8 @@ import matplotlib.ticker
 import numpy as np
 import pandas as pd
 
-import misc.parallel as parallel
-import misc.utils as utils
+import pbio.misc.parallel as parallel
+import pbio.misc.utils as utils
 
 default_num_cpus = 1
 

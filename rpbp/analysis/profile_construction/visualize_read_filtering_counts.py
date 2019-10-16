@@ -12,10 +12,10 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import seaborn as sns; sns.set(style='white')
 
-import misc.mpl_utils as mpl_utils
-import misc.logging_utils as logging_utils
+import pbio.misc.mpl_utils as mpl_utils
+import pbio.misc.logging_utils as logging_utils
 
-import riboutils.ribo_utils as ribo_utils
+import pbio.ribo.ribo_utils as ribo_utils
 
 
 logger = logging.getLogger(__name__)
@@ -132,7 +132,7 @@ def main():
 
     if args.config:
         try:
-            config = yaml.load(open(args.config))
+            config = yaml.load(open(args.config), Loader=yaml.FullLoader)
             sample_name_map = ribo_utils.get_sample_name_map(config)
             df['display_name'] = df['name'].apply(lambda x: sample_name_map[x])
         except:

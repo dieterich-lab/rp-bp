@@ -5,13 +5,13 @@ import logging
 import os
 import yaml
 
-import misc.logging_utils as logging_utils
-import misc.shell_utils as shell_utils
-import misc.utils as utils
-import misc.slurm as slurm
+import pbio.misc.logging_utils as logging_utils
+import pbio.misc.shell_utils as shell_utils
+import pbio.misc.utils as utils
+import pbio.misc.slurm as slurm
 
-import riboutils.ribo_filenames as ribo_filenames
-import riboutils.ribo_utils as ribo_utils
+import pbio.ribo.ribo_filenames as ribo_filenames
+import pbio.ribo.ribo_utils as ribo_utils
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ def main():
     
     logging_str = logging_utils.get_logging_options_string(args)
 
-    config = yaml.load(open(args.config))
+    config = yaml.load(open(args.config), Loader=yaml.FullLoader)
     call = not args.do_not_call
 
     programs = [

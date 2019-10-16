@@ -4,16 +4,34 @@ All notable changes to Rp-Bp will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/), 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [Unreleased] - started 2019-10-16
+
+## [2.0.0] 2019-05-24
+
+This is a major version upgrade due to changes in API and package dependencies. 
+
+### Changed
+- Configure setup() using setup.cfg, add `pbio`, update install via requirements.
 
 ### Added
-- Extra column to ORFs file with list of all associated transcripts. Currently added
-    as an option in `prepare-rpbp-genome`, but may be moved later on to post-processing.
+- Config file for RTD
+- Module with all defaults parameters, handling options for external dependencies
+- Add option to force the pickling of the Stan models during installation 
+    [ISSUE #88](https://github.com/dieterich-lab/rp-bp/issues/88).
 
 ### Fixed
-- ORF labels in `label_orfs.py` and `extract_orf_coordinates`, see
+- Build RTD documentation (add `autodoc_mock_imports`, empty `docs/requirements.txt`)
+- Missing parameters in function calls, hard coded defaults
+- [YAMLLoadWarning](https://msg.pyyaml.org/load)
+- Fall back to multiprocessing in `estimate_orf_bayes_factors`, and 
+    `extract_orf_profiles`
+- Stan assignment operator in models
+- ORF labels in `prepare_rpbp_genome`, `label_orfs` and `extract_orf_coordinates`, see
     [ISSUE #96](https://github.com/dieterich-lab/rp-bp/issues/96).
     
+### Removed
+- Transcript exons file (unused)
+ 
     
 ## [1.1.12] - 2018-03-14
 ### Changed

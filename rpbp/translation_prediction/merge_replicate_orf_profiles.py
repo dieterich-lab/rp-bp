@@ -4,20 +4,20 @@ import argparse
 import logging
 import scipy.io
 
-import misc.logging_utils as logging_utils
-import misc.utils as utils
-import misc.math_utils as math_utils
+import pbio.misc.logging_utils as logging_utils
+import pbio.misc.math_utils as math_utils
 
 logger = logging.getLogger(__name__)
 
+
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description="This script adds the ORF profiles from a set of profiles (presumably, "
-        "each file corresponds to one replicate from a condition). The script keeps the "
-        "profiles in sparse matrix format, so it is fairly efficient.")
+                                     description="""This script adds the ORF profiles from a set
+        of profiles (presumably, each file corresponds to one replicate from a condition). 
+        The script keeps the profiles in sparse matrix format, so it is fairly efficient.""")
 
-    parser.add_argument('profiles', help="The (mtx) files containing the "
-        "ORF profiles", nargs='+')
+    parser.add_argument('profiles', help="The (mtx) files containing the ORF profiles", nargs='+')
+
     parser.add_argument('out', help="The (mtx.gz) output file containing the merged profiles")
     
     logging_utils.add_logging_options(parser)

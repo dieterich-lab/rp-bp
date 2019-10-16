@@ -6,8 +6,8 @@ import logging
 
 import pybedtools
 
-import bio_utils.bio as bio
-import misc.utils as utils
+import pbio.utils.bio as bio
+import pbio.misc.utils as utils
 
 logger = logging.getLogger(__name__)
 
