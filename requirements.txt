@@ -3,6 +3,6 @@
 --no-binary :all:
 
 # Pin version of the pbio package and related dependencies:
-git+https://github.com/dieterich-lab/pybio-utils.git@1.0.0#egg=pbio
+# git+https://github.com/dieterich-lab/pybio-utils.git@1.0.0#egg=pbio
 # for dev branch
-# git+https://github.com/dieterich-lab/pybio-utils.git@dev#egg=pbio
+git+https://github.com/dieterich-lab/pybio-utils.git@dev#egg=pbio
