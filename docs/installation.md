@@ -144,13 +144,9 @@ pip --verbose install -r requirements.txt [-e] . [--install-option="--force-reco
 
 To run the `rpbp` package and its dependencies in an isolated container, you first need to install docker. For this please follow the instructions on the [docker](https://docker.com) webpage. 
 
-The precompiled [docker](https://docker.com) container can aquired by:
+To interactively run and create an executable [docker](https://docker.com) container layer, you have to run:
 ```
-docker pull dquz/rp-bp
-```
-To interactively run and create an executable [docker](https://docker.com) container lyer you have to run:
-```
-docker run -it --rm --mount type=bind,source=/path/to/rpbp/input/and/reference,target=/target/mount/path/in/docker/container rpbp
+docker run -it --rm --mount type=bind,source=/path/to/rpbp/input/and/reference,target=/target/mount/path/in/docker/container dquz/rp-bp
 ```
 Further descriptions on how to create and execute docker containers can be found at [docker](https://docker.com).
 
