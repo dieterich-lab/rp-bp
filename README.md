@@ -13,6 +13,7 @@ Read the Docs: [![Documentation Status](https://readthedocs.org/projects/rp-bp/b
 ## Installation
 
 This package is written in Python3. It has a number of external dependencies, mostly standard bioinformatics tools. Rp-Bp is not published on PyPI, but the installation is easily managed through `pip3`. The required privileges are determined by the installation location of `pip3`. In particular, if `pip3` does not require sudo access, then none of the installation process requires sudo access; this is the case within a virtual environment, for example. For detailed instructions, including dependencies/prerequisites and step-by-step details of installing within a virtual environment and anaconda. refer to [installation instructrions](http://rp-bp.readthedocs.io/en/latest/installation.html).
+Alternatively, Rp-Bp can be executed in a preconfigured docker container, containing all the necessary tools. 
 
 <a name="get-start-usage"></a>
 
