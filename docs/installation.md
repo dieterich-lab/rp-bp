@@ -11,6 +11,7 @@ The `rpbp` package was developed and tested on Debian-based systems, but should 
 * [Installation](#installation)
     * [Virtual environment installation](#virtual-environment-installation)
     * [Anaconda installation](#anaconda-installation)
+    * [Using docker and a precompiled container](#Using-docker-and-a-precompiled-container) 
 * [Uninstallation](#uninstallation)
 
 ---
@@ -138,6 +139,24 @@ pip --verbose install -r requirements.txt [-e] . [--install-option="--force-reco
 [Back to top](#toc)
 
 <a id='uninstallation'></a>
+
+## Using docker and a precompiled container
+
+To run the `rpbp` package and its dependencies in an isolated container, you first need to install docker. For this please follow the instructions on the [docker](https://docker.com) webpage. 
+
+The precompiled [docker](https://docker.com) container can aquired by:
+```
+docker pull [OPTIONS] NAME[:TAG|@DIGEST]
+```
+To interactively run and create an executable [docker](https://docker.com) container lyer you have to run:
+```
+docker run -it --rm --mount type=bind,source=/path/to/rpbp/input/and/reference,target=/target/mount/path/in/docker/container rpbp
+```
+Further descriptions on how to create and execute docker containers can be found at [docker](https://docker.com).
+
+[Back to top](#toc)
+
+<a id='anaconda-installation'></a>
 
 ## Uninstallation
 
