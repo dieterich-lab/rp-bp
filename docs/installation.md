@@ -146,7 +146,7 @@ To run the `rpbp` package and its dependencies in an isolated container, you fir
 
 The precompiled [docker](https://docker.com) container can aquired by:
 ```
-docker pull [OPTIONS] NAME[:TAG|@DIGEST]
+docker pull dquz/rp-bp
 ```
 To interactively run and create an executable [docker](https://docker.com) container lyer you have to run:
 ```
