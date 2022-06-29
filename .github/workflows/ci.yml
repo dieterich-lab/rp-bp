@@ -1,0 +1,45 @@
+name: CI
+
+on: push
+
+jobs:
+  install-and-test:
+    name: ${{matrix.os}}
+    runs-on: ${{matrix.os}}
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create rpbp conda environment
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: 3.6
+          auto-update-conda: true
+          auto-activate-base: false
+          activate-environment: rpbp
+          environment-file: environment.yml
+      - name: Display conda env info
+        run: |
+          conda info
+          conda list
+          conda config --show-sources
+          conda config --show
+          printenv | sort
+      - name: Install rp-bp
+        run: pip install . --verbose
+      - name: Get test data and set paths
+        run: |
+          wget https://data.dieterichlab.org/s/JB4AkN7jC574fzp/download -O data.zip
+          unzip data.zip
+          cd c-elegans-chrI-example
+          sed -i 's|/path/to/your/c-elegans-example|'`pwd`'|' c-elegans-test.yaml
+      - name: Run tests
+        run: |
+          cd c-elegans-chrI-example
+          prepare-rpbp-genome c-elegans-test.yaml
+          run-all-rpbp-instances c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates --run-replicates --keep-intermediate-files
