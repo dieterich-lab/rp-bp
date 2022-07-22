@@ -15,13 +15,14 @@ scratch*ipynb
 
 *bak
 
-old
-src
-OpenBLAS
-data
+# local  
+/local/
+/data/
 
+# test data
 c-elegans*
 
+# docs
 docs/_build/
 docs/_static/
 docs/_templates/
@@ -29,3 +30,6 @@ _build
 _static
 _templates
 
+# build
+build/
+dist/

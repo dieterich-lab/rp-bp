@@ -4,7 +4,11 @@ All notable changes to Rp-Bp will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/), 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased] - started 2019-10-16
+## [Unreleased] - started 2022-07
+
+We are working on a major version upgrade. Added test layout, GitHub CI workflow.
+Added pyproject.toml, and updated project packaging file structure.
+
 
 ## [2.0.0] 2019-05-24
 
