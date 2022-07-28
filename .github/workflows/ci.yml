@@ -42,7 +42,7 @@ jobs:
         run: pip install . --verbose
       - name: Get test data and set paths
         run: |
-          wget https://data.dieterichlab.org/s/JB4AkN7jC574fzp/download -O data.zip
+          wget https://data.dieterichlab.org/s/kYn5sY7YrJPWDiG/download -O data.zip
           unzip data.zip
           cd c-elegans-chrI-example
           sed -i 's|/path/to/your/c-elegans-example|'`pwd`'|' c-elegans-test.yaml
