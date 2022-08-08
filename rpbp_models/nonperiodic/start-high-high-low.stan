@@ -15,7 +15,7 @@ transformed data {
 
     real low_scale_prior_location;
     real low_scale_prior_scale;
-    
+
     // and delta is based on the observed difference
     real delta_location;
 
@@ -27,14 +27,14 @@ transformed data {
 
     high = append_row(x_1, x_2);
     low = x_3;
-    
+
     // we just use the emprical values to model "low"
     low_location_prior_location = mean(low);
     low_scale_prior_location = variance(low);
-    
+
     low_location_prior_scale = sqrt(low_location_prior_location);
     low_scale_prior_scale = sqrt(low_scale_prior_location);
-    
+
     // the prior scales cannot be 0
     low_location_prior_scale = fmax(low_location_prior_scale, 0.1);
     low_scale_prior_scale = fmax(low_scale_prior_scale, 0.1);

@@ -1,4 +1,3 @@
-
 import sys
 
 """Define all default parameters and options.
@@ -26,7 +25,7 @@ command line.
 # overridden via command line arguments
 
 default_num_cpus = 1
-default_mem = '2G'
+default_mem = "2G"
 
 default_num_groups = 100  # currently cannot be overridden
 
@@ -34,8 +33,8 @@ default_num_groups = 100  # currently cannot be overridden
 # default: Rp-Bp (genome index creation, ORF identification)
 # overridden via config file
 
-default_start_codons = ['ATG']
-default_stop_codons = ['TAA', 'TGA', 'TAG']
+default_start_codons = ["ATG"]
+default_stop_codons = ["TAA", "TGA", "TAG"]
 
 
 # default: Rp-Bp (metagene, ORF profiles)
@@ -52,32 +51,32 @@ if sys.platform.startswith("darwin"):
 #   --outTmpDir is set to args.tmp at run time, else default STAR tmp is used (current directory)
 #   if given, STAR args.tmp will be created
 
-star_executable = 'STAR'
+star_executable = "STAR"
 star_options = {
-    'readFilesCommand': default_read_files_command,
-    'limitBAMsortRAM': 0,
-    'alignIntronMin': 20,
-    'alignIntronMax': 100000,
-    'outFilterMismatchNmax': 1,
-    'outFilterMismatchNoverLmax': 0.04,  # would require a minimum *mapped* length of 25 given max mismatch of 1
-    'outFilterType': 'BySJout',
-    'outFilterIntronMotifs': 'RemoveNoncanonicalUnannotated',
-    'outSAMattributes': ['AS', 'NH', 'HI', 'nM', 'MD'],
-    'outSAMtype': 'BAM SortedByCoordinate',
-    'sjdbOverhang': 33,  # roughly 90 percentile of a large dataset of varying Ribo-seq fragment lengths
-    'seedSearchStartLmaxOverLread': 0.5,  # default seedSearchStartLmax normalised to read length
-    'winAnchorMultimapNmax': 100  # increase number of loci anchors are allowed to map to
+    "readFilesCommand": default_read_files_command,
+    "limitBAMsortRAM": 0,
+    "alignIntronMin": 20,
+    "alignIntronMax": 100000,
+    "outFilterMismatchNmax": 1,
+    "outFilterMismatchNoverLmax": 0.04,  # would require a minimum *mapped* length of 25 given max mismatch of 1
+    "outFilterType": "BySJout",
+    "outFilterIntronMotifs": "RemoveNoncanonicalUnannotated",
+    "outSAMattributes": ["AS", "NH", "HI", "nM", "MD"],
+    "outSAMtype": "BAM SortedByCoordinate",
+    "sjdbOverhang": 33,  # roughly 90 percentile of a large dataset of varying Ribo-seq fragment lengths
+    "seedSearchStartLmaxOverLread": 0.5,  # default seedSearchStartLmax normalised to read length
+    "winAnchorMultimapNmax": 100,  # increase number of loci anchors are allowed to map to
 }
 
 # leave outFilterMultimapNmax to default 20, we filter the multimappers afterwards if desired
 
 flexbar_options = {
-    'max-uncalled': 1,
-    'pre-trim-left': 0,
-    'qtrim-format': 'sanger',
-    'qtrim': 'TAIL',
-    'qtrim-threshold': 10,
-    'zip-output': 'GZ'
+    "max-uncalled": 1,
+    "pre-trim-left": 0,
+    "qtrim-format": "sanger",
+    "qtrim": "TAIL",
+    "qtrim-threshold": 10,
+    "zip-output": "GZ",
 }
 
 
@@ -85,21 +84,21 @@ flexbar_options = {
 # overridden via config file
 
 metagene_options = {
-    'metagene_start_upstream': 300,
-    'metagene_start_downstream': 300,
-    'metagene_end_upstream': 300,
-    'metagene_end_downstream': 300,
-    'periodic_offset_start': -20,
-    'periodic_offset_end': 0,
-    'metagene_profile_length': 21,
-    'seed': 8675309,
-    'chains': 2,
-    'metagene_iterations': 500,
-    'min_metagene_profile_count': 1000,
-    'min_metagene_image_count': 500,  # profiles with count < min_metagene_image_count will not be displayed (only for report)
-    'min_metagene_bf_mean': 5,
-    'max_metagene_bf_var': None,
-    'min_metagene_bf_likelihood': 0.5
+    "metagene_start_upstream": 300,
+    "metagene_start_downstream": 300,
+    "metagene_end_upstream": 300,
+    "metagene_end_downstream": 300,
+    "periodic_offset_start": -20,
+    "periodic_offset_end": 0,
+    "metagene_profile_length": 21,
+    "seed": 8675309,
+    "chains": 2,
+    "metagene_iterations": 500,
+    "min_metagene_profile_count": 1000,
+    "min_metagene_image_count": 500,  # profiles with count < min_metagene_image_count will not be displayed (only for report)
+    "min_metagene_bf_mean": 5,
+    "max_metagene_bf_var": None,
+    "min_metagene_bf_likelihood": 0.5,
 }
 
 
@@ -107,19 +106,19 @@ metagene_options = {
 # overridden via config file
 
 translation_options = {
-    'smoothing_fraction': 0.2,  # defaults are not written to the file names
-    'smoothing_reweighting_iterations': 0,
-    'orf_min_length_pre': 0,  # ORF with length < min-length are not processed, 0 ignore option
-    'orf_max_length_pre': 0,  # ORF with length > max-length are not processed, 0 ignore option
-    'orf_min_profile_count_pre': 5,  # ORF with profile sum < min-profile are not processed
-    'seed': 8675309,
-    'chains': 2,
-    'translation_iterations': 500,
-    'orf_types': [],  # predict only these, if empty predict all types
-    'min_bf_mean': 5,
-    'min_bf_likelihood': 0.5,
-    'max_bf_var': None,
-    'orf_min_length': 8,  # ORF > min-length (nucleotides) are kept in the final set
-    'orf_min_profile_count': None,  # ORF with sum across all frame > minimum-profile-sum are kept
-    'chisq_alpha': 0.01  # only relevant with the Chi2 pipeline
+    "smoothing_fraction": 0.2,  # defaults are not written to the file names
+    "smoothing_reweighting_iterations": 0,
+    "orf_min_length_pre": 0,  # ORF with length < min-length are not processed, 0 ignore option
+    "orf_max_length_pre": 0,  # ORF with length > max-length are not processed, 0 ignore option
+    "orf_min_profile_count_pre": 5,  # ORF with profile sum < min-profile are not processed
+    "seed": 8675309,
+    "chains": 2,
+    "translation_iterations": 500,
+    "orf_types": [],  # predict only these, if empty predict all types
+    "min_bf_mean": 5,
+    "min_bf_likelihood": 0.5,
+    "max_bf_var": None,
+    "orf_min_length": 8,  # ORF > min-length (nucleotides) are kept in the final set
+    "orf_min_profile_count": None,  # ORF with sum across all frame > minimum-profile-sum are kept
+    "chisq_alpha": 0.01,  # only relevant with the Chi2 pipeline
 }

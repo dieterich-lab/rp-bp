@@ -28,7 +28,7 @@ transformed data {
 
     signal = x_1;
     background = append_row(x_2, x_3);
-    
+
     // we just use the emprical values for hyperparameters
     background_location_prior_location = mean(background);
     background_scale_prior_location = variance(background);
@@ -43,7 +43,7 @@ transformed data {
     background_location_prior_scale = fmax(background_location_prior_scale, 0.1);
     background_scale_prior_scale = fmax(background_scale_prior_scale, 0.1);
 
-    
+
     // signal hyperparameters
     signal_location_prior_location = mean(signal);
     signal_scale_prior_location = variance(signal);
@@ -62,7 +62,7 @@ transformed data {
 parameters {
     real background_location;
     real<lower=0> background_scale;
-    
+
     real signal_location;
     real<lower=0> signal_scale;
 }
