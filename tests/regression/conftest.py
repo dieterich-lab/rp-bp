@@ -12,42 +12,6 @@ REF_LOC = 'c-elegans-chrI-example'
 REF_CONFIG = 'c-elegans-test.yaml'
 
 
-#@pytest.fixture(scope="module")
-def hash_file(filename):
-    
-    import hashlib
-    
-    hasher = hashlib.md5()
-    blockSize = 16 * 1024 * 1024
-    
-    with open(filename, 'r') as f:
-        while True:
-            fileBuffer = f.read(blockSize)
-            if not fileBuffer:
-                break
-            hasher.update(fileBuffer.encode('utf-8'))
-
-    return hasher.hexdigest()
-
-#@pytest.fixture(scope="module")
-def hash_gfile(filename):
-    
-    import hashlib
-    import gzip
-    
-    hasher = hashlib.md5()
-    blockSize = 16 * 1024 * 1024
-
-    with gzip.open(filename, 'rb') as f:
-        while True:
-            fileBuffer = f.read(blockSize)
-            if not fileBuffer:
-                break
-            hasher.update(fileBuffer)
-
-    return hasher.hexdigest()
-
-
 @pytest.fixture(scope="session")
 def data_loc(tmp_path_factory):
     
@@ -103,7 +67,7 @@ def get_genome(get_config):
 
 @pytest.fixture(scope="session")
 def get_files(get_genome):
-    
+
     import yaml
     import pbio.ribo.ribo_filenames as filenames
     
@@ -148,18 +112,8 @@ def get_files(get_genome):
                                        ref_config['genome_name'],
                                        is_annotated=True)
     }
-    
-    file_checkers = {
-        'transcript': hash_gfile,
-        'fasta': hash_file,
-        'orfs': hash_gfile,
-        'exons': hash_gfile,
-        'labels': hash_gfile
-    }
-    
-    
-    ret = []
-    for key, checker_function in file_checkers.items():
-        ret.append((files[key], ref_files[key], checker_function))
 
+    ret = []
+    for key in files:
+        ret.append((files[key], ref_files[key]))
     return ret

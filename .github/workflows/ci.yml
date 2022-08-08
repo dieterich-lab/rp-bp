@@ -40,14 +40,5 @@ jobs:
           printenv | sort
       - name: Install rp-bp
         run: pip install . --verbose
-      - name: Get test data and set paths
-        run: |
-          wget https://data.dieterichlab.org/s/kYn5sY7YrJPWDiG/download -O data.zip
-          unzip data.zip
-          cd c-elegans-chrI-example
-          sed -i 's|/path/to/your/c-elegans-example|'`pwd`'|' c-elegans-test.yaml
       - name: Run tests
-        run: |
-          cd c-elegans-chrI-example
-          prepare-rpbp-genome c-elegans-test.yaml
-          run-all-rpbp-instances c-elegans-test.yaml --overwrite --num-cpus 2 --logging-level INFO --merge-replicates --run-replicates --keep-intermediate-files
+        run: python -m pytest . -s -v
