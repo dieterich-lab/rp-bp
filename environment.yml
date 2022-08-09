@@ -24,3 +24,4 @@ dependencies:
       - pysam==0.15.2 # with Samtools-1.7
       - pyyaml==5.4
       - pytest
+      - pytest-cov
