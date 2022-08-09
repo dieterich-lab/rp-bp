@@ -42,10 +42,10 @@ transformed data {
     if (variance(x_3) < low_scale_prior_location) {
         low_scale_prior_location = variance(x_3);
     }
-    
+
     low_location_prior_scale = sqrt(low_location_prior_location);
     low_scale_prior_scale = sqrt(low_scale_prior_location);
-     
+
     // the prior scales cannot be 0
     low_location_prior_scale = fmax(low_location_prior_scale, 0.1);
     low_scale_prior_scale = fmax(low_scale_prior_scale, 0.1);

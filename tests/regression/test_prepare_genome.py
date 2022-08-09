@@ -1,13 +1,12 @@
-
 import pytest
 import gzip
 
 
 def get_lines(filename):
     if filename.endswith(".gz"):
-        with gzip.open(filename, 'rb') as f:
+        with gzip.open(filename, "rb") as f:
             return f.readlines()
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         return f.readlines()
 
 

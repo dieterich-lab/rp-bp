@@ -22,37 +22,60 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                     description="""This is a helper script to submit a set of
-        samples to SLURM. It can also be used to run a set of samples sequentially. Due to limitations 
-        on the config file specification, all of the samples must use the same reference indices 
-        obtained by running 'create-base-genome-profile.""")
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description="""This is a helper script to submit a set of
+        samples to SLURM. It can also be used to run a set of samples sequentially. Due to limitations
+        on the config file specification, all of the samples must use the same reference indices
+        obtained by running 'create-base-genome-profile.""",
+    )
 
-    parser.add_argument('config', help="The (yaml) configuration file")
+    parser.add_argument("config", help="The (yaml) configuration file")
 
-    parser.add_argument('--tmp', help="The temp directory", default=None)
+    parser.add_argument("--tmp", help="The temp directory", default=None)
 
-    parser.add_argument('--overwrite', help="""If this flag is present, existing files 
-        will be overwritten.""", action='store_true')
+    parser.add_argument(
+        "--overwrite",
+        help="""If this flag is present, existing files
+        will be overwritten.""",
+        action="store_true",
+    )
 
-    parser.add_argument('--profiles-only', help="""If this flag is present, then only
+    parser.add_argument(
+        "--profiles-only",
+        help="""If this flag is present, then only
         the pre-processing part of the pipeline will be called, i.e. profiles
         will be created for each sample specified in the config file, but no predictions
-        will be made.""", action='store_true')
+        will be made.""",
+        action="store_true",
+    )
 
-    parser.add_argument('--merge-replicates', help="""If this flag is present, then
+    parser.add_argument(
+        "--merge-replicates",
+        help="""If this flag is present, then
         the ORF profiles from the replicates will be merged before making the final
-        predictions""", action='store_true')
+        predictions""",
+        action="store_true",
+    )
 
-    parser.add_argument('--run-replicates', help="""If this flag is given with the
+    parser.add_argument(
+        "--run-replicates",
+        help="""If this flag is given with the
         --merge-replicates flag, then both the replicates and the individual
         samples will be run. This flag has no effect if --merge-replicates is not
-        given.""", action='store_true')
-         
-    parser.add_argument('-k', '--keep-intermediate-files', help="""If this flag is given,
+        given.""",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "-k",
+        "--keep-intermediate-files",
+        help="""If this flag is given,
         then all intermediate files will be kept; otherwise, they will be
         deleted. This feature is implemented piecemeal. If the --do-not-call flag
-        is given, then nothing will be deleted.""", action='store_true')
+        is given, then nothing will be deleted.""",
+        action="store_true",
+    )
 
     slurm.add_sbatch_options(parser, num_cpus=default_num_cpus, mem=default_mem)
     logging_utils.add_logging_options(parser)
@@ -65,33 +88,33 @@ def main():
 
     # check that all of the necessary programs are callable
     programs = [
-        'flexbar',
+        "flexbar",
         args.star_executable,
-        'samtools',
-        'bowtie2',
-        'create-base-genome-profile',
-        'remove-multimapping-reads',
-        'extract-metagene-profiles',
-        'estimate-metagene-profile-bayes-factors',
-        'select-periodic-offsets',
-        'extract-orf-profiles',
-        'estimate-orf-bayes-factors',
-        'select-final-prediction-set',
-        'create-orf-profiles',
-        'predict-translated-orfs',
-        'run-rpbp-pipeline'
+        "samtools",
+        "bowtie2",
+        "create-base-genome-profile",
+        "remove-multimapping-reads",
+        "extract-metagene-profiles",
+        "estimate-metagene-profile-bayes-factors",
+        "select-periodic-offsets",
+        "extract-orf-profiles",
+        "estimate-orf-bayes-factors",
+        "select-final-prediction-set",
+        "create-orf-profiles",
+        "predict-translated-orfs",
+        "run-rpbp-pipeline",
     ]
     shell_utils.check_programs_exist(programs)
-    
+
     required_keys = [
-        'riboseq_data',
-        'riboseq_samples',
-        'ribosomal_index',
-        'star_index',
-        'genome_base_path',
-        'genome_name',
-        'fasta',
-        'gtf'
+        "riboseq_data",
+        "riboseq_samples",
+        "ribosomal_index",
+        "star_index",
+        "genome_base_path",
+        "genome_name",
+        "fasta",
+        "gtf",
     ]
     utils.check_keys_exist(config, required_keys)
 
@@ -122,8 +145,10 @@ def main():
     profiles_only_str = ""
     if args.profiles_only:
         if args.merge_replicates:
-            msg = ("The --profiles-only option was given, this option has"
-                   "precedence, and it will override the --merge-replicates option!")
+            msg = (
+                "The --profiles-only option was given, this option has"
+                "precedence, and it will override the --merge-replicates option!"
+            )
             logger.warning(msg)
         args.merge_replicates = False
         profiles_only_str = "--profiles-only"
@@ -134,18 +159,20 @@ def main():
         profiles_only_str = "--profiles-only"
 
     if args.run_replicates and not args.merge_replicates:
-        msg = ("The --run-replicates option was given without the --merge-replicates "
-               "option. It will be ignored.")
+        msg = (
+            "The --run-replicates option was given without the --merge-replicates "
+            "option. It will be ignored."
+        )
         logger.warning(msg)
 
     # collect the job_ids in case we are using slurm and need to merge replicates
     rep_to_condition = ribo_utils.get_riboseq_replicates_reverse_map(config)
     job_ids_mapping = defaultdict(list)
 
-    sample_names = sorted(config['riboseq_samples'].keys())
+    sample_names = sorted(config["riboseq_samples"].keys())
 
     for sample_name in sample_names:
-        data = config['riboseq_samples'][sample_name]
+        data = config["riboseq_samples"][sample_name]
 
         tmp_str = ""
         if args.tmp is not None:
@@ -153,19 +180,19 @@ def main():
             tmp_str = "--tmp {}".format(tmp)
 
         cmd = "run-rpbp-pipeline {} {} {} --num-cpus {} {} {} {} {} {} {} {} {} {}".format(
-            data, 
-            args.config, 
-            sample_name, 
+            data,
+            args.config,
+            sample_name,
             args.num_cpus,
             mem_str,
-            tmp_str, 
-            do_not_call_str, 
+            tmp_str,
+            do_not_call_str,
             overwrite_str,
             profiles_only_str,
             keep_intermediate_str,
-            logging_str, 
+            logging_str,
             star_str,
-            flexbar_str
+            flexbar_str,
         )
 
         job_id = slurm.check_sbatch(cmd, args=args)
@@ -180,21 +207,21 @@ def main():
     merge_replicates_str = "--merge-replicates"
 
     for condition_name in sorted(riboseq_replicates.keys()):
-    
+
         # then we predict the ORFs
         cmd = "predict-translated-orfs {} {} --num-cpus {} {} {} {} {}".format(
-            args.config, 
-            condition_name, 
-            args.num_cpus, 
-            do_not_call_str, 
-            overwrite_str, 
-            logging_str, 
-            merge_replicates_str
+            args.config,
+            condition_name,
+            args.num_cpus,
+            do_not_call_str,
+            overwrite_str,
+            logging_str,
+            merge_replicates_str,
         )
 
         job_ids = job_ids_mapping[condition_name]
         slurm.check_sbatch(cmd, args=args, dependencies=job_ids)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

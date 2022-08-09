@@ -3,7 +3,7 @@
 ## Ribosome profiling with Bayesian predictions
 
 We propose an unsupervised Bayesian approach to predict translated open reading frames (ORFs) from ribosome profiles. We rely on MCMC sampling using `Stan` to estimate posterior distributions
-of the likelihood of translation for each identified ORF. We implement an automatic Bayesian Periodic fragment length and ribosome P-site offset Selection (BPPS), *i.e.* read lengths and ribosome P-site offsets are inferred from the data, without supervision. Hence our method is able to handle *de novo* translatome annotation by directly assessing the periodicity of the Ribo-seq signal.
+of the likelihood of translation for each identified ORF. We implement an automatic Bayesian Periodic fragment length and ribosome P-site offset Selection (BPPS), _i.e._ read lengths and ribosome P-site offsets are inferred from the data, without supervision. Hence our method is able to handle _de novo_ translatome annotation by directly assessing the periodicity of the Ribo-seq signal.
 
 ### Supported operating systems
 
@@ -23,7 +23,7 @@ For detailed instructions, refer to [installation](installation.html).
 For detailed usage instructions, refer to [Running the Rp-Bp pipeline step-by-step](usage-instructions.html).
 For quality control and visualisation of the results, see [QC and downstream analysis of the Rp-Bp results](analysis-scripts.html).
 
-To get started, the package also includes a small example using a *C. elegans* dataset.
+To get started, the package also includes a small example using a _C. elegans_ dataset.
 To run the example, refer to [Running Rp-Bp on the example dataset](running-example.html).
 
 ### License
@@ -58,6 +58,4 @@ follow the instructions and guidelines given in the template.
 ## How to cite
 
 Brandon Malone, Ilian Atanassov, Florian Aeschimann, Xinping Li, Helge Großhans, Christoph Dieterich.
-[Bayesian prediction of RNA translation from ribosome profiling](https://doi.org/10.1093/nar/gkw1350), *Nucleic Acids Research*, Volume 45, Issue 6, 7 April 2017, Pages 2960-2972.
-
-
+[Bayesian prediction of RNA translation from ribosome profiling](https://doi.org/10.1093/nar/gkw1350), _Nucleic Acids Research_, Volume 45, Issue 6, 7 April 2017, Pages 2960-2972.
