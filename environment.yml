@@ -5,7 +5,6 @@ channels:
   - bioconda
 dependencies:
   - python
-  - appdirs
   - biopython
   - bowtie2
   - cmdstanpy
@@ -17,16 +16,10 @@ dependencies:
   - joblib
   - numpy
   - pandas
-  - pip
-  - pytest
+  - pbiotools>=3.0.0
   - pyyaml
   - samtools
   - scipy
-  - setuptools
   - star
   - statsmodels
   - pysam
-  - pip:
-      - pytest-cov
-      - pytest-depends
-      #      - git+https://github.com/dieterich-lab/pbiotools.git@dev-ssciwr#egg=pbiotools # installed separately with --no-deps ???

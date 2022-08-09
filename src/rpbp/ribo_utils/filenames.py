@@ -1,8 +1,6 @@
 import glob
 import os
 
-import pbiotools.misc.utils as utils
-
 
 def get_annotated_string(is_annotated):
     annotated = ""
@@ -299,22 +297,12 @@ def get_metagene_profiles_bayes_factors(riboseq_base, name, **kwargs):
     return s
 
 
-def get_default_models_base(project="rpbp_models"):
-    import appdirs
+def get_default_models_base():
+    import os
+    import inspect
+    import rpbp
 
-    appname = "rpbp"
-    appauthor = "dieterich-lab"
-    # preferred location is CONDA_PREFIX if installed
-    # via conda, otherwise fall back to user_data_dir
-    try:
-
-        models_base = os.path.join(
-            os.environ["CONDA_PREFIX"], "share", appname, project
-        )
-    except:
-        models_base = appdirs.user_data_dir(appname, appauthor)
-        models_base = os.path.join(models_base, project)
-    return models_base
+    return os.path.join(os.path.dirname(inspect.getfile(rpbp)), "models")
 
 
 def get_models(models_base, model_type):

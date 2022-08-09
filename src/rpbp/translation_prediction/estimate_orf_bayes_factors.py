@@ -6,7 +6,10 @@ import argparse
 import ctypes
 import multiprocessing
 import scipy.io
+import scipy.stats
+import scipy.sparse
 import tempfile
+import pathlib
 
 import numpy as np
 import pandas as pd
@@ -18,6 +21,7 @@ import pbiotools.misc.slurm as slurm
 import pbiotools.misc.utils as utils
 
 import rpbp.ribo_utils.utils as ribo_utils
+import rpbp.ribo_utils.compile_rpbp_models as compile_rpbp_models
 
 from cmdstanpy import CmdStanModel
 from rpbp.defaults import default_num_groups, translation_options
@@ -353,12 +357,6 @@ def main():
         default=translation_options["translation_iterations"],
     )
 
-    parser.add_argument(
-        "--use-stan-threads",
-        help="""If this flag is present, instantiate models using options for C++ compiler.""",
-        action="store_true",
-    )
-
     # behavior options
     # [--num-orfs] is not used in the the Rp-Bp pipeline
     parser.add_argument(
@@ -438,19 +436,15 @@ def main():
     msg = "Number of regions after filtering: {}".format(len(regions))
     logger.info(msg)
 
-    # Stan model instantiation option
-    logger.debug("Reading models")
-    cpp_options = None
-    if args.use_stan_threads:
-        cpp_options = {"STAN_THREADS": "TRUE"}
+    compile_rpbp_models.compile()
 
-    # setting compile=False results in exe_file=None?
+    # read in the relevant pre-compiled models
     translated_models = [
-        CmdStanModel(stan_file=tm, cpp_options=cpp_options)
+        CmdStanModel(exe_file=pathlib.Path(tm).with_suffix(""))
         for tm in args.translated_models
     ]
     untranslated_models = [
-        CmdStanModel(stan_file=bm, cpp_options=cpp_options)
+        CmdStanModel(exe_file=pathlib.Path(bm).with_suffix(""))
         for bm in args.untranslated_models
     ]
 

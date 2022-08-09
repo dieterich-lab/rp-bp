@@ -3,7 +3,7 @@
 """
 
 import pytest
-
+import sys
 
 # REF_DATA_URL = 'https://data.dieterichlab.org/s/JB4AkN7jC574fzp/download'
 REF_DATA_URL = "https://data.dieterichlab.org/s/kYn5sY7YrJPWDiG/download"
@@ -91,10 +91,11 @@ def get_genome(getf_config):
     :obj:`tuple`: configuration files
     """
     import pbiotools.misc.shell_utils as shell_utils
+    import multiprocessing
 
     config, ref_config = getf_config
 
-    num_cpus = 6
+    num_cpus = multiprocessing.cpu_count()
     star_options = '--star-options "--genomeSAindexNbases 10"'
     cmd = (
         f"prepare-rpbp-genome {config.as_posix()} "
@@ -196,10 +197,14 @@ def get_pipeline(getf_config):
     :obj:`tuple`: configuration files
     """
     import pbiotools.misc.shell_utils as shell_utils
+    import multiprocessing
 
     config, ref_config = getf_config
 
-    num_cpus = 6
+    if sys.platform == "darwin":
+        num_cpus = 1  # avoid parallel processing issue on macos: https://github.com/dieterich-lab/rp-bp/issues/140
+    else:
+        num_cpus = multiprocessing.cpu_count()
     opts = (
         "--merge-replicates --run-replicates --overwrite "
         "--keep-intermediate-files --write-unfiltered"

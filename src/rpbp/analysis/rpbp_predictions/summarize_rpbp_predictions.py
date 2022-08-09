@@ -222,14 +222,15 @@ def get_circos_graph(orfs, sub_folder, config, args):
         }
         layout.append(record)
     circos_graph_data["genome"] = layout
-    locus = circos_graph_data['genome'][0]['label']
+    locus = circos_graph_data["genome"][0]["label"]
 
     filen = f"{config['genome_name']}.circos_graph_data.json"
     filen = Path(config["riboseq_data"], sub_folder, filen)
     with open(filen, "w") as f:
         json.dump(circos_graph_data, f)
-    
+
     return (filen.as_posix(), locus)
+
 
 def add_data(
     name,
@@ -594,7 +595,7 @@ def main():
 
     # option handling
     if not args.no_replicates:
-        if not "riboseq_biological_replicates" in config:
+        if "riboseq_biological_replicates" not in config:
             args.no_replicates = True
         else:
             if config["riboseq_biological_replicates"] is None:
@@ -788,7 +789,7 @@ def main():
         orfs.loc[label_m, "color"] = color
     orfs = orfs[bed_utils.bed12_field_names]
     orfs.drop_duplicates(inplace=True)
-    
+
     igv_filen = filenames.get_riboseq_predicted_orfs(
         config["riboseq_data"],
         project,

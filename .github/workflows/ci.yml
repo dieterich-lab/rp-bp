@@ -12,7 +12,6 @@ on:
 
 jobs:
   install-and-test:
-    name: ${{matrix.os}}
     runs-on: ${{matrix.os}}
     defaults:
       run:
@@ -20,13 +19,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
     steps:
       - uses: actions/checkout@v3
       - name: Create rpbp conda environment
         uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: "3.10"
+          python-version: ${{ matrix.python-version }}
+          channels: bioconda,conda-forge,defaults
+          channel-priority: true
           auto-update-conda: true
           auto-activate-base: false
           activate-environment: rpbp
@@ -38,16 +40,16 @@ jobs:
           conda config --show-sources
           conda config --show
           printenv | sort
-      #- name: Install previous set of pbiotools deps
-      #  run: pip install dask sklearn appdirs tqdm mygene openpyxl fastparquet more_itertools matplotlib matplotlib_venn seaborn
-      #- name: Install pbiotools with --no-deps option
-      #  run: pip install git+https://github.com/dieterich-lab/pbiotools.git@dev-ssciwr --no-deps --verbose
-      - name: Install pbiotools
-        run: pip install git+https://github.com/dieterich-lab/pbiotools.git@dev-ssciwr --verbose
-      - name: Install rp-bp
-        run: pip install . --verbose
+      - name: Install test requirements
+        run: pip install pytest pytest-cov pytest-depends
+      - name: Install rp-bp with --no-deps option
+        run: pip install . --no-deps --verbose
       - name: Run tests
         run: python -m pytest . --cov=rpbp --cov-report=xml -s -v
+      - name: Compile stan models (should already exist -> no-op)
+        run: compile-rpbp-models
+      - name: Compile stan models with --force
+        run: compile-rpbp-models --force
       - name: Upload code coverage to codecov
         uses: codecov/codecov-action@v3
         with:
