@@ -32,9 +32,10 @@ def test_pipeline_part1(getf_genome):
         msg = f"Comparing {file} and {ref_file}"
         logger.info(msg)
         assert files_match(file, ref_file)
-        
+
 
 # test output of `run-all-rpbp-instances`
+@pytest.mark.depends(on=["test_pipeline_part1"])
 def test_pipeline_part2(getf_pipeline):
     for file, ref_file in getf_pipeline:
         msg = f"Comparing {file} and {ref_file}"

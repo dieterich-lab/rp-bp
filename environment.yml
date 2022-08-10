@@ -25,3 +25,4 @@ dependencies:
       - pyyaml==5.4
       - pytest
       - pytest-cov
+      - pytest-depends
