@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - started 2022-07
 
-We are working on a major version upgrade. Added test layout, GitHub CI workflow.
-Added pyproject.toml, and updated project packaging file structure.
+We are working on a major version upgrade. 
+
+### Added
+- Regression tests, GitHub CI workflow
+
 
 ## [2.0.0] 2019-05-24
 
