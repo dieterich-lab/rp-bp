@@ -5,14 +5,13 @@ numpy>=1.16,<1.17
 pandas==0.24.0
 
 # Pin version of the pbio package and related dependencies:
-git+https://github.com/dieterich-lab/pybio-utils.git@1.0.0#egg=pbio
+git+https://github.com/dieterich-lab/pbiotools.git@dev-ssciwr#egg=pbiotools
 pysam==0.15.2 # with Samtools-1.7
 pystan==2.19.0.0
 pyyaml==5.4
 scipy==1.2.1 # Statsmodels 0.9/Scipy 1.3.0 incompatibility
 statsmodels==0.9.0
-# for dev branch
-# git+https://github.com/dieterich-lab/pybio-utils.git@dev#egg=pbio
+
 
 # Do not use [--no-binary :all:], installation will fail.
 # Ignore `ERROR: Failed building wheel for rpbp`,

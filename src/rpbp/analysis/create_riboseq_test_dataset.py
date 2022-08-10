@@ -7,9 +7,9 @@ import yaml
 
 import pysam
 
-import pbio.utils.bio as bio
-import pbio.misc.utils as utils
-import pbio.ribo.ribo_filenames as filenames
+import pbiotools.utils.bio as bio
+import pbiotools.misc.utils as utils
+import pbiotools.ribo.ribo_filenames as filenames
 
 default_reference = "I"
 default_max_reads = 100000

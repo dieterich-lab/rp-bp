@@ -11,12 +11,12 @@ import numpy as np
 import os
 import scipy.stats
 
-import pbio.utils.bio as bio
-import pbio.utils.bed_utils as bed_utils
-import pbio.misc.latex as latex
-import pbio.misc.math_utils as math_utils
+import pbiotools.utils.bio as bio
+import pbiotools.utils.bed_utils as bed_utils
+import pbiotools.misc.latex as latex
+import pbiotools.misc.math_utils as math_utils
 
-import pbio.ribo.ribo_utils as ribo_utils
+import pbiotools.ribo.ribo_utils as ribo_utils
 
 default_uniprot = ""
 default_uniprot_label = "UniRef"

@@ -4,14 +4,14 @@ import argparse
 import sys
 import yaml
 
-import pbio.misc.slurm as slurm
-import pbio.misc.utils as utils
+import pbiotools.misc.slurm as slurm
+import pbiotools.misc.utils as utils
 
-import pbio.ribo.ribo_filenames as filenames
-import pbio.ribo.ribo_utils as ribo_utils
+import pbiotools.ribo.ribo_filenames as filenames
+import pbiotools.ribo.ribo_utils as ribo_utils
 
 import logging
-import pbio.misc.logging_utils as logging_utils
+import pbiotools.misc.logging_utils as logging_utils
 
 logger = logging.getLogger(__name__)
 

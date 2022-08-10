@@ -13,13 +13,13 @@ import numpy as np
 import scipy.io
 import tqdm
 
-import pbio.utils.bed_utils as bed_utils
-import pbio.misc.parallel as parallel
-import pbio.misc.logging_utils as logging_utils
-import pbio.misc.shell_utils as shell_utils
-import pbio.misc.utils as utils
+import pbiotools.utils.bed_utils as bed_utils
+import pbiotools.misc.parallel as parallel
+import pbiotools.misc.logging_utils as logging_utils
+import pbiotools.misc.shell_utils as shell_utils
+import pbiotools.misc.utils as utils
 
-import pbio.ribo.ribo_filenames as filenames
+import pbiotools.ribo.ribo_filenames as filenames
 
 logger = logging.getLogger(__name__)
 

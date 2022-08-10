@@ -6,9 +6,9 @@ extract the ORF profiles.
 
 Calls:
     create-base-genome-profile
-    extract-metagene-profiles (pbio.ribo)
-    estimate-metagene-profile-bayes-factors (pbio.ribo)
-    select-periodic-offsets (pbio.ribo)
+    extract-metagene-profiles (pbiotools.ribo)
+    estimate-metagene-profile-bayes-factors (pbiotools.ribo)
+    select-periodic-offsets (pbiotools.ribo)
     extract-orf-profiles
 """
 
@@ -19,13 +19,13 @@ import shlex
 import yaml
 
 
-import pbio.utils.pgrm_utils as pgrm_utils
-import pbio.misc.logging_utils as logging_utils
-import pbio.misc.shell_utils as shell_utils
-import pbio.misc.utils as utils
+import pbiotools.utils.pgrm_utils as pgrm_utils
+import pbiotools.misc.logging_utils as logging_utils
+import pbiotools.misc.shell_utils as shell_utils
+import pbiotools.misc.utils as utils
 
-import pbio.ribo.ribo_utils as ribo_utils
-import pbio.ribo.ribo_filenames as filenames
+import pbiotools.ribo.ribo_utils as ribo_utils
+import pbiotools.ribo.ribo_filenames as filenames
 
 from rpbp.defaults import (
     default_num_cpus,

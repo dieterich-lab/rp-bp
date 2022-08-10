@@ -5,13 +5,13 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-import pbio.misc.mpl_utils as mpl_utils
-import pbio.misc.math_utils as math_utils
+import pbiotools.misc.mpl_utils as mpl_utils
+import pbiotools.misc.math_utils as math_utils
 
 import pickle
 
 import logging
-import pbio.misc.logging_utils as logging_utils
+import pbiotools.misc.logging_utils as logging_utils
 
 logger = logging.getLogger(__name__)
 

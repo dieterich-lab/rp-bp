@@ -8,15 +8,15 @@ import shlex
 import sys
 import yaml
 
-import pbio.misc.latex as latex
-import pbio.misc.logging_utils as logging_utils
-import pbio.misc.parallel as parallel
-import pbio.misc.shell_utils as shell_utils
-import pbio.misc.slurm as slurm
-import pbio.misc.utils as utils
+import pbiotools.misc.latex as latex
+import pbiotools.misc.logging_utils as logging_utils
+import pbiotools.misc.parallel as parallel
+import pbiotools.misc.shell_utils as shell_utils
+import pbiotools.misc.slurm as slurm
+import pbiotools.misc.utils as utils
 
-import pbio.ribo.ribo_filenames as filenames
-import pbio.ribo.ribo_utils as ribo_utils
+import pbiotools.ribo.ribo_filenames as filenames
+import pbiotools.ribo.ribo_utils as ribo_utils
 
 from rpbp.defaults import default_num_cpus, metagene_options
 

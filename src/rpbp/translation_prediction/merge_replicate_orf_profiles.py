@@ -4,8 +4,8 @@ import argparse
 import logging
 import scipy.io
 
-import pbio.misc.logging_utils as logging_utils
-import pbio.misc.math_utils as math_utils
+import pbiotools.misc.logging_utils as logging_utils
+import pbiotools.misc.math_utils as math_utils
 
 logger = logging.getLogger(__name__)
 

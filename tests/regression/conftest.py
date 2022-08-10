@@ -27,7 +27,7 @@ def data_loc(tmp_path_factory):
     :pathlib.Path: base temporary directory
     """
     
-    import pbio.misc.shell_utils as shell_utils
+    import pbiotools.misc.shell_utils as shell_utils
 
     loc = tmp_path_factory.mktemp("data")
 
@@ -90,7 +90,7 @@ def get_genome(getf_config):
     :obj:`tuple`: configuration files
     """
     
-    import pbio.misc.shell_utils as shell_utils
+    import pbiotools.misc.shell_utils as shell_utils
 
     config, ref_config = getf_config
 
@@ -119,7 +119,7 @@ def getf_genome(get_genome):
     """
     
     import yaml
-    import pbio.ribo.ribo_filenames as filenames
+    import pbiotools.ribo.ribo_filenames as filenames
 
     config, ref_config = get_genome
     config = yaml.load(open(config), Loader=yaml.FullLoader)
@@ -191,7 +191,7 @@ def get_pipeline(getf_config):
     :obj:`tuple`: configuration files
     """
     
-    import pbio.misc.shell_utils as shell_utils
+    import pbiotools.misc.shell_utils as shell_utils
 
     config, ref_config = getf_config
 
@@ -225,8 +225,8 @@ def getf_pipeline(get_pipeline):
     """
         
     import yaml
-    import pbio.ribo.ribo_filenames as filenames
-    import pbio.ribo.ribo_utils as ribo_utils
+    import pbiotools.ribo.ribo_filenames as filenames
+    import pbiotools.ribo.ribo_utils as ribo_utils
 
     from rpbp.defaults import metagene_options
 

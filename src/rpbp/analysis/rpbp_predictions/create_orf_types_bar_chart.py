@@ -12,12 +12,12 @@ import seaborn as sns
 
 sns.set(style="white")
 
-import pbio.utils.bed_utils as bed_utils
-import pbio.misc.mpl_utils as mpl_utils
-import pbio.ribo.ribo_utils as ribo_utils
+import pbiotools.utils.bed_utils as bed_utils
+import pbiotools.misc.mpl_utils as mpl_utils
+import pbiotools.ribo.ribo_utils as ribo_utils
 
 import logging
-import pbio.misc.logging_utils as logging_utils
+import pbiotools.misc.logging_utils as logging_utils
 
 logger = logging.getLogger(__name__)
 

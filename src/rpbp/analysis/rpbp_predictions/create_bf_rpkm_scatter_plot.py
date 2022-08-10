@@ -11,11 +11,11 @@ import yaml
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pbio.utils.bio as bio
-import pbio.misc.utils as utils
+import pbiotools.utils.bio as bio
+import pbiotools.misc.utils as utils
 
-import pbio.ribo.ribo_filenames as filenames
-import pbio.ribo.ribo_utils as ribo_utils
+import pbiotools.ribo.ribo_filenames as filenames
+import pbiotools.ribo.ribo_utils as ribo_utils
 
 logger = logging.getLogger(__name__)
 

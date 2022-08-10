@@ -52,8 +52,8 @@ def _post_install(force_recompile):
 
     importlib.reload(site)
 
-    import pbio.ribo.ribo_filenames as filenames
-    import pbio.misc.shell_utils as shell_utils
+    import pbiotools.ribo.ribo_filenames as filenames
+    import pbiotools.misc.shell_utils as shell_utils
 
     smf = [os.path.join("rpbp_models", s) for s in stan_model_files]
 

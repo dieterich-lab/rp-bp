@@ -12,14 +12,14 @@ import sys
 
 import yaml
 
-import pbio.ribo.ribo_filenames as filenames
+import pbiotools.ribo.ribo_filenames as filenames
 
-import pbio.utils.bam_utils as bam_utils
-import pbio.utils.fastx_utils as fastx_utils
-import pbio.utils.pgrm_utils as pgrm_utils
-import pbio.misc.logging_utils as logging_utils
-import pbio.misc.shell_utils as shell_utils
-import pbio.misc.utils as utils
+import pbiotools.utils.bam_utils as bam_utils
+import pbiotools.utils.fastx_utils as fastx_utils
+import pbiotools.utils.pgrm_utils as pgrm_utils
+import pbiotools.misc.logging_utils as logging_utils
+import pbiotools.misc.shell_utils as shell_utils
+import pbiotools.misc.utils as utils
 
 from rpbp.defaults import (
     default_num_cpus,

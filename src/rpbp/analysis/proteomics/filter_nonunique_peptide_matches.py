@@ -3,12 +3,12 @@
 import argparse
 import pandas as pd
 
-import pbio.misc.utils as utils
-import pbio.misc.pandas_utils as pandas_utils
-import pbio.misc.parallel as parallel
+import pbiotools.misc.utils as utils
+import pbiotools.misc.pandas_utils as pandas_utils
+import pbiotools.misc.parallel as parallel
 
 import logging
-import pbio.misc.logging_utils as logging_utils
+import pbiotools.misc.logging_utils as logging_utils
 
 logger = logging.getLogger(__name__)
 

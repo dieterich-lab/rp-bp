@@ -6,10 +6,10 @@ import logging
 
 import sys
 
-import pbio.utils.fastx_utils as fastx_utils
-import pbio.misc.logging_utils as logging_utils
-import pbio.misc.parallel as parallel
-import pbio.misc.pandas_utils as pandas_utils
+import pbiotools.utils.fastx_utils as fastx_utils
+import pbiotools.misc.logging_utils as logging_utils
+import pbiotools.misc.parallel as parallel
+import pbiotools.misc.pandas_utils as pandas_utils
 
 logger = logging.getLogger(__name__)
 

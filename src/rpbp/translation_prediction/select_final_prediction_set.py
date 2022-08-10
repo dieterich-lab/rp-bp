@@ -6,12 +6,12 @@ import pandas as pd
 
 import Bio.Seq
 
-import pbio.utils.bed_utils as bed_utils
-import pbio.utils.fastx_utils as fastx_utils
-import pbio.misc.logging_utils as logging_utils
-import pbio.misc.parallel as parallel
+import pbiotools.utils.bed_utils as bed_utils
+import pbiotools.utils.fastx_utils as fastx_utils
+import pbiotools.misc.logging_utils as logging_utils
+import pbiotools.misc.parallel as parallel
 
-import pbio.ribo.ribo_utils as ribo_utils
+import pbiotools.ribo.ribo_utils as ribo_utils
 
 from rpbp.defaults import translation_options
 

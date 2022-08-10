@@ -20,13 +20,13 @@ import re
 import numpy as np
 import pandas as pd
 
-import pbio.misc.parallel as parallel
-import pbio.misc.utils as utils
-import pbio.misc.slurm as slurm
-import pbio.misc.logging_utils as logging_utils
+import pbiotools.misc.parallel as parallel
+import pbiotools.misc.utils as utils
+import pbiotools.misc.slurm as slurm
+import pbiotools.misc.logging_utils as logging_utils
 
-import pbio.utils.bed_utils as bed_utils
-import pbio.utils.fastx_utils as fastx_utils
+import pbiotools.utils.bed_utils as bed_utils
+import pbiotools.utils.fastx_utils as fastx_utils
 
 from rpbp.defaults import default_num_groups, default_start_codons, default_stop_codons
 

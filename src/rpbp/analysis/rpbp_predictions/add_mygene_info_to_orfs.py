@@ -5,15 +5,15 @@ import argparse
 import collections
 import pandas as pd
 
-import pbio.utils.bed_utils as bed_utils
-import pbio.utils.mygene_utils as mygene_utils
-import pbio.misc.logging_utils as logging_utils
-import pbio.misc.parallel as parallel
-import pbio.misc.utils as utils
-import pbio.misc.pandas_utils as pandas_utils
+import pbiotools.utils.bed_utils as bed_utils
+import pbiotools.utils.mygene_utils as mygene_utils
+import pbiotools.misc.logging_utils as logging_utils
+import pbiotools.misc.parallel as parallel
+import pbiotools.misc.utils as utils
+import pbiotools.misc.pandas_utils as pandas_utils
 
 import logging
-import pbio.misc.logging_utils as logging_utils
+import pbiotools.misc.logging_utils as logging_utils
 
 logger = logging.getLogger(__name__)
 

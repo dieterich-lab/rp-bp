@@ -12,15 +12,15 @@ import numpy as np
 import pandas as pd
 import scipy.io
 
-import pbio.utils.bed_utils as bed_utils
-import pbio.misc.logging_utils as logging_utils
-import pbio.misc.parallel as parallel
-import pbio.misc.slurm as slurm
-import pbio.misc.utils as utils
+import pbiotools.utils.bed_utils as bed_utils
+import pbiotools.misc.logging_utils as logging_utils
+import pbiotools.misc.parallel as parallel
+import pbiotools.misc.slurm as slurm
+import pbiotools.misc.utils as utils
 
-from pbio.misc.suppress_stdout_stderr import suppress_stdout_stderr
+from pbiotools.misc.suppress_stdout_stderr import suppress_stdout_stderr
 
-import pbio.ribo.ribo_utils as ribo_utils
+import pbiotools.ribo.ribo_utils as ribo_utils
 
 from rpbp.defaults import default_num_cpus, default_num_groups, translation_options
 

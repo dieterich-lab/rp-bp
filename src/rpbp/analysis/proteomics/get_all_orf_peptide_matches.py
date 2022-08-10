@@ -5,13 +5,13 @@ import logging
 import os
 import yaml
 
-import pbio.misc.logging_utils as logging_utils
-import pbio.misc.shell_utils as shell_utils
-import pbio.misc.utils as utils
-import pbio.misc.slurm as slurm
+import pbiotools.misc.logging_utils as logging_utils
+import pbiotools.misc.shell_utils as shell_utils
+import pbiotools.misc.utils as utils
+import pbiotools.misc.slurm as slurm
 
-import pbio.ribo.ribo_filenames as ribo_filenames
-import pbio.ribo.ribo_utils as ribo_utils
+import pbiotools.ribo.ribo_filenames as ribo_filenames
+import pbiotools.ribo.ribo_utils as ribo_utils
 
 logger = logging.getLogger(__name__)
 

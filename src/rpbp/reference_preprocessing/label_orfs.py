@@ -7,8 +7,8 @@ transcript structure with respect to annotated coding sequences
 import argparse
 import logging
 
-import pbio.misc.logging_utils as logging_utils
-import pbio.utils.bed_utils as bed_utils
+import pbiotools.misc.logging_utils as logging_utils
+import pbiotools.utils.bed_utils as bed_utils
 
 from rpbp.defaults import default_num_cpus
 

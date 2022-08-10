@@ -9,9 +9,9 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
-import pbio.utils.bed_utils as bed_utils
+import pbiotools.utils.bed_utils as bed_utils
 
-import pbio.ribo.ribo_utils as ribo_utils
+import pbiotools.ribo.ribo_utils as ribo_utils
 
 
 default_title = ""

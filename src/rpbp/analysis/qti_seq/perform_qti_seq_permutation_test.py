@@ -3,7 +3,7 @@
 import argparse
 import logging
 
-import pbio.misc.utils as utils
+import pbiotools.misc.utils as utils
 
 logger = logging.getLogger(__name__)
 

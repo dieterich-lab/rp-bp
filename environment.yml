@@ -20,7 +20,7 @@ dependencies:
       - pystan==2.19.0.0
       - joblib==0.13.2
       - biopython==1.73
-      - git+https://github.com/dieterich-lab/pybio-utils.git@1.0.0#egg=pbio
+      - git+https://github.com/dieterich-lab/pbiotools.git@dev-ssciwr#egg=pbiotools
       - pysam==0.15.2 # with Samtools-1.7
       - pyyaml==5.4
       - pytest

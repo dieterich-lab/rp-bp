@@ -9,16 +9,16 @@ import numpy as np
 import pandas as pd
 import scipy.stats
 
-import pbio.utils.bio as bio
-import pbio.utils.bed_utils as bed_utils
-import pbio.utils.mygene_utils as mygene_utils
-import pbio.misc.math_utils as math_utils
-import pbio.misc.parallel as parallel
-import pbio.misc.utils as utils
-import pbio.misc.pandas_utils as pandas_utils
+import pbiotools.utils.bio as bio
+import pbiotools.utils.bed_utils as bed_utils
+import pbiotools.utils.mygene_utils as mygene_utils
+import pbiotools.misc.math_utils as math_utils
+import pbiotools.misc.parallel as parallel
+import pbiotools.misc.utils as utils
+import pbiotools.misc.pandas_utils as pandas_utils
 
-import pbio.ribo.ribo_utils as ribo_utils
-import pbio.ribo.ribo_filenames as filenames
+import pbiotools.ribo.ribo_utils as ribo_utils
+import pbiotools.ribo.ribo_filenames as filenames
 
 import pyensembl
 
@@ -28,7 +28,7 @@ import pyensembl
 pd.options.mode.chained_assignment = None
 
 import logging
-import pbio.misc.logging_utils as logging_utils
+import pbiotools.misc.logging_utils as logging_utils
 
 logger = logging.getLogger(__name__)
 
