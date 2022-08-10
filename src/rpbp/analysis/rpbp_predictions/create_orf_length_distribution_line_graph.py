@@ -182,7 +182,7 @@ def main():
         )
 
     ax.set_xlabel("Length (bp)", fontsize=fontsize)
-    ax.set_ylabel("\% of predicted ORFs", fontsize=fontsize)
+    ax.set_ylabel("\\% of predicted ORFs", fontsize=fontsize)
 
     if len(args.title) > 0:
         ax.set_title(args.title, fontsize=fontsize)

@@ -105,7 +105,7 @@ def _create_figures(name_pretty_name_is_replicate, config, args):
             is_filtered_str = ", Filtered"
 
         if is_chisq:
-            title_str = "{}{}{}, Rp-$\chi^2$".format(
+            title_str = "{}{}{}, Rp-$\\chi^2$".format(
                 pretty_name, is_grouped_str, is_filtered_str
             )
             title_str = shlex.quote(title_str)
@@ -189,7 +189,7 @@ def _create_figures(name_pretty_name_is_replicate, config, args):
         for is_chisq in chisq_values:
 
             if is_chisq:
-                title_str = "{}, Rp-$\chi^2$".format(pretty_name)
+                title_str = "{}, Rp-$\\chi^2$".format(pretty_name)
                 title_str = shlex.quote(title_str)
                 title_str = "--title {}".format(title_str)
 
@@ -265,7 +265,7 @@ def _create_figures(name_pretty_name_is_replicate, config, args):
         for is_chisq in chisq_values:
 
             if is_chisq:
-                title_str = "{}, Rp-$\chi^2$".format(pretty_name)
+                title_str = "{}, Rp-$\\chi^2$".format(pretty_name)
                 title_str = shlex.quote(title_str)
                 title_str = "--title {}".format(title_str)
                 f = None

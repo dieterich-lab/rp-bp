@@ -204,8 +204,8 @@ def main():
         marker="D",
     )
 
-    ax.set_xlabel("Peptide Coverage (\%)", fontsize=args.fontsize)
-    ax.set_ylabel("\% of predicted ORFs", fontsize=args.fontsize)
+    ax.set_xlabel("Peptide Coverage (\\%)", fontsize=args.fontsize)
+    ax.set_ylabel("\\% of predicted ORFs", fontsize=args.fontsize)
 
     if args.title is not None and len(args.title) > 0:
         ax.set_title(args.title, fontsize=args.fontsize)

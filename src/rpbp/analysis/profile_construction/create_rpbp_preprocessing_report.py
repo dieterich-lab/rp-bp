@@ -874,7 +874,7 @@ def main():
                     length, offset, offset_status
                 )
                 if args.show_read_length_bfs:
-                    title = "\scriptsize{" + title + "}"
+                    title = "\\scriptsize{" + title + "}"
                     title = "\\multicolumn{2}{c}{" + title + "}"
                     latex.write(out, title)
                     latex.write_row_sep(out)
