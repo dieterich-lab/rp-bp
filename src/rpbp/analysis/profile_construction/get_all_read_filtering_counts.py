@@ -4,22 +4,18 @@ import argparse
 import yaml
 import logging
 import pandas as pd
-import os
 
 import numpy as np
-import scipy.io
 
 import pbiotools.ribo.ribo_filenames as ribo_filenames
 import pbiotools.ribo.ribo_utils as ribo_utils
 
 
-import pbiotools.utils.bio as bio
 import pbiotools.utils.bam_utils as bam_utils
 import pbiotools.utils.fastx_utils as fastx_utils
 import pbiotools.misc.logging_utils as logging_utils
 import pbiotools.misc.parallel as parallel
 import pbiotools.misc.shell_utils as shell_utils
-import pbiotools.misc.utils as utils
 import pbiotools.misc.pandas_utils as pandas_utils
 
 logger = logging.getLogger(__name__)
@@ -95,7 +91,7 @@ def get_counts(name_data, config, args):
         )
         lengths_str = ",".join(lengths)
         length_counts = bam_utils.get_length_distribution(unique_bam)
-        lengths = set([int(l) for l in lengths])
+        lengths = set([int(l_ex) for l_ex in lengths])
         m_lengths = length_counts["length"].isin(lengths)
         length_count = np.sum(length_counts.loc[m_lengths, "count"])
 

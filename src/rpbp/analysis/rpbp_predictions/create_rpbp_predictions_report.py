@@ -507,7 +507,7 @@ def main():
 
         latex.clearpage(out)
 
-        ### ORF type distributions
+        # ORF type distributions
         title = "Predicted ORF type distributions"
         latex.section(out, title)
 
@@ -661,7 +661,7 @@ def main():
         if i % 6 != 0:
             latex.clearpage(out)
 
-        ### ORF type length distributions
+        # ORF type length distributions
         title = "Predicted ORF type length distributions"
         latex.section(out, title)
 
@@ -801,7 +801,7 @@ def main():
         if i % 4 != 0:
             latex.clearpage(out)
 
-        ### ORF type metagene profiles
+        # ORF type metagene profiles
         if args.show_orf_periodicity:
             title = "Predicted ORF type metagene profiles"
             latex.section(out, title)

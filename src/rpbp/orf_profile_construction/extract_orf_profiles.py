@@ -249,7 +249,8 @@ def main():
     msg = "Combining the ORF profiles into one matrix"
     logger.info(msg)
 
-    f = lambda x, y: x + y
+    def f(x, y):
+        return x + y
 
     sum_profiles = functools.reduce(f, sum_profiles)
     sum_profiles_lil = sum_profiles.tolil()

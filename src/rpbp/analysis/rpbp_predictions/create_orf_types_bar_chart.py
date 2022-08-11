@@ -2,15 +2,10 @@
 
 import matplotlib
 
-matplotlib.use("agg")
-
 import argparse
 
 import matplotlib.pyplot as plt
-import numpy as np
 import seaborn as sns
-
-sns.set(style="white")
 
 import pbiotools.utils.bed_utils as bed_utils
 import pbiotools.misc.mpl_utils as mpl_utils
@@ -18,6 +13,9 @@ import pbiotools.ribo.ribo_utils as ribo_utils
 
 import logging
 import pbiotools.misc.logging_utils as logging_utils
+
+matplotlib.use("agg")
+sns.set(style="white")
 
 logger = logging.getLogger(__name__)
 

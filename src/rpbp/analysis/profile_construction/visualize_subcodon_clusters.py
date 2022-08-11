@@ -3,7 +3,6 @@
 import argparse
 import matplotlib
 import matplotlib.pyplot as plt
-import numpy as np
 
 import pbiotools.misc.mpl_utils as mpl_utils
 import pbiotools.misc.math_utils as math_utils

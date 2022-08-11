@@ -2,9 +2,6 @@
 
 import matplotlib
 
-matplotlib.use("agg")
-matplotlib.rc("text", usetex=True)
-
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,6 +14,9 @@ import pbiotools.misc.latex as latex
 import pbiotools.misc.math_utils as math_utils
 
 import pbiotools.ribo.ribo_utils as ribo_utils
+
+matplotlib.use("agg")
+matplotlib.rc("text", usetex=True)
 
 default_uniprot = ""
 default_uniprot_label = "UniRef"
@@ -72,7 +72,7 @@ def main():
         ]
 
         prediction_labels = [
-            latex.get_latex_safe_string(l) for l in ribo_utils.orf_type_labels
+            latex.get_latex_safe_string(l_ex) for l_ex in ribo_utils.orf_type_labels
         ]
 
         prediction_lengths_list = orf_lengths
@@ -82,7 +82,7 @@ def main():
         ]
 
         prediction_labels = [
-            latex.get_latex_safe_string(l) for l in ribo_utils.orf_types
+            latex.get_latex_safe_string(l_ex) for l_ex in ribo_utils.orf_types
         ]
 
         prediction_lengths_list = orf_lengths
