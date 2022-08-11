@@ -5,25 +5,18 @@
 import logging
 import pytest
 import gzip
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 
-def get_lines(filename):
-    if filename.endswith(".gz"):
-        with gzip.open(filename, "rb") as f:
-            return f.readlines()
-    with open(filename, "r") as f:
-        return f.readlines()
-
-
-def files_match(file, ref_file):
-    try:
-        assert get_lines(file) == get_lines(ref_file)
-    except AssertionError as e:
-        e.args += ("File:", file, "Reference file:", ref_file)
-        raise
-    return True
+def to_df(filename):
+    args = {}
+    if filename.endswith(".bed.gz"):
+        args = {"sep": "\t"}
+    elif filename.endswith(".mtx.gz"):
+        args = {"sep": " ", "comment": "%", "header": None}
+    return pd.read_csv(filename, **args)
 
 
 # test output of `prepare-rpbp-genome`
@@ -31,7 +24,7 @@ def test_pipeline_part1(getf_genome):
     for file, ref_file in getf_genome:
         msg = f"Comparing {file} and {ref_file}"
         logger.info(msg)
-        assert files_match(file, ref_file)
+        pd.testing.assert_frame_equal(to_df(file), to_df(ref_file))
 
 
 # test output of `run-all-rpbp-instances`
@@ -40,4 +33,4 @@ def test_pipeline_part2(getf_pipeline):
     for file, ref_file in getf_pipeline:
         msg = f"Comparing {file} and {ref_file}"
         logger.info(msg)
-        assert files_match(file, ref_file)
+        pd.testing.assert_frame_equal(to_df(file), to_df(ref_file))
