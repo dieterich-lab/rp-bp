@@ -26,7 +26,6 @@ def data_loc(tmp_path_factory):
     -------
     :pathlib.Path: base temporary directory
     """
-
     import pbiotools.misc.shell_utils as shell_utils
 
     loc = tmp_path_factory.mktemp("data")
@@ -91,7 +90,6 @@ def get_genome(getf_config):
     -------
     :obj:`tuple`: configuration files
     """
-
     import pbiotools.misc.shell_utils as shell_utils
 
     config, ref_config = getf_config
@@ -192,14 +190,13 @@ def get_pipeline(getf_config):
     -------
     :obj:`tuple`: configuration files
     """
-
     import pbiotools.misc.shell_utils as shell_utils
 
     config, ref_config = getf_config
 
     num_cpus = 4
     opts = "--merge-replicates --run-replicates --overwrite --keep-intermediate-files"
-    cmd = f"run-all-rpbp-instances {config.as_posix()} " f"--num-cpus {num_cpus} {opts}"
+    cmd = f"run-all-rpbp-instances {config.as_posix()} --num-cpus {num_cpus} {opts}"
     shell_utils.check_call(cmd, call=True, raise_on_error=True)
 
     return config, ref_config
