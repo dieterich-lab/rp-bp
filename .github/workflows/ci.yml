@@ -38,6 +38,8 @@ jobs:
           conda config --show-sources
           conda config --show
           printenv | sort
+      - name: Install pbiotools
+        run: pip install git+https://github.com/dieterich-lab/pbiotools.git@dev-ssciwr --no-deps --verbose
       - name: Install rp-bp
         run: pip install . --verbose
       - name: Run tests
