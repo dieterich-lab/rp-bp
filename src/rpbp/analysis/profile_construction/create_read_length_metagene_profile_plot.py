@@ -117,6 +117,12 @@ def main():
     mask_starts = metagene_profile["type"] == "start"
     mask_ends = metagene_profile["type"] == "end"
 
+    start_counts = metagene_profile.loc[mask_starts, "count"].values
+    start_positions = metagene_profile.loc[mask_starts, "position"].values
+
+    end_counts = metagene_profile.loc[mask_ends, "count"].values
+    end_positions = metagene_profile.loc[mask_ends, "position"].values
+
     if args.use_entire_profile:
         args.start_upstream = start_positions[0]
         args.start_downstream = start_positions[-1]
@@ -133,12 +139,6 @@ def main():
 
         mask_starts = m_start_upstream & m_start_downstream & mask_starts
         mask_ends = m_end_upstream & m_end_downstream & mask_ends
-
-    start_counts = metagene_profile.loc[mask_starts, "count"].values
-    start_positions = metagene_profile.loc[mask_starts, "position"].values
-
-    end_counts = metagene_profile.loc[mask_ends, "count"].values
-    end_positions = metagene_profile.loc[mask_ends, "position"].values
 
     ymax = max(max(start_counts), max(end_counts))
     ymax = 1.1 * ymax
