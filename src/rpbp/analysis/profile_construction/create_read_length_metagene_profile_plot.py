@@ -2,15 +2,15 @@
 
 import matplotlib
 
-matplotlib.use("agg")
-
 import argparse
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-sns.set(style="white")
 import numpy as np
 import pandas as pd
+
+matplotlib.use("agg")
+sns.set(style="white")
 
 default_title = "Periodicity analysis"
 default_xlabel_start = (

@@ -3,7 +3,6 @@
 import argparse
 
 import os
-import sys
 import yaml
 import numpy as np
 import pandas as pd
@@ -22,13 +21,13 @@ import pbiotools.ribo.ribo_filenames as filenames
 
 import pyensembl
 
+import logging
+import pbiotools.misc.logging_utils as logging_utils
 
 # TODO: this script causes several SettingWithCopyWarnings. This is expected, so
 # we will ignore it for now.
 pd.options.mode.chained_assignment = None
 
-import logging
-import pbiotools.misc.logging_utils as logging_utils
 
 logger = logging.getLogger(__name__)
 

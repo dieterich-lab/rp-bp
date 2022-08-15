@@ -2,8 +2,6 @@
 
 import matplotlib
 
-matplotlib.use("agg")
-
 import argparse
 import logging
 import sys
@@ -16,10 +14,11 @@ import tqdm
 import pbiotools.utils.bed_utils as bed_utils
 import pbiotools.misc.parallel as parallel
 import pbiotools.misc.logging_utils as logging_utils
-import pbiotools.misc.shell_utils as shell_utils
 import pbiotools.misc.utils as utils
 
 import pbiotools.ribo.ribo_filenames as filenames
+
+matplotlib.use("agg")
 
 logger = logging.getLogger(__name__)
 

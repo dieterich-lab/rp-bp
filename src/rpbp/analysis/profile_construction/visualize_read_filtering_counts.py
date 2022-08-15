@@ -2,8 +2,6 @@
 
 import matplotlib
 
-matplotlib.use("agg")
-
 import argparse
 import yaml
 import logging
@@ -13,13 +11,13 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import seaborn as sns
 
-sns.set(style="white")
-
 import pbiotools.misc.mpl_utils as mpl_utils
 import pbiotools.misc.logging_utils as logging_utils
 
 import pbiotools.ribo.ribo_utils as ribo_utils
 
+matplotlib.use("agg")
+sns.set(style="white")
 
 logger = logging.getLogger(__name__)
 
@@ -167,7 +165,7 @@ def main():
             config = yaml.load(open(args.config), Loader=yaml.FullLoader)
             sample_name_map = ribo_utils.get_sample_name_map(config)
             df["display_name"] = df["name"].apply(lambda x: sample_name_map[x])
-        except:
+        except Exception:
             msg = 'Fall back to "name", cannot fetch "display_name" from config file.'
             logger.warning(msg)
             df["display_name"] = df["name"]

@@ -2,13 +2,11 @@
 
 import matplotlib
 
-matplotlib.use("agg")
-
 import argparse
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-import logging
+
+matplotlib.use("agg")
 
 default_title = "Metagene profile Bayes' factors"
 default_xlabel = "Offset, relative to translation \ninitiation site"

@@ -917,7 +917,7 @@ def main():
             latex.end_table(out)
             latex.clearpage(out)
 
-        ### ORF type metagene profiles
+        # ORF type metagene profiles
         if args.show_orf_periodicity:
             title = "ORF type periodicity"
             latex.section(out, title)

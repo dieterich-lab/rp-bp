@@ -2,8 +2,6 @@
 
 import matplotlib
 
-matplotlib.use("agg")
-
 import argparse
 import logging
 import os
@@ -17,6 +15,7 @@ import pbiotools.misc.utils as utils
 import pbiotools.ribo.ribo_filenames as filenames
 import pbiotools.ribo.ribo_utils as ribo_utils
 
+matplotlib.use("agg")
 logger = logging.getLogger(__name__)
 
 default_min_rpkm = 0

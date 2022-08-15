@@ -22,7 +22,7 @@ from pbiotools.misc.suppress_stdout_stderr import suppress_stdout_stderr
 
 import pbiotools.ribo.ribo_utils as ribo_utils
 
-from rpbp.defaults import default_num_cpus, default_num_groups, translation_options
+from rpbp.defaults import default_num_groups, translation_options
 
 logger = logging.getLogger(__name__)
 
