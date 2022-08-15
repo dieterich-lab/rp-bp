@@ -139,7 +139,7 @@ def main():
                 note=note,
             )
 
-            cmd = "extract-orf-profiles {} {} {} {} {} {} {} {}".format(
+            cmd = "extract-orf-profiles {} {} {} {} {} {} {} {} {}".format(
                 bam,
                 orfs,
                 exons,
@@ -159,7 +159,7 @@ def main():
     if args.add_ids:
         add_ids_str = "--add-ids"
 
-    cmd = "collect-read-length-orf-profiles {} {} {} {} {}".format(
+    cmd = "collect-read-length-orf-profiles {} {} {} {} {} {}".format(
         args.config, args.name, args.out, is_condition_str, add_ids_str, logging_str
     )
 
