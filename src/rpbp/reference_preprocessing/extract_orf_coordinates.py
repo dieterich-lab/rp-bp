@@ -28,7 +28,7 @@ import pbiotools.misc.logging_utils as logging_utils
 import pbiotools.utils.bed_utils as bed_utils
 import pbiotools.utils.fastx_utils as fastx_utils
 
-from rpbp.defaults import default_num_groups, default_start_codons, default_stop_codons
+from rpbp.defaults import default_start_codons, default_stop_codons
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +111,7 @@ def get_matching_stop_position(start, stop_pos):
 
     diff = stop_pos - start
     is_inframe_stop = (diff > 0) & (diff % 3 == 0)
-    matches = np.where(is_inframe_stop == True)[0]
+    matches = np.where(is_inframe_stop)[0]
 
     if len(matches) == 0:
         return None

@@ -35,7 +35,7 @@ def create_figures(config_file, config, name, args):
     logging.info(msg)
 
     try:
-        lengths, offsets = riboutils.ribo_utils.get_periodic_lengths_and_offsets(
+        lengths, offsets = pbiotools.ribo.ribo_utils.get_periodic_lengths_and_offsets(
             config, name, is_unique=is_unique
         )
     except FileNotFoundError:
@@ -187,7 +187,7 @@ def main():
                 (
                     lengths,
                     offsets,
-                ) = riboutils.ribo_utils.get_periodic_lengths_and_offsets(
+                ) = pbiotools.ribo.ribo_utils.get_periodic_lengths_and_offsets(
                     config, name, is_unique=is_unique
                 )
             except FileNotFoundError:

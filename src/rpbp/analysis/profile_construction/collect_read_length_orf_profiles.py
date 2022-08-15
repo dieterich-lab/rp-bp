@@ -13,9 +13,9 @@ import pbiotools.utils.bed_utils as bed_utils
 import logging
 import pbiotools.misc.logging_utils as logging_utils
 
-logger = logging.getLogger(__name__)
-
 from rpbp.defaults import metagene_options
+
+logger = logging.getLogger(__name__)
 
 
 def main():

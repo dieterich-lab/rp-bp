@@ -20,15 +20,11 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("."))
-
-
 # -- using markdown ------------------------------------------------
 
-import recommonmark
 from recommonmark.parser import CommonMarkParser
-from recommonmark.transform import AutoStructify
 
+sys.path.insert(0, os.path.abspath("."))
 
 source_parsers = {".md": CommonMarkParser}
 

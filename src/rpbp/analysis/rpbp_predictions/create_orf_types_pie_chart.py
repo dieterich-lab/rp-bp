@@ -2,8 +2,6 @@
 
 import matplotlib
 
-matplotlib.use("agg")
-
 import argparse
 
 import matplotlib.pyplot as plt
@@ -13,6 +11,7 @@ import pbiotools.utils.bed_utils as bed_utils
 
 import pbiotools.ribo.ribo_utils as ribo_utils
 
+matplotlib.use("agg")
 
 default_title = ""
 
@@ -61,12 +60,15 @@ def main():
 
         if args.use_groups:
             lab = ribo_utils.orf_type_labels
-            fr = [get_orf_label_counts(counts, l) for l in lab]
+            fr = [get_orf_label_counts(counts, lab_example) for lab_example in lab]
         else:
             fr = counts.values
             lab = np.array(counts.index)
 
-        lab = ["{} ({})".format(l, f) for l, f in zip(lab, fr)]
+        lab = [
+            "{} ({})".format(lab_example, fr_example)
+            for lab_example, fr_example in zip(lab, fr)
+        ]
 
         fracs.append(fr)
         labels.append(lab)

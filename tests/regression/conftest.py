@@ -239,7 +239,7 @@ def getf_pipeline(get_pipeline):
     lconfigs = [config, ref_config]
 
     # we don't test create_base_genome_profile - i.e. output of Flexbar, STAR, etc.
-    def populate(s, l, c, merged=False):
+    def populate(s, l_ex, c, merged=False):
         note = c.get("note", None)
         is_unique = not ("keep_riboseq_multimappers" in c)
         fraction = c.get("smoothing_fraction", None)
@@ -265,7 +265,7 @@ def getf_pipeline(get_pipeline):
                     c["riboseq_data"], s, is_unique=is_unique, note=note
                 ),
             }
-            l.append(files)
+            l_ex.append(files)
 
         files = {  # part 1 ORF profiles
             f"profiles_{s}": filenames.get_riboseq_profiles(
@@ -287,7 +287,7 @@ def getf_pipeline(get_pipeline):
                 reweighting_iterations=reweighting_iterations,
             ),
         }
-        l.append(files)
+        l_ex.append(files)
 
         for is_filtered in [True, False]:
             files = {
@@ -325,15 +325,15 @@ def getf_pipeline(get_pipeline):
                     is_filtered=is_filtered,
                 ),
             }
-            l.append(files)
+            l_ex.append(files)
 
     for s in sample_names:
-        for l, c in zip(lfiles, lconfigs):
-            populate(s, l, c)
+        for l_ex, c in zip(lfiles, lconfigs):
+            populate(s, l_ex, c)
 
     for s in sorted(riboseq_replicates.keys()):
-        for l, c in zip(lfiles, lconfigs):
-            populate(s, l, c, merged=True)
+        for l_ex, c in zip(lfiles, lconfigs):
+            populate(s, l_ex, c, merged=True)
 
     ret = []
     files = {k: v for d in lfiles[0] for k, v in d.items()}

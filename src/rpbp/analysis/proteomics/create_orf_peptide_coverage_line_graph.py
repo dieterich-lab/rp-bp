@@ -2,9 +2,6 @@
 
 import matplotlib
 
-matplotlib.use("agg")
-matplotlib.rc("text", usetex=True)
-
 import argparse
 import logging
 import re
@@ -16,6 +13,9 @@ import pandas as pd
 
 import pbiotools.misc.parallel as parallel
 import pbiotools.misc.utils as utils
+
+matplotlib.use("agg")
+matplotlib.rc("text", usetex=True)
 
 default_num_cpus = 1
 
