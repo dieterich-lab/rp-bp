@@ -57,7 +57,6 @@ def _create_figures(name_pretty_name_is_replicate, config, args):
         out_note_str = args.note
 
     image_type_str = "--image-type {}".format(args.image_type)
-    num_cpus_str = "--num-cpus {}".format(args.num_cpus)
 
     fraction = config.get("smoothing_fraction", None)
     reweighting_iterations = config.get("smoothing_reweighting_iterations", None)
@@ -270,7 +269,6 @@ def _create_figures(name_pretty_name_is_replicate, config, args):
                 title_str = "--title {}".format(title_str)
                 f = None
                 rw = None
-                is_smooth = False
                 profiles = unsmoothed_profiles
 
                 orfs = filenames.get_riboseq_predicted_orfs(
@@ -291,7 +289,6 @@ def _create_figures(name_pretty_name_is_replicate, config, args):
 
                 f = fraction
                 rw = reweighting_iterations
-                is_smooth = False
                 profiles = unsmoothed_profiles
 
                 orfs = filenames.get_riboseq_predicted_orfs(

@@ -339,8 +339,6 @@ def create_figures(config_file, config, name, offsets_df, args):
         config["riboseq_data"], name, is_unique=is_unique, note=note
     )
 
-    mp_df = pd.read_csv(metagene_profiles)
-
     for length in range(min_read_length, max_read_length + 1):
 
         mask_length = offsets_df["length"] == length
@@ -725,7 +723,6 @@ def main():
         latex.write_header(out, ["All aligned reads", "Uniquely-aligning reads"])
 
         for name in sample_names:
-            data = config["riboseq_samples"][name]
             read_length_distribution_image = (
                 filenames.get_riboseq_read_length_distribution_image(
                     config["riboseq_data"],
@@ -787,8 +784,6 @@ def main():
 
         for name in sample_names:
             i = 0
-
-            data = config["riboseq_samples"][name]
 
             msg = "Processing sample: {}".format(name)
             logger.info(msg)
