@@ -6,7 +6,6 @@ import argparse
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-import numpy as np
 import pandas as pd
 
 matplotlib.use("agg")
@@ -156,34 +155,10 @@ def main():
     xticks_end = range(0, len(end_counts), args.step)
 
     fig, axes = plt.subplots(ncols=2, figsize=(10, 5), sharey=True)
-    colors = sns.color_palette("Set3", 3)
 
     # first, the start counts
-    x_1 = start_counts[0::3]
-    x_2 = start_counts[1::3]
-    x_3 = start_counts[2::3]
-
-    x_1_pos = np.arange(len(start_counts))[0::3]
-    x_2_pos = np.arange(len(start_counts))[1::3]
-    x_3_pos = np.arange(len(start_counts))[2::3]
-
-    x_1_rects = axes[0].bar(x_1_pos, x_1, width=1, color=colors[0])
-    x_2_rects = axes[0].bar(x_2_pos, x_2, width=1, color=colors[1])
-    x_3_rects = axes[0].bar(x_3_pos, x_3, width=1, color=colors[2])
 
     # now, the end counts
-
-    x_1 = end_counts[0::3]
-    x_2 = end_counts[1::3]
-    x_3 = end_counts[2::3]
-
-    x_1_pos = np.arange(len(end_counts))[0::3]
-    x_2_pos = np.arange(len(end_counts))[1::3]
-    x_3_pos = np.arange(len(end_counts))[2::3]
-
-    x_1_rects = axes[1].bar(x_1_pos, x_1, width=1, color=colors[0])
-    x_2_rects = axes[1].bar(x_2_pos, x_2, width=1, color=colors[1])
-    x_3_rects = axes[1].bar(x_3_pos, x_3, width=1, color=colors[2])
 
     # now, plot the lines to show translation start and end
 

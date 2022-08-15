@@ -77,8 +77,6 @@ def main():
 
     msg = "Creating the bar chart"
 
-    color = sns.palettes.color_palette("Set3", n_colors=3)
-
     fig, ax = plt.subplots(figsize=(9, 5))
     sns.barplot(
         x="display_name",

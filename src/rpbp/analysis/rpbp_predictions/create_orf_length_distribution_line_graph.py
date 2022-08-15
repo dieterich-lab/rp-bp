@@ -107,7 +107,6 @@ def main():
 
     fontsize = 20
     legend_fontsize = 20
-    title_fontsize = 20
     linewidth = 4
 
     # plot the empirical distribution of ORF lengths

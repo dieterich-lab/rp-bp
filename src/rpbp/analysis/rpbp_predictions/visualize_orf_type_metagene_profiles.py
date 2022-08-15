@@ -71,7 +71,6 @@ def plot_windows(windows, title, out):
         return
 
     windows_np = np.array(windows)
-    first_windows = windows_np[:, 0]
 
     last_windows = windows_np[:, 2]
     last_windows = np.array([lw for lw in last_windows if lw is not None])
@@ -86,25 +85,9 @@ def plot_windows(windows, title, out):
         logger.warning(msg)
         return
 
-    ind = np.arange(21)  # the x locations for the groups
     width = 0.5  # the width of the bars
 
     fig, axes = plt.subplots(ncols=3, sharey=True, sharex=True, figsize=(10, 5))
-
-    # the first window
-    first_means = np.mean(first_windows, axis=0)
-    first_var = np.var(first_windows, axis=0)
-    rects_first = axes[0].bar(ind, first_means, width, color="g", yerr=first_var)
-
-    # the middle windows
-    middle_means = np.mean(middle_windows, axis=0)
-    middle_var = np.var(middle_windows, axis=0)
-    rects_middle = axes[1].bar(ind, middle_means, width, color="g", yerr=middle_var)
-
-    # the last window
-    last_means = np.mean(last_windows, axis=0)
-    last_var = np.var(last_windows, axis=0)
-    rects_last = axes[2].bar(ind, last_means, width, color="g", yerr=last_var)
 
     axes[0].set_xlim((-width, 21))
     axes[0].set_ylim((0, 1.05))

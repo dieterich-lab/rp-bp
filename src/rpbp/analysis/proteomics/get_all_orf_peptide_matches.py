@@ -66,7 +66,6 @@ def main():
     logging_str = logging_utils.get_logging_options_string(args)
 
     config = yaml.load(open(args.config), Loader=yaml.FullLoader)
-    call = not args.do_not_call
 
     programs = ["get-orf-peptide-matches"]
     shell_utils.check_programs_exist(programs)

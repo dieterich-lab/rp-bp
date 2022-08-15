@@ -4,7 +4,6 @@
 
 import logging
 import pytest
-import gzip
 import pandas as pd
 
 logger = logging.getLogger(__name__)

@@ -177,12 +177,6 @@ def main():
 
     fig, ax = plt.subplots()
 
-    pal = sns.palettes.color_palette(
-        palette="Set3", n_colors=len(args.alignment_counts_names)
-    )
-
-    gap = 0.15
-
     # if we aren't given information about the y-axis, try to guess
     if args.ymax is None:
         field = args.alignment_counts_order[-2]
@@ -192,24 +186,6 @@ def main():
             args.ystep = np.ceil(max_count / 4)
 
         args.ymax = (np.ceil(max_count / args.ystep) * args.ystep) + 1
-
-    yticks = np.arange(0, args.ymax, args.ystep)
-
-    bars = mpl_utils.create_stacked_bar_graph(
-        ax,
-        alignment_diff_counts,
-        colors=pal,
-        x_tick_labels=df["display_name"],
-        y_ticks=yticks,
-        y_tick_labels=yticks,
-        gap=gap,
-        end_gaps=True,
-        stack_labels=args.alignment_counts_names,
-        y_title="Reads",
-        log=False,
-        font_size=args.fontsize,
-        edge_colors="0.5",
-    )
 
     ax.legend(
         loc="upper center",

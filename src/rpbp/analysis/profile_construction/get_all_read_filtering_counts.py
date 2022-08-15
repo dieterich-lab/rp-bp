@@ -38,9 +38,6 @@ def get_counts(name_data, config, args):
     without_adapters = ribo_filenames.get_without_adapters_fastq(
         config["riboseq_data"], name, note=note
     )
-    with_rrna = ribo_filenames.get_with_rrna_fastq(
-        config["riboseq_data"], name, note=note
-    )
     without_rrna = ribo_filenames.get_without_rrna_fastq(
         config["riboseq_data"], name, note=note
     )
@@ -66,7 +63,6 @@ def get_counts(name_data, config, args):
 
     msg = "{}: counting reads with rrna".format(name)
     logger.info(msg)
-    with_rrna_count = fastx_utils.get_read_count(with_rrna, is_fasta=False)
 
     msg = "{}: counting reads without rrna".format(name)
     logger.info(msg)
