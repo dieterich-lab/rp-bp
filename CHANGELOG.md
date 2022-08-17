@@ -11,7 +11,7 @@ We are working on a major version upgrade.
 
 ### Added
 
-- Regression tests, GitHub CI workflow
+- Regression tests, pre-commit, GitHub CI workflow
 
 ## [2.0.0] 2019-05-24
 

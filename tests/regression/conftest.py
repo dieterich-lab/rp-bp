@@ -93,8 +93,9 @@ def get_genome(getf_config):
     import pbiotools.misc.shell_utils as shell_utils
 
     config, ref_config = getf_config
-
-    cmd = f"prepare-rpbp-genome {config.as_posix()}"
+    
+    num_cpus = 6
+    cmd = f"prepare-rpbp-genome {config.as_posix()} --num-cpus {num_cpus}"
     shell_utils.check_call(cmd, call=True, raise_on_error=True)
 
     return config, ref_config
@@ -194,7 +195,7 @@ def get_pipeline(getf_config):
 
     config, ref_config = getf_config
 
-    num_cpus = 4
+    num_cpus = 6
     opts = "--merge-replicates --run-replicates --overwrite --keep-intermediate-files"
     cmd = f"run-all-rpbp-instances {config.as_posix()} --num-cpus {num_cpus} {opts}"
     shell_utils.check_call(cmd, call=True, raise_on_error=True)
@@ -211,7 +212,11 @@ def getf_pipeline(get_pipeline):
     for the ORF periodicity estimates, ORF profiles,
     and final predictions, for the current output
     and the reference dataset.
-
+    
+    Note: Some files are not used for testing, but
+    we leave them here to have a track record of all
+    output files.
+    
     Parameters
     ----------
     get_pipeline
@@ -239,46 +244,46 @@ def getf_pipeline(get_pipeline):
     lconfigs = [config, ref_config]
 
     # we don't test create_base_genome_profile - i.e. output of Flexbar, STAR, etc.
-    def populate(s, l_ex, c, merged=False):
-        note = c.get("note", None)
-        is_unique = not ("keep_riboseq_multimappers" in c)
-        fraction = c.get("smoothing_fraction", None)
-        reweighting_iterations = c.get("smoothing_reweighting_iterations", None)
+    def populate(name, lf, lc, merged=False):
+        note = lc.get("note", None)
+        is_unique = not ("keep_riboseq_multimappers" in lc)
+        fraction = lc.get("smoothing_fraction", None)
+        reweighting_iterations = lc.get("smoothing_reweighting_iterations", None)
 
         lengths, offsets = None, None
         if not merged:
             lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
-                c,
-                s,
+                lc,
+                name,
                 is_unique=is_unique,
                 default_params=metagene_options,
             )
 
             files = {  # part 1 periodicity estimates
-                f"metagene_profiles_{s}": filenames.get_metagene_profiles(
-                    c["riboseq_data"], s, is_unique=is_unique, note=note
-                ),
-                f"metagene_profile_bayes_factors_{s}": filenames.get_metagene_profiles_bayes_factors(
-                    c["riboseq_data"], s, is_unique=is_unique, note=note
-                ),
-                f"periodic_offsets_{s}": filenames.get_periodic_offsets(
-                    c["riboseq_data"], s, is_unique=is_unique, note=note
-                ),
+                f"metagene_profiles_{name}": filenames.get_metagene_profiles(
+                    lc["riboseq_data"], name, is_unique=is_unique, note=note
+                ), # metagene_profile_bayes_factors UNUSED - see periodic_offsets
+                f"metagene_profile_bayes_factors_{name}": filenames.get_metagene_profiles_bayes_factors(
+                    lc["riboseq_data"], name, is_unique=is_unique, note=note
+                ), # only comparing periodic lengths
+                f"periodic_offsets_{name}": (filenames.get_periodic_offsets(
+                    lc["riboseq_data"], name, is_unique=is_unique, note=note
+                ), lengths),
             }
-            l_ex.append(files)
+            lf.append(files)
 
         files = {  # part 1 ORF profiles
-            f"profiles_{s}": filenames.get_riboseq_profiles(
-                c["riboseq_data"],
-                s,
+            f"profiles_{name}": filenames.get_riboseq_profiles(
+                lc["riboseq_data"],
+                name,
                 length=lengths,
                 offset=offsets,
                 is_unique=is_unique,
                 note=note,
-            ),  # part 2 extended ORF BED (Bayes factor)
-            f"bayes_factors_{s}": filenames.get_riboseq_bayes_factors(
-                c["riboseq_data"],
-                s,
+            ),  # part 2 extended ORF BED (bayes_factors UNUSED -  see predicted_orfs)
+            f"bayes_factors_{name}": filenames.get_riboseq_bayes_factors(
+                lc["riboseq_data"],
+                name,
                 length=lengths,
                 offset=offsets,
                 is_unique=is_unique,
@@ -287,13 +292,13 @@ def getf_pipeline(get_pipeline):
                 reweighting_iterations=reweighting_iterations,
             ),
         }
-        l_ex.append(files)
+        lf.append(files)
 
         for is_filtered in [True, False]:
             files = {
-                f"predicted_orfs_{s}_{is_filtered}": filenames.get_riboseq_predicted_orfs(
-                    c["riboseq_data"],
-                    s,
+                f"predicted_orfs_{name}_{is_filtered}": filenames.get_riboseq_predicted_orfs(
+                    lc["riboseq_data"],
+                    name,
                     length=lengths,
                     offset=offsets,
                     is_unique=is_unique,
@@ -301,10 +306,10 @@ def getf_pipeline(get_pipeline):
                     fraction=fraction,
                     reweighting_iterations=reweighting_iterations,
                     is_filtered=is_filtered,
-                ),
-                f"predicted_orfs_dna_{s}_{is_filtered}": filenames.get_riboseq_predicted_orfs_dna(
-                    c["riboseq_data"],
-                    s,
+                ), # UNUSED from list, but tested - see test_rpbp.py
+                f"predicted_orfs_dna_{name}_{is_filtered}": filenames.get_riboseq_predicted_orfs_dna(
+                    lc["riboseq_data"],
+                    name,
                     length=lengths,
                     offset=offsets,
                     is_unique=is_unique,
@@ -312,10 +317,10 @@ def getf_pipeline(get_pipeline):
                     fraction=fraction,
                     reweighting_iterations=reweighting_iterations,
                     is_filtered=is_filtered,
-                ),
-                f"predicted_orfs_protein_{s}_{is_filtered}": filenames.get_riboseq_predicted_orfs_protein(
-                    c["riboseq_data"],
-                    s,
+                ), # UNUSED
+                f"predicted_orfs_protein_{name}_{is_filtered}": filenames.get_riboseq_predicted_orfs_protein(
+                    lc["riboseq_data"],
+                    name,
                     length=lengths,
                     offset=offsets,
                     is_unique=is_unique,
@@ -325,19 +330,26 @@ def getf_pipeline(get_pipeline):
                     is_filtered=is_filtered,
                 ),
             }
-            l_ex.append(files)
+            lf.append(files)
 
-    for s in sample_names:
-        for l_ex, c in zip(lfiles, lconfigs):
-            populate(s, l_ex, c)
+    for name in sample_names:
+        for lf, lc in zip(lfiles, lconfigs):
+            populate(name, lf, lc)
 
-    for s in sorted(riboseq_replicates.keys()):
-        for l_ex, c in zip(lfiles, lconfigs):
-            populate(s, l_ex, c, merged=True)
+    for name in sorted(riboseq_replicates.keys()):
+        for lf, lc in zip(lfiles, lconfigs):
+            populate(name, lf, lc, merged=True)
 
-    ret = []
+    ret_exact, ret_periodic, ret_predictions = [], [], []
     files = {k: v for d in lfiles[0] for k, v in d.items()}
     ref_files = {k: v for d in lfiles[1] for k, v in d.items()}
+    
     for key in files:
-        ret.append((files[key], ref_files[key]))
-    return ret
+        if 'metagene_profiles' in key or 'profiles_' in key:
+            ret_exact.append((files[key], ref_files[key]))
+        if 'periodic_offsets_' in key:
+            ret_periodic.append((files[key], ref_files[key]))
+        if 'predicted_orfs' in key and 'dna' not in key and 'protein' not in key:
+            ret_predictions.append((files[key], ref_files[key]))
+        
+    return (ret_exact, ret_periodic, ret_predictions)
