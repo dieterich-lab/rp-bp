@@ -28,6 +28,7 @@ from rpbp.defaults import (
     default_num_cpus,
     default_mem,
     star_executable,
+    star_options_genome,
     default_start_codons,
     default_stop_codons,
 )
@@ -191,6 +192,9 @@ def main():
     pgrm_utils.add_star_options(parser, star_executable)
     args = parser.parse_args()
     logging_utils.update_logging(args)
+    
+    msg = "[prepare-rpbp-genome]: {}".format(" ".join(sys.argv))
+    logger.info(msg)
 
     config = yaml.load(open(args.config), Loader=yaml.FullLoader)
 
@@ -221,12 +225,11 @@ def main():
         files += [config["de_novo_gtf"]]
     utils.check_files_exist(files, source="prepare-rpbp-genome")
 
-    # check if we want to use slurm
     if args.use_slurm:
         cmd = " ".join(sys.argv)
         slurm.check_sbatch(cmd, args=args)
         return
-
+    
     call = not args.do_not_call
 
     # the rRNA index
@@ -242,14 +245,16 @@ def main():
 
     # the STAR index
     mem = utils.human2bytes(args.mem)
+    star_option_str = pgrm_utils.get_final_args(star_options_genome, args.star_options)
     cmd = (
         "{} --runMode genomeGenerate --genomeDir {} --genomeFastaFiles {} "
-        "--runThreadN {} --limitGenomeGenerateRAM {}".format(
+        "--runThreadN {} --limitGenomeGenerateRAM {} {}".format(
             args.star_executable,
             config["star_index"],
             config["fasta"],
             args.num_cpus,
             mem,
+            star_option_str,
         )
     )
 

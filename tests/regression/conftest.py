@@ -95,7 +95,9 @@ def get_genome(getf_config):
     config, ref_config = getf_config
     
     num_cpus = 6
-    cmd = f"prepare-rpbp-genome {config.as_posix()} --num-cpus {num_cpus}"
+    star_options = '--star-options "--genomeSAindexNbases 10"'
+    cmd = f"prepare-rpbp-genome {config.as_posix()} " \
+          f"--num-cpus {num_cpus} {star_options}"
     shell_utils.check_call(cmd, call=True, raise_on_error=True)
 
     return config, ref_config

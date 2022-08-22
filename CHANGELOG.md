@@ -12,6 +12,7 @@ We are working on a major version upgrade.
 ### Added
 
 - Regression tests, pre-commit, GitHub CI workflow
+- WIP: STAR options handling for `prepare_rpbp_genome`
 
 ## [2.0.0] 2019-05-24
 

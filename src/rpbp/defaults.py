@@ -52,6 +52,9 @@ if sys.platform.startswith("darwin"):
 #   if given, STAR args.tmp will be created
 
 star_executable = "STAR"
+# default options for `--runMode genomeGenerate`
+star_options_genome = { }
+# default options for mapping
 star_options = {
     "readFilesCommand": default_read_files_command,
     "limitBAMsortRAM": 0,
