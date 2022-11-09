@@ -4,7 +4,7 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - python=3.10.6
+  - python
   - flexbar=3.5.0
   - bowtie2=2.4.5
   - star=2.7.10a
