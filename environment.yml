@@ -4,25 +4,24 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - python=3.6
+  - python=3.10.6
   - flexbar=3.5.0
-  - bowtie2=2.3.0
+  - bowtie2=2.4.5
+  - star=2.7.10a
+  - samtools=1.16.1
+  - cmdstanpy # 1.0.8
+  - setuptools
+  - numpy
+  - scipy
+  - statsmodels
+  - pandas
+  - joblib # ??? after dask
+  - biopython
+  - pyyaml
+  - pytest
   - pip
-  - star
-  - samtools=1.7
-  - openssl=1.0 # pin old openssl version to fix "error while loading shared libraries: libcrypto.so.1.0.0"
   - pip:
-      - setuptools>=38.3.0
-      - numpy>=1.16,<1.17
-      - scipy==1.2.1 # Statsmodels 0.9/Scipy 1.3.0 incompatibility
-      - statsmodels==0.9.0
-      - pandas==0.24.0
-      - pystan==2.19.0.0
-      - joblib==0.13.2
-      - biopython==1.73
-      #      - git+https://github.com/dieterich-lab/pbiotools.git@dev-ssciwr#egg=pbiotools # installed separately with --no-deps
-      - pysam==0.15.2 # with Samtools-1.7
-      - pyyaml==5.4
-      - pytest
+      - pysam==0.20.0 # with Samtools-1.16.1
       - pytest-cov
       - pytest-depends
+      #      - git+https://github.com/dieterich-lab/pbiotools.git@dev-ssciwr#egg=pbiotools # installed separately with --no-deps ???

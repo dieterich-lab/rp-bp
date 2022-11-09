@@ -1,52 +1,32 @@
 #! /usr/bin/env python3
 
-import importlib
-import logging
 import os
-import subprocess
+import logging
+import importlib
+
+from pathlib import Path
+from cmdstanpy import CmdStanModel
 
 from setuptools import setup
 from setuptools.command.install import install as install
 from setuptools.command.develop import develop as develop
 
-
 logger = logging.getLogger(__name__)
 
+# defaults.py
+cpp_options = {'STAN_THREADS': 'TRUE'}
 
 stan_model_files = [
-    os.path.join("nonperiodic", "no-periodicity.stan"),
-    os.path.join("nonperiodic", "start-high-high-low.stan"),
-    os.path.join("nonperiodic", "start-high-low-high.stan"),
-    os.path.join("periodic", "start-high-low-low.stan"),
-    os.path.join("untranslated", "gaussian-naive-bayes.stan"),
-    os.path.join("translated", "periodic-gaussian-mixture.stan"),
+    Path("nonperiodic", "no-periodicity.stan"),
+    Path("nonperiodic", "start-high-high-low.stan"),
+    Path("nonperiodic", "start-high-low-high.stan"),
+    Path("periodic", "start-high-low-low.stan"),
+    Path("untranslated", "gaussian-naive-bayes.stan"),
+    Path("translated", "periodic-gaussian-mixture.stan"),
 ]
 
 
-stan_pickle_files = [
-    os.path.join("nonperiodic", "no-periodicity.pkl"),
-    os.path.join("nonperiodic", "start-high-high-low.pkl"),
-    os.path.join("nonperiodic", "start-high-low-high.pkl"),
-    os.path.join("periodic", "start-high-low-low.pkl"),
-    os.path.join("untranslated", "gaussian-naive-bayes.pkl"),
-    os.path.join("translated", "periodic-gaussian-mixture.pkl"),
-]
-
-
-def _pickle_it(stan, pickle):
-
-    import shlex
-
-    dirname = os.path.dirname(pickle)
-    if not os.path.exists(dirname):
-        os.makedirs(dirname)
-
-    cmd = "pickle-stan {} {}".format(shlex.quote(stan), shlex.quote(pickle))
-    logging.info(cmd)
-    subprocess.call(cmd, shell=True)
-
-
-def _post_install(force_recompile):
+def _post_install(recompile):
 
     import site
 
@@ -54,25 +34,19 @@ def _post_install(force_recompile):
 
     import pbiotools.ribo.ribo_filenames as filenames
     import pbiotools.misc.shell_utils as shell_utils
-
-    smf = [os.path.join("rpbp_models", s) for s in stan_model_files]
-
+    
+    # instantiate models under "models_base"
     models_base = filenames.get_default_models_base()
-    spf = [os.path.join(models_base, s) for s in stan_pickle_files]
+    src_smfs = [Path("rpbp_models", s) for s in stan_model_files]
+    dest_smfs = [Path(models_base, s) for s in stan_model_files]
+    for src_smf, dest_smf in zip(src_smfs, dest_smfs):
+        dest_smf.parent.mkdir(parents=True, exist_ok=True)
+        dest_smf.write_text(src_smf.read_text())
+        CmdStanModel(stan_file=dest_smf, 
+                     compile=recompile,
+                     cpp_options=cpp_options)
 
-    # Compile and pickle the Stan models
-    if force_recompile:
-        for stan, pickle in zip(smf, spf):
-            _pickle_it(stan, pickle)
-    else:  # default
-        for stan, pickle in zip(smf, spf):
-            if os.path.exists(pickle):
-                msg = "A model already exists at: {}. Skipping.".format(pickle)
-                logging.warning(msg)
-                continue
-            _pickle_it(stan, pickle)
-
-    # Check for the prerequisite programs
+    # check dependencies
     programs = ["flexbar"]
     shell_utils.check_programs_exist(
         programs, raise_on_error=False, package_name="flexbar", logger=logger
@@ -108,7 +82,9 @@ class SetupInstall(install):
         install.finalize_options(self)
 
     def run(self):
-        force_recompile = self.force_recompile  # 0 or 1
+        recompile = True
+        if self.force_recompile:
+            recompile = "force"
 
         level = logging.getLevelName("INFO")
         logging.basicConfig(level=level, format="%(levelname)-8s : %(message)s")
@@ -116,7 +92,7 @@ class SetupInstall(install):
         install.run(self)
         # skip if RTD
         if not os.environ.get("READTHEDOCS") == "True":
-            _post_install(force_recompile)
+            _post_install(recompile)
 
 
 class SetupDevelop(develop):
@@ -133,7 +109,9 @@ class SetupDevelop(develop):
         develop.finalize_options(self)
 
     def run(self):
-        force_recompile = self.force_recompile  # 0 or 1
+        recompile = True
+        if self.force_recompile:
+            recompile = "force"
 
         level = logging.getLevelName("INFO")
         logging.basicConfig(level=level, format="%(levelname)-8s : %(message)s")
@@ -141,7 +119,7 @@ class SetupDevelop(develop):
         develop.run(self)
         # skip if RTD
         if not os.environ.get("READTHEDOCS") == "True":
-            _post_install(force_recompile)
+            _post_install(recompile)
 
 
 setup(cmdclass={"install": SetupInstall, "develop": SetupDevelop})

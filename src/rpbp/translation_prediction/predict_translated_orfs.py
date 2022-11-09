@@ -13,7 +13,12 @@ import pbiotools.misc.utils as utils
 import pbiotools.ribo.ribo_utils as ribo_utils
 import pbiotools.ribo.ribo_filenames as filenames
 
-from rpbp.defaults import default_num_cpus, translation_options, metagene_options
+from rpbp.defaults import (
+    default_num_cpus, 
+    translation_options, 
+    model_inst_options,
+    metagene_options
+)
 
 logger = logging.getLogger(__name__)
 
@@ -261,7 +266,11 @@ def main():
 
     translated_models_str = "--translated-models {}".format(translated_models_str)
     untranslated_models_str = "--untranslated-models {}".format(untranslated_models_str)
-
+    
+    stan_threads_str = ""
+    if model_inst_options["stan_threads"]:
+        stan_threads_str = "--use-stan-threads"
+        
     orf_types_str = utils.get_config_argument(
         config, "orf_types", default=translation_options["orf_types"]
     )
@@ -283,7 +292,7 @@ def main():
 
     cmd = (
         "estimate-orf-bayes-factors {} {} {} {} {} {} {} {} {} {} {} "
-        "{} {} {} {} {} --num-cpus {}".format(
+        "{} {} {} {} {} {} --num-cpus {}".format(
             profiles,
             orfs_genomic,
             bayes_factors,
@@ -300,6 +309,7 @@ def main():
             iterations_str,
             chains_str,
             chi_square_only_str,
+            stan_threads_str,
             args.num_cpus,
         )
     )

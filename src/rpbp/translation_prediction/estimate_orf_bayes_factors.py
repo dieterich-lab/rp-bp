@@ -1,16 +1,14 @@
 #! /usr/bin/env python3
 
-import argparse
-import pickle
-import logging
 import sys
-
+import logging
+import argparse
 import ctypes
 import multiprocessing
+import scipy.io
 
 import numpy as np
 import pandas as pd
-import scipy.io
 
 import pbiotools.utils.bed_utils as bed_utils
 import pbiotools.misc.logging_utils as logging_utils
@@ -18,10 +16,10 @@ import pbiotools.misc.parallel as parallel
 import pbiotools.misc.slurm as slurm
 import pbiotools.misc.utils as utils
 
-from pbiotools.misc.suppress_stdout_stderr import suppress_stdout_stderr
-
 import pbiotools.ribo.ribo_utils as ribo_utils
 
+from cmdstanpy import CmdStanModel
+from pbiotools.misc.suppress_stdout_stderr import suppress_stdout_stderr
 from rpbp.defaults import default_num_groups, translation_options
 
 logger = logging.getLogger(__name__)
@@ -94,14 +92,6 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
         "p_translated_var": float("-inf"),
         "p_background_mean": float("-inf"),
         "p_background_var": float("-inf"),
-        "translated_location_mean": float("-inf"),
-        "translated_location_var": float("-inf"),
-        "translated_scale_mean": float("-inf"),
-        "translated_scale_var": float("-inf"),
-        "background_location_mean": float("-inf"),
-        "background_location_var": float("-inf"),
-        "background_scale_mean": float("-inf"),
-        "background_scale_var": float("-inf"),
         "bayes_factor_mean": float("-inf"),
         "bayes_factor_var": float("-inf"),
         "chi_square_p": float("-inf"),
@@ -146,38 +136,43 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
     # construct the input for Stan
     data = {"x_1": x_1, "x_2": x_2, "x_3": x_3, "T": T, "nonzero_x_1": nonzero_x_1}
 
+    iter_warmup = int(args.iterations // 2)
+        
     m_translated = [
-        tm.sampling(
-            data=data,
-            iter=args.iterations,
-            chains=args.chains,
-            n_jobs=1,
-            seed=args.seed,
-            refresh=0,
+        tm.sample(
+            data=data, 
+            iter_warmup=iter_warmup, 
+            iter_sampling=iter_warmup, 
+            chains=args.chains, 
+            parallel_chains=args.chains, 
+            seed=args.seed, 
+            show_progress=False,
+            show_console=False
         )
         for tm in translated_models
     ]
 
     m_background = [
-        bm.sampling(
+        bm.sample(
             data=data,
-            iter=args.iterations,
-            chains=args.chains,
-            n_jobs=1,
-            seed=args.seed,
-            refresh=0,
+            iter_warmup=iter_warmup, 
+            iter_sampling=iter_warmup, 
+            chains=args.chains, 
+            parallel_chains=args.chains, 
+            seed=args.seed, 
+            show_progress=False,
+            show_console=False
         )
         for bm in untranslated_models
     ]
 
     # extract the parameters of interest
     m_translated_ex = [
-        m.extract(pars=["lp__", "background_location", "background_scale"])
+        m.draws_pd()[["lp__", "signal_location", "signal_scale"]]
         for m in m_translated
     ]
-
     m_background_ex = [
-        m.extract(pars=["lp__", "background_location", "background_scale"])
+        m.draws_pd()[["lp__", "background_location", "background_scale"]]
         for m in m_background
     ]
 
@@ -191,25 +186,13 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
     # select the best sampling results
     m_translated_ex = m_translated_ex[max_translated_mean]
     m_background_ex = m_background_ex[max_background_mean]
-
+    
     # extract the relevant means and variances
     ret["p_translated_mean"] = np.mean(m_translated_ex["lp__"])
     ret["p_translated_var"] = np.var(m_translated_ex["lp__"])
 
     ret["p_background_mean"] = np.mean(m_background_ex["lp__"])
     ret["p_background_var"] = np.var(m_background_ex["lp__"])
-
-    ret["translated_location_mean"] = np.mean(m_translated_ex["background_location"])
-    ret["translated_location_var"] = np.var(m_translated_ex["background_location"])
-
-    ret["translated_scale_mean"] = np.mean(m_translated_ex["background_scale"])
-    ret["translated_scale_var"] = np.var(m_translated_ex["background_scale"])
-
-    ret["background_location_mean"] = np.mean(m_background_ex["background_location"])
-    ret["background_location_var"] = np.var(m_background_ex["background_location"])
-
-    ret["background_scale_mean"] = np.mean(m_background_ex["background_scale"])
-    ret["background_scale_var"] = np.var(m_background_ex["background_scale"])
 
     # the (log of) the Bayes factor is the difference between two normals:
     # (the best translated model) - (the best background model)
@@ -321,7 +304,7 @@ def get_all_bayes_factors_args(orfs):
             continue
 
         profile = utils.to_dense(profiles, orf_num, float, length=orf_len)
-
+    
         row_bf = get_bayes_factor(profile, translated_models, untranslated_models, args)
         row = row.append(row_bf)
 
@@ -443,7 +426,13 @@ def main():
         type=int,
         default=translation_options["translation_iterations"],
     )
-
+    
+    parser.add_argument(
+        "--use-stan-threads",
+        help="""If this flag is present, instantiate models using options for C++ compiler.""",
+        action="store_true",
+    )
+    
     # behavior options
     parser.add_argument(
         "--num-orfs",
@@ -521,17 +510,27 @@ def main():
     msg = "Number of regions after filtering: {}".format(len(regions))
     logger.info(msg)
 
+    # Stan model instantiation option
     logger.debug("Reading models")
-    translated_models = [pickle.load(open(tm, "rb")) for tm in args.translated_models]
-    untranslated_models = [
-        pickle.load(open(bm, "rb")) for bm in args.untranslated_models
+    cpp_options = None
+    if args.use_stan_threads:
+        cpp_options = {'STAN_THREADS': 'TRUE'}
+        
+    # setting compile=False results in exe_file=None?
+    translated_models = [
+        CmdStanModel(stan_file=tm, cpp_options=cpp_options) 
+            for tm in args.translated_models
     ]
+    untranslated_models = [
+        CmdStanModel(stan_file=bm, cpp_options=cpp_options) 
+            for bm in args.untranslated_models
+    ]    
 
     profiles_data = multiprocessing.RawArray(ctypes.c_double, profiles.data.flat)
     profiles_indices = multiprocessing.RawArray(ctypes.c_int, profiles.indices)
     profiles_indptr = multiprocessing.RawArray(ctypes.c_int, profiles.indptr)
     profiles_shape = multiprocessing.RawArray(ctypes.c_int, profiles.shape)
-
+    
     with suppress_stdout_stderr():
 
         bfs_l = parallel.apply_parallel_split(

@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 We are working on a major version upgrade.
 
+### Changed
+
+- Environment installation for Python 3.10 (with ad hoc installation of pbiotools)
+- Upgrade all dependencies/required packages, install via Conda (except pysam==0.20.0 and pytest plugins via pip)
+- Pin major dependencies
+- PyStan 2 to CmdStanPy API
+
+### Removed
+
+- PyStan dependency
+- Fitted parameters from output `_location` and `_scale`
+
+### Fixed
+
+- Stan models transformed data/parameters name/definition (no-periodicity.stan, gaussian-naive-bayes.stan)
+
 ### Added
 
 - Regression tests, pre-commit, GitHub CI workflow

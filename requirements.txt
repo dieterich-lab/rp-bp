@@ -1,18 +1,10 @@
-biopython==1.73
-joblib==0.13.2
-# Pin versions of following dependencies:
-numpy>=1.16,<1.17
-pandas==0.24.0
-
-# Pin version of the pbio package and related dependencies:
+# do we need this?
+biopython
+joblib
+numpy
+pandas
 git+https://github.com/dieterich-lab/pbiotools.git@dev-ssciwr#egg=pbiotools
-pysam==0.15.2 # with Samtools-1.7
-pystan==2.19.0.0
-pyyaml==5.4
-scipy==1.2.1 # Statsmodels 0.9/Scipy 1.3.0 incompatibility
-statsmodels==0.9.0
-
-
-# Do not use [--no-binary :all:], installation will fail.
-# Ignore `ERROR: Failed building wheel for rpbp`,
-# pip falls back to installing directly (see also PEP 517).
+pysam==0.20.0 
+pyyaml
+scipy
+statsmodels

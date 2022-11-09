@@ -83,8 +83,9 @@ def get_all_p_site_intersections(exons_psites, num_orfs, max_orf_len):
                 orf_num = intersection[2][1]
 
                 p_site_pos = intersection[1] + intersection[2][0]
-
-                profiles[orf_num, p_site_pos] += 1
+                
+                # object array values taken as numpy.float64 ...
+                profiles[orf_num, p_site_pos.astype(int)] += 1
 
     return profiles.tocsr()
 

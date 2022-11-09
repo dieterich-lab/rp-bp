@@ -26,7 +26,7 @@ jobs:
       - name: Create rpbp conda environment
         uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: 3.6
+          python-version: 3.10
           auto-update-conda: true
           auto-activate-base: false
           activate-environment: rpbp
@@ -38,10 +38,12 @@ jobs:
           conda config --show-sources
           conda config --show
           printenv | sort
-      - name: Install previous set of pbiotools deps
-        run: pip install dask sklearn appdirs tqdm mygene openpyxl fastparquet more_itertools matplotlib matplotlib_venn seaborn
-      - name: Install pbiotools with --no-deps option
-        run: pip install git+https://github.com/dieterich-lab/pbiotools.git@dev-ssciwr --no-deps --verbose
+      #- name: Install previous set of pbiotools deps
+      #  run: pip install dask sklearn appdirs tqdm mygene openpyxl fastparquet more_itertools matplotlib matplotlib_venn seaborn
+      #- name: Install pbiotools with --no-deps option
+      #  run: pip install git+https://github.com/dieterich-lab/pbiotools.git@dev-ssciwr --no-deps --verbose
+      - name: Install pbiotools
+        run: pip install git+https://github.com/dieterich-lab/pbiotools.git@dev-ssciwr --verbose
       - name: Install rp-bp
         run: pip install . --verbose
       - name: Run tests

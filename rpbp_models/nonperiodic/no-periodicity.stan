@@ -16,11 +16,11 @@ transformed data {
     real scale_prior_location;
     real scale_prior_scale;
 
-    vector[3*T] profile;
+    vector[3*T] background;
     vector[2*T] temp;
 
     temp = append_row(x_1, x_2);
-    profile = append_row(temp, x_3);
+    background = append_row(temp, x_3);
 
     location_prior_location = mean(temp);
     scale_prior_location = variance(temp);
@@ -47,5 +47,5 @@ model {
     location ~ cauchy(location_prior_location, location_prior_scale);
     scale ~ cauchy(scale_prior_location, scale_prior_scale);
 
-    profile ~ cauchy(location, scale[1]);
+    background ~ cauchy(location, scale[1]);
 }

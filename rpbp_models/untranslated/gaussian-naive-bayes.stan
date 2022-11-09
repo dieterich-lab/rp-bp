@@ -45,11 +45,11 @@ transformed data {
 
 parameters {
     real background_location;
-    positive_ordered[1] background_scale;
+    real<lower=0> background_scale;
 }
 
 model {
     background_location ~ cauchy(background_location_prior_location, background_location_prior_scale);
     background_scale ~ cauchy(background_scale_prior_location, background_scale_prior_scale);
-    background ~ normal(background_location, background_scale[1]);
+    background ~ normal(background_location, background_scale);
 }

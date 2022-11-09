@@ -86,6 +86,13 @@ flexbar_options = {
 # default: Rp-Bp (metagene, ORF profiles)
 # overridden via config file
 
+# Stan model instantiation
+# Stan's multi-threaded processing is based on the Intel Threading Building Blocks (TBB) library, 
+# which must be linked to by the C++ compiler. True uses cpp_options={'STAN_THREADS': 'TRUE'}, or False.
+model_inst_options = {
+    "stan_threads": True
+}
+
 metagene_options = {
     "metagene_start_upstream": 300,
     "metagene_start_downstream": 300,
@@ -96,7 +103,7 @@ metagene_options = {
     "metagene_profile_length": 21,
     "seed": 8675309,
     "chains": 2,
-    "metagene_iterations": 500,
+    "metagene_iterations": 500, # incl. warmup
     "min_metagene_profile_count": 1000,
     "min_metagene_image_count": 500,  # profiles with count < min_metagene_image_count will not be displayed (only for report)
     "min_metagene_bf_mean": 5,
@@ -116,7 +123,7 @@ translation_options = {
     "orf_min_profile_count_pre": 5,  # ORF with profile sum < min-profile are not processed
     "seed": 8675309,
     "chains": 2,
-    "translation_iterations": 500,
+    "translation_iterations": 500, # incl. warmup
     "orf_types": [],  # predict only these, if empty predict all types
     "min_bf_mean": 5,
     "min_bf_likelihood": 0.5,
