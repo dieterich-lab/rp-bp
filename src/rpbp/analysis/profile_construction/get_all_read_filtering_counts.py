@@ -105,7 +105,7 @@ def get_counts(name_data, config, args):
         length_count = 0
 
     ret = {
-        "note": name,
+        "sample": name,
         "raw_data_count": raw_data_count,
         "without_adapters_count": without_adapters_count,
         "without_rrna_count": without_rrna_count,
