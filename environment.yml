@@ -9,6 +9,7 @@ dependencies:
   - bowtie2
   - cmdstanpy 
   - dash
+  - dash-bio
   - dash-bootstrap-components
   - fastqc
   - flexbar

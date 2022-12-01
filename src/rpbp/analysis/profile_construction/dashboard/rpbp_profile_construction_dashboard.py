@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 
 import os
+import sys
+
 import argparse
 import yaml
 import json
@@ -23,7 +25,11 @@ import pbiotools.ribo.ribo_utils as ribo_utils
 
 from rpbp.defaults import metagene_options
 
-from controls import STACK_CTS_ORDER, STACK_CTS_NAME, FUNNEL_CTS_NAME
+from rpbp.analysis.profile_construction.dashboard.controls import (
+    STACK_CTS_ORDER, 
+    STACK_CTS_NAME, 
+    FUNNEL_CTS_NAME
+    )
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -397,23 +403,13 @@ option_samples = [
     dict(label="All", value=",".join([sample_name_map[sample]
     for sample in config["riboseq_samples"].keys()]))
 ]
-#if "riboseq_biological_replicates" in config:
-    #if config["riboseq_biological_replicates"] is not None:
-        #riboseq_replicates = config["riboseq_biological_replicates"].items()
-        #for condition, replicates in riboseq_replicates:
-            #option_samples.append(
-                #dict(label=condition_name_map[condition], value=", ".join([sample_name_map[sample]
-                #for sample in replicates]))
-            #)
-
-#for testing
 if "riboseq_biological_replicates" in config:
     if config["riboseq_biological_replicates"] is not None:
         riboseq_replicates = config["riboseq_biological_replicates"].items()
         for condition, replicates in riboseq_replicates:
             option_samples.append(
                 dict(label=condition_name_map[condition], value=",".join([sample_name_map[sample]
-                for sample in replicates[1:]]))
+                for sample in replicates]))
             )
                 
 drop_samples = dcc.Dropdown(
@@ -726,7 +722,7 @@ app.layout = html.Div(
                                             type="number", 
                                             placeholder="Step size",
                                             min=1, 
-                                            max=10, 
+                                            max=50, 
                                             #value=1,
                                             style={"margin-right": "15px"}
                                         ),
@@ -877,7 +873,7 @@ def stacked_reads(selected, zoom):
               [Input('stacked_reads_fig', 'hoverData'),
                Input("radio_stacked_reads", "value")])
 def funnel_reads(hoverData, zoom):
-    
+
     stack_cts_order = STACK_CTS_ORDER
     funnel_cts_name = FUNNEL_CTS_NAME
     if zoom == 1: # exclude ribosomal/poor quality
@@ -1008,7 +1004,7 @@ def read_length_metagene_bars(hoverData, sample):
         length = hoverData['points'][0]['label']
     
     metagene_profiles = pd.read_csv(filenames.get_metagene_profiles(config['riboseq_data'], 
-            sample, is_unique=is_unique, note=config_note))
+            reverse_sample_name_map[sample], is_unique=is_unique, note=config_note))
     
     m_length = metagene_profiles["length"] == length
     metagene_profile = metagene_profiles[m_length]
@@ -1121,7 +1117,7 @@ def stacked_frames(selected):
     
     selected_samples = selected.split(",")
     df = frame_counts[frame_counts.Sample.isin(selected_samples)]
-    
+
     fig = px.bar(
         df, 
         x = "Sample", 

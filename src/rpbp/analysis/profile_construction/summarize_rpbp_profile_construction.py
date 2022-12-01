@@ -18,7 +18,6 @@ import pbiotools.misc.logging_utils as logging_utils
 import pbiotools.misc.pandas_utils as pandas_utils
 import pbiotools.misc.parallel as parallel
 import pbiotools.misc.shell_utils as shell_utils
-import pbiotools.misc.slurm as slurm
 
 import pbiotools.ribo.ribo_filenames as filenames
 import pbiotools.ribo.ribo_utils as ribo_utils
@@ -87,7 +86,7 @@ def get_read_length_distributions(sample, config, is_unique, note, args):
 
     out_files = [read_length_distribution]
     shell_utils.call_if_not_exists(
-        cmd, out_files, in_files=in_files, call=True
+        cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=True
     )
 
 
@@ -180,7 +179,7 @@ def collect_lengths_and_offsets(sample, config, is_unique, note, args):
     return pd.DataFrame(data, columns=['sample', 'length', 'offset', 'status'])
 
 
-def get_profile(sample, config, is_unique, note, args):
+def get_profile(sample, config, is_unique, note):
     """ Get the name of the profile file from the given parameters.
     """
 
@@ -207,12 +206,12 @@ def get_profile(sample, config, is_unique, note, args):
     return profiles
 
 
-def get_frame_counts(sample, config, is_unique, note, args):
+def get_frame_counts(sample, config, is_unique, note):
     
     msg = "{}: extracting frame counts".format(sample)
     logger.info(msg)
     
-    mtx = get_profile(sample, config, is_unique, note, args)
+    mtx = get_profile(sample, config, is_unique, note)
 
     # we don't need to load as sparse matrix, use numpy and
     # mask based on ORF offset (2nd column), taking into account that
@@ -353,10 +352,17 @@ def main():
                         default=None,
     )
     
-    slurm.add_sbatch_options(parser, num_cpus=default_num_cpus)
+    parser.add_argument("-p", "--num-cpus", 
+                        help="The number of processors to use", type=int,
+                        default=default_num_cpus,
+    )
+    
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
+    
+    msg = "[summarize-rpbp-profile-construction]: {}".format(" ".join(sys.argv))
+    logger.info(msg)
 
     config = yaml.load(open(args.config), Loader=yaml.FullLoader)
 
@@ -371,21 +377,19 @@ def main():
         programs.extend(["fastqc", "java"])
 
     shell_utils.check_programs_exist(programs)
-
-    if args.use_slurm:
-        cmd = " ".join(sys.argv)
-        slurm.check_sbatch(cmd, args=args)
-        return
+    
+    # create directory for summary data
+    sub_folder = Path("analysis", "profile_construction")
+    Path(config["riboseq_data"], sub_folder).mkdir(parents=True, exist_ok=True)
         
     # nomenclature
     project = config.get("project_name", "rpbp")
     note = config.get("note", None)
     is_unique = not ("keep_riboseq_multimappers" in config)
 
-    # create directory for summary data
-    sub_folder = Path("analysis", "profile_construction")
-    Path(config["riboseq_data"], sub_folder).mkdir(parents=True, exist_ok=True)
-
+    msg = "Collecting all read filtering counts..."
+    logger.info(msg)
+    
     # 1. read filtering
     read_filtering_counts = filenames.get_riboseq_read_filtering_counts(
         config["riboseq_data"], 
@@ -394,6 +398,9 @@ def main():
         note=note
     )
     get_read_filtering_summary(read_filtering_counts, args)
+    
+    msg = "Collecting all read length distributions..."
+    logger.info(msg)
     
     # 2. read length distributions
     samples = sorted(config["riboseq_samples"].keys())
@@ -431,6 +438,9 @@ def main():
                           do_not_compress=False, 
                           quoting=csv.QUOTE_NONE)
     
+    msg = "Collecting all lengths and offsets..."
+    logger.info(msg)
+    
     # 3. collect all (periodic) lengths and offsets
     all_lengths_and_offsets = parallel.apply_iter_simple(
         samples,
@@ -457,6 +467,9 @@ def main():
                           do_not_compress=False, 
                           quoting=csv.QUOTE_NONE)
     
+    msg = "Collecting all ORF profile counts per frame..."
+    logger.info(msg)
+    
     # 4. collect reads per frame using the ORF profiles - currently all ORFs
     frame_counts = parallel.apply_parallel_iter(samples,
                                                 args.num_cpus,
@@ -464,7 +477,8 @@ def main():
                                                 config,
                                                 is_unique,
                                                 note,
-                                                args)
+                                                progress_bar=True,
+                                                backend="multiprocessing")
     frame_counts = pd.DataFrame(frame_counts)
     
     summary_file = filenames.get_riboseq_frame_counts(
@@ -483,6 +497,10 @@ def main():
                           quoting=csv.QUOTE_NONE)
     
     if args.create_fastqc_reports:
+        
+        msg = "Calling FastQC..."
+        logger.info(msg)
+    
         parallel.apply_parallel_iter(
             config["riboseq_samples"].items(),
             args.num_cpus,
