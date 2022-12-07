@@ -39,12 +39,36 @@ DUPLICATE_FIELDS = [
     "start",
     "end",
     "strand",
+    "thick_start",
+    "thick_end",
     "num_exons",
     "exon_lengths",
     "exon_genomic_relative_starts",
 ]
 
 orf_position = collections.namedtuple("orf_position", "start,end")
+orf_id_info = collections.namedtuple(
+    "orf_id_info", "transcript_id,seqname,strand,start,end,length,orf_id"
+)
+
+
+def parse_orf_id(orf_id, trim=False):
+    transcript_id, s = orf_id.split("_")
+    seqname, s, strand = s.split(":")
+    start, end, length = bed_utils.parse_exon_start_end_length(s)
+
+    if trim:
+        transcript_id = transcript_id.split(".")[0]
+
+    ret = orf_id_info(transcript_id, seqname, strand, start, end, length, orf_id)
+
+    return ret
+
+
+def get_compatible_transcripts(row):
+    orf_ids = row['transcripts']
+    transcript_ids = [parse_orf_id(orf_id).transcript_id for orf_id in orf_ids.split(',')]
+    return ",".join(transcript_ids)
 
 
 def get_orf_positions(seq, start_codons_re, stop_codons_re):
@@ -337,8 +361,9 @@ def main():
     )
     orfs = orfs.merge(groupby_duplicates, how="left", on=DUPLICATE_FIELDS)
     orfs.drop_duplicates(subset=DUPLICATE_FIELDS, inplace=True, keep="first")
-    orfs.rename(columns={"id_x": "id", "id_y": "duplicates"}, inplace=True)
-
+    orfs.rename(columns={"id_x": "id", "id_y": "transcripts"}, inplace=True)
+    orfs['transcripts'] = orfs.apply(get_compatible_transcripts, axis=1)
+    
     msg = "Numbering remaining ORFs"
     logger.info(msg)
 

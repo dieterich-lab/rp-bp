@@ -15,11 +15,15 @@ We are working on a major version upgrade.
 - Upgrade all dependencies/required packages, install via Conda (except pysam==0.20.0 and pytest plugins via pip)
 - Pin major dependencies
 - PyStan 2 to CmdStanPy API
+- Handling of ORF labels
 
 ### Removed
 
 - PyStan dependency
 - Fitted parameters from output `_location` and `_scale`
+- `orf_type` filtering for translation prediction
+- Rp-Bp reporting and related plotting scripts
+- GFF3 support
 
 ### Fixed
 
@@ -29,6 +33,8 @@ We are working on a major version upgrade.
 
 - Regression tests, pre-commit, GitHub CI workflow
 - WIP: STAR options handling for `prepare_rpbp_genome`
+- Retrieve gene_id, etc. from annotations
+- Dashboad applications to replace PDF reports
 
 ## [2.0.0] 2019-05-24
 

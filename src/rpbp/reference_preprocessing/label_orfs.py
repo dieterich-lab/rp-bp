@@ -10,9 +10,27 @@ import logging
 import pbiotools.misc.logging_utils as logging_utils
 import pbiotools.utils.bed_utils as bed_utils
 
-from rpbp.defaults import default_num_cpus
+from rpbp.defaults import default_num_cpus, orf_type_name_map
 
 logger = logging.getLogger(__name__)
+
+
+def get_labels(args):
+    # standard labels
+    labels = orf_type_name_map.copy()
+    # standalone: outside the Rp-Bp pipeline
+    # we need to make sure [--label-prefix] and [--nonoverlapping-label] 
+    # are contained in the keys
+    # NOTE: This is merely to avoid a KeyError, as these options are designed to handle
+    # ORFs from a de novo assembly, and not simply as a general label tag.
+    if args.nonoverlapping_label is not None and not args.nonoverlapping_label == "novel":
+        labels[args.nonoverlapping_label] = args.nonoverlapping_label
+    if len(args.label_prefix) > 0 and not args.label_prefix == "novel_":
+        for key, val in orf_type_name_map.items():
+            # replace standard labels 
+            lkey = key.replace("novel_", args.label_prefix) 
+            labels[lkey] = lkey 
+    return labels
 
 
 def main():
@@ -81,7 +99,7 @@ def main():
         uninteresting ORFs from a de novo assembly.""",
         action="store_true",
     )
-
+    
     parser.add_argument(
         "-p",
         "--num-cpus",
@@ -94,7 +112,12 @@ def main():
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
-
+    
+    msg = "Getting the labels"
+    logger.info(msg)
+    
+    labels = get_labels(args)
+    
     msg = "Reading annotated transcripts"
     logger.info(msg)
     annotated_transcripts = bed_utils.read_bed(args.annotated_transcripts)
@@ -161,7 +184,7 @@ def main():
         m_nonoverlapping = extracted_orf_exons["id"].isin(nonoverlapping_ids)
         extracted_orf_exons = extracted_orf_exons[~m_nonoverlapping]
         m_nonoverlapping = extracted_orfs["id"].isin(nonoverlapping_ids)
-        extracted_orfs.loc[m_nonoverlapping, "orf_type"] = args.nonoverlapping_label
+        extracted_orfs.loc[m_nonoverlapping, "orf_type"] = labels[args.nonoverlapping_label]
 
         msg = "Found {} ORFs completely non-overlapping annotated transcripts".format(
             len(nonoverlapping_ids)
@@ -267,10 +290,10 @@ def main():
     extracted_orf_exons = extracted_orf_exons[~m_exact_orf_matches]
 
     m_canonical = extracted_orfs["id"].isin(exact_match_orf_ids)
-    label = "canonical"
+    label = labels["canonical"]
     extracted_orfs.loc[m_canonical, "orf_type"] = label
 
-    msg = "Found {} canonical ORFs".format(len(exact_match_orf_ids))
+    msg = f"Found {len(exact_match_orf_ids)} canonical ORFs labeled as {label}"
     logger.info(msg)
 
     msg = "Finding truncated canonical ORFs"
@@ -330,12 +353,11 @@ def main():
     m_canonical_extended = extracted_orfs["id"].isin(extended_match_ids)
     m_canonical_variants = m_canonical_truncated | m_canonical_extended
 
-    label = "{}canonical_variant".format(args.label_prefix)
+    label = labels["{}canonical_variant".format(args.label_prefix)]
     extracted_orfs.loc[m_canonical_variants, "orf_type"] = label
 
-    msg = "Found {} canonical_variant ORFs".format(
-        len(extended_match_ids | truncated_match_ids)
-    )
+    msg = f"Found {len(extended_match_ids | truncated_match_ids)} " \
+          f"canonical_variant ORFs labeled as {label}"
     logger.info(msg)
 
     msg = (
@@ -353,10 +375,10 @@ def main():
     extracted_orf_exons = extracted_orf_exons[~m_within_matches]
 
     m_within = extracted_orfs["id"].isin(within_ids)
-    label = "{}within".format(args.label_prefix)
+    label = labels["{}internal".format(args.label_prefix)]
     extracted_orfs.loc[m_within, "orf_type"] = label
 
-    msg = "Found {} within ORFs".format(len(within_ids))
+    msg = f"Found {len(within_ids)} internal ORFs labeled as {label}"
     logger.info(msg)
 
     # find all overlapping ORFs
@@ -439,19 +461,22 @@ def main():
         extracted_orf_exons = extracted_orf_exons[~m_leader_overlap_matches]
 
         m_five_prime_overlap = extracted_orfs["id"].isin(leader_overlap_ids)
-        label = "{}five_prime_overlap".format(args.label_prefix)
+        label = labels["{}five_prime_overlap".format(args.label_prefix)]
         extracted_orfs.loc[m_five_prime_overlap, "orf_type"] = label
-
+        
+        msg = f"Found {len(leader_overlap_ids)} five_prime_overlap ORFs " \
+              f"labeled as {label}"
+        logger.info(msg)
+        
         m_trailer_overlap_matches = extracted_orf_exons["id"].isin(trailer_overlap_ids)
         extracted_orf_exons = extracted_orf_exons[~m_trailer_overlap_matches]
 
         m_three_prime_overlap = extracted_orfs["id"].isin(trailer_overlap_ids)
-        label = "{}three_prime_overlap".format(args.label_prefix)
+        label = labels["{}three_prime_overlap".format(args.label_prefix)]
         extracted_orfs.loc[m_three_prime_overlap, "orf_type"] = label
 
-        msg = "Found {} five_prime_overlap ORFs".format(len(leader_overlap_ids))
-        logger.info(msg)
-        msg = "Found {} three_prime_overlap ORFs".format(len(trailer_overlap_ids))
+        msg = f"Found {len(trailer_overlap_ids)} three_prime_overlap ORFs " \
+              f"labeled as {label}"
         logger.info(msg)
 
     else:
@@ -464,10 +489,10 @@ def main():
         extracted_orf_exons = extracted_orf_exons[~m_overlap_matches]
 
     m_overlap = extracted_orfs["id"].isin(overlap_ids)
-    label = "{}overlap".format(args.label_prefix)
+    label = labels["{}overlap".format(args.label_prefix)]
     extracted_orfs.loc[m_overlap, "orf_type"] = label
 
-    msg = "Found {} overlap ORFs".format(len(overlap_ids))
+    msg = f"Found {len(overlap_ids)} overlap ORFs labeled as {label}"
     logger.info(msg)
 
     msg = "Finding ORFs completely within 5' or 3' leaders"
@@ -483,10 +508,10 @@ def main():
     extracted_orf_exons = extracted_orf_exons[~m_leader_matches]
 
     m_five_prime = extracted_orfs["id"].isin(leader_ids)
-    label = "{}five_prime".format(args.label_prefix)
+    label = labels["{}five_prime".format(args.label_prefix)]
     extracted_orfs.loc[m_five_prime, "orf_type"] = label
 
-    msg = "Found {} five_prime ORFs".format(len(leader_ids))
+    msg = f"Found {len(leader_ids)} five_prime ORFs labeled as {label}"
     logger.info(msg)
 
     trailer_matches = bed_utils.get_bed_overlaps(
@@ -499,10 +524,10 @@ def main():
     extracted_orf_exons = extracted_orf_exons[~m_trailer_matches]
 
     m_three_prime = extracted_orfs["id"].isin(trailer_ids)
-    label = "{}three_prime".format(args.label_prefix)
+    label = labels["{}three_prime".format(args.label_prefix)]
     extracted_orfs.loc[m_three_prime, "orf_type"] = label
 
-    msg = "Found {} three_prime ORFs".format(len(trailer_ids))
+    msg = f"Found {len(trailer_ids)} three_prime ORFs labeled as {label}"
     logger.info(msg)
 
     msg = "Finding ORFs completely within annotated, non-coding transcripts"
@@ -518,43 +543,38 @@ def main():
     extracted_orf_exons = extracted_orf_exons[~m_noncoding_matches]
 
     m_noncoding = extracted_orfs["id"].isin(noncoding_ids)
-    label = "{}noncoding".format(args.label_prefix)
+    label = labels["{}noncoding".format(args.label_prefix)]
     extracted_orfs.loc[m_noncoding, "orf_type"] = label
 
-    msg = "Found {} noncoding ORFs".format(len(noncoding_ids))
+    msg = f"Found {len(noncoding_ids)} noncoding ORFs labeled as {label}"
     logger.info(msg)
 
     # all of the remaining ORFs fall into the "suspect" category
     suspect_ids = {orf_id for orf_id in extracted_orf_exons["id"]}
 
     m_suspect = extracted_orfs["id"].isin(suspect_ids)
-    label = "{}suspect".format(args.label_prefix)
+    label = labels["{}suspect".format(args.label_prefix)]
     extracted_orfs.loc[m_suspect, "orf_type"] = label
 
     n_suspect_ids = len(suspect_ids)
-    msg = "Remaining {} ORFs labeled as suspect".format(n_suspect_ids)
+    msg = f"Remaining {n_suspect_ids} ORFs labeled as {label}"
     logger.info(msg)
 
     m_no_orf_type = extracted_orfs["orf_type"].isnull()
     msg = "Found {} unlabeled ORFs".format(sum(m_no_orf_type))
     logger.info(msg)
 
-    msg = "Writing ORFs with labels to disk"
+    msg = "Writing ORFs and labels to disk"
     logger.info(msg)
 
     extracted_orfs = bed_utils.sort(extracted_orfs)
 
-    msg = "The ORF labels will be written to {} in the next major release.".format(
-        args.out
-    )
-    logger.warning(msg)
-
-    additional_columns = ["orf_num", "orf_len", "orf_type"]
+    additional_columns = ["orf_num", "orf_len"]
     fields = bed_utils.bed12_field_names + additional_columns
     orfs_genomic = extracted_orfs[fields]
     bed_utils.write_bed(orfs_genomic, args.extracted_orfs)
 
-    label_columns = ["id", "duplicates", "orf_type"]
+    label_columns = ["orf_num", "id", "orf_type", "transcripts"]
     extracted_orfs = extracted_orfs[label_columns]
     bed_utils.write_bed(extracted_orfs, args.out)
 

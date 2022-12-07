@@ -163,14 +163,6 @@ def main():
         default=translation_options["chisq_alpha"],
     )
 
-    parser.add_argument(
-        "--filtered-orf-types",
-        help=""""A list of ORF types which will be
-        removed before selecting the final prediction set.""",
-        nargs="*",
-        default=[],
-    )
-
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
@@ -180,14 +172,6 @@ def main():
     logger.info(msg)
 
     bayes_factors = bed_utils.read_bed(args.bayes_factors)
-
-    if len(args.filtered_orf_types) > 0:
-        filtered_orf_types_str = ",".join(args.filtered_orf_types)
-        msg = "Filtering these ORF types: {}".format(filtered_orf_types_str)
-        logger.info(msg)
-
-        m_orf_types = bayes_factors["orf_type"].isin(args.filtered_orf_types)
-        bayes_factors = bayes_factors[~m_orf_types]
 
     msg = "Identifying ORFs which meet the prediction thresholds"
     logger.info(msg)

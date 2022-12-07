@@ -304,11 +304,9 @@ def main():
         config["genome_base_path"], config["genome_name"], note=config.get("orf_note")
     )
 
-    use_gff3_specs = config["gtf"].endswith("gff")
     gtf_file = filenames.get_gtf(
         config["genome_base_path"],
         config["genome_name"],
-        is_gff3=use_gff3_specs,
         is_star_input=True,
     )
 
@@ -338,7 +336,7 @@ def main():
         if call:
             concatenated_bed = bed_utils.concatenate(orfs_files, sort_bed=True)
             concatenated_bed["orf_num"] = range(len(concatenated_bed))
-            additional_columns = ["orf_num", "orf_len", "orf_type"]
+            additional_columns = ["orf_num", "orf_len"]
             fields = bed_utils.bed12_field_names + additional_columns
             bed_utils.write_bed(concatenated_bed[fields], orfs_genomic)
         else:
@@ -386,7 +384,7 @@ def main():
         logger.info(msg)
 
         if call:
-            # not sorted, as is
+            # not a BED file
             concatenated_bed = bed_utils.concatenate(label_files, sort_bed=False)
             bed_utils.write_bed(concatenated_bed, labeled_orfs)
         else:
@@ -396,23 +394,20 @@ def main():
         # we also need to concat the annotations to inform STAR
         # there is no particular reason to merge and sort the files, so
         # we just concatenate them...
-        if config["de_novo_gtf"].endswith("gff") == use_gff3_specs:
-            cmd = "awk '!/^#/' {} {} > {}".format(
-                config["gtf"], config["de_novo_gtf"], gtf_file
-            )
-            in_files = [config["gtf"], config["de_novo_gtf"]]
-            out_files = [gtf_file]
-            shell_utils.call_if_not_exists(
-                cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call
-            )
-        else:
-            msg = (
-                "Skipping concatenation due to mismatch in format specifications (GTF2/GFF3)"
-                "for reference and do novo annotations. Symlink to reference annotations created."
-            )
-            logger.warning(msg)
-            if os.path.exists(config["gtf"]):
-                shell_utils.create_symlink(config["gtf"], gtf_file, call)
+        star_files_str = " ".join([config["gtf"], config["de_novo_gtf"]])
+        msg = "Concatenating files. Output file: {}; Input files: {}".format(
+            gtf_file, star_files_str
+        )
+        logger.info(msg)
+        
+        cmd = "awk '!/^#/' {} {} > {}".format(
+            config["gtf"], config["de_novo_gtf"], gtf_file
+        )
+        in_files = [config["gtf"], config["de_novo_gtf"]]
+        out_files = [gtf_file]
+        shell_utils.call_if_not_exists(
+            cmd, out_files, in_files=in_files, overwrite=args.overwrite, call=call
+        )
 
     else:
         # if we do not have a de novo assembly, symlink the files

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 def to_df(filename):
     args = {}
-    if filename.endswith(".bed.gz"):
+    if filename.endswith(".bed.gz") or filename.endswith(".tab.gz"):
         args = {"sep": "\t"}
     elif filename.endswith(".mtx.gz"):
         args = {"sep": " ", "comment": "%", "header": None}
@@ -61,7 +61,7 @@ def test_pipeline_part2(getf_pipeline):
     # predictions - compare intersection of predictions on deterministic fields only
     cols = ['seqname', 'start', 'end', 'id', 'score', 'strand',
        'thick_start', 'thick_end', 'color', 'num_exons', 'exon_lengths',
-       'exon_genomic_relative_starts', 'orf_num', 'orf_len', 'orf_type',
+       'exon_genomic_relative_starts', 'orf_num', 'orf_len',
        'x_1_sum', 'x_2_sum', 'x_3_sum', 'profile_sum'
     ]
     for file, ref_file in predictions:

@@ -38,12 +38,6 @@ translated_models = 0
 untranslated_models = 0
 args = 0
 
-# Not passed as arguments, unlikely to be required
-
-default_orf_num_field = "orf_num"
-default_orf_type_field = "orf_type"
-
-# --num-orfs is not used in the the Rp-Bp pipeline
 
 
 def get_bayes_factor(profile, translated_models, untranslated_models, args):
@@ -356,15 +350,6 @@ def main():
 
     # filtering options
     parser.add_argument(
-        "--orf-types",
-        help="If values are given, then only orfs with those types are processed.",
-        nargs="*",
-        default=translation_options["orf_types"],
-    )
-
-    parser.add_argument("--orf-type-field", default=default_orf_type_field)
-
-    parser.add_argument(
         "--min-length",
         help="ORFs with length less than this value will not be processed",
         type=int,
@@ -434,6 +419,7 @@ def main():
     )
     
     # behavior options
+    # [--num-orfs] is not used in the the Rp-Bp pipeline
     parser.add_argument(
         "--num-orfs",
         help="If n>0, then only this many ORFs will be processed",
@@ -441,7 +427,7 @@ def main():
         default=0,
     )
 
-    parser.add_argument("--orf-num-field", default=default_orf_num_field)
+    parser.add_argument("--orf-num-field", default="orf_num")
 
     parser.add_argument(
         "--do-not-compress",
@@ -477,10 +463,6 @@ def main():
 
     # by default, keep everything
     m_filters = np.array([True] * len(regions))
-
-    if len(args.orf_types) > 0:
-        m_orf_type = regions[args.orf_type_field].isin(args.orf_types)
-        m_filters = m_orf_type & m_filters
 
     # min length
     if args.min_length > 0:

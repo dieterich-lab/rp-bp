@@ -270,10 +270,6 @@ def main():
     stan_threads_str = ""
     if model_inst_options["stan_threads"]:
         stan_threads_str = "--use-stan-threads"
-        
-    orf_types_str = utils.get_config_argument(
-        config, "orf_types", default=translation_options["orf_types"]
-    )
 
     seed_str = utils.get_config_argument(
         config, "seed", default=translation_options["seed"]
@@ -291,7 +287,7 @@ def main():
     )
 
     cmd = (
-        "estimate-orf-bayes-factors {} {} {} {} {} {} {} {} {} {} {} "
+        "estimate-orf-bayes-factors {} {} {} {} {} {} {} {} {} {} "
         "{} {} {} {} {} {} --num-cpus {}".format(
             profiles,
             orfs_genomic,
@@ -299,7 +295,6 @@ def main():
             translated_models_str,
             untranslated_models_str,
             logging_str,
-            orf_types_str,
             min_length_str,
             max_length_str,
             min_profile_str,

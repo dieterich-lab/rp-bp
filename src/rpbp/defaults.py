@@ -105,7 +105,7 @@ metagene_options = {
     "chains": 2,
     "metagene_iterations": 500, # incl. warmup
     "min_metagene_profile_count": 1000,
-    "min_metagene_image_count": 500,  # profiles with count < min_metagene_image_count will not be displayed (only for report)
+    "min_metagene_image_count": 500,  # TODO: profiles with count < min_metagene_image_count will not be displayed (only for report)
     "min_metagene_bf_mean": 5,
     "max_metagene_bf_var": None,
     "min_metagene_bf_likelihood": 0.5,
@@ -118,17 +118,42 @@ metagene_options = {
 translation_options = {
     "smoothing_fraction": 0.2,  # defaults are not written to the file names
     "smoothing_reweighting_iterations": 0,
-    "orf_min_length_pre": 0,  # ORF with length < min-length are not processed, 0 ignore option
-    "orf_max_length_pre": 0,  # ORF with length > max-length are not processed, 0 ignore option
-    "orf_min_profile_count_pre": 5,  # ORF with profile sum < min-profile are not processed
+    "orf_min_length_pre": 0,  # ORF with length < orf_min_length_pre are not processed, 0 ignore option
+    "orf_max_length_pre": 0,  # ORF with length > orf_max_length_pre are not processed, 0 ignore option
+    "orf_min_profile_count_pre": 5,  # ORF with profile sum < orf_min_profile_count_pre are not processed
     "seed": 8675309,
     "chains": 2,
     "translation_iterations": 500, # incl. warmup
-    "orf_types": [],  # predict only these, if empty predict all types
     "min_bf_mean": 5,
     "min_bf_likelihood": 0.5,
     "max_bf_var": None,
-    "orf_min_length": 8,  # ORF > min-length (nucleotides) are kept in the final set
-    "orf_min_profile_count": None,  # ORF with sum across all frame > minimum-profile-sum are kept
+    "orf_min_length": 8,  # ORF > orf_min_length (nucleotides) are kept in the final set
+    "orf_min_profile_count": None,  # ORF with sum across all frame > orf_min_profile_count are kept
     "chisq_alpha": 0.01,  # only relevant with the Chi2 pipeline
 }
+
+
+# default: Rp-Bp ORF labels
+
+# Do NOT modify keys, they are used to label ORFs
+orf_type_name_map = {
+    "canonical": "CDS",
+    "canonical_variant": "altCDS",
+    "internal": "intORF",
+    "five_prime": "uORF",
+    "three_prime": "dORF",
+    "noncoding": "ncORF",
+    "five_prime_overlap": "uoORF",
+    "three_prime_overlap": "doORF",
+    "suspect": "Suspect",
+    "overlap": "Overlap",
+    "novel": "Novel", # intergenic - not contained in the annotations
+    "novel_canonical_variant": "Novel altCDS",
+    "novel_noncoding": "Novel ncORF", # is this a valid label?
+    "novel_overlap": "Novel overlap", # include any overlap e.g. 5'/3'
+    "novel_suspect": "Novel suspect",
+    "novel_internal": "Novel intORF",  # these 3 are in principle invalid labels
+    "novel_five_prime": "Novel uORF",
+    "novel_three_prime": "Novel dORF",
+}
+
