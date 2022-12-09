@@ -378,6 +378,9 @@ def main():
 
     shell_utils.check_programs_exist(programs)
     
+    required_keys = ["riboseq_data", "riboseq_samples"]
+    utils.check_keys_exist(config, required_keys)
+    
     # create directory for summary data
     sub_folder = Path("analysis", "profile_construction")
     Path(config["riboseq_data"], sub_folder).mkdir(parents=True, exist_ok=True)

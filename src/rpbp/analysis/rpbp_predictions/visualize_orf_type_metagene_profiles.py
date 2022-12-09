@@ -5,6 +5,7 @@ import matplotlib
 import argparse
 import logging
 import sys
+import yaml
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -202,7 +203,8 @@ def main():
         "present in a given BED12+ file. It visualizes the mean and variance of normalized "
         "profiles in the first 21-bp, last 21-bp, and across all other 21-bp windows.",
     )
-
+    
+    parser.add_argument("config", help="The (yaml) config file")
     parser.add_argument("orfs", help="The BED12+ file containing the ORFs")
     parser.add_argument("profiles", help="The (mtx) file containing the ORF profiles")
     parser.add_argument(
@@ -244,10 +246,27 @@ def main():
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
-
+    
+    config = yaml.load(open(args.config), Loader=yaml.FullLoader)
+    
     msg = "Reading ORFs"
     logger.info(msg)
     orfs = bed_utils.read_bed(args.orfs)
+    
+    msg = 'Adding labels to ORFs'
+    logger.info(msg)
+    
+    labeled_orfs = filenames.get_labels(
+        config["genome_base_path"], 
+        config["genome_name"], 
+        note=note
+    )
+    cols = ["id", "orf_type"]
+    labels_df = bed_utils.read_bed(labeled_orfs)[cols]
+    orfs = pd.merge(orfs, 
+                    labels_df, 
+                    on="id", 
+                    how="left")
 
     msg = "Reading profiles"
     logger.info(msg)

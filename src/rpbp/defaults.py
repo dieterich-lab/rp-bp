@@ -156,4 +156,32 @@ orf_type_name_map = {
     "novel_five_prime": "Novel uORF",
     "novel_three_prime": "Novel dORF",
 }
-
+    
+orf_type_labels = {
+    "canonical": ["canonical"],
+    "canonical_variant": ["canonical_variant", "internal", "novel_canonical_variant"],
+    "five_prime": ["five_prime", "five_prime_overlap"],
+    "three_prime": ["three_prime", "three_prime_overlap"],
+    "noncoding": ["noncoding", "novel_noncoding"],
+    "novel": ["novel"],
+    "other": [
+        "overlap",
+        "novel_overlap",
+        "suspect",
+        "novel_suspect",
+        "novel_internal",  
+        "novel_five_prime",
+        "novel_three_prime",
+    ],
+}
+    
+# color blind hex colours
+orf_type_colors = {
+    "#0173b2": "canonical",
+    "#56b4e9": "canonical_variant",
+    "#029e73": "five_prime",
+    "#de8f05": "three_prime",
+    "#cc78bc": "noncoding",
+    "#ece133": "novel",
+    "#949494": "other"
+}
