@@ -5,14 +5,17 @@ import logging
 import shlex
 import sys
 import yaml
+import json
 import gzip
 import tempfile
 import shutil
 import base64
 
 from pathlib import Path
+from collections import defaultdict
 
 import pandas as pd
+import numpy as np
 
 import pbiotools.misc.logging_utils as logging_utils
 import pbiotools.misc.parallel as parallel
@@ -169,6 +172,60 @@ def get_predictions_file(name, is_sample, note, fraction,
     return filen
 
 
+def cut_it(x, seqname, karyotype, args):
+    size = int(karyotype[seqname])
+    bins = np.arange(0, size + args.circos_bin_width, 
+                     args.circos_bin_width)
+    if (bins[-1] - size) < args.circos_bin_width/2:
+        bins[-1] = size
+    else:
+        bins[-2] = size
+        bins = np.delete(bins, -1)
+    return pd.cut(x['start'].values, bins, right=False)
+    
+    
+def get_circos_graph(orfs, igv_folder, config, args):
+    
+    orf_types = orfs.orf_type.unique()
+    df = orfs.drop_duplicates(subset=bed_utils.bed12_field_names).copy()
+    df.rename(columns={"seqname": "block_id"}, inplace=True)
+    
+    filen = Path(config["star_index"], "chrNameLength.txt")
+    with open(filen) as f:
+        karyotype = dict(x.rstrip().split(None, 1) for x in f)
+    
+    df['range'] = df.groupby('block_id').apply(lambda x: cut_it(x, x.name, karyotype, args)).values[0]
+    df['start'] = [v.left for v in df['range'].values]
+    df['end'] = [v.right-1 for v in df['range'].values] # we're one off for the last bin...
+    fields = ['block_id', 'orf_type', 'start', 'end']
+    records = df.groupby(fields)['id'].count().reset_index(name='value').to_dict(orient='records')
+    circos_graph_data = defaultdict(list)
+    for orf_type in orf_types:
+        for record in records:
+            if not record["orf_type"] == orf_type:
+                continue
+            clean = {k:v for k,v in record.items() if not k == "orf_type"}
+            circos_graph_data[f"histogram_{orf_type}"].append(clean)
+    
+    colors = ["#ededed", "#333333"]
+    layout = []
+    for idx, (seqname, size) in enumerate(karyotype.items()):
+        label = seqname if "chr" in seqname else f"chr{seqname}"
+        record = {
+            "id": seqname,
+            "label": label,
+            "color": colors[idx % 2],
+            "len": size
+        }
+        layout.append(record)
+    circos_graph_data["genome"] = layout
+    
+    filen = Path(igv_folder, f"{config['genome_name']}.circos_graph_data.json")
+    filen = Path(config["riboseq_data"], filen)
+    with open(filen, 'w') as f:
+        json.dump(circos_graph_data, f)
+        
+        
 def add_data(name, sample_name_map, is_sample, note, fraction, 
              reweighting_iterations, is_unique, is_filtered, config):
 
@@ -390,6 +447,11 @@ def main(EXT_FIELD_NAMES):
                         Human data.""", action='store_true'
     )
     
+    parser.add_argument('--circos-bin-width', help="""Bin width for counting
+                        ORF predictions along chromosomes.""", type=int,
+                        default=10000000
+    )
+    
     #subparser = parser.add_subparsers()
     #parser_appris = subparser.add_parser('APPRIS', 
                                          #help='Add APPRIS Annotation to transcripts.'
@@ -437,7 +499,7 @@ def main(EXT_FIELD_NAMES):
 
     required_keys = ["riboseq_data", "riboseq_samples",
                      "genome_base_path", "genome_name",
-                     "fasta", "gtf"]
+                     "fasta", "gtf", "star_index"]
     utils.check_keys_exist(config, required_keys)
 
     # create directory for summary data
@@ -457,7 +519,21 @@ def main(EXT_FIELD_NAMES):
 
     is_filtered = not args.use_unfiltered_orfs
     
-    # 1. Collecting all predictions 
+    # log options for the dashboard that 
+    dashboard_data = {
+        "is_filtered": is_filtered,
+        "min_samples": args.min_samples,
+        "keep_other": args.keep_other,
+        "no_replicates": args.no_replicates,
+        "use_unfiltered_orfs": args.use_unfiltered_orfs,
+        "circos_bin_width": args.circos_bin_width
+    }
+    filen = Path(sub_folder, f"{project}.summarize_options.json")
+    filen = Path(config["riboseq_data"], filen)
+    with open(filen, 'w') as f:
+        json.dump(dashboard_data, f)
+    
+    # Collecting all predictions 
     msg = 'Parsing predictions for samples'
     logger.info(msg)
     
@@ -505,7 +581,7 @@ def main(EXT_FIELD_NAMES):
 
     orfs = pd.concat(all_predictions)
     
-    # 2. Adding ORF labels and transcript/gene info 
+    # Adding ORF labels and transcript/gene info 
     msg = 'Adding information to ORFs'
     logger.info(msg)
     
@@ -537,7 +613,7 @@ def main(EXT_FIELD_NAMES):
                     on="transcript_id", 
                     how="left")
     
-    # 3. Applying post-hoc filtering
+    # Applying post-hoc filtering
     msg = 'Applying post-hoc filtering'
     logger.info(msg)
     
@@ -569,7 +645,7 @@ def main(EXT_FIELD_NAMES):
         msg = f"Using [--no-replicates]: Removing {discarded_orfs} ORFs."
         logger.info(msg)
     
-    # 4. Adding standardized ORFs - hard coded
+    # Adding standardized ORFs - hard coded
     # based on published data Table S2 and S3
     if args.match_standardized_orfs:
         msg = 'Adding standardized ORFs (Human)'
@@ -587,8 +663,32 @@ def main(EXT_FIELD_NAMES):
                                 how = 'left')
                 
                 EXT_FIELD_NAMES += [field]
-                
-    # 5. Prepare output for visualization with IGV
+    
+    # writing ORFs to disk
+    # sort on the chrom field, and then on the chromStart field.
+    orfs.sort_values(['seqname', 'start'], ascending=[True, True], inplace=True)
+    filen = filenames.get_riboseq_predicted_orfs(
+        config["riboseq_data"], 
+        project, 
+        sub_folder=sub_folder.as_posix(), 
+        note=note,
+        is_unique=is_unique,         
+        fraction=fraction,
+        reweighting_iterations=reweighting_iterations,
+        is_filtered=is_filtered
+    )
+    if args.overwrite or not Path(filen).is_file():
+        bed_utils.write_bed(orfs[EXT_FIELD_NAMES], filen)
+    else:
+        msg = f"Output file {filen} exists, skipping call!"
+        logger.warning(msg)
+        
+    # Preparing Circos output
+    msg = 'Preparing Circos data'
+    logger.info(msg)
+    get_circos_graph(orfs, igv_folder, config, args)
+    
+    # Preparing output for visualization with IGV
     msg = 'Preparing IGV genome'
     logger.info(msg)
     
@@ -621,27 +721,8 @@ def main(EXT_FIELD_NAMES):
                 else:
                     msg = f"Output file {dest} exists, skipping call!"
                     logger.warning(msg)
-    
-    # write ORFs to disk
-    # sort on the chrom field, and then on the chromStart field.
-    orfs.sort_values(['seqname', 'start'], ascending=[True, True], inplace=True)
-    filen = filenames.get_riboseq_predicted_orfs(
-        config["riboseq_data"], 
-        project, 
-        sub_folder=sub_folder.as_posix(), 
-        note=note,
-        is_unique=is_unique,         
-        fraction=fraction,
-        reweighting_iterations=reweighting_iterations,
-        is_filtered=is_filtered
-    )
-    if args.overwrite or not Path(filen).is_file():
-        bed_utils.write_bed(orfs[EXT_FIELD_NAMES], filen)
-    else:
-        msg = f"Output file {filen} exists, skipping call!"
-        logger.warning(msg)
-    
-    # prepare the BED track
+                    
+    # preparing the BED track
     # add ORF colors
     msg = 'Preparing IGV ORF track'
     logger.info(msg)
