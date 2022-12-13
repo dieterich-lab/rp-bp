@@ -1,41 +1,23 @@
 #! /usr/bin/env python3
 
-import os
 import argparse
 import yaml
 import json
-import ast
-import base64
 import dash
-import gzip
+import dash_bio
 
 from pathlib import Path
-from io import BytesIO
 from dash import Dash, html, dcc, Input, Output, State, dash_table
 
-import dash_bootstrap_components as dbc
 import numpy as np
 import pandas as pd
-import plotly.graph_objs as go
 import plotly.express as px
 
 import pbiotools.ribo.ribo_filenames as filenames
-import pbiotools.ribo.ribo_utils as ribo_utils
 
-from rpbp.defaults import metagene_options, orf_type_colors, orf_type_labels, orf_type_name_map
-
-import dash_bio
-
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-sns.set({"ytick.direction": u'out'}, style = 'ticks') 
-sns.set(rc = {'axes.facecolor': '#F9F9F8', 'figure.facecolor': '#F9F9F8'})
-
+from rpbp.defaults import orf_type_colors, orf_type_labels, orf_type_name_map
 
 # ------------------------------------------------------ Functions ------------------------------------------------------
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description="""Launch a Dash app to
@@ -50,24 +32,6 @@ def parse_args():
     args = parser.parse_args()
 
     return args.config, args.debug
-
-# TODO: do we need this?
-# taken from https://github.com/4QuantOSS/DashIntro/blob/master/notebooks/Tutorial.ipynb
-def fig_to_uri(in_fig, close_all=True, **save_args):
-    # type: (plt.Figure) -> str
-    """
-    Save a figure as a URI
-    :param in_fig:
-    :return:
-    """
-    out_img = BytesIO()
-    in_fig.savefig(out_img, format='png', **save_args)
-    if close_all:
-        in_fig.clf()
-        plt.close('all')
-    out_img.seek(0)  # rewind file
-    encoded = base64.b64encode(out_img.read()).decode("ascii").replace("\n", "")
-    return "data:image/png;base64,{}".format(encoded)
 
 
 def fmt_tooltip(row):
@@ -105,7 +69,6 @@ def get_orf_type_counts(condition):
 
     return orf_type_counts
 
-
 # ------------------------------------------------------ Set-up ------------------------------------------------------
 
 # *** default path to summary data created by `summarize-rpbp-predictions`
@@ -118,10 +81,8 @@ config = yaml.load(open(configf), Loader=yaml.FullLoader)
 
 project_name = config.get("project_name", "rpbp")
 path_to_data = config["riboseq_data"]
-path_to_genome = config["genome_base_path"]
 
 prj_md_text = f"**Project name:** {project_name}\n\n" \
-              f"**Path to genome:** {path_to_genome}\n\n" \
               f"**Path to data:** {path_to_data}\n\n" 
 
 is_unique = not ('keep_riboseq_multimappers' in config)
@@ -130,14 +91,11 @@ config_note = config.get("note", None)
 fraction = config.get('smoothing_fraction', None)
 reweighting_iterations = config.get('smoothing_reweighting_iterations', None)
 
-# *** load extended configuration
+# *** load extended configuration, etc.
 filen = Path(path_to_data, sub_folder, f"{project_name}.summarize_options.json")
 extended_config = json.load(open(filen, "r"))
 
 is_filtered = extended_config["is_filtered"]
-
-## *** app components, data-indepedent definitions, etc.
-
 is_filtered_str = "filtered" if is_filtered else "unfiltered" 
 no_repl_str = "excluding" if extended_config['no_replicates'] else "including"
 min_samples_str = f"ORFs were *filtered* to keep only those " \
@@ -160,13 +118,6 @@ labels_md_text = """
     **Novel**: Translation event inter- or intragenic (only when Rp-Bp is run with a *de novo* assembly)
     """
 
-# pbiotools.ribo.ribo_utils._return_key_dict 
-sample_name_map = ribo_utils.get_sample_name_map(config) # default to riboseq_samples.keys()
-condition_name_map = ribo_utils.get_condition_name_map(config) # default to riboseq_biological_replicates.keys()
-# work with pretty names, but we need the original names to retrieve files (e.g. metagene profiles)
-reverse_sample_name_map = {sample_name_map[key]: key 
-                           for key in config["riboseq_samples"].keys()}
-
 col_rev = {v:k for k,v in orf_type_colors.items()}
 row_col = {}
 for orf_type, labels in orf_type_labels.items():
@@ -174,30 +125,7 @@ for orf_type, labels in orf_type_labels.items():
     for t in types:
         row_col[t] = col_rev[orf_type]
 
-# tables
-style_data_conditional = [ {
-    'if': {
-        'filter_query': f'{{orf_type}} = "{t}"',
-        'column_id': 'orf_type'
-    },
-    'backgroundColor': c,
-    'color': 'white'
-} for t, c in row_col.items()]
-    
-style_data_conditional.append({'if': {'column_id': 'transcripts'}, 
-                               'textOverflow': 'ellipsis', 'overflow': 'hidden', 'maxWidth': 0})
-
-style_header_conditional = [ {
-    'if': {
-        'column_id': f'{t}_+', # only providing e.g. orf_type_+ seems sufficient !?
-        'header_index': 0
-    },
-    'backgroundColor': c,
-    'color': 'white'
-} for t, c in row_col.items()]
-    
 # *** load/wrangle data
-
 filen = filenames.get_riboseq_predicted_orfs(
         config["riboseq_data"], 
         project_name, 
@@ -210,17 +138,18 @@ filen = filenames.get_riboseq_predicted_orfs(
     )
 orfs = pd.read_csv(filen, sep="\t") # bed_utils
 orfs.columns = orfs.columns.str.replace("#", "")
-
 orfs["orf_len"] = orfs["orf_len"]/3
 orfs["profile_sum"] = orfs[["x_1_sum", "x_2_sum", "x_3_sum"]].sum(axis=1)
 orfs["profile_sum"] = orfs["profile_sum"].astype(int)
 orfs["in_frame"] = orfs["x_1_sum"].div(orfs["profile_sum"].values)*100
 orfs["in_frame"] = orfs["in_frame"].apply(np.round).astype(int)
-
 orfs["bayes_factor_mean"] = orfs["bayes_factor_mean"].apply(np.round).astype(int)
 orfs["bayes_factor_var"] = orfs["bayes_factor_var"].apply(np.round).astype(int)
 
-# main table
+# main table - REDEFINE columns!
+TABLE_FIELDS = ["seqname", "id", "orf_len", "orf_type", "biotype", "transcripts", "gene_id", "gene_name", "gene_biotype"]
+DISPLAY_FIELDS = ["Chrom", "ORF ID", "ORF length", "Category", "Transcript biotype", "Transcripts", "Gene ID", "Gene name", "Gene biotype"]
+
 display_table = orfs.groupby("id", as_index=False)["condition"].agg({"condition": lambda x: "|".join(x)})
 df = orfs.groupby("id", as_index=False)["bayes_factor_mean"].agg({"bayes_factor_mean": lambda x: "|".join([str(y) for y in x])})
 display_table = display_table.join(df["bayes_factor_mean"])
@@ -230,13 +159,10 @@ df = orfs.groupby("id", as_index=False)["profile_sum"].agg({"profile_sum": lambd
 display_table = display_table.join(df["profile_sum"])
 df = orfs.groupby("id", as_index=False)["in_frame"].agg({"in_frame": lambda x: "|".join([str(y) for y in x])})
 display_table = display_table.join(df["in_frame"])
-
 display_table["orf_info"] = display_table.apply(fmt_tooltip, axis=1)
-DISPLAY_FIELDS = ["seqname", "id", "orf_len", "orf_type", "biotype", "transcripts", "gene_id", "gene_name", "gene_biotype"]
-display_table = pd.merge(display_table, orfs[DISPLAY_FIELDS], on="id", how="left")
-display_table = display_table[DISPLAY_FIELDS + ["orf_info"]]
-#display_table = display_table[DISPLAY_FIELDS] # try now before adding tooltip
-display_table.drop_duplicates(inplace=True) # after merge, we get duplicates...why?
+display_table = pd.merge(display_table, orfs[TABLE_FIELDS], on="id", how="left")
+display_table = display_table[TABLE_FIELDS + ["orf_info"]]
+display_table.drop_duplicates(inplace=True)
 
 # summary table (tab) - show available samples and ORF types
 orf_tab = orfs.groupby('condition').apply(get_orf_type_counts)
@@ -265,10 +191,50 @@ sunburst_orfs = px.sunburst(
     }
 )
     
-# data-dependent app components
+# main table - DISPLAY_FIELDS
+display_table.rename(columns={k:v for k,v in zip(TABLE_FIELDS, DISPLAY_FIELDS)},
+                     inplace=True)
 
+style_data_conditional = [ {
+    'if': {
+        'filter_query': f'{{Category}} = "{t}"',
+        'column_id': 'Category'
+    },
+    'backgroundColor': c,
+    'color': 'white'
+} for t, c in row_col.items()]
+    
+style_data_conditional.append({'if': {'column_id': 'Transcripts'}, 
+                               'textOverflow': 'ellipsis', 'overflow': 'hidden', 'maxWidth': 0})
+
+style_header_conditional = [ {
+    'if': {
+        'column_id': f'{t}_+', # only providing e.g. orf_type_+ seems sufficient !?
+        'header_index': 0
+    },
+    'backgroundColor': c,
+    'color': 'white'
+} for t, c in row_col.items()]
+    
+    
+tooltip_header = {
+    "Chrom": "Chromosome", 
+    "ORF ID": "Rp-Bp ORF ID: Transcript:Chrom:Start-End:Strand",
+    "ORF length": "ORF length (AA)", 
+    "Category": "Rio-seq ORF category (type or label)", 
+    "Transcript biotype": "Biotype of host transcript", 
+    "Transcripts": "Other compatible transcripts", 
+    "Gene ID": "Host gene ID", 
+    "Gene name": "Host gene name",
+    "Gene biotype": "Host gene biotype"
+}
+
+PAGE_SIZE = 10
+page_count = np.ceil(len(display_table)/PAGE_SIZE)
+
+# data-dependent app components
 option_orf_types = [
-    {"label": x, "value": x} for x in display_table.orf_type.unique()
+    {"label": x, "value": x} for x in display_table.Category.unique()
 ]
 
 orf_type_default = "CDS" if any(["CDS" in d["label"] for d in option_orf_types]) else option_orf_types[0]['value']
@@ -282,11 +248,7 @@ drop_orf_types = dcc.Dropdown(
     style={"margin-top": "4px", "box-shadow": "0px 0px #73a5c8", "border-color": "#73a5c8"},
 )
 
-PAGE_SIZE = 10
-page_count = np.ceil(len(display_table)/PAGE_SIZE)
-
 # IGV data
-
 filen = Path(path_to_data, igv_folder, f"{Path(config['fasta']).name}.txt")
 with open(filen, 'r') as f:
     fastaURL = f.read()
@@ -347,7 +309,6 @@ reference={
     }
             
 # Circos
-
 filen = Path(path_to_data, igv_folder, f"{config['genome_name']}.circos_graph_data.json")
 circos_graph_data = json.load(open(filen, "r"))
 
@@ -376,10 +337,6 @@ circos_tracks_config = {"innerRadius": circos_innerRadius,
                         "outerRadius": circos_outerRadius, 
                         "color": row_col[orf_type_default]}
 
-
-
-
-
 # ------------------------------------------------------ APP ------------------------------------------------------
 
 app = dash.Dash(__name__)
@@ -402,7 +359,7 @@ app.layout = html.Div(
                 ),
                 # TODO: short intro, ref to Rp-Bp docs, etc.
                 html.H1(
-                    "Ribo-seq quality control",
+                    "Ribo-seq ORF predictions",
                     style={"color": "rgb(0 0 0)"},
                 ),
                 html.Br(),
@@ -425,10 +382,12 @@ app.layout = html.Div(
                                                     html.Div(
                                                         [
                                                             html.Div(
-                                                                [ # table not interactive
+                                                                [ 
+                                                                    html.H2("""ORF counts"""),
+                                                                    # table not interactive
                                                                     dash_table.DataTable(
                                                                         id="orf_tab",
-                                                                        columns=[{"name": ["ORF", "Strand"], "id": "condition"}] + 
+                                                                        columns=[{"name": ["Category", "Strand"], "id": "condition"}] + 
                                                                             [{"name": [x1, x2], "id": f"{x1}_{x2}"} for x1, x2 in orf_tab.columns],
                                                                         data=[
                                                                             {
@@ -515,7 +474,7 @@ app.layout = html.Div(
                             [
                                 html.Div(
                                     [
-                                        html.H2("""1. ORF predictions per length, type, and host transcript biotype"""
+                                        html.H2("""1. ORF predictions per length, category, and host transcript biotype"""
                                         ),
                                         html.Br(), # ad hoc
                                         html.Br(),
@@ -527,11 +486,11 @@ app.layout = html.Div(
                                 ),
                                 html.Div(
                                     [
-                                        html.H2("""2. ORF type distribution along genomic coordinates"""
+                                        html.H2("""2. Distribution of Ribo-seq ORFs along genomic coordinates"""
                                         ),
                                         html.Div(
                                             [
-                                                html.Label("Select ORF type",
+                                                html.Label("Select category",
                                                         style={"margin": "10px"},
                                                 ),
                                                 html.Div(
@@ -573,7 +532,7 @@ app.layout = html.Div(
                                         ),
                                         # all backend paging/sorting/filtering
                                         dash_table.DataTable(
-                                            id='datatable',
+                                            id='main_datatable',
                                             columns=[
                                                 {"name": i, "id": i} for i in DISPLAY_FIELDS
                                             ],
@@ -585,38 +544,21 @@ app.layout = html.Div(
                                             sort_action='custom',
                                             sort_mode='multi', # allow multi-column sorting
                                             sort_by=[],
-                                            tooltip_header={'orf_len': 'Length in AA'},
-                                            # Style headers with a dotted underline to indicate a tooltip
-                                            # conditionally?
-                                            #style_header={
-                                                #'textDecoration': 'underline',
-                                                #'textDecorationStyle': 'dotted',
-                                            #},
-
-                                            #tooltip_data=[{
-                                                #'id': {'value': row['orf_info'], 'type': 'markdown'},
-                                                #'transcripts': {'value': row['transcripts'], 'type': 'markdown'},
-                                                #} for row in display_table.to_dict('records')
-                                            #],
-                                            #tooltip_data=tooltip,
+                                            tooltip_header=tooltip_header,
+                                            style_header={
+                                                'textDecoration': 'underline',
+                                                'textDecorationStyle': 'dotted',
+                                            },
                                             tooltip_delay=0,
                                             tooltip_duration=None,
-                                            # Overflow into ellipsis
-                                            #style_cell={
-                                                #'overflow': 'hidden',
-                                                #'textOverflow': 'ellipsis',
-                                                #'maxWidth': 0,
-                                            #},
                                             style_data_conditional=style_data_conditional,
                                         ),
-                                        html.Label("""Hint: Hover over ORF ids to see in which sample/replicates they were found, 
-                                            with evidence from Bayes factor and P-site counts. All transcripts compatible with
-                                            an ORF are listed.""",
+                                        html.Label("""Hint: Hover over ORF IDs to see in which sample/replicates they were found, 
+                                            with evidence from Bayes factors and P-site counts. All transcripts compatible with
+                                            an ORF are listed (Transcripts).""",
                                             style={"font-style": "italic"}
                                         ),
                                     ],
-                                    # TODO: CSS/class style for table
-                                    # className="dbc"
                                 ),
                             ],
                             className="box",
@@ -692,17 +634,15 @@ app.layout = html.Div(
     ]
 )
 
-
 # ------------------------------------------------------ Callbacks ------------------------------------------------------
 
-
 @app.callback(
-[Output('datatable', 'data'),
- Output('datatable', 'tooltip_data')],
-[Input('datatable', "page_current"),
-Input('datatable', "page_size"),
-Input('datatable', 'sort_by')])
-def update_table(page_current, page_size, sort_by):
+[Output('main_datatable', 'data'),
+ Output('main_datatable', 'tooltip_data')],
+[Input('main_datatable', "page_current"),
+Input('main_datatable', "page_size"),
+Input('main_datatable', 'sort_by')])
+def update_main_table(page_current, page_size, sort_by):
     
     if len(sort_by):
         df = display_table.sort_values(
@@ -722,8 +662,8 @@ def update_table(page_current, page_size, sort_by):
     ].to_dict('records')
     
     tooltip_data=[{
-                'id': {'value': row['orf_info'], 'type': 'markdown'},
-                'transcripts': {'value': str(row['transcripts']), 'type': 'markdown'},
+                'ORF ID': {'value': row['orf_info'], 'type': 'markdown'},
+                'Transcripts': {'value': str(row['Transcripts']), 'type': 'markdown'},
                 } for row in data
             ]
     
