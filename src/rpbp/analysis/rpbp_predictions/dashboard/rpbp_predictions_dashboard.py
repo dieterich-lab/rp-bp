@@ -24,8 +24,6 @@ import pbiotools.ribo.ribo_utils as ribo_utils
 
 from rpbp.defaults import metagene_options, orf_type_colors, orf_type_labels, orf_type_name_map
 
-#from controls import STACK_CTS_ORDER, STACK_CTS_NAME, FUNNEL_CTS_NAME
-
 import dash_bio
 
 
@@ -100,6 +98,14 @@ def fmt_tooltip(row):
     return "\n".join(fmt)
 
 
+def get_orf_type_counts(condition):
+
+    orf_type_counts = condition.groupby(['orf_type', 'strand']).size()
+    orf_type_counts = orf_type_counts.reset_index(name="count")
+
+    return orf_type_counts
+
+
 # ------------------------------------------------------ Set-up ------------------------------------------------------
 
 # *** default path to summary data created by `summarize-rpbp-predictions`
@@ -123,7 +129,37 @@ config_note = config.get("note", None)
 
 fraction = config.get('smoothing_fraction', None)
 reweighting_iterations = config.get('smoothing_reweighting_iterations', None)
-    
+
+# *** load extended configuration
+filen = Path(path_to_data, sub_folder, f"{project_name}.summarize_options.json")
+extended_config = json.load(open(filen, "r"))
+
+is_filtered = extended_config["is_filtered"]
+
+## *** app components, data-indepedent definitions, etc.
+
+is_filtered_str = "filtered" if is_filtered else "unfiltered" 
+no_repl_str = "excluding" if extended_config['no_replicates'] else "including"
+min_samples_str = f"ORFs were *filtered* to keep only those " \
+                  f"predicted in at least {extended_config['min_samples']} samples." 
+default_str = "ORFs were *not* filtered based on the number of predictions per sample (default)."
+min_samples_str = min_samples_str if extended_config['min_samples'] > 1 else default_str           
+                        
+results_md_text = f"Ribo-seq ORFs from *{extended_config['date_time']}*. " \
+                  f"Using ORFs from *{is_filtered_str}* predictions, *{no_repl_str}* merged replicates. " \
+                  f"{min_samples_str} " \
+                  f"The bin width for counting ORF predictions along chromosomes is *{extended_config['circos_bin_width']}b*."
+
+labels_md_text = """
+    **CDS**: Canonical (annotated) coding sequence\n
+    **altCDS**: Alternative CDS (*e.g.* N/C-terminus extension/truncation, alternatively spliced variants, *etc.*)\n
+    **intORF**: Translation event within a CDS (in- or out-of-frame)\n
+    **uORF/uoORF**: Translation event in the 5' untranslated region (UTR) of or partially overlapping an annotated protein-coding gene\n
+    **dORF/doORF**: Translation event in the 3' untranslated region (UTR) of or partially overlapping an annotated protein-coding gene\n
+    **ncORF**: Translation event in an RNA annotated as non-coding (lncRNA, pseudogene, *etc.*)\n
+    **Novel**: Translation event inter- or intragenic (only when Rp-Bp is run with a *de novo* assembly)
+    """
+
 # pbiotools.ribo.ribo_utils._return_key_dict 
 sample_name_map = ribo_utils.get_sample_name_map(config) # default to riboseq_samples.keys()
 condition_name_map = ribo_utils.get_condition_name_map(config) # default to riboseq_biological_replicates.keys()
@@ -131,31 +167,14 @@ condition_name_map = ribo_utils.get_condition_name_map(config) # default to ribo
 reverse_sample_name_map = {sample_name_map[key]: key 
                            for key in config["riboseq_samples"].keys()}
 
-# here some options, like metagene, etc.
-
-
-# *** color palettes
-pxcols = px.colors.qualitative.Set3
-pal_frames = [pxcols[4], pxcols[3], pxcols[0]]
-# TODO: pxcols to RGB 
-pal_frames_meta = sns.palettes.color_palette(palette="Set3", n_colors=6)
-pal_frames_meta = [pal_frames_meta[4], pal_frames_meta[3], pal_frames_meta[0]]
-pal_bars = [pxcols[0], pxcols[1], pxcols[2]]
-
-## *** app components
-
-
-# ***
-   
-
-
 col_rev = {v:k for k,v in orf_type_colors.items()}
 row_col = {}
 for orf_type, labels in orf_type_labels.items():
     types = [orf_type_name_map[label] for label in labels]
     for t in types:
         row_col[t] = col_rev[orf_type]
-        
+
+# tables
 style_data_conditional = [ {
     'if': {
         'filter_query': f'{{orf_type}} = "{t}"',
@@ -165,11 +184,20 @@ style_data_conditional = [ {
     'color': 'white'
 } for t, c in row_col.items()]
     
-style_data_conditional.append({'if': {'column_id': 'transcripts'}, 'textOverflow': 'ellipsis', 'overflow': 'hidden', 'maxWidth': 0})
-        
-# *** load data
+style_data_conditional.append({'if': {'column_id': 'transcripts'}, 
+                               'textOverflow': 'ellipsis', 'overflow': 'hidden', 'maxWidth': 0})
 
-# 1. ORFs
+style_header_conditional = [ {
+    'if': {
+        'column_id': f'{t}_+', # only providing e.g. orf_type_+ seems sufficient !?
+        'header_index': 0
+    },
+    'backgroundColor': c,
+    'color': 'white'
+} for t, c in row_col.items()]
+    
+# *** load/wrangle data
+
 filen = filenames.get_riboseq_predicted_orfs(
         config["riboseq_data"], 
         project_name, 
@@ -178,18 +206,12 @@ filen = filenames.get_riboseq_predicted_orfs(
         is_unique=is_unique,         
         fraction=fraction,
         reweighting_iterations=reweighting_iterations,
-        is_filtered=True # TODO
+        is_filtered=is_filtered
     )
 orfs = pd.read_csv(filen, sep="\t") # bed_utils
 orfs.columns = orfs.columns.str.replace("#", "")
-# TODO: prep unique table with information for tooltips, and list of transcripts in tooltip for long list
 
-#orfs_columns = ['id', 'seqname', 'orf_len', 'orf_type'] 
-#orfs = orfs[orfs_columns]
-
-# AA - TODO check
 orfs["orf_len"] = orfs["orf_len"]/3
-
 orfs["profile_sum"] = orfs[["x_1_sum", "x_2_sum", "x_3_sum"]].sum(axis=1)
 orfs["profile_sum"] = orfs["profile_sum"].astype(int)
 orfs["in_frame"] = orfs["x_1_sum"].div(orfs["profile_sum"].values)*100
@@ -198,8 +220,8 @@ orfs["in_frame"] = orfs["in_frame"].apply(np.round).astype(int)
 orfs["bayes_factor_mean"] = orfs["bayes_factor_mean"].apply(np.round).astype(int)
 orfs["bayes_factor_var"] = orfs["bayes_factor_var"].apply(np.round).astype(int)
 
+# main table
 display_table = orfs.groupby("id", as_index=False)["condition"].agg({"condition": lambda x: "|".join(x)})
-
 df = orfs.groupby("id", as_index=False)["bayes_factor_mean"].agg({"bayes_factor_mean": lambda x: "|".join([str(y) for y in x])})
 display_table = display_table.join(df["bayes_factor_mean"])
 df = orfs.groupby("id", as_index=False)["bayes_factor_var"].agg({"bayes_factor_var": lambda x: "|".join([str(y) for y in x])})
@@ -209,18 +231,20 @@ display_table = display_table.join(df["profile_sum"])
 df = orfs.groupby("id", as_index=False)["in_frame"].agg({"in_frame": lambda x: "|".join([str(y) for y in x])})
 display_table = display_table.join(df["in_frame"])
 
-
 display_table["orf_info"] = display_table.apply(fmt_tooltip, axis=1)
-
 DISPLAY_FIELDS = ["seqname", "id", "orf_len", "orf_type", "biotype", "transcripts", "gene_id", "gene_name", "gene_biotype"]
-
-
 display_table = pd.merge(display_table, orfs[DISPLAY_FIELDS], on="id", how="left")
 display_table = display_table[DISPLAY_FIELDS + ["orf_info"]]
 #display_table = display_table[DISPLAY_FIELDS] # try now before adding tooltip
 display_table.drop_duplicates(inplace=True) # after merge, we get duplicates...why?
 
+# summary table (tab) - show available samples and ORF types
+orf_tab = orfs.groupby('condition').apply(get_orf_type_counts)
+orf_tab.reset_index(inplace=True)
+orf_tab.drop(columns='level_1', inplace=True)
+orf_tab = orf_tab.pivot(index='condition', columns=["orf_type", "strand"], values='count')
 
+# sunburst - no callback
 sunburst_table = display_table.copy()
 sunburst_table["length"] = "ORF"
 sunburst_table.loc[sunburst_table["orf_len"]<100, "length"] = "sORF"
@@ -240,9 +264,28 @@ sunburst_orfs = px.sunburst(
         "paper_bgcolor": "rgba(0,0,0,0)"
     }
 )
+    
+# data-dependent app components
 
+option_orf_types = [
+    {"label": x, "value": x} for x in display_table.orf_type.unique()
+]
 
-#print(display_table)
+orf_type_default = "CDS" if any(["CDS" in d["label"] for d in option_orf_types]) else option_orf_types[0]['value']
+
+drop_orf_types = dcc.Dropdown(
+    id="drop_orf_types",
+    clearable=False,
+    searchable=False,
+    options=option_orf_types,
+    value=orf_type_default,
+    style={"margin-top": "4px", "box-shadow": "0px 0px #73a5c8", "border-color": "#73a5c8"},
+)
+
+PAGE_SIZE = 10
+page_count = np.ceil(len(display_table)/PAGE_SIZE)
+
+# IGV data
 
 filen = Path(path_to_data, igv_folder, f"{Path(config['fasta']).name}.txt")
 with open(filen, 'r') as f:
@@ -264,45 +307,11 @@ filen = filenames.get_riboseq_predicted_orfs(
         is_unique=is_unique,         
         fraction=fraction,
         reweighting_iterations=reweighting_iterations,
-        is_filtered=True # TODO
+        is_filtered=is_filtered
     )
 filen = filen.replace(".gz", ".txt")
 with open(filen, 'r') as f:
     BED = f.read()    
-
-
-# we need to know which ORF types are avavailable        
-#option_orf_types = display_table.orf_type.unique()
-
-option_orf_types = [
-    {"label": x, "value": x} for x in display_table.orf_type.unique()
-]
-
-orf_type_default = "CDS" if any(["CDS" in d["label"] for d in option_orf_types]) else option_orf_types[0]['value']
-drop_orf_types = dcc.Dropdown(
-    id="drop_orf_types",
-    clearable=False,
-    searchable=False,
-    options=option_orf_types,
-    value=orf_type_default,
-    style={"margin-top": "4px", "box-shadow": "0px 0px #73a5c8", "border-color": "#73a5c8"},
-)
-
-        
-
-# we cannot do that on this one because it has multiple times same orf (per sample/conditions)
-# orfs.sort_values(by=["orf_num"], inplace=True)
-# orfs.set_index("orf_num", inplace=True, drop=True, verify_integrity=True)
-
-# all in all, this will NOT be this df that we show in the table, but the unique one...
-# if we have numpy we could use np.ceil
-import math
-PAGE_SIZE = 10
-page_count = math.ceil(len(display_table)/PAGE_SIZE)
-
-
-
-# IGV
 
 _COMPONENT_ID = 'igv-chart'
 #_COMPONENT_ID = 'default-igv'
@@ -336,11 +345,11 @@ reference={
             
         ]
     }
-
+            
+# Circos
 
 filen = Path(path_to_data, igv_folder, f"{config['genome_name']}.circos_graph_data.json")
 circos_graph_data = json.load(open(filen, "r"))
-
 
 circos_layout_config = {
     "innerRadius": 150,
@@ -366,6 +375,10 @@ circos_outerRadius = 2
 circos_tracks_config = {"innerRadius": circos_innerRadius, 
                         "outerRadius": circos_outerRadius, 
                         "color": row_col[orf_type_default]}
+
+
+
+
 
 # ------------------------------------------------------ APP ------------------------------------------------------
 
@@ -407,30 +420,89 @@ app.layout = html.Div(
                                 html.Div(
                                     [
                                         dcc.Tabs(
-                                            id='igv-tabs',
-                                            value='summary',
-                                            children=[
+                                            [
                                                 dcc.Tab(
+                                                    html.Div(
+                                                        [
+                                                            html.Div(
+                                                                [ # table not interactive
+                                                                    dash_table.DataTable(
+                                                                        id="orf_tab",
+                                                                        columns=[{"name": ["ORF", "Strand"], "id": "condition"}] + 
+                                                                            [{"name": [x1, x2], "id": f"{x1}_{x2}"} for x1, x2 in orf_tab.columns],
+                                                                        data=[
+                                                                            {
+                                                                                **{"condition": orf_tab.index[n]},
+                                                                                **{f"{x1}_{x2}": y for (x1, x2), y in data},
+                                                                            }
+                                                                                for (n, data) in [
+                                                                                    *enumerate([list(x.items()) for x in orf_tab.T.to_dict().values()])
+                                                                                ]
+                                                                        ],
+                                                                        merge_duplicate_headers=True,
+                                                                        style_header_conditional=style_header_conditional,
+                                                                        style_data={
+                                                                            'width': '100px',
+                                                                            'maxWidth': '100px',
+                                                                            'minWidth': '100px',
+                                                                        },
+                                                                        style_cell_conditional=[
+                                                                            {
+                                                                                'if': {'column_id': 'condition'},
+                                                                                'width': '250px'
+                                                                            },
+                                                                        ],
+                                                                        style_table={
+                                                                            'overflowX': 'auto'
+                                                                        },
+                                                                    ),
+                                                                ],
+                                                                style={"margin": "20px"},
+                                                            ),
+                                                            html.Div(
+                                                                [
+                                                                    dcc.Markdown(results_md_text),
+                                                                ],
+                                                            ),
+                                                        ],
+                                                        className="column",
+                                                    ),
                                                     label='Data summary',
-                                                    value='summary',
-                                                    children=html.Div(className='control-tab', children=[
-                                                        dcc.Markdown(
-                                                            """
-                                                            Summary here
-                                                            """
-                                                        )
-                                                    ])
                                                 ),
                                                 dcc.Tab(
-                                                    label='ORF labels',
-                                                    value='schematic',
-                                                    children=html.Div(className='control-tab', children=[
-                                                        dcc.Markdown(
-                                                            """
-                                                            OLF labels
-                                                            """
-                                                        )
-                                                    ]),
+                                                    html.Div(
+                                                        [
+                                                            html.Div(
+                                                                [
+                                                                    html.Div(
+                                                                        [
+                                                                            html.Img(
+                                                                                src=app.get_asset_url("schematic.png"),
+                                                                                style={
+                                                                                    "width": "90%",
+                                                                                    "position": "relative",
+                                                                                    "margin": "15px",
+                                                                                },
+                                                                            ),
+                                                                        ]
+                                                                    ),
+                                                                ],
+                                                            ),
+                                                            html.Div(
+                                                                [
+                                                                    dcc.Markdown(labels_md_text),
+                                                                ],
+                                                                style={
+                                                                    "width": "60%",
+                                                                    "position": "relative",
+                                                                    "margin": "5px",
+                                                                    "margin-top": "15px"
+                                                                },
+                                                            ),
+                                                        ],
+                                                        className="row",
+                                                    ),
+                                                    label="Terminology and categories of Ribo-seq ORFs",
                                                 ),
                                             ],
                                         ),
@@ -632,16 +704,7 @@ Input('datatable', "page_size"),
 Input('datatable', 'sort_by')])
 def update_table(page_current, page_size, sort_by):
     
-    #return orfs.iloc[
-        #page_current*page_size:(page_current+ 1)*page_size
-    #].to_dict('records')
-    
     if len(sort_by):
-        #df = orfs.sort_values(
-            #sort_by[0]['column_id'],
-            #ascending=sort_by[0]['direction'] == 'asc',
-            #inplace=False
-        #)
         df = display_table.sort_values(
             [col['column_id'] for col in sort_by],
             ascending=[
@@ -651,7 +714,7 @@ def update_table(page_current, page_size, sort_by):
             inplace=False
         )
     else:
-        # No sort is applied
+        # no sort 
         df = display_table
 
     data = df.iloc[

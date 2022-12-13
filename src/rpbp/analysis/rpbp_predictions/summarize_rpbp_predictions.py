@@ -10,6 +10,7 @@ import gzip
 import tempfile
 import shutil
 import base64
+import datetime
 
 from pathlib import Path
 from collections import defaultdict
@@ -448,8 +449,9 @@ def main(EXT_FIELD_NAMES):
     )
     
     parser.add_argument('--circos-bin-width', help="""Bin width for counting
-                        ORF predictions along chromosomes.""", type=int,
-                        default=10000000
+                        ORF predictions along chromosomes. Same bin width for 
+                        all chromosomes. Last bin adjusted ad hoc to chromosome
+                        size.""", type=int, default=10000000
     )
     
     #subparser = parser.add_subparsers()
@@ -518,20 +520,6 @@ def main(EXT_FIELD_NAMES):
     reweighting_iterations = config.get('smoothing_reweighting_iterations', None)
 
     is_filtered = not args.use_unfiltered_orfs
-    
-    # log options for the dashboard that 
-    dashboard_data = {
-        "is_filtered": is_filtered,
-        "min_samples": args.min_samples,
-        "keep_other": args.keep_other,
-        "no_replicates": args.no_replicates,
-        "use_unfiltered_orfs": args.use_unfiltered_orfs,
-        "circos_bin_width": args.circos_bin_width
-    }
-    filen = Path(sub_folder, f"{project}.summarize_options.json")
-    filen = Path(config["riboseq_data"], filen)
-    with open(filen, 'w') as f:
-        json.dump(dashboard_data, f)
     
     # Collecting all predictions 
     msg = 'Parsing predictions for samples'
@@ -763,6 +751,24 @@ def main(EXT_FIELD_NAMES):
         else:
             msg = f"Output file {dest} exists, skipping call!"
             logger.warning(msg)
+            
+    # log options for the dashboard
+    dashboard_data = {
+        "is_filtered": is_filtered,
+        "min_samples": args.min_samples,
+        "keep_other": args.keep_other,
+        "no_replicates": args.no_replicates,
+        "circos_bin_width": args.circos_bin_width,
+        "date_time": "{:%Y-%m-%d %H:%M:%S}".format(datetime.datetime.now())
+    }
+    filen = Path(sub_folder, f"{project}.summarize_options.json")
+    filen = Path(config["riboseq_data"], filen)
+    if args.overwrite or not filen.is_file():
+        with open(filen, 'w') as f:
+            json.dump(dashboard_data, f)
+    else:
+        msg = f"Output file {filen} exists, skipping call!"
+        logger.warning(msg)
         
     if args.show_orf_periodicity:
         create_all_figures(config, 
