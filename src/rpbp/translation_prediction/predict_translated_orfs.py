@@ -102,6 +102,15 @@ def main():
         N.B. If this flag is is present, the --overwrite flag will automatically be set!""",
         action="store_true",
     )
+    
+    parser.add_argument(
+        "--write-unfiltered",
+        help="""If this flag is given, in addition to the default 
+        filtered predictions (longest ORF for each stop codon, then 
+        highest Bayes factor among overlapping ORFs), output all ORF 
+        predictions""",
+        action="store_true",
+    )
 
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
@@ -324,8 +333,11 @@ def main():
         overwrite=args.overwrite,
         call=call,
     )
-
-    for is_filtered in [True, False]:
+    
+    filters = [True]
+    if args.write_unfiltered:
+        filters.append(False)
+    for is_filtered in filters:
 
         filtered_str = ""
         if is_filtered:

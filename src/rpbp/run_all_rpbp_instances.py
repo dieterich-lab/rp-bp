@@ -73,10 +73,20 @@ def main():
         help="""If this flag is given,
         then all intermediate files will be kept; otherwise, they will be
         deleted. This feature is implemented piecemeal. If the --do-not-call flag
-        is given, then nothing will be deleted.""",
+        is given, then nothing will be deleted. NOTE: intermediate files are
+        necessary to perform read filtering QC!""",
         action="store_true",
     )
-
+    
+    parser.add_argument(
+        "--write-unfiltered",
+        help="""If this flag is given, in addition to the default 
+        filtered predictions (longest ORF for each stop codon, then 
+        highest Bayes factor among overlapping ORFs), output all ORF 
+        predictions""",
+        action="store_true",
+    )
+    
     slurm.add_sbatch_options(parser, num_cpus=default_num_cpus, mem=default_mem)
     logging_utils.add_logging_options(parser)
     pgrm_utils.add_star_options(parser, star_executable)
@@ -139,7 +149,11 @@ def main():
     keep_intermediate_str = ""
     if args.keep_intermediate_files:
         keep_intermediate_str = "--keep-intermediate-files"
-
+    
+    unfiltered_str = ""
+    if args.write_unfiltered
+        unfiltered_str = "--write-unfiltered"
+        
     # check if we only want to create the profiles, in this case
     # we call run-rpbp-pipeline with the --profiles-only option
     profiles_only_str = ""
@@ -179,7 +193,7 @@ def main():
             tmp = os.path.join(args.tmp, "{}_rpbp".format(sample_name))
             tmp_str = "--tmp {}".format(tmp)
 
-        cmd = "run-rpbp-pipeline {} {} {} --num-cpus {} {} {} {} {} {} {} {} {} {}".format(
+        cmd = "run-rpbp-pipeline {} {} {} --num-cpus {} {} {} {} {} {} {} {} {} {} {}".format(
             data,
             args.config,
             sample_name,
@@ -190,6 +204,7 @@ def main():
             overwrite_str,
             profiles_only_str,
             keep_intermediate_str,
+            unfiltered_str,
             logging_str,
             star_str,
             flexbar_str,
@@ -209,12 +224,13 @@ def main():
     for condition_name in sorted(riboseq_replicates.keys()):
 
         # then we predict the ORFs
-        cmd = "predict-translated-orfs {} {} --num-cpus {} {} {} {} {}".format(
+        cmd = "predict-translated-orfs {} {} --num-cpus {} {} {} {} {} {}".format(
             args.config,
             condition_name,
             args.num_cpus,
             do_not_call_str,
             overwrite_str,
+            unfiltered_str,
             logging_str,
             merge_replicates_str,
         )

@@ -11,7 +11,7 @@ We are working on a major version upgrade.
 
 ### Changed
 
-- Environment installation for Python 3.10 (with ad hoc installation of pbiotools)
+- Environment installation for Python 3.10 (currently with ad hoc installation of pbiotools)
 - Upgrade all dependencies/required packages, install via Conda (except pysam==0.20.0 and pytest plugins via pip)
 - Pin major dependencies
 - PyStan 2 to CmdStanPy API
@@ -24,6 +24,8 @@ We are working on a major version upgrade.
 - `orf_type` filtering for translation prediction
 - Rp-Bp reporting and related plotting scripts
 - GFF3 support
+- Unfiltered predictions, unless [--write-unfiltered] is set
+- QTI-seq, various plotting/reporting scripts, notebooks
 
 ### Fixed
 
@@ -35,6 +37,7 @@ We are working on a major version upgrade.
 - WIP: STAR options handling for `prepare_rpbp_genome`
 - Retrieve gene_id, etc. from annotations
 - Dashboad applications to replace PDF reports
+- Data wrangling: `summarize_rpbp_profile_construction.py`, and `summarize_rpbp_predictions.py`
 
 ## [2.0.0] 2019-05-24
 

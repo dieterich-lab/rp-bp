@@ -309,7 +309,7 @@ def _create_figures(name_pretty_name_is_sample, config, args):
     fraction = config.get("smoothing_fraction", None)
     reweighting_iterations = config.get("smoothing_reweighting_iterations", None)
     
-    is_filtered = not args.use_unfiltered_orfs
+    is_filtered = not args.use_unfiltered
     
     logging_str = logging_utils.get_logging_options_string(args)
     image_type_str = "--image-type {}".format(args.image_type)
@@ -427,9 +427,11 @@ def main(EXT_FIELD_NAMES):
                         action='store_true'
     )
     
-    parser.add_argument('--use-unfiltered-orfs', help="""If this flag 
+    parser.add_argument('--use-unfiltered', help="""If this flag 
                         is present, the "unfiltered" ORF predictions are 
-                        used. By default, "filtered" are used.""",
+                        used. Unless Rp-Bp was run with [--write-unfiltered], 
+                        these will not be available. By default, 
+                        "filtered" are used.""",
                         action="store_true",
     )
     
@@ -519,7 +521,7 @@ def main(EXT_FIELD_NAMES):
     fraction = config.get('smoothing_fraction', None)
     reweighting_iterations = config.get('smoothing_reweighting_iterations', None)
 
-    is_filtered = not args.use_unfiltered_orfs
+    is_filtered = not args.use_unfiltered
     
     # Collecting all predictions 
     msg = 'Parsing predictions for samples'

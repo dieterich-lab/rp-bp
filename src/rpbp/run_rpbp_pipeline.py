@@ -65,6 +65,15 @@ def main():
         is given, then nothing will be deleted.""",
         action="store_true",
     )
+    
+    parser.add_argument(
+        "--write-unfiltered",
+        help="""If this flag is given, in addition to the default 
+        filtered predictions (longest ORF for each stop codon, then 
+        highest Bayes factor among overlapping ORFs), output all ORF 
+        predictions""",
+        action="store_true",
+    )
 
     slurm.add_sbatch_options(parser, num_cpus=default_num_cpus, mem=default_mem)
     logging_utils.add_logging_options(parser)
@@ -131,7 +140,11 @@ def main():
     keep_intermediate_str = ""
     if args.keep_intermediate_files:
         keep_intermediate_str = "--keep-intermediate-files"
-
+    
+    unfiltered_str = ""
+    if args.write_unfiltered
+        unfiltered_str = "--write-unfiltered"
+        
     tmp_str = ""
     if args.tmp is not None:
         tmp_str = "--tmp {}".format(shlex.quote(args.tmp))
@@ -160,12 +173,13 @@ def main():
         return
 
     # then we predict the ORFs
-    cmd = "predict-translated-orfs {} {} --num-cpus {} {} {} {}".format(
+    cmd = "predict-translated-orfs {} {} --num-cpus {} {} {} {} {}".format(
         args.config,
         args.name,
         args.num_cpus,
         do_not_call_str,
         overwrite_str,
+        unfiltered_str,
         logging_str,
     )
     shell_utils.check_call(cmd)
