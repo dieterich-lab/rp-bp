@@ -138,7 +138,7 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
             iter_warmup=iter_warmup, 
             iter_sampling=iter_warmup, 
             chains=args.chains, 
-            parallel_chains=args.chains, 
+            parallel_chains=1, 
             seed=args.seed, 
             show_progress=False,
             show_console=False
@@ -152,7 +152,7 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
             iter_warmup=iter_warmup, 
             iter_sampling=iter_warmup, 
             chains=args.chains, 
-            parallel_chains=args.chains, 
+            parallel_chains=1, 
             seed=args.seed, 
             show_progress=False,
             show_console=False

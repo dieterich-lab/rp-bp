@@ -93,6 +93,12 @@ model_inst_options = {
     "stan_threads": True
 }
 
+# shared options
+mcmc_shared = {
+    "seed": 8675309,
+    "chains": 2,
+}
+
 metagene_options = {
     "metagene_start_upstream": 300,
     "metagene_start_downstream": 300,
@@ -101,8 +107,8 @@ metagene_options = {
     "periodic_offset_start": -20,
     "periodic_offset_end": 0,
     "metagene_profile_length": 21,
-    "seed": 8675309,
-    "chains": 2,
+    "seed": mcmc_shared["seed"],
+    "chains": mcmc_shared["chains"],
     "metagene_iterations": 500, # incl. warmup
     "min_metagene_profile_count": 1000,
     "min_metagene_image_count": 500,  # TODO: profiles with count < min_metagene_image_count will not be displayed (only for report)
@@ -121,8 +127,8 @@ translation_options = {
     "orf_min_length_pre": 0,  # ORF with length < orf_min_length_pre are not processed, 0 ignore option
     "orf_max_length_pre": 0,  # ORF with length > orf_max_length_pre are not processed, 0 ignore option
     "orf_min_profile_count_pre": 5,  # ORF with profile sum < orf_min_profile_count_pre are not processed
-    "seed": 8675309,
-    "chains": 2,
+    "seed": mcmc_shared["seed"],
+    "chains": mcmc_shared["chains"],
     "translation_iterations": 500, # incl. warmup
     "min_bf_mean": 5,
     "min_bf_likelihood": 0.5,
