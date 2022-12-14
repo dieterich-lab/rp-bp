@@ -151,7 +151,7 @@ def main():
         keep_intermediate_str = "--keep-intermediate-files"
     
     unfiltered_str = ""
-    if args.write_unfiltered
+    if args.write_unfiltered:
         unfiltered_str = "--write-unfiltered"
         
     # check if we only want to create the profiles, in this case

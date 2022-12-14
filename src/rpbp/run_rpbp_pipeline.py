@@ -142,7 +142,7 @@ def main():
         keep_intermediate_str = "--keep-intermediate-files"
     
     unfiltered_str = ""
-    if args.write_unfiltered
+    if args.write_unfiltered:
         unfiltered_str = "--write-unfiltered"
         
     tmp_str = ""

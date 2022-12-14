@@ -198,7 +198,8 @@ def get_pipeline(getf_config):
     config, ref_config = getf_config
 
     num_cpus = 6
-    opts = "--merge-replicates --run-replicates --overwrite --keep-intermediate-files"
+    opts = ("--merge-replicates --run-replicates --overwrite 
+        --keep-intermediate-files --write-unfiltered")
     cmd = f"run-all-rpbp-instances {config.as_posix()} --num-cpus {num_cpus} {opts}"
     shell_utils.check_call(cmd, call=True, raise_on_error=True)
 
@@ -295,7 +296,8 @@ def getf_pipeline(get_pipeline):
             ),
         }
         lf.append(files)
-
+        
+        # test all using [--write-unfiltered]
         for is_filtered in [True, False]:
             files = {
                 f"predicted_orfs_{name}_{is_filtered}": filenames.get_riboseq_predicted_orfs(

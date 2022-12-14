@@ -1,0 +1,67 @@
+STAR version=2.7.10a
+STAR compilation time,server,dir=2022-01-14T18:50:00-05:00 :/home/dobin/data/STAR/STARcode/STAR.master/source
+STAR git: On branch master ; commit ae26add7ea1724f3281ec8abedb71bcff6a4ae73 ; diff files: CHANGES.md README.md RELEASEnotes.md doc/STARmanual.pdf extras/doc-latex/STARmanual.tex extras/doc-latex/convertParDefToLatexTable.awk extras/doc-latex/parametersDefault.tex extras/docker/Dockerfile source/VERSION 
+##### Command Line:
+STAR --runMode genomeGenerate --genomeDir /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index --genomeFastaFiles /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/input/WBcel235.chrI.fa --runThreadN 6 --limitGenomeGenerateRAM 2147483648 --genomeSAindexNbases 10
+##### Initial USER parameters from Command Line:
+###### All USER parameters from Command Line:
+runMode                       genomeGenerate        ~RE-DEFINED
+genomeDir                     /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index     ~RE-DEFINED
+genomeFastaFiles              /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/input/WBcel235.chrI.fa        ~RE-DEFINED
+runThreadN                    6     ~RE-DEFINED
+limitGenomeGenerateRAM        2147483648     ~RE-DEFINED
+genomeSAindexNbases           10     ~RE-DEFINED
+##### Finished reading parameters from all sources
+
+##### Final user re-defined parameters-----------------:
+runMode                           genomeGenerate   
+runThreadN                        6
+genomeDir                         /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index
+genomeFastaFiles                  /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/input/WBcel235.chrI.fa   
+genomeSAindexNbases               10
+limitGenomeGenerateRAM            2147483648
+
+-------------------------------
+##### Final effective command line:
+STAR   --runMode genomeGenerate      --runThreadN 6   --genomeDir /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index   --genomeFastaFiles /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/input/WBcel235.chrI.fa      --genomeSAindexNbases 10   --limitGenomeGenerateRAM 2147483648
+----------------------------------------
+
+Number of fastq files for each mate = 1
+ParametersSolo: --soloCellFilterType CellRanger2.2 filtering parameters:  3000 0.99 10
+Finished loading and checking parameters
+--genomeDir directory exists and will be overwritten: /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index/
+!!!!! WARNING: Could not move Log.out file from ./Log.out into /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index/Log.out. Will keep ./Log.out
+
+Dec 14 14:04:46 ... starting to generate Genome files
+/beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/input/WBcel235.chrI.fa : chr # 0  "I" chrStart: 0
+Chromosome sequence lengths: 
+I	15072434
+Genome sequence total length = 15072434
+Genome size with padding = 15204352
+Estimated genome size with padding and SJs: total=genome+SJ=216204352 = 15204352 + 201000000
+GstrandBit=32
+Number of SA indices: 30144868
+Dec 14 14:04:46 ... starting to sort Suffix Array. This may take a long time...
+Number of chunks: 6;   chunks size limit: 48231784 bytes
+Dec 14 14:04:47 ... sorting Suffix Array chunks and saving them to disk...
+Writing 7524928 bytes into /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index//SA_5 ; empty space on disk = 46575425945600 bytes ... done
+Writing 42294600 bytes into /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index//SA_4 ; empty space on disk = 46575425945600 bytes ... done
+Writing 47481672 bytes into /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index//SA_0 ; empty space on disk = 46575425945600 bytes ... done
+Writing 47802496 bytes into /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index//SA_2 ; empty space on disk = 46575425945600 bytes ... done
+Writing 48046424 bytes into /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index//SA_1 ; empty space on disk = 46575425945600 bytes ... done
+Writing 48008824 bytes into /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index//SA_3 ; empty space on disk = 46575425945600 bytes ... done
+Dec 14 14:04:50 ... loading chunks from disk, packing SA...
+Dec 14 14:04:50 ... finished generating suffix array
+Dec 14 14:04:50 ... generating Suffix Array index
+Dec 14 14:04:51 ... completed Suffix Array index
+Dec 14 14:04:51 ... writing Genome to disk ...
+Writing 15204352 bytes into /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index//Genome ; empty space on disk = 46575425945600 bytes ... done
+SA size in bytes: 124347584
+Dec 14 14:04:51 ... writing Suffix Array to disk ...
+Writing 124347584 bytes into /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index//SA ; empty space on disk = 46575425945600 bytes ... done
+Dec 14 14:04:51 ... writing SAindex to disk
+Writing 8 bytes into /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index//SAindex ; empty space on disk = 46575425945600 bytes ... done
+Writing 88 bytes into /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index//SAindex ; empty space on disk = 46575425945600 bytes ... done
+Writing 6116691 bytes into /beegfs/scratch/global_tmp/pytest-of-eboileau/pytest-72/data0/c-elegans-chrI-example/WBcel235.79.chrI/star-index//SAindex ; empty space on disk = 46575425945600 bytes ... done
+Dec 14 14:04:51 ..... finished successfully
+DONE: Genome generation, EXITING
