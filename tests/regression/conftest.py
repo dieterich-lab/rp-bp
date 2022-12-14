@@ -198,8 +198,8 @@ def get_pipeline(getf_config):
     config, ref_config = getf_config
 
     num_cpus = 6
-    opts = ("--merge-replicates --run-replicates --overwrite 
-        --keep-intermediate-files --write-unfiltered")
+    opts = "--merge-replicates --run-replicates --overwrite " \
+            "--keep-intermediate-files --write-unfiltered"
     cmd = f"run-all-rpbp-instances {config.as_posix()} --num-cpus {num_cpus} {opts}"
     shell_utils.check_call(cmd, call=True, raise_on_error=True)
 

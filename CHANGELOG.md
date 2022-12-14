@@ -11,9 +11,7 @@ We are working on a major version upgrade.
 
 ### Changed
 
-- Environment installation for Python 3.10 (currently with ad hoc installation of pbiotools)
-- Upgrade all dependencies/required packages, install via Conda (except pysam==0.20.0 and pytest plugins via pip)
-- Pin major dependencies
+- Upgrade all dependencies/required packages, install via Conda
 - PyStan 2 to CmdStanPy API
 - Handling of ORF labels
 
@@ -22,7 +20,6 @@ We are working on a major version upgrade.
 - PyStan dependency
 - Fitted parameters from output `_location` and `_scale`
 - `orf_type` filtering for translation prediction
-- Rp-Bp reporting and related plotting scripts
 - GFF3 support
 - Unfiltered predictions, unless [--write-unfiltered] is set
 - QTI-seq, various plotting/reporting scripts, notebooks

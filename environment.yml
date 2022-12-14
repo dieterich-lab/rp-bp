@@ -24,8 +24,8 @@ dependencies:
   - setuptools
   - star
   - statsmodels
+  - pysam
   - pip:
-      - pysam==0.20.0 # with Samtools-1.16.1
       - pytest-cov
       - pytest-depends
       #      - git+https://github.com/dieterich-lab/pbiotools.git@dev-ssciwr#egg=pbiotools # installed separately with --no-deps ???

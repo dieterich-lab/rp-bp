@@ -4,7 +4,7 @@ joblib
 numpy
 pandas
 git+https://github.com/dieterich-lab/pbiotools.git@dev-ssciwr#egg=pbiotools
-pysam==0.20.0 
+pysam 
 pyyaml
 scipy
 statsmodels
