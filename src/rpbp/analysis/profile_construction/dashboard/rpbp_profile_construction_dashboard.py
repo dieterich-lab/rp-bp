@@ -224,9 +224,9 @@ def metagene_plot_bars(metagene_profile_start, metagene_profile_end,
     x_2_pos = np.arange(len(metagene_profile_start))[idx[1]::3]
     x_3_pos = np.arange(len(metagene_profile_start))[idx[2]::3]
 
-    x_1_rects = axes[0].bar(x_1_pos, x_1, width=1, color=pal_frames_meta[0])
-    x_2_rects = axes[0].bar(x_2_pos, x_2, width=1, color=pal_frames_meta[1])
-    x_3_rects = axes[0].bar(x_3_pos, x_3, width=1, color=pal_frames_meta[2])
+    x_1_rects = axes[0].bar(x_1_pos, x_1, width=1, color=pal_frames[0])
+    x_2_rects = axes[0].bar(x_2_pos, x_2, width=1, color=pal_frames[1])
+    x_3_rects = axes[0].bar(x_3_pos, x_3, width=1, color=pal_frames[2])
 
     # now, the end counts
     x_1 = metagene_profile_end[idx[0]::3]
@@ -237,9 +237,9 @@ def metagene_plot_bars(metagene_profile_start, metagene_profile_end,
     x_2_pos = np.arange(len(metagene_profile_end))[idx[1]::3]
     x_3_pos = np.arange(len(metagene_profile_end))[idx[2]::3]
 
-    x_1_rects = axes[1].bar(x_1_pos, x_1, width=1, color=pal_frames_meta[0])
-    x_2_rects = axes[1].bar(x_2_pos, x_2, width=1, color=pal_frames_meta[1])
-    x_3_rects = axes[1].bar(x_3_pos, x_3, width=1, color=pal_frames_meta[2])
+    x_1_rects = axes[1].bar(x_1_pos, x_1, width=1, color=pal_frames[0])
+    x_2_rects = axes[1].bar(x_2_pos, x_2, width=1, color=pal_frames[1])
+    x_3_rects = axes[1].bar(x_3_pos, x_3, width=1, color=pal_frames[2])
 
     axes[0].set_xticks(xticks_start)
     axes[0].set_xticklabels(xticklabels_start)
@@ -283,12 +283,12 @@ def metagene_plot_lines(metagene_profile_start, metagene_profile_end,
   
     # first, the start counts
     x_pos = np.arange(start_window_size)
-    x_rects = axes[0].plot(x_pos, metagene_profile_start, color=pal_frames_meta[0])
+    x_rects = axes[0].plot(x_pos, metagene_profile_start, color=pal_frames[0])
 
     # now, the end counts
     # stop site, ribo, then rna
     x_pos = np.arange(end_window_size)
-    x_rects = axes[1].plot(x_pos, metagene_profile_end, color=pal_frames_meta[0])
+    x_rects = axes[1].plot(x_pos, metagene_profile_end, color=pal_frames[0])
     
     axes[0].set_xticks(xticks_start)
     axes[0].set_xticklabels(xticklabels_start)
@@ -336,8 +336,8 @@ path_to_data = config["riboseq_data"]
 path_to_genome = config["genome_base_path"]
 
 prj_md_text = f"**Project name:** {project_name}\n\n" \
-              f"**Path to genome:** {path_to_genome}\n\n" \
-              f"**Path to data:** {path_to_data}\n\n" \
+              f"**Genome location:** {path_to_genome}\n\n" \
+              f"**Data location:** {path_to_data}\n\n" \
               f"---"
 
 is_unique = not ('keep_riboseq_multimappers' in config)
@@ -383,12 +383,11 @@ read_length_end_downstream = 21
 read_length_step = 10
 
 # *** color palettes
-pxcols = px.colors.qualitative.Set3
-pal_frames = [pxcols[4], pxcols[3], pxcols[0]]
-# TODO: pxcols to RGB 
-pal_frames_meta = sns.palettes.color_palette(palette="Set3", n_colors=6)
-pal_frames_meta = [pal_frames_meta[4], pal_frames_meta[3], pal_frames_meta[0]]
-pal_bars = [pxcols[0], pxcols[1], pxcols[2]]
+pal_blind = sns.color_palette("colorblind").as_hex()
+pal_blind = [pal_blind[0], pal_blind[3], pal_blind[2], pal_blind[8], pal_blind[4], pal_blind[1]]
+pal_frames = pal_blind[:3]
+pal_bars = pal_blind[2:5]
+pal_set3 = pal_bars + [pal_blind[1], pal_blind[0], pal_blind[5]]
 
 # *** app components
 option_unique = [
@@ -570,9 +569,7 @@ app.layout = html.Div(
                                         ),
                                         html.Br(),
                                         radio_stacked_reads,
-                                        # TODO: update hoverData based on default value from selection...
                                         dcc.Graph(id="stacked_reads_fig",
-                                                  hoverData={'points': [{'label': 'c-elegans-rep-1'}]}
                                         ),
                                         html.Label("""Hint: Hover over bars to create a funnel 
                                             chart (right) for a given sample.""",
@@ -843,7 +840,7 @@ def stacked_reads(selected, zoom):
     if zoom == 1: # exclude ribosomal/poor quality
         stack_cts_order = stack_cts_order[:4]
         stack_cts_name = stack_cts_name[:4]
-    pal = px.colors.qualitative.Set3[:len(stack_cts_name)]
+    pal = pal_set3[:len(stack_cts_name)]
     
     # get differential counts - ascending order
     alignment_diff_counts = get_diff_counts(
@@ -871,19 +868,24 @@ def stacked_reads(selected, zoom):
 # funnel chart
 @app.callback(Output('funnel_fig', 'figure'),
               [Input('stacked_reads_fig', 'hoverData'),
-               Input("radio_stacked_reads", "value")])
-def funnel_reads(hoverData, zoom):
+               Input("radio_stacked_reads", "value"),
+               Input("drop_samples", "value")])
+def funnel_reads(hoverData, zoom, selected):
 
     stack_cts_order = STACK_CTS_ORDER
     funnel_cts_name = FUNNEL_CTS_NAME
     if zoom == 1: # exclude ribosomal/poor quality
         stack_cts_order = stack_cts_order[:4]
         funnel_cts_name = funnel_cts_name[:4]
-    pal = px.colors.qualitative.Set3[:len(stack_cts_order)]
+    pal = pal_set3[:len(stack_cts_order)]
     
-    sample_name = hoverData['points'][0]['label']
-    title = f"Filtering steps for {sample_name}"
-    
+    if hoverData is not None:
+        sample_name = hoverData['points'][0]['label']
+        title = f"Filtering steps for {sample_name}"
+    else:
+        sample_name = selected.split(",")[0] # pick first - TODO: ordering/grouping
+        title = f"Filtering steps for {sample_name}"
+        
     df = read_filtering_counts[read_filtering_counts.Sample==sample_name]
     df = df[stack_cts_order[::-1]]
     df.columns = funnel_cts_name
@@ -893,7 +895,7 @@ def funnel_reads(hoverData, zoom):
         x = df.values[0],
         textinfo = "label+value",
         hoverinfo = "text+percent previous+percent initial",
-        marker = {"color": px.colors.qualitative.Set3[:len(stack_cts_order)][::-1]},
+        marker = {"color": pal_set3[:len(stack_cts_order)][::-1]},
     )).update_yaxes(showticklabels=False).update_layout({
         'plot_bgcolor': 'rgba(0,0,0,0)',
         'paper_bgcolor': 'rgba(0,0,0,0)'

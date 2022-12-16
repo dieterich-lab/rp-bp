@@ -147,10 +147,10 @@ orf_type_name_map = {
     "canonical_variant": "altCDS",
     "internal": "intORF",
     "five_prime": "uORF",
-    "three_prime": "dORF",
-    "noncoding": "ncORF",
     "five_prime_overlap": "uoORF",
+    "three_prime": "dORF",
     "three_prime_overlap": "doORF",
+    "noncoding": "ncORF",
     "suspect": "Suspect",
     "overlap": "Overlap",
     "novel": "Novel", # intergenic - not contained in the annotations

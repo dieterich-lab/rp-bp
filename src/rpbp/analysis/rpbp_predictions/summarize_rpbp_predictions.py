@@ -166,7 +166,7 @@ def get_predictions_file(name, is_sample, note, fraction,
         msg = f"File type {ftype} unrecognized!"
         logger.critical(msg)
         
-    if not Path(filen).is_file():
+    if not Path(filen).is_file() and not ftype == "base":
         msg = f"Could not find predicted ORFs. name: {name}, file: {filen}."
         raise FileNotFoundError(msg)
 
@@ -385,12 +385,14 @@ def create_all_figures(config, sample_name_map, condition_name_map, args):
     is_sample = True
     sample_names = sorted(config["riboseq_samples"].keys())
     samples = [(name, sample_name_map[name], is_sample) for name in sample_names]
-
-    is_sample = False
-    replicate_names = sorted(ribo_utils.get_riboseq_replicates(config).keys())
-    conditions = [
-        (name, condition_name_map[name], is_sample) for name in replicate_names
-    ]
+    
+    conditions = []
+    if not args.no_replicates:
+        is_sample = False
+        replicate_names = sorted(ribo_utils.get_riboseq_replicates(config).keys())
+        conditions = [
+            (name, condition_name_map[name], is_sample) for name in replicate_names
+        ]
 
     all_names = samples + conditions
     parallel.apply_parallel_iter(
@@ -398,7 +400,7 @@ def create_all_figures(config, sample_name_map, condition_name_map, args):
     )
 
 
-def main(EXT_FIELD_NAMES):
+def main():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="""This script summarizes the ORF prediction step of 
@@ -409,11 +411,11 @@ def main(EXT_FIELD_NAMES):
 
     # post-hoc filters - other filters such as ORF min length, etc. must be 
     # set in the config before running the pipeline
-    parser.add_argument('-m', '--min-samples', help="""An ORF is filtered out
+    parser.add_argument('--min-samples', help="""An ORF is filtered out
                         if not predicted in at least [--min-samples] number of 
                         samples. By default all ORFs are kept. This is ignored
-                        if merged replicates are kept.""", type=int, 
-                        default=1
+                        if merged replicates are included in the output.""", 
+                        type=int, default=1
     )
     
     parser.add_argument('-k', '--keep-other', help="""If this flag is present 
@@ -421,9 +423,10 @@ def main(EXT_FIELD_NAMES):
                         They are discarded by default.""", action='store_true'
     )
     
-    parser.add_argument('-norep', '--no-replicates', help="""If this flag is 
-                        present then predictions from merged replicates are 
-                        ignored.""", required='--min-samples' in sys.argv,
+    parser.add_argument('--no-replicates', help="""If Rp-Bp was 
+                        run with [--merge-replicates], predictions from merged 
+                        replicates are included by default, unless this flag
+                        is present.""", required='--min-samples' in sys.argv,
                         action='store_true'
     )
     
@@ -523,6 +526,40 @@ def main(EXT_FIELD_NAMES):
 
     is_filtered = not args.use_unfiltered
     
+    ext_field_names = EXT_FIELD_NAMES.copy()
+    
+    # option handling
+    if not args.no_replicates:
+        if not 'riboseq_biological_replicates' in config:
+            args.no_replicates = True
+        else:
+            if config["riboseq_biological_replicates"] is None:
+                args.no_replicates = True
+        if args.no_replicates:
+            msg = "Did not find 'riboseq_biological_replicates' key " \
+                  "in config, setting [--no-replicates] to True."
+            logger.warning(msg)
+        else: # checking if they were actually run
+            riboseq_replicates = ribo_utils.get_riboseq_replicates(config)
+            for replicate in riboseq_replicates.keys():
+                try:
+                    _ = get_predictions_file(
+                        replicate, 
+                        False, 
+                        note, 
+                        fraction, 
+                        reweighting_iterations, 
+                        is_unique, 
+                        is_filtered, 
+                        config)
+                except:
+                    args.no_replicates = True
+            if args.no_replicates:
+                msg = "The 'riboseq_biological_replicates' key was found, " \
+                      "but some predictions were missing, setting " \
+                      "[--no-replicates] to True."
+                logger.warning(msg)
+                        
     # Collecting all predictions 
     msg = 'Parsing predictions for samples'
     logger.info(msg)
@@ -548,26 +585,23 @@ def main(EXT_FIELD_NAMES):
     )
     
     if not args.no_replicates:
-        if 'riboseq_biological_replicates' in config:
-            if config["riboseq_biological_replicates"] is not None:
-                
-                msg = 'Parsing predictions for merged replicates'
-                logger.info(msg)
-                
-                is_sample = False
-                condition_predictions = parallel.apply_iter_simple(
-                    config["riboseq_biological_replicates"],
-                    add_data,
-                    condition_name_map,
-                    is_sample,
-                    note,
-                    fraction,
-                    reweighting_iterations,
-                    is_unique,
-                    is_filtered,
-                    config
-                )
-                all_predictions = all_predictions + condition_predictions
+        msg = 'Parsing predictions for merged replicates'
+        logger.info(msg)
+        
+        is_sample = False
+        condition_predictions = parallel.apply_iter_simple(
+            riboseq_replicates,
+            add_data,
+            condition_name_map,
+            is_sample,
+            note,
+            fraction,
+            reweighting_iterations,
+            is_unique,
+            is_filtered,
+            config
+        )
+        all_predictions = all_predictions + condition_predictions
 
     orfs = pd.concat(all_predictions)
     
@@ -607,7 +641,7 @@ def main(EXT_FIELD_NAMES):
     msg = 'Applying post-hoc filtering'
     logger.info(msg)
     
-    remaining_labels = ",".join(orfs.orf_type.unique())
+    remaining_labels = ", ".join(orfs.orf_type.unique())
     msg = f"Found these ORF labels: {remaining_labels} " \
           f"with frequency\n{orfs.orf_type.value_counts().to_string()}"
     logger.info(msg)
@@ -623,16 +657,17 @@ def main(EXT_FIELD_NAMES):
         remove_m = remove_m | other_m
     orfs = orfs[~remove_m]
     
-    remaining_labels = ",".join(orfs.orf_type.unique())
+    remaining_labels = ", ".join(orfs.orf_type.unique())
     msg = f"Remaining ORF labels: {remaining_labels} " \
           f"with frequency\n{orfs.orf_type.value_counts().to_string()}"
     logger.info(msg)
     
-    if args.no_replicates:
+    if args.no_replicates and args.min_samples > 1:
         num_orfs = len(orfs["id"].unique())
         orfs = orfs.groupby("id").filter(lambda x: len(x) >= args.min_samples)
         discarded_orfs = num_orfs - len(orfs["id"].unique())
-        msg = f"Using [--no-replicates]: Removing {discarded_orfs} ORFs."
+        msg = f"Using [--no-replicates] and [--min-samples {args.min_samples}]: " \
+              f"Removing {discarded_orfs} ORFs."
         logger.info(msg)
     
     # Adding standardized ORFs - hard coded
@@ -652,7 +687,7 @@ def main(EXT_FIELD_NAMES):
                                 on = MERGE_FIELDS, 
                                 how = 'left')
                 
-                EXT_FIELD_NAMES += [field]
+                ext_field_names += [field]
     
     # writing ORFs to disk
     # sort on the chrom field, and then on the chromStart field.
@@ -668,7 +703,7 @@ def main(EXT_FIELD_NAMES):
         is_filtered=is_filtered
     )
     if args.overwrite or not Path(filen).is_file():
-        bed_utils.write_bed(orfs[EXT_FIELD_NAMES], filen)
+        bed_utils.write_bed(orfs[ext_field_names], filen)
     else:
         msg = f"Output file {filen} exists, skipping call!"
         logger.warning(msg)
@@ -773,6 +808,8 @@ def main(EXT_FIELD_NAMES):
         logger.warning(msg)
         
     if args.show_orf_periodicity:
+        msg = 'Adding ORF periodicity figures'
+        logger.info(msg)
         create_all_figures(config, 
                            sample_name_map, 
                            condition_name_map, 
@@ -780,4 +817,4 @@ def main(EXT_FIELD_NAMES):
 
 
 if __name__ == "__main__":
-    main(EXT_FIELD_NAMES)
+    main()

@@ -9,6 +9,7 @@ import yaml
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import scipy.io
 import tqdm
 
@@ -248,6 +249,7 @@ def main():
     logging_utils.update_logging(args)
     
     config = yaml.load(open(args.config), Loader=yaml.FullLoader)
+    note = config.get("note", None)
     
     msg = "Reading ORFs"
     logger.info(msg)

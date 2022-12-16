@@ -7,7 +7,7 @@ import dash
 import dash_bio
 
 from pathlib import Path
-from dash import Dash, html, dcc, Input, Output, State, dash_table
+from dash import Dash, html, dcc, Input, Output, State, dash_table, ctx
 
 import numpy as np
 import pandas as pd
@@ -69,6 +69,35 @@ def get_orf_type_counts(condition):
 
     return orf_type_counts
 
+
+def filter_sort_table(filter_query, sort_by):
+    
+    filtering_expressions = filter_query.split(' && ')
+    df = display_table
+    
+    # first apply filtering
+    for filter_part in filtering_expressions:
+        col_name, operator, filter_value = split_filter_part(filter_part)
+
+        if operator in ('eq', 'lt', 'le', 'gt', 'ge'):
+            # these operators match pandas series operator method names
+            df = df.loc[getattr(df[col_name], operator)(filter_value)]
+        elif operator == 'contains':
+            df = df.loc[df[col_name].str.contains(filter_value)]
+    
+    if len(sort_by):
+        df = df.sort_values(
+            [col['column_id'] for col in sort_by],
+            ascending=[
+                col['direction'] == 'asc'
+                for col in sort_by
+            ],
+            inplace=False
+        )
+    
+    return df
+
+
 # ------------------------------------------------------ Set-up ------------------------------------------------------
 
 # *** default path to summary data created by `summarize-rpbp-predictions`
@@ -83,7 +112,8 @@ project_name = config.get("project_name", "rpbp")
 path_to_data = config["riboseq_data"]
 
 prj_md_text = f"**Project name:** {project_name}\n\n" \
-              f"**Path to data:** {path_to_data}\n\n" 
+              f"**Data location:** {path_to_data}\n\n" \
+              f"---"
 
 is_unique = not ('keep_riboseq_multimappers' in config)
 config_note = config.get("note", None)
@@ -103,9 +133,9 @@ min_samples_str = f"ORFs were *filtered* to keep only those " \
 default_str = "ORFs were *not* filtered based on the number of predictions per sample (default)."
 min_samples_str = min_samples_str if extended_config['min_samples'] > 1 else default_str           
                         
-results_md_text = f"Ribo-seq ORFs from *{extended_config['date_time']}*. " \
-                  f"Using ORFs from *{is_filtered_str}* predictions, *{no_repl_str}* merged replicates. " \
-                  f"{min_samples_str} " \
+results_md_text = f"Ribo-seq ORFs from *{extended_config['date_time']}*.\n\n" \
+                  f"Using ORFs from *{is_filtered_str}* predictions, *{no_repl_str}* merged replicates.\n\n" \
+                  f"{min_samples_str}\n\n" \
                   f"The bin width for counting ORF predictions along chromosomes is *{extended_config['circos_bin_width']}b*."
 
 labels_md_text = """
@@ -169,6 +199,11 @@ orf_tab = orfs.groupby('condition').apply(get_orf_type_counts)
 orf_tab.reset_index(inplace=True)
 orf_tab.drop(columns='level_1', inplace=True)
 orf_tab = orf_tab.pivot(index='condition', columns=["orf_type", "strand"], values='count')
+orf_tab.fillna(0, inplace=True)
+# reorder columns
+all_multi = [(orf_type, strand) for orf_type in orf_type_name_map.values() for strand in ["+", "-"]]
+all_multi = [c for c in all_multi if c in orf_tab.columns]
+orf_tab = orf_tab[all_multi]
 
 # sunburst - no callback
 sunburst_table = display_table.copy()
@@ -209,12 +244,12 @@ style_data_conditional.append({'if': {'column_id': 'Transcripts'},
 
 style_header_conditional = [ {
     'if': {
-        'column_id': f'{t}_+', # only providing e.g. orf_type_+ seems sufficient !?
+        'column_id': f'{t}_{s}', 
         'header_index': 0
     },
     'backgroundColor': c,
     'color': 'white'
-} for t, c in row_col.items()]
+} for t, c in row_col.items() for s in ["+", "-"]]
     
     
 tooltip_header = {
@@ -231,6 +266,38 @@ tooltip_header = {
 
 PAGE_SIZE = 10
 page_count = np.ceil(len(display_table)/PAGE_SIZE)
+
+# table filtering
+# from https://dash.plotly.com/datatable/callbacks
+operators = [['ge ', '>='],
+             ['le ', '<='],
+             ['lt ', '<'],
+             ['gt ', '>'],
+             ['eq ', '='],
+             ['contains ']]
+
+def split_filter_part(filter_part):
+    for operator_type in operators:
+        for operator in operator_type:
+            if operator in filter_part:
+                name_part, value_part = filter_part.split(operator, 1)
+                name = name_part[name_part.find('{') + 1: name_part.rfind('}')]
+
+                value_part = value_part.strip()
+                v0 = value_part[0]
+                if (v0 == value_part[-1] and v0 in ("'", '"', '`')):
+                    value = value_part[1: -1].replace('\\' + v0, v0)
+                else:
+                    try:
+                        value = float(value_part)
+                    except ValueError:
+                        value = value_part
+
+                # word operators need spaces after them in the filter string,
+                # but we don't want these later
+                return name, operator_type[0].strip(), value
+
+    return [None] * 3
 
 # data-dependent app components
 option_orf_types = [
@@ -331,11 +398,14 @@ circos_layout_config = {
     #},
     "ticks": {"display": False},
 }
+    
 circos_innerRadius = 1
 circos_outerRadius = 2
-circos_tracks_config = {"innerRadius": circos_innerRadius, 
-                        "outerRadius": circos_outerRadius, 
-                        "color": row_col[orf_type_default]}
+circos_tracks_config = {
+    "innerRadius": circos_innerRadius, 
+    "outerRadius": circos_outerRadius, 
+    "color": row_col[orf_type_default]
+} # "tooltipContent": {"name": "all"}
 
 # ------------------------------------------------------ APP ------------------------------------------------------
 
@@ -364,6 +434,7 @@ app.layout = html.Div(
                 ),
                 html.Br(),
                 dcc.Markdown(prj_md_text),
+                dcc.Markdown(results_md_text),
             ],
             className="side_bar",
         ),
@@ -417,11 +488,6 @@ app.layout = html.Div(
                                                                     ),
                                                                 ],
                                                                 style={"margin": "20px"},
-                                                            ),
-                                                            html.Div(
-                                                                [
-                                                                    dcc.Markdown(results_md_text),
-                                                                ],
                                                             ),
                                                         ],
                                                         className="column",
@@ -478,8 +544,13 @@ app.layout = html.Div(
                                         ),
                                         html.Br(), # ad hoc
                                         html.Br(),
-                                        html.Br(),
-                                        dcc.Graph(figure=sunburst_orfs),
+                                        dcc.Graph(figure=sunburst_orfs,
+                                                  style={"margin-top": "50px",
+                                                         "margin-bottom": "200px"}),
+                                        html.Label("""Hint: Click on sections to expand. short ORFs (sORFs), also known
+                                            as small ORFs (smORFs) are Ribo-seq ORFs < 100 amino acids in size.""",
+                                            style={"font-style": "italic"}
+                                        ),
                                     ],
                                     className="box",
                                     style={"width": "50%"},
@@ -509,6 +580,7 @@ app.layout = html.Div(
                                             id="circos_fig",
                                             layout=circos_graph_data["genome"],
                                             config=circos_layout_config,
+                                            # selectEvent={"0": "hover"},
                                             tracks=[
                                                 {
                                                     "type": "HISTOGRAM",
@@ -517,6 +589,7 @@ app.layout = html.Div(
                                                 }
                                             ],
                                         ),
+                                        # html.Div(id="circos_output"),
                                     ],
                                     className="box",
                                     style={"width": "50%"},
@@ -530,6 +603,13 @@ app.layout = html.Div(
                                     [   
                                         html.H2("""3. ORF predictions (Table)"""
                                         ),
+                                        html.Div(
+                                            [
+                                                html.Button("Download CSV", id="btn_csv"),
+                                                dcc.Download(id="download-dataframe-csv"),
+                                            ]
+                                        ),
+                                        html.Br(),
                                         # all backend paging/sorting/filtering
                                         dash_table.DataTable(
                                             id='main_datatable',
@@ -544,15 +624,29 @@ app.layout = html.Div(
                                             sort_action='custom',
                                             sort_mode='multi', # allow multi-column sorting
                                             sort_by=[],
+                                            # filtering
+                                            filter_action='custom',
+                                            filter_query='',
                                             tooltip_header=tooltip_header,
+                                            tooltip_delay=0,
+                                            tooltip_duration=None,
                                             style_header={
                                                 'textDecoration': 'underline',
                                                 'textDecorationStyle': 'dotted',
                                             },
-                                            tooltip_delay=0,
-                                            tooltip_duration=None,
                                             style_data_conditional=style_data_conditional,
+                                            #export_format="csv",
                                         ),
+                                        dcc.Markdown("""**Filtering syntax:** Use *eq (=)*, *le (<=)*, *lt (<)*, *ge (>=)*
+                                            , *gt (>)*, or *contains*, such as `< 100` in the "ORF length" column, or 
+                                            `contains C30F8.2.1` in the "Transcripts" column, or `= uORF` in the "Category" 
+                                            column, *etc*. The default filtering behavior depends on the data type *e.g.*
+                                            `contains 12652389` in "ORF ID" will not work, but `contains 12652389-12654351`
+                                            will. Check the little *Aa* box to toggle case sensitivity. Filters and sorting
+                                            can be combined, but do not forget to clear the filters, this is not done 
+                                            automatically! You can download the full table, or a selection based on filters."""
+                                        ),
+                                        html.Br(),
                                         html.Label("""Hint: Hover over ORF IDs to see in which sample/replicates they were found, 
                                             with evidence from Bayes factors and P-site counts. All transcripts compatible with
                                             an ORF are listed (Transcripts).""",
@@ -641,21 +735,15 @@ app.layout = html.Div(
  Output('main_datatable', 'tooltip_data')],
 [Input('main_datatable', "page_current"),
 Input('main_datatable', "page_size"),
-Input('main_datatable', 'sort_by')])
-def update_main_table(page_current, page_size, sort_by):
+Input('main_datatable', 'sort_by'),
+Input('main_datatable', 'filter_query')])
+def update_main_table(page_current, page_size, sort_by, filter_query):
     
-    if len(sort_by):
-        df = display_table.sort_values(
-            [col['column_id'] for col in sort_by],
-            ascending=[
-                col['direction'] == 'asc'
-                for col in sort_by
-            ],
-            inplace=False
-        )
-    else:
-        # no sort 
-        df = display_table
+    def refmt(trx):
+        trxs = trx.split(",")
+        return "\n".join(list(map(" ".join, zip(trxs[::2], trxs[1::2]))))
+
+    df = filter_sort_table(filter_query, sort_by)
 
     data = df.iloc[
         page_current*page_size:(page_current+ 1)*page_size
@@ -663,7 +751,7 @@ def update_main_table(page_current, page_size, sort_by):
     
     tooltip_data=[{
                 'ORF ID': {'value': row['orf_info'], 'type': 'markdown'},
-                'Transcripts': {'value': str(row['Transcripts']), 'type': 'markdown'},
+                'Transcripts': {'value': refmt(row['Transcripts']), 'type': 'markdown'},
                 } for row in data
             ]
     
@@ -689,6 +777,37 @@ def hist_orf_type(value, current):
         config=tracks_config
     )
     return current
+
+
+#@app.callback(
+    #Output("circos_output", "children"),
+    #Input("circos_fig", "eventDatum"),
+#)
+#def update_output(value):
+    #if value is not None:
+        #return [html.Div("{}: {}".format(v.title(), value[v])) for v in value.keys()]
+    #return "Hover over a bar to get more information."
+
+
+@app.callback(
+    Output("download-dataframe-csv", "data"),
+    [Input("btn_csv", "n_clicks"),
+     Input('main_datatable', 'sort_by'),
+     Input('main_datatable', 'filter_query')],
+    #State("main_datatable", "data"),
+    prevent_initial_call=True,
+)
+def func(n_clicks, sort_by, filter_query): # table_data
+
+    # df = pd.DataFrame.from_dict(table_data)
+    changed_inputs = [
+        x["prop_id"]
+        for x in ctx.triggered
+    ]
+    if "btn_csv.n_clicks" in changed_inputs:
+        df = filter_sort_table(filter_query, sort_by)
+        df.drop(columns="orf_info", inplace=True)
+        return dcc.send_data_frame(df.to_csv(index=False), "selected-orfs.csv")
      
 
 if __name__ == "__main__":
