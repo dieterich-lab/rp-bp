@@ -14,6 +14,7 @@ We are working on a major version upgrade.
 - Upgrade all dependencies/required packages, install via Conda
 - PyStan 2 to CmdStanPy API
 - Handling of ORF labels
+- CmdStanPy logging
 
 ### Removed
 
@@ -27,6 +28,7 @@ We are working on a major version upgrade.
 ### Fixed
 
 - Stan models transformed data/parameters name/definition (no-periodicity.stan, gaussian-naive-bayes.stan)
+- CmdSTanPy tmp file handling
 
 ### Added
 

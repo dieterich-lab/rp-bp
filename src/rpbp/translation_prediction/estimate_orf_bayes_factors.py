@@ -6,6 +6,7 @@ import argparse
 import ctypes
 import multiprocessing
 import scipy.io
+import tempfile
 
 import numpy as np
 import pandas as pd
@@ -19,10 +20,10 @@ import pbiotools.misc.utils as utils
 import pbiotools.ribo.ribo_utils as ribo_utils
 
 from cmdstanpy import CmdStanModel
-from pbiotools.misc.suppress_stdout_stderr import suppress_stdout_stderr
 from rpbp.defaults import default_num_groups, translation_options
 
 logger = logging.getLogger(__name__)
+cmdstanpy_logger = logging.getLogger("cmdstanpy")
 
 # we will use global variables to share the (read-only) scipy.sparse.csr_matrix
 # across the child processes.
@@ -37,8 +38,6 @@ profiles_shape = 0
 translated_models = 0
 untranslated_models = 0
 args = 0
-
-
 
 def get_bayes_factor(profile, translated_models, untranslated_models, args):
     """This function calculates the Bayes' factor for a single ORF profile.
@@ -131,44 +130,47 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
     data = {"x_1": x_1, "x_2": x_2, "x_3": x_3, "T": T, "nonzero_x_1": nonzero_x_1}
 
     iter_warmup = int(args.iterations // 2)
-        
-    m_translated = [
-        tm.sample(
-            data=data, 
-            iter_warmup=iter_warmup, 
-            iter_sampling=iter_warmup, 
-            chains=args.chains, 
-            parallel_chains=1, 
-            seed=args.seed, 
-            show_progress=False,
-            show_console=False
-        )
-        for tm in translated_models
-    ]
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        m_translated = [
+            tm.sample(
+                data=data, 
+                iter_warmup=iter_warmup, 
+                iter_sampling=iter_warmup, 
+                chains=args.chains, 
+                parallel_chains=1, 
+                seed=args.seed, 
+                show_progress=False,
+                show_console=False,
+                output_dir=tmpdir
+            )
+            for tm in translated_models
+        ]
 
-    m_background = [
-        bm.sample(
-            data=data,
-            iter_warmup=iter_warmup, 
-            iter_sampling=iter_warmup, 
-            chains=args.chains, 
-            parallel_chains=1, 
-            seed=args.seed, 
-            show_progress=False,
-            show_console=False
-        )
-        for bm in untranslated_models
-    ]
+        m_background = [
+            bm.sample(
+                data=data,
+                iter_warmup=iter_warmup, 
+                iter_sampling=iter_warmup, 
+                chains=args.chains, 
+                parallel_chains=1, 
+                seed=args.seed, 
+                show_progress=False,
+                show_console=False,
+                output_dir=tmpdir
+            )
+            for bm in untranslated_models
+        ]
 
-    # extract the parameters of interest
-    m_translated_ex = [
-        m.draws_pd()[["lp__", "signal_location", "signal_scale"]]
-        for m in m_translated
-    ]
-    m_background_ex = [
-        m.draws_pd()[["lp__", "background_location", "background_scale"]]
-        for m in m_background
-    ]
+        # extract the parameters of interest
+        m_translated_ex = [
+            m.draws_pd()[["lp__", "signal_location", "signal_scale"]]
+            for m in m_translated
+        ]
+        m_background_ex = [
+            m.draws_pd()[["lp__", "background_location", "background_scale"]]
+            for m in m_background
+        ]
 
     # now, choose the best model of each class,  based on mean likelihood
     m_translated_means = [np.mean(m_ex["lp__"]) for m_ex in m_translated_ex]
@@ -199,58 +201,7 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
     return ret
 
 
-def get_all_bayes_factors(orfs, args):
-    """This function calculates the Bayes' factor term for each region in regions. See the
-    description of the script for the Bayes' factor calculations.
-
-    Args:
-        orfs (pd.DataFrame) : a set of orfs. The columns must include:
-            orf_num
-            exon_lengths
-
-        args (namespace) : a namespace containing the models and profiles filenames
-
-    Returns:
-        pandas.Series: the Bayes' factors (and other estimated quantities) for each region
-    """
-
-    # read in the signals and sequences
-    logger.debug("Reading profiles")
-    profiles = scipy.io.mmread(args.profiles).tocsr()
-
-    logger.debug("Reading models")
-    translated_models = [pickle.load(open(tm, "rb")) for tm in args.translated_models]
-    untranslated_models = [
-        pickle.load(open(bm, "rb")) for bm in args.untranslated_models
-    ]
-
-    logger.debug("Applying on regions")
-    bfs = []
-    for idx, row in orfs.iterrows():
-        orf_num = row[args.orf_num_field]
-        orf_len = row["orf_len"]
-
-        # sometimes the orf_len is off...
-        if orf_len % 3 != 0:
-            msg = "Found an ORF whose length was not 0 mod 3. Skipping. orf_id: {}".format(
-                row["id"]
-            )
-            logger.warning(msg)
-            continue
-
-        profile = utils.to_dense(profiles, orf_num, float, length=orf_len)
-
-        row_bf = get_bayes_factor(profile, translated_models, untranslated_models, args)
-        row = row.append(row_bf)
-
-        bfs.append(row)
-
-    bfs = pd.DataFrame(bfs)
-
-    return bfs
-
-
-def get_all_bayes_factors_args(orfs):
+def get_all_bayes_factors(orfs):
 
     """This function calculates the Bayes' factor term for each region in regions. See the
     description of the script for the Bayes' factor calculations.
@@ -266,17 +217,6 @@ def get_all_bayes_factors_args(orfs):
         pandas.Series: the Bayes' factors (and other estimated quantities) for each region
     """
 
-    # read in the signals and sequences
-    # logger.debug("Reading profiles")
-    # profiles = scipy.io.mmread(args.profiles).tocsr()
-
-    # logger.debug("Reading models")
-    # translated_models = [pickle.load(open(tm, 'rb')) for tm in args.translated_models]
-    # untranslated_models = [pickle.load(open(bm, 'rb')) for bm in args.untranslated_models]
-
-    # this is code to initialize a csc matrix using the internal numpy arrays
-    # csr is basically the same
-    # b = scipy.sparse.csc_matrix((a.data, a.indices, a.indptr), shape=a.shape, copy=False)
     profiles = scipy.sparse.csr_matrix(
         (profiles_data, profiles_indices, profiles_indptr),
         shape=profiles_shape,
@@ -300,7 +240,7 @@ def get_all_bayes_factors_args(orfs):
         profile = utils.to_dense(profiles, orf_num, float, length=orf_len)
     
         row_bf = get_bayes_factor(profile, translated_models, untranslated_models, args)
-        row = row.append(row_bf)
+        row = pd.concat([row, row_bf])
 
         bfs.append(row)
 
@@ -455,6 +395,11 @@ def main():
         cmd = " ".join(sys.argv)
         slurm.check_sbatch(cmd, args=args)
         return
+    
+    # logging
+    cmdstanpy_logger.disabled = True
+    if args.enable_ext_logging:
+        cmdstanpy_logger.disabled = False
 
     # read in the regions and apply the filters
     msg = "Reading and filtering ORFs"
@@ -513,16 +458,14 @@ def main():
     profiles_indptr = multiprocessing.RawArray(ctypes.c_int, profiles.indptr)
     profiles_shape = multiprocessing.RawArray(ctypes.c_int, profiles.shape)
     
-    with suppress_stdout_stderr():
-
-        bfs_l = parallel.apply_parallel_split(
-            regions,
-            args.num_cpus,
-            get_all_bayes_factors_args,
-            num_groups=args.num_groups,
-            progress_bar=True,
-            backend="multiprocessing",
-        )
+    bfs_l = parallel.apply_parallel_split(
+        regions,
+        args.num_cpus,
+        get_all_bayes_factors,
+        num_groups=args.num_groups,
+        progress_bar=True,
+        backend="multiprocessing",
+    )
 
     bfs = pd.concat(bfs_l)
 
