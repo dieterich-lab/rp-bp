@@ -187,12 +187,12 @@ def main():
     # we do not need the data frame anymore, so save some memory
     msg = "Reading exons"
     logger.info(msg)
-    exons = bed_utils.read_bed(args.exons)
+    exons = bed_utils.read_bed(args.exons, low_memory=False)
 
     msg = "Reading ORFs"
     logger.info(msg)
 
-    orfs = bed_utils.read_bed(args.orfs)
+    orfs = bed_utils.read_bed(args.orfs, low_memory=False)
 
     if len(args.seqname_prefix) > 0:
         orfs["seqname"] = args.seqname_prefix + orfs["seqname"]

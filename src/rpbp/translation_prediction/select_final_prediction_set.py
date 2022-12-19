@@ -171,7 +171,7 @@ def main():
     msg = "Reading Bayes factor information"
     logger.info(msg)
 
-    bayes_factors = bed_utils.read_bed(args.bayes_factors)
+    bayes_factors = bed_utils.read_bed(args.bayes_factors, low_memory=False)
 
     msg = "Identifying ORFs which meet the prediction thresholds"
     logger.info(msg)

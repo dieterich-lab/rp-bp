@@ -404,7 +404,7 @@ def main():
     # read in the regions and apply the filters
     msg = "Reading and filtering ORFs"
     logger.info(msg)
-    regions = bed_utils.read_bed(args.regions)
+    regions = bed_utils.read_bed(args.regions, low_memory=False)
 
     # by default, keep everything
     m_filters = np.array([True] * len(regions))
