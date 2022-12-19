@@ -32,7 +32,7 @@ def _post_install(recompile):
 
     importlib.reload(site)
 
-    import pbiotools.ribo.ribo_filenames as filenames
+    import rpbp.ribo_utils.filenames as filenames
     import pbiotools.misc.shell_utils as shell_utils
     
     # instantiate models under "models_base"

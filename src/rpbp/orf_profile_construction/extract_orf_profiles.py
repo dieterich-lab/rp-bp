@@ -18,7 +18,7 @@ import pbiotools.misc.utils as utils
 import pbiotools.misc.parallel as parallel
 import pbiotools.misc.slurm as slurm
 
-import pbiotools.ribo.ribo_utils as ribo_utils
+import rpbp.ribo_utils.utils as ribo_utils
 
 from rpbp.defaults import default_num_groups
 

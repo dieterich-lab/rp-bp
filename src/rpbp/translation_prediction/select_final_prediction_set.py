@@ -11,7 +11,7 @@ import pbiotools.utils.fastx_utils as fastx_utils
 import pbiotools.misc.logging_utils as logging_utils
 import pbiotools.misc.parallel as parallel
 
-import pbiotools.ribo.ribo_utils as ribo_utils
+import rpbp.ribo_utils.utils as ribo_utils
 
 from rpbp.defaults import translation_options
 

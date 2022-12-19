@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-import pbiotools.ribo.ribo_filenames as filenames
+import rpbp.ribo_utils.filenames as filenames
 
 from rpbp.defaults import orf_type_colors, orf_type_labels, orf_type_name_map
 

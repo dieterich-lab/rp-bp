@@ -122,7 +122,7 @@ def getf_genome(get_genome):
     """
 
     import yaml
-    import pbiotools.ribo.ribo_filenames as filenames
+    import rpbp.ribo_utils.filenames as filenames
 
     config, ref_config = get_genome
     config = yaml.load(open(config), Loader=yaml.FullLoader)
@@ -231,8 +231,8 @@ def getf_pipeline(get_pipeline):
     """
 
     import yaml
-    import pbiotools.ribo.ribo_filenames as filenames
-    import pbiotools.ribo.ribo_utils as ribo_utils
+    import rpbp.ribo_utils.utils as ribo_utils
+    import rpbp.ribo_utils.filenames as filenames
 
     from rpbp.defaults import metagene_options
 

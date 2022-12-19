@@ -12,14 +12,14 @@ import sys
 
 import yaml
 
-import pbiotools.ribo.ribo_filenames as filenames
-
 import pbiotools.utils.bam_utils as bam_utils
 import pbiotools.utils.fastx_utils as fastx_utils
 import pbiotools.utils.pgrm_utils as pgrm_utils
 import pbiotools.misc.logging_utils as logging_utils
 import pbiotools.misc.shell_utils as shell_utils
 import pbiotools.misc.utils as utils
+
+import rpbp.ribo_utils.filenames as filenames
 
 from rpbp.defaults import (
     default_num_cpus,
@@ -213,27 +213,19 @@ def main():
 
     star_option_str = pgrm_utils.get_final_args(star_options, args.star_options)
 
-    # If GFF3 specs, then we need to inform STAR.
-    # Whether we have de novo or not, the format of "config['gtf']" has precedence.
-    sjdb_gtf_tag_str = ""
-    use_gff3_specs = config["gtf"].endswith("gff")
     gtf_file = filenames.get_gtf(
         config["genome_base_path"],
         config["genome_name"],
-        is_gff3=use_gff3_specs,
         is_star_input=True,
     )
-    if use_gff3_specs:
-        sjdb_gtf_tag_str = "--sjdbGTFtagExonParentTranscript Parent"
 
     cmd = (
-        "{} --runThreadN {} --genomeDir {} --sjdbGTFfile {} {} --readFilesIn {} "
+        "{} --runThreadN {} --genomeDir {} --sjdbGTFfile {} --readFilesIn {} "
         "{} --outFileNamePrefix {}".format(
             args.star_executable,
             args.num_cpus,
             config["star_index"],
             gtf_file,
-            sjdb_gtf_tag_str,
             without_rrna,
             star_option_str,
             star_output_prefix,

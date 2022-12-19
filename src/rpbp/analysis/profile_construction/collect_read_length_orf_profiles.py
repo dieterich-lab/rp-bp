@@ -5,13 +5,13 @@ import gzip
 import scipy.io
 import yaml
 
-import pbiotools.ribo.ribo_filenames as filenames
-import pbiotools.ribo.ribo_utils as ribo_utils
-
 import pbiotools.utils.bed_utils as bed_utils
 
 import logging
 import pbiotools.misc.logging_utils as logging_utils
+
+import rpbp.ribo_utils.utils as ribo_utils
+import rpbp.ribo_utils.filenames as filenames
 
 from rpbp.defaults import metagene_options
 

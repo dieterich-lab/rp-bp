@@ -10,8 +10,8 @@ import pbiotools.misc.logging_utils as logging_utils
 import pbiotools.misc.shell_utils as shell_utils
 import pbiotools.misc.utils as utils
 
-import pbiotools.ribo.ribo_utils as ribo_utils
-import pbiotools.ribo.ribo_filenames as filenames
+import rpbp.ribo_utils.utils as ribo_utils
+import rpbp.ribo_utils.filenames as filenames
 
 from rpbp.defaults import (
     default_num_cpus, 

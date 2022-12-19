@@ -22,7 +22,7 @@ import pbiotools.misc.utils as utils
 import pbiotools.utils.bed_utils as bed_utils
 import pbiotools.utils.pgrm_utils as pgrm_utils
 
-import pbiotools.ribo.ribo_filenames as filenames
+import rpbp.ribo_utils.filenames as filenames
 
 from rpbp.defaults import (
     default_num_cpus,
@@ -50,7 +50,6 @@ def get_orfs(gtf, args, config, is_annotated=False, is_de_novo=False):
     transcript_bed = filenames.get_bed(
         config["genome_base_path"],
         config["genome_name"],
-        is_merged=False,
         is_annotated=is_annotated,
         is_de_novo=is_de_novo,
     )
@@ -143,7 +142,6 @@ def get_orfs(gtf, args, config, is_annotated=False, is_de_novo=False):
     annotated_bed = filenames.get_bed(
         config["genome_base_path"],
         config["genome_name"],
-        is_merged=False,
         is_annotated=True,
     )
 

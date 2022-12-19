@@ -14,7 +14,7 @@ import pbiotools.misc.shell_utils as shell_utils
 import pbiotools.misc.slurm as slurm
 import pbiotools.misc.utils as utils
 
-import pbiotools.ribo.ribo_utils as ribo_utils
+import rpbp.ribo_utils.utils as ribo_utils
 
 from rpbp.defaults import default_num_cpus, default_mem, star_executable
 

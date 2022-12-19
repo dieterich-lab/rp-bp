@@ -18,7 +18,7 @@ import pbiotools.misc.parallel as parallel
 import pbiotools.misc.logging_utils as logging_utils
 import pbiotools.misc.utils as utils
 
-import pbiotools.ribo.ribo_filenames as filenames
+import rpbp.ribo_utils.filenames as filenames
 
 matplotlib.use("agg")
 

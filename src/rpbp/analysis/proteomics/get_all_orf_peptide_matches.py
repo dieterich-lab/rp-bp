@@ -10,8 +10,8 @@ import pbiotools.misc.shell_utils as shell_utils
 import pbiotools.misc.utils as utils
 import pbiotools.misc.slurm as slurm
 
-import pbiotools.ribo.ribo_filenames as ribo_filenames
-import pbiotools.ribo.ribo_utils as ribo_utils
+import rpbp.ribo_utils.utils as ribo_utils
+import rpbp.ribo_utils.filenames as filenames
 
 logger = logging.getLogger(__name__)
 

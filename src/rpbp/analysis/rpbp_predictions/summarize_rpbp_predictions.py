@@ -24,8 +24,8 @@ import pbiotools.misc.shell_utils as shell_utils
 import pbiotools.utils.bed_utils as bed_utils
 import pbiotools.misc.utils as utils
 
-import pbiotools.ribo.ribo_filenames as filenames
-import pbiotools.ribo.ribo_utils as ribo_utils
+import rpbp.ribo_utils.utils as ribo_utils
+import rpbp.ribo_utils.filenames as filenames
 
 from rpbp.defaults import (
     default_num_cpus, 
@@ -148,8 +148,7 @@ def get_predictions_file(name, is_sample, note, fraction,
             is_unique=is_unique,
             note=note,
             fraction=fraction,
-            reweighting_iterations=reweighting_iterations,
-            is_smooth=False,
+            reweighting_iterations=reweighting_iterations
         )
     elif ftype == "base":
         filen = filenames.get_orf_type_profile_base(

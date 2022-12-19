@@ -12,6 +12,7 @@ We are working on a major version upgrade.
 ### Changed
 
 - Upgrade all dependencies/required packages, install via Conda
+- Location of (compiled) Stan models for Conda environment
 - PyStan 2 to CmdStanPy API
 - Handling of ORF labels
 - CmdStanPy logging
@@ -37,6 +38,8 @@ We are working on a major version upgrade.
 - Retrieve gene_id, etc. from annotations
 - Dashboad applications to replace PDF reports
 - Data wrangling: `summarize_rpbp_profile_construction.py`, and `summarize_rpbp_predictions.py`
+- ribo_utils
+- orf_profile_construction scripts from pbiotools.ribo
 
 ## [2.0.0] 2019-05-24
 

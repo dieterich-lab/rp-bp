@@ -7,11 +7,11 @@ import yaml
 import pbiotools.misc.slurm as slurm
 import pbiotools.misc.utils as utils
 
-import pbiotools.ribo.ribo_filenames as filenames
-import pbiotools.ribo.ribo_utils as ribo_utils
-
 import logging
 import pbiotools.misc.logging_utils as logging_utils
+
+import rpbp.ribo_utils.utils as ribo_utils
+import rpbp.ribo_utils.filenames as filenames
 
 logger = logging.getLogger(__name__)
 

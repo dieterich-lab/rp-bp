@@ -20,8 +20,8 @@ import pandas as pd
 import plotly.graph_objs as go
 import plotly.express as px
 
-import pbiotools.ribo.ribo_filenames as filenames
-import pbiotools.ribo.ribo_utils as ribo_utils
+import rpbp.ribo_utils.utils as ribo_utils
+import rpbp.ribo_utils.filenames as filenames
 
 from rpbp.defaults import metagene_options
 
@@ -343,7 +343,7 @@ prj_md_text = f"**Project name:** {project_name}\n\n" \
 is_unique = not ('keep_riboseq_multimappers' in config)
 config_note = config.get("note", None)
 
-# pbiotools.ribo.ribo_utils._return_key_dict 
+# ribo_utils._return_key_dict 
 sample_name_map = ribo_utils.get_sample_name_map(config) # default to riboseq_samples.keys()
 condition_name_map = ribo_utils.get_condition_name_map(config) # default to riboseq_biological_replicates.keys()
 # work with pretty names, but we need the original names to retrieve files (e.g. metagene profiles)

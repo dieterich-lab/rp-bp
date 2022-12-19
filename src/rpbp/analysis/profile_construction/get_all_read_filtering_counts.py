@@ -7,16 +7,15 @@ import pandas as pd
 
 import numpy as np
 
-import pbiotools.ribo.ribo_filenames as ribo_filenames
-import pbiotools.ribo.ribo_utils as ribo_utils
-
-
 import pbiotools.utils.bam_utils as bam_utils
 import pbiotools.utils.fastx_utils as fastx_utils
 import pbiotools.misc.logging_utils as logging_utils
 import pbiotools.misc.parallel as parallel
 import pbiotools.misc.shell_utils as shell_utils
 import pbiotools.misc.pandas_utils as pandas_utils
+
+import rpbp.ribo_utils.utils as ribo_utils
+import rpbp.ribo_utils.filenames as filenames
 
 logger = logging.getLogger(__name__)
 
