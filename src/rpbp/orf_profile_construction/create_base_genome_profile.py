@@ -253,13 +253,18 @@ def main():
     )
 
     if os.path.exists(genome_star_bam):
-        shell_utils.create_symlink(genome_star_bam, genome_sorted_bam, call)
+        shell_utils.create_symlink(
+            genome_star_bam, 
+            genome_sorted_bam, 
+            remove=args.overwrite, 
+            call=call
+        )
     else:
         msg = (
             "Could not find the STAR genome bam alignment file. Unless "
-            "--do-not-call was given, this is a problem."
+            "[--do-not-call] was given, this is a problem!"
         )
-        logger.warning(msg)
+        logger.critical(msg)
 
     # create the bamtools index
     cmd = "samtools index -b {}".format(genome_sorted_bam)
