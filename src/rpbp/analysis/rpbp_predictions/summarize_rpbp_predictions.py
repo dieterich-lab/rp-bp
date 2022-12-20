@@ -189,7 +189,7 @@ def cut_it(x, seqname, karyotype, args):
     return pd.cut(x['start'].values, bins, right=False)
     
     
-def get_circos_graph(orfs, igv_folder, config, args):
+def get_circos_graph(orfs, sub_folder, config, args):
     
     orf_types = orfs.orf_type.unique()
     df = orfs.drop_duplicates(subset=bed_utils.bed12_field_names).copy()
@@ -204,6 +204,7 @@ def get_circos_graph(orfs, igv_folder, config, args):
     filen = Path(config["star_index"], "chrNameLength.txt")
     with open(filen) as f:
         karyotype = dict(x.rstrip().split(None, 1) for x in f)
+    karyotype = {k:v for k, v in karyotype.items() if k in df.block_id.unique()}
     
     vals = df.groupby('block_id').apply(lambda x: cut_it(x, x.name, karyotype, args)).values
     df['range'] = utils.flatten_lists(vals)
@@ -227,12 +228,12 @@ def get_circos_graph(orfs, igv_folder, config, args):
             "id": seqname,
             "label": label,
             "color": colors[idx % 2],
-            "len": size
+            "len": int(size)
         }
         layout.append(record)
     circos_graph_data["genome"] = layout
     
-    filen = Path(igv_folder, f"{config['genome_name']}.circos_graph_data.json")
+    filen = Path(sub_folder, f"{config['genome_name']}.circos_graph_data.json")
     filen = Path(config["riboseq_data"], filen)
     with open(filen, 'w') as f:
         json.dump(circos_graph_data, f)
@@ -730,7 +731,7 @@ def main():
     # Preparing Circos output
     msg = 'Preparing Circos data'
     logger.info(msg)
-    get_circos_graph(orfs, igv_folder, config, args)
+    get_circos_graph(orfs, sub_folder, config, args)
     
     # Preparing output for visualization with IGV
     msg = 'Preparing IGV genome'

@@ -32,6 +32,7 @@ from rpbp.analysis.profile_construction.dashboard.controls import (
     )
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import seaborn as sns
 
 sns.set({"ytick.direction": u'out'}, style = 'ticks') 
@@ -192,7 +193,7 @@ def get_profiles_lines(samples, start_upstream_window, start_downstream_window,
 def metagene_plot_bars(metagene_profile_start, metagene_profile_end,
                   start_upstream_window, start_downstream_window,
                   end_upstream_window, end_downstream_window, 
-                  step, figsize, y_label, y_max=None):
+                  step, figsize, y_label, y_max=None, layout=None):
     
     indices = [(0, 1, 2), (1, 0, 2), (2, 1, 0)]
     start_window_size = start_downstream_window - start_upstream_window + 1
@@ -210,32 +211,32 @@ def metagene_plot_bars(metagene_profile_start, metagene_profile_end,
     xticklabels_end = range(end_upstream_window, end_downstream_window + 1, step)
     xticks_end = range(0, end_window_size, step)
     
-    # assume symmetrical window size
-    idx = indices[abs(start_upstream_window) % 3] 
+    idx_start = indices[abs(start_upstream_window) % 3] 
+    idx_end = indices[abs(end_upstream_window) % 3] 
     # fixed size
-    fig, axes = plt.subplots(ncols=2, figsize=figsize, sharey=True)
+    fig, axes = plt.subplots(ncols=2, figsize=figsize, sharey=True, layout=layout)
 
     # first, the start counts
-    x_1 = metagene_profile_start[idx[0]::3]
-    x_2 = metagene_profile_start[idx[1]::3]
-    x_3 = metagene_profile_start[idx[2]::3]
+    x_1 = metagene_profile_start[idx_start[0]::3]
+    x_2 = metagene_profile_start[idx_start[1]::3]
+    x_3 = metagene_profile_start[idx_start[2]::3]
 
-    x_1_pos = np.arange(len(metagene_profile_start))[idx[0]::3]
-    x_2_pos = np.arange(len(metagene_profile_start))[idx[1]::3]
-    x_3_pos = np.arange(len(metagene_profile_start))[idx[2]::3]
+    x_1_pos = np.arange(len(metagene_profile_start))[idx_start[0]::3]
+    x_2_pos = np.arange(len(metagene_profile_start))[idx_start[1]::3]
+    x_3_pos = np.arange(len(metagene_profile_start))[idx_start[2]::3]
 
     x_1_rects = axes[0].bar(x_1_pos, x_1, width=1, color=pal_frames[0])
     x_2_rects = axes[0].bar(x_2_pos, x_2, width=1, color=pal_frames[1])
     x_3_rects = axes[0].bar(x_3_pos, x_3, width=1, color=pal_frames[2])
 
     # now, the end counts
-    x_1 = metagene_profile_end[idx[0]::3]
-    x_2 = metagene_profile_end[idx[1]::3]
-    x_3 = metagene_profile_end[idx[2]::3]
+    x_1 = metagene_profile_end[idx_end[0]::3]
+    x_2 = metagene_profile_end[idx_end[1]::3]
+    x_3 = metagene_profile_end[idx_end[2]::3]
 
-    x_1_pos = np.arange(len(metagene_profile_end))[idx[0]::3]
-    x_2_pos = np.arange(len(metagene_profile_end))[idx[1]::3]
-    x_3_pos = np.arange(len(metagene_profile_end))[idx[2]::3]
+    x_1_pos = np.arange(len(metagene_profile_end))[idx_end[0]::3]
+    x_2_pos = np.arange(len(metagene_profile_end))[idx_end[1]::3]
+    x_3_pos = np.arange(len(metagene_profile_end))[idx_end[2]::3]
 
     x_1_rects = axes[1].bar(x_1_pos, x_1, width=1, color=pal_frames[0])
     x_2_rects = axes[1].bar(x_2_pos, x_2, width=1, color=pal_frames[1])
@@ -671,7 +672,8 @@ app.layout = html.Div(
                                 html.Div(
                                     [
                                         html.Img(id = 'read_length_metagene_bars_fig', 
-                                                 src = ''),
+                                                 src = '',
+                                                 style={"margin": "10px"}), # add hoc placement
                                         dcc.Markdown(id="read_length_metagene_bars_text",
                                                      style={"font-size": "large"})
                                     ],
@@ -1034,7 +1036,7 @@ def read_length_metagene_bars(hoverData, sample):
         y_max = ymax
     ymax = 1.1 * ymax
     
-    figsize = (6,4)
+    figsize = (5.5,4)
     y_label = 'Ribo-seq reads'
     fig, axes = metagene_plot_bars(start_counts, 
                               end_counts,
@@ -1045,7 +1047,8 @@ def read_length_metagene_bars(hoverData, sample):
                               read_length_step,
                               figsize,
                               y_label,
-                              y_max=y_max)
+                              y_max=y_max,
+                              layout="constrained")
     
     # selected length and offset if available...
     try:
@@ -1097,6 +1100,9 @@ def read_length_metagene_bars(hoverData, sample):
     default_xlabel_end = "Position of P-site relative to stop (nt)"
     axes[0].set_xlabel(default_xlabel_start, fontsize=8)
     axes[1].set_xlabel(default_xlabel_end, fontsize=8)
+    
+    # set y ticks
+    # axes[0].yaxis.set_major_formatter(ticker.EngFormatter())
 
     text = f"Read length periodicity\n\n" \
            f"---\n\n" \
@@ -1156,8 +1162,8 @@ def all_metagenes(window_upstream, window_downstream,
     
     start_upstream_window = -window_upstream
     start_downstream_window = window_downstream
-    end_upstream_window = -window_upstream
-    end_downstream_window = window_downstream
+    end_upstream_window = -window_downstream
+    end_downstream_window = window_upstream
 
     selected_samples = selected.split(",")
 

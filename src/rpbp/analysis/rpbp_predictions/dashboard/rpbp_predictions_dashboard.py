@@ -166,7 +166,7 @@ filen = filenames.get_riboseq_predicted_orfs(
         reweighting_iterations=reweighting_iterations,
         is_filtered=is_filtered
     )
-orfs = pd.read_csv(filen, sep="\t") # bed_utils
+orfs = pd.read_csv(filen, sep="\t", low_memory=False) # bed_utils
 orfs.columns = orfs.columns.str.replace("#", "")
 orfs["orf_len"] = orfs["orf_len"]/3
 orfs["profile_sum"] = orfs[["x_1_sum", "x_2_sum", "x_3_sum"]].sum(axis=1)
@@ -214,7 +214,7 @@ sunburst_col = row_col.copy()
 sunburst_col["(?)"] = "#ededed"
 sunburst_orfs = px.sunburst(
     sunburst_table,
-    path=["length", "orf_type", "biotype"],
+    path=["length", "orf_type", "biotype"], # transcript biotype
     values="count",
     color="orf_type",
     color_discrete_map=sunburst_col,
@@ -376,7 +376,7 @@ reference={
     }
             
 # Circos
-filen = Path(path_to_data, igv_folder, f"{config['genome_name']}.circos_graph_data.json")
+filen = Path(path_to_data, sub_folder, f"{config['genome_name']}.circos_graph_data.json")
 circos_graph_data = json.load(open(filen, "r"))
 
 circos_layout_config = {
@@ -398,6 +398,7 @@ circos_layout_config = {
     #},
     "ticks": {"display": False},
 }
+
     
 circos_innerRadius = 1
 circos_outerRadius = 2
@@ -547,8 +548,11 @@ app.layout = html.Div(
                                         dcc.Graph(figure=sunburst_orfs,
                                                   style={"margin-top": "50px",
                                                          "margin-bottom": "200px"}),
-                                        html.Label("""Hint: Click on sections to expand. short ORFs (sORFs), also known
-                                            as small ORFs (smORFs) are Ribo-seq ORFs < 100 amino acids in size.""",
+                                        html.Label("""Hint: Click on sections to expand. Short ORFs (sORFs), also known
+                                            as small ORFs (smORFs) are Ribo-seq ORFs < 100 amino acids in size. A transcript
+                                            biotype is shown for the assigned host-transcript. Categories of Ribo-seq ORFs 
+                                            are assigned based on transcript-exon structure. To resolve seemingly incoherent
+                                            assignments, look at all compatible transcripts in the ORF predictions table below.""",
                                             style={"font-style": "italic"}
                                         ),
                                     ],
@@ -583,8 +587,8 @@ app.layout = html.Div(
                                             # selectEvent={"0": "hover"},
                                             tracks=[
                                                 {
-                                                    "type": "HISTOGRAM",
                                                     "data": circos_graph_data[f"histogram_{orf_type_default}"],
+                                                    "type": "HISTOGRAM",
                                                     "config": circos_tracks_config,
                                                 }
                                             ],
