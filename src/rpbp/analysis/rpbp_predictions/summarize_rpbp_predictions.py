@@ -4,6 +4,7 @@ import argparse
 import logging
 import shlex
 import sys
+import re
 import yaml
 import json
 import gzip
@@ -172,6 +173,10 @@ def get_predictions_file(name, is_sample, note, fraction,
     return filen
 
 
+def chrom_match(match, string):
+    return bool(re.match(match, string))
+
+
 def cut_it(x, seqname, karyotype, args):
     size = int(karyotype[seqname])
     bins = np.arange(0, size + args.circos_bin_width, 
@@ -189,12 +194,19 @@ def get_circos_graph(orfs, igv_folder, config, args):
     orf_types = orfs.orf_type.unique()
     df = orfs.drop_duplicates(subset=bed_utils.bed12_field_names).copy()
     df.rename(columns={"seqname": "block_id"}, inplace=True)
+    df.reset_index(drop=True, inplace=True)
     
+    # filter chromosomes to show
+    match = r"|".join(args.circos_show_chroms)
+    m_block = df["block_id"].apply(lambda x: chrom_match(match, x))
+    df = df[m_block]
+
     filen = Path(config["star_index"], "chrNameLength.txt")
     with open(filen) as f:
         karyotype = dict(x.rstrip().split(None, 1) for x in f)
     
-    df['range'] = df.groupby('block_id').apply(lambda x: cut_it(x, x.name, karyotype, args)).values[0]
+    vals = df.groupby('block_id').apply(lambda x: cut_it(x, x.name, karyotype, args)).values
+    df['range'] = utils.flatten_lists(vals)
     df['start'] = [v.left for v in df['range'].values]
     df['end'] = [v.right-1 for v in df['range'].values] # we're one off for the last bin...
     fields = ['block_id', 'orf_type', 'start', 'end']
@@ -237,7 +249,7 @@ def add_data(name, sample_name_map, is_sample, note, fraction,
                                      is_unique, 
                                      is_filtered, 
                                      config)
-    orfs = bed_utils.read_bed(orfs_file)
+    orfs = bed_utils.read_bed(orfs_file, low_memory=False)
     orfs = orfs[FIELD_NAMES]
     orfs['condition'] = sample_name_map[name]
 
@@ -294,7 +306,7 @@ def get_standardized_orfs(filen, sheet):
     blocks = standardized_orfs.apply(get_bed_blocks, axis=1)
     blocks = pd.DataFrame(blocks.to_list())
     standardized_orfs = standardized_orfs.join(blocks)
-    standardized_orfs.rename(columns=colmap, inplace=True)
+    standardized_orfs.rename(columns=colmap[sheet-2], inplace=True)
     
     return col, standardized_orfs[standardized_fields]
             
@@ -458,6 +470,14 @@ def main():
                         size.""", type=int, default=10000000
     )
     
+    parser.add_argument("--circos-show-chroms", help="""A list of chromosomes 
+                        for which predictions are shown. By default, only numbered
+                        chromosomes (and X/x, Y/y) are shown, to avoid cluttering
+                        the figure. Use this option for organisms with a different 
+                        nomenclature, or to show additional chromosomes.""",
+                        nargs="+",  default=['\d', 'X', 'x', 'Y', 'y'],
+    )
+    
     #subparser = parser.add_subparsers()
     #parser_appris = subparser.add_parser('APPRIS', 
                                          #help='Add APPRIS Annotation to transcripts.'
@@ -614,7 +634,7 @@ def main():
         is_annotated=True
     )
     cols = ["id", "biotype", "gene_id", "gene_name", "gene_biotype"]
-    bed_df = bed_utils.read_bed(transcript_bed)[cols]
+    bed_df = bed_utils.read_bed(transcript_bed, low_memory=False)[cols]
     bed_df.rename(columns={"id": "transcript_id"}, inplace=True)
     
     labeled_orfs = filenames.get_labels(

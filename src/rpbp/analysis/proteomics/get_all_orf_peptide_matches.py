@@ -106,7 +106,7 @@ def main():
             logger.warning(msg)
             continue
 
-        cell_type_protein = ribo_filenames.get_riboseq_cell_type_protein(
+        cell_type_protein = filenames.get_riboseq_cell_type_protein(
             config["riboseq_data"], cell_type, is_filtered=True, note=note_str
         )
 
@@ -135,7 +135,7 @@ def main():
                 logger.warning(msg)
                 continue
 
-            peptide_matches = ribo_filenames.get_riboseq_peptide_matches(
+            peptide_matches = filenames.get_riboseq_peptide_matches(
                 config["riboseq_data"],
                 cell_type,
                 peptide_file,

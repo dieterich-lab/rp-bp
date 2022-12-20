@@ -32,16 +32,15 @@ def get_counts(name_data, config, args):
     # keep multimappers?
     is_unique = not ("keep_riboseq_multimappers" in config)
 
-    # first, get the ribo_filenames
     raw_data = data
-    without_adapters = ribo_filenames.get_without_adapters_fastq(
+    without_adapters = filenames.get_without_adapters_fastq(
         config["riboseq_data"], name, note=note
     )
-    without_rrna = ribo_filenames.get_without_rrna_fastq(
+    without_rrna = filenames.get_without_rrna_fastq(
         config["riboseq_data"], name, note=note
     )
-    genome_bam = ribo_filenames.get_riboseq_bam(config["riboseq_data"], name, note=note)
-    unique_bam = ribo_filenames.get_riboseq_bam(
+    genome_bam = filenames.get_riboseq_bam(config["riboseq_data"], name, note=note)
+    unique_bam = filenames.get_riboseq_bam(
         config["riboseq_data"], name, is_unique=is_unique, note=note
     )
 
