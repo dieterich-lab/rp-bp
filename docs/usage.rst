@@ -1,51 +1,42 @@
-# Running the Rp-Bp pipeline step-by-step
+Running the pipeline
+############################################
 
-The Rp-Bp pipeline consists of an index creation step (refer to [Creating reference genome indices](#creating-reference-genome-indices)), which must be performed once for each genome and set of annotations, and a two-phase prediction pipeline, which must be performed for each sample (refer to [Running the Rp-Bp pipeline](#running-pipelines)).
+The **Rp-Bp** pipeline consists of an index creation step and a two-phase prediction pipeline. In the first phase of the prediction pipeline, a filtered genome profile is created. Using probabilistic graphical models, periodicity estimates are given for each sample and footprint length. In the second phase, using only the periodic footprint lengths, the ORFs which show evidence of translation are predicted using Bayesian model selection.
 
-In the first phase of the prediction pipeline, a filtered genome profile is created (refer ro [Creating ORFs profiles](#creating-filtered-genome-profiles) for details).
+**Rp-Bp** is largely built on a functional programming or modular paradigm. The index creation step and the prediction pipeline are called separately. The prediction pipeline itself consists of several executables. Data is produced and read back into the program for processing, allowing *e.g* to re-run only selected steps of the pipeline. For all executables, the ``--help`` option can be given to see the complete list of parameters.
 
-In the second phase, the ORFs which show evidence of translation in the profile are predicted (refer to [Predicting translated open reading frames](#predicting-translated-open-reading-frames) for details).
+.. _running_toc:
 
-This document describes the steps to run each of these phases. It also shows some sample calls. For all programs, the `--help` option can be given to see the complete list of parameters.
+* `Creating indices`_
+    * :ref:`genome_usage` 
+    * `Categories of Ribo-seq ORFs`_
+    * `More about *de novo* ORF discovery`_
+* :ref:`running_rpbp` 
+    * :ref:`rpbp_usage` 
+    * `Creating ORFs profiles`_
+    * `Predicting translated ORFs`_
+* `Logging and parallel processing options`_
 
-<a id="toc"></a>
 
-- [Creating reference genome indices](#creating-reference-genome-indices)
-  - [Configuration file for index creation](#config-file-1)
-  - [Input files](#creating-reference-genome-indices-input-files)
-  - [Output files](#creating-reference-genome-indices-output-files)
-  - [More about ORFs labels](#orfs-labels)
-  - [More about _de novo_ assembled transcripts](#de-novo-assembly-info)
-- [Running the Rp-Bp pipeline](#running-pipelines)
-  - [Configuration file for running the pipeline](#config-file-2)
-  - [More about biological replicates](#more-about-replicates)
-  - [1. Creating ORFs profiles](#creating-filtered-genome-profiles)
-    - [1. More about the configuration file for running the pipeline](#config-file-more-1)
-    - [1. Input files](#running-pipelines-input-1)
-    - [1. Output files](#running-pipelines-output-1)
-  - [2. Predicting translated ORFs](#predicting-translated-open-reading-frames)
-    - [2. More about the configuration file for running the pipeline](#config-file-more-2)
-    - [2. Input files](#running-pipelines-input-2)
-    - [2. Output files](#running-pipelines-output-2)
-  - [Using existing alignment files](#using-existing-alignment-files)
-- [Logging options](#logging-options)
-- [Parallel processing options](#parallel-processing-options) (SLURM options)
+Creating indices
+****************
 
----
+This section describes how to prepare a reference genome and matching annotations. This step must only be run once for each reference genome and set of annotations.
 
-<a id="creating-reference-genome-indices"></a>
+.. note::
+    Under the hood, **Rp-Bp** uses **STAR** to align reads to the genome. If the **STAR** version changes, the **STAR** index may have to be re-generated.
+    
 
-## Creating reference genome indices
+.. _genome_usage:
 
-This section describes the steps necessary to prepare a reference genome and
-matching annotations for use in the Rp-Bp pipeline. The process must only be run
-once for each reference genome and set of annotations.
+General usage
+=============
 
 The entire index creation process can be run automatically using the following command:
 
-```
-prepare-rpbp-genome <config> [--overwrite] [logging options] [processing options]
-```
+.. code-block:: bash
+    prepare-rpbp-genome <config> [--overwrite] [logging options] [processing options]
+
 
 ### Command line options
 
@@ -142,9 +133,8 @@ The base path for these files is: `<genome_base_path>/transcript-index/`:
 - `<genome_name>.genomic-orfs.<orf_note>.bed.gz`
 - `<genome_name>.orfs.<orf_note>.bed.gz`
 
-<a id="orfs-labels"></a>
-
-### More about ORFs labels
+Categories of Ribo-seq ORFs
+===========================
 
 As part of the index creation phase, ORFs are labeled according to their location relative to the annotated, canonical transcripts, _i.e._ the annotated CDS regions. We use the following labels (essentially, the same as those given in the supplement of the paper):
 
@@ -159,9 +149,8 @@ As part of the index creation phase, ORFs are labeled according to their locatio
 - `suspect`: an ORF which partially overlaps the interior of a `canonical` ORF. These can result from things like retained introns.
 - `within`: an out-of-frame ORF in the interior of a `canonical` ORF.
 
-<a id="de-novo-assembly-info"></a>
-
-### More about _de novo_ assembled transcripts
+More about *de novo* ORF discovery
+==================================
 
 In principle, there is no difference between "standard" annotated transcripts and _de novo_ assembled transcripts. In both cases, ORFs are extracted from the transcripts based on the given start and stop codons. However, it is often of scientific interest to distinguish between ORFs from annotated transcripts and "novel" ones from a _de novo_ assembly.
 
@@ -183,15 +172,22 @@ In preparation to running the main pipeline, `reference` and `de_novo` annotatio
 
 [Back to top](#toc)
 
-<a id='running-pipelines'></a>
+.. _running_rpbp:
 
-## Running the Rp-Bp pipeline
+Running the pipeline
+********************
 
 In the first phase of the prediction pipeline, a filtered genome profile is created, as explained in [Creating ORF profiles](#creating-filtered-genome-profiles).
 
 In the second phase, the ORFs which show evidence of translation in the profile are predicted, as explained in [Predicting translated ORFs](#predicting-translated-open-reading-frames).
 
 [More details about biological replicates](#more-about-replicates) are given below.
+
+.. _rpbp_usage:
+
+General usage
+=============
+
 
 The entire Rp-Bp pipeline can be run on a set of riboseq samples (including any biological replicates) which all use the same genome indices with the following command:
 
@@ -253,9 +249,8 @@ The Rp-Bp pipeline handles replicates by adding the (smoothed) ORF profiles. The
 
 [Back to top](#toc)
 
-<a id='creating-filtered-genome-profiles'></a>
-
-### 1. Creating ORF profiles
+Creating ORFs profiles
+======================
 
 The entire profile creation process can be run automatically using the `create-orf-profiles` script. This script is called by default when running the main pipeline (when calling `run-all-rpbp-instances`). If one is interested in only creating the filtered genome profiles, then `create-orf-profiles` can be called separately:
 
@@ -432,9 +427,8 @@ The fifth step of creating the base genome profile in the paper is "Everything e
 
 [Back to top](#toc)
 
-<a id='predicting-translated-open-reading-frames'></a>
-
-### 2. Predicting translated ORFs
+Predicting translated ORFs
+==========================
 
 The entire translation prediction process can be run automatically using the `predict-translated-orfs` script. This script is called by default when running the main pipeline (when calling `run-all-rpbp-instances`). If one is interested in translation prediction, given that ORFs profiles are already available, then `predict-translated-orfs` can be called separately:
 
@@ -577,9 +571,8 @@ for more details.
 
 [Back to top](#toc)
 
-<a id='logging-options'></a>
-
-## Logging options
+Logging and parallel processing options
+***************************************
 
 All of the driver scripts mentioned above, and many of the internal scripts as well, allow detailed specification of logging options on the command line. Interally, logging is handled using the standard python logging system. The following options are allowed.
 
