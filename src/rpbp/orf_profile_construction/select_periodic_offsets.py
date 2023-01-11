@@ -32,7 +32,7 @@ def get_most_periodic_offset(profile_df):
         "highest_peak_profile_sum": highest_peak_profile_sum,
         "highest_peak_offset": highest_peak_offset,
         "highest_peak_bf_mean": highest_peak_bf_mean,
-        "highest_peak_bf_var": highest_peak_bf_var
+        "highest_peak_bf_var": highest_peak_bf_var,
     }
 
     return pd.Series(ret)

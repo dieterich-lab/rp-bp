@@ -190,7 +190,7 @@ def main():
     pgrm_utils.add_star_options(parser, star_executable)
     args = parser.parse_args()
     logging_utils.update_logging(args)
-    
+
     msg = "[prepare-rpbp-genome]: {}".format(" ".join(sys.argv))
     logger.info(msg)
 
@@ -227,7 +227,7 @@ def main():
         cmd = " ".join(sys.argv)
         slurm.check_sbatch(cmd, args=args)
         return
-    
+
     call = not args.do_not_call
 
     # the rRNA index
@@ -397,7 +397,7 @@ def main():
             gtf_file, star_files_str
         )
         logger.info(msg)
-        
+
         cmd = "awk '!/^#/' {} {} > {}".format(
             config["gtf"], config["de_novo_gtf"], gtf_file
         )
@@ -412,34 +412,22 @@ def main():
 
         if os.path.exists(annotated_orfs):
             shell_utils.create_symlink(
-                annotated_orfs, 
-                orfs_genomic, 
-                remove=args.overwrite,
-                call=call
+                annotated_orfs, orfs_genomic, remove=args.overwrite, call=call
             )
 
         if os.path.exists(annotated_exons_file):
             shell_utils.create_symlink(
-                annotated_exons_file, 
-                exons_file,
-                remove=args.overwrite,
-                call=call
+                annotated_exons_file, exons_file, remove=args.overwrite, call=call
             )
 
         if os.path.exists(annotated_labeled_orfs):
             shell_utils.create_symlink(
-                annotated_labeled_orfs, 
-                labeled_orfs,
-                remove=args.overwrite,
-                call=call
+                annotated_labeled_orfs, labeled_orfs, remove=args.overwrite, call=call
             )
 
         if os.path.exists(config["gtf"]):
             shell_utils.create_symlink(
-                config["gtf"], 
-                gtf_file,
-                remove=args.overwrite,
-                call=call
+                config["gtf"], gtf_file, remove=args.overwrite, call=call
             )
 
 

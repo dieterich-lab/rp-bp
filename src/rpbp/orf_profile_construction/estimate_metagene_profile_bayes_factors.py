@@ -54,59 +54,59 @@ def estimate_marginal_likelihoods(
         "T": T,
         "very_high_prior_location": very_high_prior_location,
     }
-    
+
     iter_warmup = int(iterations // 2)
-    
+
     # get the likelihood for each of the models
     bft_periodic = [
         pm.sample(
-            data=data, 
-            iter_warmup=iter_warmup, 
-            iter_sampling=iter_warmup, 
-            chains=chains, 
-            parallel_chains=1, 
-            seed=seed, 
+            data=data,
+            iter_warmup=iter_warmup,
+            iter_sampling=iter_warmup,
+            chains=chains,
+            parallel_chains=1,
+            seed=seed,
             show_progress=False,
-            show_console=False
+            show_console=False,
         )
         for pm in periodic_models
     ]
-    
+
     bft_nonperiodic = [
         nm.sample(
-            data=data, 
-            iter_warmup=iter_warmup, 
-            iter_sampling=iter_warmup, 
-            chains=chains, 
-            parallel_chains=1, 
-            seed=seed, 
+            data=data,
+            iter_warmup=iter_warmup,
+            iter_sampling=iter_warmup,
+            chains=chains,
+            parallel_chains=1,
+            seed=seed,
             show_progress=False,
-            show_console=False
+            show_console=False,
         )
         for nm in nonperiodic_models
     ]
-        
+
     return (bft_periodic, bft_nonperiodic)
 
 
 def estimate_profile_bayes_factors(profile, args, cpp_options):
-    
+
     # logging
     cmdstanpy_logger.disabled = True
     if args.enable_ext_logging:
         cmdstanpy_logger.disabled = False
-        
+
     length = profile["length"].iloc[0]
 
     # read in the relevant models
     # setting compile=False results in exe_file=None?
     periodic_models = [
-        CmdStanModel(stan_file=pm, cpp_options=cpp_options) 
-            for pm in args.periodic_models
+        CmdStanModel(stan_file=pm, cpp_options=cpp_options)
+        for pm in args.periodic_models
     ]
     nonperiodic_models = [
-        CmdStanModel(stan_file=npm, cpp_options=cpp_options) 
-            for npm in args.nonperiodic_models
+        CmdStanModel(stan_file=npm, cpp_options=cpp_options)
+        for npm in args.nonperiodic_models
     ]
 
     # pull out the start offsets ("position" field) and counts
@@ -272,13 +272,13 @@ def main():
         type=int,
         default=default_iterations,
     )
-    
+
     parser.add_argument(
         "--use-stan-threads",
         help="""If this flag is present, instantiate models using options for C++ compiler.""",
         action="store_true",
     )
-    
+
     parser.add_argument(
         "-p",
         "--num-cpus",
@@ -298,11 +298,11 @@ def main():
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
-        
+
     # Stan model instantiation option
     cpp_options = None
     if args.use_stan_threads:
-        cpp_options = {'STAN_THREADS': 'TRUE'}
+        cpp_options = {"STAN_THREADS": "TRUE"}
 
     # we will parallelize based on the lengths. So we need to know which lengths
     # are present in the metagene profiles file

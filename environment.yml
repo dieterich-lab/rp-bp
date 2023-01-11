@@ -8,7 +8,7 @@ dependencies:
   - appdirs
   - biopython
   - bowtie2
-  - cmdstanpy 
+  - cmdstanpy
   - dash
   - dash-bio
   - dash-bootstrap-components

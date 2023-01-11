@@ -19,17 +19,20 @@ def get_labels(args):
     # standard labels
     labels = orf_type_name_map.copy()
     # standalone: outside the Rp-Bp pipeline
-    # we need to make sure [--label-prefix] and [--nonoverlapping-label] 
+    # we need to make sure [--label-prefix] and [--nonoverlapping-label]
     # are contained in the keys
     # NOTE: This is merely to avoid a KeyError, as these options are designed to handle
     # ORFs from a de novo assembly, and not simply as a general label tag.
-    if args.nonoverlapping_label is not None and not args.nonoverlapping_label == "novel":
+    if (
+        args.nonoverlapping_label is not None
+        and not args.nonoverlapping_label == "novel"
+    ):
         labels[args.nonoverlapping_label] = args.nonoverlapping_label
     if len(args.label_prefix) > 0 and not args.label_prefix == "novel_":
         for key, val in orf_type_name_map.items():
-            # replace standard labels 
-            lkey = key.replace("novel_", args.label_prefix) 
-            labels[lkey] = lkey 
+            # replace standard labels
+            lkey = key.replace("novel_", args.label_prefix)
+            labels[lkey] = lkey
     return labels
 
 
@@ -99,7 +102,7 @@ def main():
         uninteresting ORFs from a de novo assembly.""",
         action="store_true",
     )
-    
+
     parser.add_argument(
         "-p",
         "--num-cpus",
@@ -112,12 +115,12 @@ def main():
     logging_utils.add_logging_options(parser)
     args = parser.parse_args()
     logging_utils.update_logging(args)
-    
+
     msg = "Getting the labels"
     logger.info(msg)
-    
+
     labels = get_labels(args)
-    
+
     msg = "Reading annotated transcripts"
     logger.info(msg)
     annotated_transcripts = bed_utils.read_bed(args.annotated_transcripts)
@@ -184,7 +187,9 @@ def main():
         m_nonoverlapping = extracted_orf_exons["id"].isin(nonoverlapping_ids)
         extracted_orf_exons = extracted_orf_exons[~m_nonoverlapping]
         m_nonoverlapping = extracted_orfs["id"].isin(nonoverlapping_ids)
-        extracted_orfs.loc[m_nonoverlapping, "orf_type"] = labels[args.nonoverlapping_label]
+        extracted_orfs.loc[m_nonoverlapping, "orf_type"] = labels[
+            args.nonoverlapping_label
+        ]
 
         msg = "Found {} ORFs completely non-overlapping annotated transcripts".format(
             len(nonoverlapping_ids)
@@ -356,8 +361,10 @@ def main():
     label = labels["{}canonical_variant".format(args.label_prefix)]
     extracted_orfs.loc[m_canonical_variants, "orf_type"] = label
 
-    msg = f"Found {len(extended_match_ids | truncated_match_ids)} " \
-          f"canonical_variant ORFs labeled as {label}"
+    msg = (
+        f"Found {len(extended_match_ids | truncated_match_ids)} "
+        f"canonical_variant ORFs labeled as {label}"
+    )
     logger.info(msg)
 
     msg = (
@@ -463,11 +470,13 @@ def main():
         m_five_prime_overlap = extracted_orfs["id"].isin(leader_overlap_ids)
         label = labels["{}five_prime_overlap".format(args.label_prefix)]
         extracted_orfs.loc[m_five_prime_overlap, "orf_type"] = label
-        
-        msg = f"Found {len(leader_overlap_ids)} five_prime_overlap ORFs " \
-              f"labeled as {label}"
+
+        msg = (
+            f"Found {len(leader_overlap_ids)} five_prime_overlap ORFs "
+            f"labeled as {label}"
+        )
         logger.info(msg)
-        
+
         m_trailer_overlap_matches = extracted_orf_exons["id"].isin(trailer_overlap_ids)
         extracted_orf_exons = extracted_orf_exons[~m_trailer_overlap_matches]
 
@@ -475,8 +484,10 @@ def main():
         label = labels["{}three_prime_overlap".format(args.label_prefix)]
         extracted_orfs.loc[m_three_prime_overlap, "orf_type"] = label
 
-        msg = f"Found {len(trailer_overlap_ids)} three_prime_overlap ORFs " \
-              f"labeled as {label}"
+        msg = (
+            f"Found {len(trailer_overlap_ids)} three_prime_overlap ORFs "
+            f"labeled as {label}"
+        )
         logger.info(msg)
 
     else:

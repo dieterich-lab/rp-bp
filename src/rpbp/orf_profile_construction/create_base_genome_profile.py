@@ -254,10 +254,7 @@ def main():
 
     if os.path.exists(genome_star_bam):
         shell_utils.create_symlink(
-            genome_star_bam, 
-            genome_sorted_bam, 
-            remove=args.overwrite, 
-            call=call
+            genome_star_bam, genome_sorted_bam, remove=args.overwrite, call=call
         )
     else:
         msg = (

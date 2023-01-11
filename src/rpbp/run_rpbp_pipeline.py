@@ -65,12 +65,12 @@ def main():
         is given, then nothing will be deleted.""",
         action="store_true",
     )
-    
+
     parser.add_argument(
         "--write-unfiltered",
-        help="""If this flag is given, in addition to the default 
-        filtered predictions (longest ORF for each stop codon, then 
-        highest Bayes factor among overlapping ORFs), output all ORF 
+        help="""If this flag is given, in addition to the default
+        filtered predictions (longest ORF for each stop codon, then
+        highest Bayes factor among overlapping ORFs), output all ORF
         predictions""",
         action="store_true",
     )
@@ -140,11 +140,11 @@ def main():
     keep_intermediate_str = ""
     if args.keep_intermediate_files:
         keep_intermediate_str = "--keep-intermediate-files"
-    
+
     unfiltered_str = ""
     if args.write_unfiltered:
         unfiltered_str = "--write-unfiltered"
-        
+
     tmp_str = ""
     if args.tmp is not None:
         tmp_str = "--tmp {}".format(shlex.quote(args.tmp))

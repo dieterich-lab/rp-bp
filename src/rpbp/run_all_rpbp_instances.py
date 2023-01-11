@@ -77,16 +77,16 @@ def main():
         necessary to perform read filtering QC!""",
         action="store_true",
     )
-    
+
     parser.add_argument(
         "--write-unfiltered",
-        help="""If this flag is given, in addition to the default 
-        filtered predictions (longest ORF for each stop codon, then 
-        highest Bayes factor among overlapping ORFs), output all ORF 
+        help="""If this flag is given, in addition to the default
+        filtered predictions (longest ORF for each stop codon, then
+        highest Bayes factor among overlapping ORFs), output all ORF
         predictions""",
         action="store_true",
     )
-    
+
     slurm.add_sbatch_options(parser, num_cpus=default_num_cpus, mem=default_mem)
     logging_utils.add_logging_options(parser)
     pgrm_utils.add_star_options(parser, star_executable)
@@ -149,11 +149,11 @@ def main():
     keep_intermediate_str = ""
     if args.keep_intermediate_files:
         keep_intermediate_str = "--keep-intermediate-files"
-    
+
     unfiltered_str = ""
     if args.write_unfiltered:
         unfiltered_str = "--write-unfiltered"
-        
+
     # check if we only want to create the profiles, in this case
     # we call run-rpbp-pipeline with the --profiles-only option
     profiles_only_str = ""

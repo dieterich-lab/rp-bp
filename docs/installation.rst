@@ -1,7 +1,7 @@
 Installation
 ############
 
-In general, we recommend to use `containers <getting-started.html#Containers>`_, however if you want to install **Rp-Bp**, this can be done with Conda (preferred) or PyPI. 
+In general, we recommend to use `containers <getting-started.html#Containers>`_, however if you want to install **Rp-Bp**, this can be done with Conda (preferred) or PyPI.
 
 
 .. _conda_install:
@@ -20,12 +20,12 @@ If you already have the required dependencies installed on your system, to insta
 
 .. code-block:: bash
     # create a virtual environment...
-    python3 -m venv /path/to/virtual/environment 
-    # ... activate it ... 
+    python3 -m venv /path/to/virtual/environment
+    # ... activate it ...
     source /path/to/virtual/environment/bin/activate
     # ... and install Rp-Bp
     pip install rpbp
-    
+
 To install the local VCS project in development mode, use the ``--editable`` or ``-e`` option, otherwise this flag can be ignored.
 
 Required dependencies
@@ -36,12 +36,12 @@ Required dependencies
 * `STAR <https://github.com/alexdobin/STAR>`_
 * `Samtools <http://www.htslib.org>`_
 
-.. important:: 
+.. important::
     Required dependencies are NOT installed automatically, and must be installed prior to running the pipeline. You may have to add these programs to your ``$PATH`` or install pre-compiled binaries under *e.g.* ``/home/$USER/.local/bin``.
 
 
 .. _uninstall:
-    
+
 Uninstallation
 **************
 

@@ -14,10 +14,10 @@ import rpbp.ribo_utils.utils as ribo_utils
 import rpbp.ribo_utils.filenames as filenames
 
 from rpbp.defaults import (
-    default_num_cpus, 
-    translation_options, 
+    default_num_cpus,
+    translation_options,
     model_inst_options,
-    metagene_options
+    metagene_options,
 )
 
 logger = logging.getLogger(__name__)
@@ -102,12 +102,12 @@ def main():
         N.B. If this flag is is present, the --overwrite flag will automatically be set!""",
         action="store_true",
     )
-    
+
     parser.add_argument(
         "--write-unfiltered",
-        help="""If this flag is given, in addition to the default 
-        filtered predictions (longest ORF for each stop codon, then 
-        highest Bayes factor among overlapping ORFs), output all ORF 
+        help="""If this flag is given, in addition to the default
+        filtered predictions (longest ORF for each stop codon, then
+        highest Bayes factor among overlapping ORFs), output all ORF
         predictions""",
         action="store_true",
     )
@@ -275,7 +275,7 @@ def main():
 
     translated_models_str = "--translated-models {}".format(translated_models_str)
     untranslated_models_str = "--untranslated-models {}".format(untranslated_models_str)
-    
+
     stan_threads_str = ""
     if model_inst_options["stan_threads"]:
         stan_threads_str = "--use-stan-threads"
@@ -333,7 +333,7 @@ def main():
         overwrite=args.overwrite,
         call=call,
     )
-    
+
     filters = [True]
     if args.write_unfiltered:
         filters.append(False)

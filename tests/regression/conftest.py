@@ -93,11 +93,13 @@ def get_genome(getf_config):
     import pbiotools.misc.shell_utils as shell_utils
 
     config, ref_config = getf_config
-    
+
     num_cpus = 6
     star_options = '--star-options "--genomeSAindexNbases 10"'
-    cmd = f"prepare-rpbp-genome {config.as_posix()} " \
-          f"--num-cpus {num_cpus} {star_options}"
+    cmd = (
+        f"prepare-rpbp-genome {config.as_posix()} "
+        f"--num-cpus {num_cpus} {star_options}"
+    )
     shell_utils.check_call(cmd, call=True, raise_on_error=True)
 
     return config, ref_config
@@ -198,8 +200,10 @@ def get_pipeline(getf_config):
     config, ref_config = getf_config
 
     num_cpus = 6
-    opts = "--merge-replicates --run-replicates --overwrite " \
-            "--keep-intermediate-files --write-unfiltered"
+    opts = (
+        "--merge-replicates --run-replicates --overwrite "
+        "--keep-intermediate-files --write-unfiltered"
+    )
     cmd = f"run-all-rpbp-instances {config.as_posix()} --num-cpus {num_cpus} {opts}"
     shell_utils.check_call(cmd, call=True, raise_on_error=True)
 
@@ -215,11 +219,11 @@ def getf_pipeline(get_pipeline):
     for the ORF periodicity estimates, ORF profiles,
     and final predictions, for the current output
     and the reference dataset.
-    
+
     Note: Some files are not used for testing, but
     we leave them here to have a track record of all
     output files.
-    
+
     Parameters
     ----------
     get_pipeline
@@ -265,13 +269,16 @@ def getf_pipeline(get_pipeline):
             files = {  # part 1 periodicity estimates
                 f"metagene_profiles_{name}": filenames.get_metagene_profiles(
                     lc["riboseq_data"], name, is_unique=is_unique, note=note
-                ), # metagene_profile_bayes_factors UNUSED - see periodic_offsets
+                ),  # metagene_profile_bayes_factors UNUSED - see periodic_offsets
                 f"metagene_profile_bayes_factors_{name}": filenames.get_metagene_profiles_bayes_factors(
                     lc["riboseq_data"], name, is_unique=is_unique, note=note
-                ), # only comparing periodic lengths
-                f"periodic_offsets_{name}": (filenames.get_periodic_offsets(
-                    lc["riboseq_data"], name, is_unique=is_unique, note=note
-                ), lengths),
+                ),  # only comparing periodic lengths
+                f"periodic_offsets_{name}": (
+                    filenames.get_periodic_offsets(
+                        lc["riboseq_data"], name, is_unique=is_unique, note=note
+                    ),
+                    lengths,
+                ),
             }
             lf.append(files)
 
@@ -296,7 +303,7 @@ def getf_pipeline(get_pipeline):
             ),
         }
         lf.append(files)
-        
+
         # test all using [--write-unfiltered]
         for is_filtered in [True, False]:
             files = {
@@ -310,7 +317,7 @@ def getf_pipeline(get_pipeline):
                     fraction=fraction,
                     reweighting_iterations=reweighting_iterations,
                     is_filtered=is_filtered,
-                ), # UNUSED from list, but tested - see test_rpbp.py
+                ),  # UNUSED from list, but tested - see test_rpbp.py
                 f"predicted_orfs_dna_{name}_{is_filtered}": filenames.get_riboseq_predicted_orfs_dna(
                     lc["riboseq_data"],
                     name,
@@ -321,7 +328,7 @@ def getf_pipeline(get_pipeline):
                     fraction=fraction,
                     reweighting_iterations=reweighting_iterations,
                     is_filtered=is_filtered,
-                ), # UNUSED
+                ),  # UNUSED
                 f"predicted_orfs_protein_{name}_{is_filtered}": filenames.get_riboseq_predicted_orfs_protein(
                     lc["riboseq_data"],
                     name,
@@ -347,13 +354,13 @@ def getf_pipeline(get_pipeline):
     ret_exact, ret_periodic, ret_predictions = [], [], []
     files = {k: v for d in lfiles[0] for k, v in d.items()}
     ref_files = {k: v for d in lfiles[1] for k, v in d.items()}
-    
+
     for key in files:
-        if 'metagene_profiles' in key or 'profiles_' in key:
+        if "metagene_profiles" in key or "profiles_" in key:
             ret_exact.append((files[key], ref_files[key]))
-        if 'periodic_offsets_' in key:
+        if "periodic_offsets_" in key:
             ret_periodic.append((files[key], ref_files[key]))
-        if 'predicted_orfs' in key and 'dna' not in key and 'protein' not in key:
+        if "predicted_orfs" in key and "dna" not in key and "protein" not in key:
             ret_predictions.append((files[key], ref_files[key]))
-        
+
     return (ret_exact, ret_periodic, ret_predictions)
