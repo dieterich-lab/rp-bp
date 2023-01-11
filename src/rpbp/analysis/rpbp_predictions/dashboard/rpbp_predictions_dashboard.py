@@ -814,5 +814,9 @@ def func(n_clicks, sort_by, filter_query): # table_data
         return dcc.send_data_frame(df.to_csv(index=False), "selected-orfs.csv")
      
 
-if __name__ == "__main__":
+def main():
     app.run_server(debug=debug)
+
+
+if __name__ == "__main__":
+    main()
