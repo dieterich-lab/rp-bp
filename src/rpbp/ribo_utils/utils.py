@@ -15,6 +15,7 @@ class _return_key_dict(dict):
     def __missing__(self, key):
         return key
 
+
 ###
 #   The following functions are helpful for parsing information out of the identifiers.
 ###
@@ -781,4 +782,3 @@ def get_predicted_orfs(
         predicted_orfs = bed_utils.get_longest_features_by_end(predicted_orfs)
 
     return (all_orfs, predicted_orfs)
-

@@ -94,6 +94,7 @@ def get_unique_string(is_unique):
 
 # b
 
+
 def get_riboseq_base(
     riboseq_base,
     name,
@@ -117,9 +118,7 @@ def get_riboseq_base(
     r = get_reweighting_iterations_string(reweighting_iterations)
     fi = get_filtered_string(is_filtered)
 
-    fn = "".join(
-        [name, n, unique, l, o, f, r, chisq, fi]
-    )
+    fn = "".join([name, n, unique, l, o, f, r, chisq, fi])
 
     return os.path.join(riboseq_base, sub_folder, fn)
 
@@ -183,7 +182,9 @@ def get_riboseq_bayes_factors(riboseq_base, name, **kwargs):
     s = s + ".bayes-factors.bed.gz"
     return s
 
+
 # c
+
 
 def get_riboseq_cell_type_protein(riboseq_base, name, **kwargs):
 
@@ -191,7 +192,9 @@ def get_riboseq_cell_type_protein(riboseq_base, name, **kwargs):
     s = s + ".predicted-orfs.protein.fa"
     return s
 
+
 # e
+
 
 def get_exons(base_path, name, is_annotated=False, is_de_novo=False, note=None):
 
@@ -210,7 +213,9 @@ def get_labels(base_path, name, is_annotated=False, is_de_novo=False, note=None)
     fn = "{}.orfs-labels{}{}{}.tab.gz".format(name, c, d, note_str)
     return os.path.join(base_path, "transcript-index", fn)
 
+
 # f
+
 
 def get_fastqc_name(filename):
     """Given the sequence or alignment filename, this function extracts the name
@@ -250,7 +255,9 @@ def get_riboseq_frame_counts(riboseq_base, name, **kwargs):
     loc = f"{base}.frame-counts.csv.gz"
     return loc
 
+
 ### g
+
 
 def get_gtf(
     base_path,
@@ -263,17 +270,20 @@ def get_gtf(
     c = get_annotated_string(is_annotated)
     d = get_de_novo_string(is_de_novo)
     s = get_star_input_string(is_star_input)
-    ext = "gtf" # GTF only
+    ext = "gtf"  # GTF only
     fn = "{}{}{}{}.{}".format(name, c, d, s, ext)
     return os.path.join(base_path, fn)
 
+
 # m
+
 
 def get_metagene_profile_image(base, name, image_type="eps", **kwargs):
 
     s = get_riboseq_base(base, name, "metagene-profiles", **kwargs)
     s = s + "." + image_type
     return s
+
 
 def get_metagene_profiles(riboseq_base, name, **kwargs):
 
@@ -297,11 +307,10 @@ def get_default_models_base(project="rpbp_models"):
     # preferred location is CONDA_PREFIX if installed
     # via conda, otherwise fall back to user_data_dir
     try:
-        
-        models_base = os.path.join(os.environ["CONDA_PREFIX"], 
-                                   "share",
-                                   appname,
-                                   project)
+
+        models_base = os.path.join(
+            os.environ["CONDA_PREFIX"], "share", appname, project
+        )
     except:
         models_base = appdirs.user_data_dir(appname, appauthor)
         models_base = os.path.join(models_base, project)
@@ -310,7 +319,7 @@ def get_default_models_base(project="rpbp_models"):
 
 def get_models(models_base, model_type):
     import shlex
-    
+
     # query via stan_file
     path_ex = os.path.join(models_base, model_type, "*stan")
     models = glob.glob(path_ex)
@@ -326,7 +335,9 @@ def get_metagene_profile_bayes_factor_image(
     s = s + ".bayes-factors." + image_type
     return s
 
+
 # o
+
 
 def get_orfs(base_path, name, is_annotated=False, is_de_novo=False, note=None):
     note_str = get_note_string(note)
@@ -369,14 +380,17 @@ def get_orf_type_profile_image(base_path, orf_type, strand, image_type="eps"):
     fn = ".{}.{}.metagene-profiles.{}".format(orf_type, strand, image_type)
     return base_path + fn
 
+
 # p
 
+
 def get_periodic_offsets(riboseq_base, name, **kwargs):
-    
+
     sub_folder = kwargs.pop("sub_folder", "metagene-profiles")
     s = get_riboseq_base(riboseq_base, name, sub_folder, **kwargs)
     s = s + ".periodic-offsets.csv.gz"
     return s
+
 
 def get_riboseq_peptide_matches(riboseq_base, name, peptide_name, **kwargs):
 
@@ -414,7 +428,9 @@ def get_riboseq_profiles(riboseq_base, name, **kwargs):
     s = s + ".profiles.mtx.gz"
     return s
 
+
 # r
+
 
 def get_riboseq_read_filtering_counts(riboseq_base, name, **kwargs):
     sub_folder = kwargs.pop("sub_folder", "")
@@ -422,7 +438,7 @@ def get_riboseq_read_filtering_counts(riboseq_base, name, **kwargs):
     loc = f"{base}.read-filtering-counts.csv.gz"
     return loc
 
-    
+
 def get_riboseq_read_length_distribution(riboseq_base, name, **kwargs):
     sub_folder = kwargs.pop("sub_folder", "without-rrna-mapping")
     base = get_riboseq_base(riboseq_base, name, sub_folder, **kwargs)
@@ -448,13 +464,17 @@ def get_raw_data_fastqc_data(base_path, filename):
     p = os.path.join(rdp, fastqc_folder, "fastqc_data.txt")
     return p
 
+
 # s
+
 
 def get_star_index(base_path, name):
     fn = "{}".format(name)
     return os.path.join(base_path, "STAR", fn)
 
+
 # t
+
 
 def get_transcript_fasta(
     base_path,
@@ -468,7 +488,9 @@ def get_transcript_fasta(
     fn = "{}.transcripts{}{}.fa".format(name, c, d)
     return os.path.join(base_path, "transcript-index", fn)
 
+
 # w
+
 
 def get_without_adapters_base(base_path, name, note=None):
     n = get_note_string(note)

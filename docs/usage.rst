@@ -8,11 +8,11 @@ The **Rp-Bp** pipeline consists of an index creation step and a two-phase predic
 .. _running_toc:
 
 * `Creating indices`_
-    * :ref:`genome_usage` 
+    * :ref:`genome_usage`
     * `Categories of Ribo-seq ORFs`_
     * `More about *de novo* ORF discovery`_
-* :ref:`running_rpbp` 
-    * :ref:`rpbp_usage` 
+* :ref:`running_rpbp`
+    * :ref:`rpbp_usage`
     * `Creating ORFs profiles`_
     * `Predicting translated ORFs`_
 * `Logging and parallel processing options`_
@@ -25,7 +25,7 @@ This section describes how to prepare a reference genome and matching annotation
 
 .. note::
     Under the hood, **Rp-Bp** uses **STAR** to align reads to the genome. If the **STAR** version changes, the **STAR** index may have to be re-generated.
-    
+
 
 .. _genome_usage:
 

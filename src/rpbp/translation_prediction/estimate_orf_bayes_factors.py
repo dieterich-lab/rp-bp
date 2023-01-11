@@ -39,6 +39,7 @@ translated_models = 0
 untranslated_models = 0
 args = 0
 
+
 def get_bayes_factor(profile, translated_models, untranslated_models, args):
     """This function calculates the Bayes' factor for a single ORF profile.
 
@@ -130,19 +131,19 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
     data = {"x_1": x_1, "x_2": x_2, "x_3": x_3, "T": T, "nonzero_x_1": nonzero_x_1}
 
     iter_warmup = int(args.iterations // 2)
-    
+
     with tempfile.TemporaryDirectory() as tmpdir:
         m_translated = [
             tm.sample(
-                data=data, 
-                iter_warmup=iter_warmup, 
-                iter_sampling=iter_warmup, 
-                chains=args.chains, 
-                parallel_chains=1, 
-                seed=args.seed, 
+                data=data,
+                iter_warmup=iter_warmup,
+                iter_sampling=iter_warmup,
+                chains=args.chains,
+                parallel_chains=1,
+                seed=args.seed,
                 show_progress=False,
                 show_console=False,
-                output_dir=tmpdir
+                output_dir=tmpdir,
             )
             for tm in translated_models
         ]
@@ -150,14 +151,14 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
         m_background = [
             bm.sample(
                 data=data,
-                iter_warmup=iter_warmup, 
-                iter_sampling=iter_warmup, 
-                chains=args.chains, 
-                parallel_chains=1, 
-                seed=args.seed, 
+                iter_warmup=iter_warmup,
+                iter_sampling=iter_warmup,
+                chains=args.chains,
+                parallel_chains=1,
+                seed=args.seed,
                 show_progress=False,
                 show_console=False,
-                output_dir=tmpdir
+                output_dir=tmpdir,
             )
             for bm in untranslated_models
         ]
@@ -182,7 +183,7 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
     # select the best sampling results
     m_translated_ex = m_translated_ex[max_translated_mean]
     m_background_ex = m_background_ex[max_background_mean]
-    
+
     # extract the relevant means and variances
     ret["p_translated_mean"] = np.mean(m_translated_ex["lp__"])
     ret["p_translated_var"] = np.var(m_translated_ex["lp__"])
@@ -238,7 +239,7 @@ def get_all_bayes_factors(orfs):
             continue
 
         profile = utils.to_dense(profiles, orf_num, float, length=orf_len)
-    
+
         row_bf = get_bayes_factor(profile, translated_models, untranslated_models, args)
         row = pd.concat([row, row_bf])
 
@@ -351,13 +352,13 @@ def main():
         type=int,
         default=translation_options["translation_iterations"],
     )
-    
+
     parser.add_argument(
         "--use-stan-threads",
         help="""If this flag is present, instantiate models using options for C++ compiler.""",
         action="store_true",
     )
-    
+
     # behavior options
     # [--num-orfs] is not used in the the Rp-Bp pipeline
     parser.add_argument(
@@ -395,7 +396,7 @@ def main():
         cmd = " ".join(sys.argv)
         slurm.check_sbatch(cmd, args=args)
         return
-    
+
     # logging
     cmdstanpy_logger.disabled = True
     if args.enable_ext_logging:
@@ -441,23 +442,23 @@ def main():
     logger.debug("Reading models")
     cpp_options = None
     if args.use_stan_threads:
-        cpp_options = {'STAN_THREADS': 'TRUE'}
-        
+        cpp_options = {"STAN_THREADS": "TRUE"}
+
     # setting compile=False results in exe_file=None?
     translated_models = [
-        CmdStanModel(stan_file=tm, cpp_options=cpp_options) 
-            for tm in args.translated_models
+        CmdStanModel(stan_file=tm, cpp_options=cpp_options)
+        for tm in args.translated_models
     ]
     untranslated_models = [
-        CmdStanModel(stan_file=bm, cpp_options=cpp_options) 
-            for bm in args.untranslated_models
-    ]    
+        CmdStanModel(stan_file=bm, cpp_options=cpp_options)
+        for bm in args.untranslated_models
+    ]
 
     profiles_data = multiprocessing.RawArray(ctypes.c_double, profiles.data.flat)
     profiles_indices = multiprocessing.RawArray(ctypes.c_int, profiles.indices)
     profiles_indptr = multiprocessing.RawArray(ctypes.c_int, profiles.indptr)
     profiles_shape = multiprocessing.RawArray(ctypes.c_int, profiles.shape)
-    
+
     bfs_l = parallel.apply_parallel_split(
         regions,
         args.num_cpus,

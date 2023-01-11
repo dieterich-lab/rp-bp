@@ -66,8 +66,10 @@ def parse_orf_id(orf_id, trim=False):
 
 
 def get_compatible_transcripts(row):
-    orf_ids = row['transcripts']
-    transcript_ids = [parse_orf_id(orf_id).transcript_id for orf_id in orf_ids.split(',')]
+    orf_ids = row["transcripts"]
+    transcript_ids = [
+        parse_orf_id(orf_id).transcript_id for orf_id in orf_ids.split(",")
+    ]
     return ",".join(transcript_ids)
 
 
@@ -362,8 +364,8 @@ def main():
     orfs = orfs.merge(groupby_duplicates, how="left", on=DUPLICATE_FIELDS)
     orfs.drop_duplicates(subset=DUPLICATE_FIELDS, inplace=True, keep="first")
     orfs.rename(columns={"id_x": "id", "id_y": "transcripts"}, inplace=True)
-    orfs['transcripts'] = orfs.apply(get_compatible_transcripts, axis=1)
-    
+    orfs["transcripts"] = orfs.apply(get_compatible_transcripts, axis=1)
+
     msg = "Numbering remaining ORFs"
     logger.info(msg)
 

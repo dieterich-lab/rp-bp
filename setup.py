@@ -14,7 +14,7 @@ from setuptools.command.develop import develop as develop
 logger = logging.getLogger(__name__)
 
 # defaults.py
-cpp_options = {'STAN_THREADS': 'TRUE'}
+cpp_options = {"STAN_THREADS": "TRUE"}
 
 stan_model_files = [
     Path("nonperiodic", "no-periodicity.stan"),
@@ -34,7 +34,7 @@ def _post_install(recompile):
 
     import rpbp.ribo_utils.filenames as filenames
     import pbiotools.misc.shell_utils as shell_utils
-    
+
     # instantiate models under "models_base"
     models_base = filenames.get_default_models_base()
     src_smfs = [Path("rpbp_models", s) for s in stan_model_files]
@@ -42,9 +42,7 @@ def _post_install(recompile):
     for src_smf, dest_smf in zip(src_smfs, dest_smfs):
         dest_smf.parent.mkdir(parents=True, exist_ok=True)
         dest_smf.write_text(src_smf.read_text())
-        CmdStanModel(stan_file=dest_smf, 
-                     compile=recompile,
-                     cpp_options=cpp_options)
+        CmdStanModel(stan_file=dest_smf, compile=recompile, cpp_options=cpp_options)
 
     # check dependencies
     programs = ["flexbar"]

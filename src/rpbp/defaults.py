@@ -53,7 +53,7 @@ if sys.platform.startswith("darwin"):
 
 star_executable = "STAR"
 # default options for `--runMode genomeGenerate`
-star_options_genome = { }
+star_options_genome = {}
 # default options for mapping
 star_options = {
     "readFilesCommand": default_read_files_command,
@@ -87,11 +87,9 @@ flexbar_options = {
 # overridden via config file
 
 # Stan model instantiation
-# Stan's multi-threaded processing is based on the Intel Threading Building Blocks (TBB) library, 
+# Stan's multi-threaded processing is based on the Intel Threading Building Blocks (TBB) library,
 # which must be linked to by the C++ compiler. True uses cpp_options={'STAN_THREADS': 'TRUE'}, or False.
-model_inst_options = {
-    "stan_threads": True
-}
+model_inst_options = {"stan_threads": True}
 
 # shared options
 mcmc_shared = {
@@ -109,7 +107,7 @@ metagene_options = {
     "metagene_profile_length": 21,
     "seed": mcmc_shared["seed"],
     "chains": mcmc_shared["chains"],
-    "metagene_iterations": 500, # incl. warmup
+    "metagene_iterations": 500,  # incl. warmup
     "min_metagene_profile_count": 1000,
     "min_metagene_image_count": 500,  # TODO: profiles with count < min_metagene_image_count will not be displayed (only for report)
     "min_metagene_bf_mean": 5,
@@ -129,7 +127,7 @@ translation_options = {
     "orf_min_profile_count_pre": 5,  # ORF with profile sum < orf_min_profile_count_pre are not processed
     "seed": mcmc_shared["seed"],
     "chains": mcmc_shared["chains"],
-    "translation_iterations": 500, # incl. warmup
+    "translation_iterations": 500,  # incl. warmup
     "min_bf_mean": 5,
     "min_bf_likelihood": 0.5,
     "max_bf_var": None,
@@ -153,16 +151,16 @@ orf_type_name_map = {
     "noncoding": "ncORF",
     "suspect": "Suspect",
     "overlap": "Overlap",
-    "novel": "Novel", # intergenic - not contained in the annotations
+    "novel": "Novel",  # intergenic - not contained in the annotations
     "novel_canonical_variant": "Novel altCDS",
-    "novel_noncoding": "Novel ncORF", # is this a valid label?
-    "novel_overlap": "Novel overlap", # include any overlap e.g. 5'/3'
+    "novel_noncoding": "Novel ncORF",  # is this a valid label?
+    "novel_overlap": "Novel overlap",  # include any overlap e.g. 5'/3'
     "novel_suspect": "Novel suspect",
     "novel_internal": "Novel intORF",  # these 3 are in principle invalid labels
     "novel_five_prime": "Novel uORF",
     "novel_three_prime": "Novel dORF",
 }
-    
+
 orf_type_labels = {
     "canonical": ["canonical"],
     "canonical_variant": ["canonical_variant", "internal", "novel_canonical_variant"],
@@ -175,12 +173,12 @@ orf_type_labels = {
         "novel_overlap",
         "suspect",
         "novel_suspect",
-        "novel_internal",  
+        "novel_internal",
         "novel_five_prime",
         "novel_three_prime",
     ],
 }
-    
+
 # color blind hex colours
 orf_type_colors = {
     "#0173b2": "canonical",
@@ -189,5 +187,5 @@ orf_type_colors = {
     "#de8f05": "three_prime",
     "#cc78bc": "noncoding",
     "#ece133": "novel",
-    "#949494": "other"
+    "#949494": "other",
 }

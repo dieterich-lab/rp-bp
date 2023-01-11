@@ -1,7 +1,7 @@
 Getting started
 ###############
 
-**Rp-Bp** can be used for ORF discovery, or simply to estimate periodicity in a set of Ribo-seq replicates, to know which samples and read lengths are usable for downstream analyses. 
+**Rp-Bp** can be used for ORF discovery, or simply to estimate periodicity in a set of Ribo-seq replicates, to know which samples and read lengths are usable for downstream analyses.
 
 To get started, you need *(i)* Ribo-seq data (FASTQ), *(ii)* genome sequence and annotation for your organism (FASTA, GTF), and *(iii)* ribosomal sequences for *in-silico* rRNA removal (FASTA). We also recommend to filter protocol-specific or general adapter sequences, this can be done by providing a FASTA file containing a set of adapter sequences.
 
@@ -17,14 +17,14 @@ The quickly get started, the preferred way is to use a Docker container with **R
 
 
 .. _getting_started_install:
-    
+
 Installation
 ************
 
 Supported operating systems
 ---------------------------
 
-Debian GNU/Linux and macOS. 
+Debian GNU/Linux and macOS.
 
 
 To install from Bioconda using Conda, set up `Bioconda <https://bioconda.github.io/#usage>`_ or `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ if not already done, then:
@@ -32,7 +32,7 @@ To install from Bioconda using Conda, set up `Bioconda <https://bioconda.github.
 .. code-block:: bash
     conda install rpbp
 
-The Conda installation will resolve all package dependencies. 
+The Conda installation will resolve all package dependencies.
 
 
 **Rp-Bp** is also available on `PyPI <https://pypi.org/project/rpbp>`_, but required dependencies are not installed automatically, and must be installed prior to running the pipeline.

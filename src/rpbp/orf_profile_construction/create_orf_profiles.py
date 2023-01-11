@@ -32,7 +32,7 @@ from rpbp.defaults import (
     default_mem,
     star_executable,
     model_inst_options,
-    metagene_options
+    metagene_options,
 )
 
 default_models_base = filenames.get_default_models_base()
@@ -262,11 +262,11 @@ def main():
 
     periodic_models_str = "--periodic-models {}".format(periodic_models_str)
     non_periodic_models_str = "--nonperiodic-models {}".format(non_periodic_models_str)
-    
+
     stan_threads_str = ""
     if model_inst_options["stan_threads"]:
         stan_threads_str = "--use-stan-threads"
-    
+
     periodic_offset_start_str = utils.get_config_argument(
         config,
         "periodic_offset_start",
