@@ -1224,7 +1224,7 @@ def all_metagenes(window_upstream, window_downstream,
     
 
 def main():
-    app.run_server(debug=debug)
+    app.run_server(debug=debug, host="localhost")
 
 
 if __name__ == "__main__":
