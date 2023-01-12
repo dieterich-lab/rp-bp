@@ -54,10 +54,12 @@ def parse_args():
     )
 
     parser.add_argument("--debug", "-d", action="store_true", help="Enable debug mode")
+    
+    parser.add_argument("--host", type=str, default="localhost", help="Host")
 
     args = parser.parse_args()
 
-    return args.config, args.debug
+    return args.config, args.debug, args.host
 
 
 def get_diff_counts(data_np):
@@ -385,7 +387,7 @@ def fig_to_uri(in_fig, close_all=True, **save_args):
 sub_folder = Path("analysis", "profile_construction")
 
 # *** load configuration
-configf, debug = parse_args()
+configf, debug, host = parse_args()
 config = yaml.load(open(configf), Loader=yaml.FullLoader)
 
 project_name = config.get("project_name", "rpbp")
@@ -1370,7 +1372,7 @@ def all_metagenes(window_upstream, window_downstream, step, plot, selected):
 
 
 def main():
-    app.run_server(debug=debug, host="localhost")
+    app.run(debug=debug, host=host)
 
 
 if __name__ == "__main__":

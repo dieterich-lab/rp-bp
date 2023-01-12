@@ -31,10 +31,12 @@ def parse_args():
     )
 
     parser.add_argument("--debug", "-d", action="store_true", help="Enable debug mode")
+    
+    parser.add_argument("--host", type=str, default="localhost", help="Host")
 
     args = parser.parse_args()
 
-    return args.config, args.debug
+    return args.config, args.debug, args.host
 
 
 def fmt_tooltip(row):
@@ -100,7 +102,7 @@ sub_folder = Path("analysis", "rpbp_predictions")
 igv_folder = Path("analysis", "igv")
 
 # *** load configuration
-configf, debug = parse_args()
+configf, debug, host = parse_args()
 config = yaml.load(open(configf), Loader=yaml.FullLoader)
 
 project_name = config.get("project_name", "rpbp")
@@ -937,7 +939,7 @@ def func(n_clicks, sort_by, filter_query):  # table_data
 
 
 def main():
-    app.run_server(debug=debug, host="localhost")
+    app.run(debug=debug, host=host)
 
 
 if __name__ == "__main__":
