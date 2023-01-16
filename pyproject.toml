@@ -1,0 +1,100 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rpbp"
+description = "Rp-Bp: Ribosome Profiling with Bayesian Predictions"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Brandon Malone" }]
+maintainers = [
+  { name = "Etienne Boileau", email = "boileau@uni-heidelberg.de" }
+]
+keywords = ["bioinformatics", "riboseq", "open reading frame discovery", "translation"]
+# See https://pypi.python.org/pypi?%3Aaction=list_classifiers
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: MacOS :: MacOS X",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.6",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+]
+dynamic = ["version"]
+requires-python = ">=3.6,<3.11"
+dependencies = [
+  "pbiotools",
+  "appdirs",
+  "biopython",
+  "cmdstanpy",
+  "dash",
+  "dash-bio",
+  "dash-bootstrap-components",
+  "statsmodels",
+]
+  
+[project.scripts]
+# preprocessing
+extract-orf-coordinates = "rpbp.reference_preprocessing.extract_orf_coordinates:main"
+label-orfs = "rpbp.reference_preprocessing.label_orfs:main"
+prepare-rpbp-genome = "rpbp.reference_preprocessing.prepare_rpbp_genome:main"
+# pipeline
+run-rpbp-pipeline = "rpbp.run_rpbp_pipeline:main"
+run-all-rpbp-instances = "rpbp.run_all_rpbp_instances:main"
+# profile construction
+create-orf-profiles = "rpbp.orf_profile_construction.create_orf_profiles:main"
+create-base-genome-profile = "rpbp.orf_profile_construction.create_base_genome_profile:main"
+extract-orf-profiles = "rpbp.orf_profile_construction.extract_orf_profiles:main"
+merge-replicate-orf-profiles = "rpbp.translation_prediction.merge_replicate_orf_profiles:main"
+extract-metagene-profiles = "rpbp.orf_profile_construction.extract_metagene_profiles:main"
+estimate-metagene-profile-bayes-factors = "rpbp.orf_profile_construction.estimate_metagene_profile_bayes_factors:main"
+select-periodic-offsets = "rpbp.orf_profile_construction.select_periodic_offsets:main"
+# translation prediction
+predict-translated-orfs = "rpbp.translation_prediction.predict_translated_orfs:main"
+estimate-orf-bayes-factors = "rpbp.translation_prediction.estimate_orf_bayes_factors:main"
+select-final-prediction-set = "rpbp.translation_prediction.select_final_prediction_set:main"
+# profile construction quality control and dashboard
+summarize-rpbp-profile-construction = "rpbp.analysis.profile_construction.summarize_rpbp_profile_construction:main"
+visualize-metagene-profile-bayes-factor = "rpbp.analysis.profile_construction.visualize_metagene_profile_bayes_factor:main"
+get-all-read-filtering-counts = "rpbp.analysis.profile_construction.get_all_read_filtering_counts:main"
+rpbp-profile-construction-dashboard = "rpbp.analysis.profile_construction.dashboard.rpbp_profile_construction_dashboard:main"
+# predictions and dashboard
+summarize-rpbp-predictions = "rpbp.analysis.rpbp_predictions.summarize_rpbp_predictions:main"
+visualize-orf-type-metagene-profiles = "rpbp.analysis.rpbp_predictions.visualize_orf_type_metagene_profiles:main"
+rpbp-predictions-dashboard = "rpbp.analysis.rpbp_predictions.dashboard.rpbp_predictions_dashboard:main"
+# proteomics
+get-orf-peptide-matches = "rpbp.analysis.proteomics.get_orf_peptide_matches:main"
+get-all-orf-peptide-matches = "rpbp.analysis.proteomics.get_all_orf_peptide_matches:main"
+filter-nonunique-peptide-matches = "rpbp.analysis.proteomics.filter_nonunique_peptide_matches:main"
+# other
+compile-rpbp-models = "rpbp.ribo_utils.compile_rpbp_models:main"
+create-read-length-orf-profiles = "rpbp.analysis.profile_construction.create_read_length_orf_profiles:main"
+collect-read-length-orf-profiles = "rpbp.analysis.profile_construction.collect_read_length_orf_profiles:main"
+
+[project.urls]
+Github = "https://github.com/dieterich-lab/rp-bp"
+Issues = "https://github.com/dieterich-lab/rp-bp/issues"
+
+[project.optional-dependencies]
+tests = ["pytest", "pytest-cov", "pytest-depends"]
+docs = [
+  "ipykernel",
+  "matplotlib",
+  "nbsphinx",
+  "pandoc",
+  "sphinx>=4.5.0",
+  "sphinx_rtd_theme>=1.0.0"
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "rpbp.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
