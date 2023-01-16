@@ -5,6 +5,7 @@ import yaml
 import json
 import dash
 import dash_bio
+import flask
 
 from pathlib import Path
 from dash import Dash, html, dcc, Input, Output, State, dash_table, ctx
@@ -315,65 +316,49 @@ drop_orf_types = dcc.Dropdown(
     style={"margin-top": "4px", "box-shadow": "0px 0px #73a5c8", "border-color": "#73a5c8"},
 )
 
-# IGV data
-filen = Path(path_to_data, igv_folder, f"{Path(config['fasta']).name}.txt")
-with open(filen, 'r') as f:
-    fastaURL = f.read()
-    
-filen = Path(path_to_data, igv_folder, f"{Path(config['fasta']).name}.fai.txt")
-with open(filen, 'r') as f:
-    indexURL = f.read()
-    
-filen = Path(path_to_data, igv_folder, f"{Path(config['gtf']).name}.txt")
-with open(filen, 'r') as f:
-    GTF = f.read()
-    
-filen = filenames.get_riboseq_predicted_orfs(
-        config["riboseq_data"], 
-        project_name, 
-        sub_folder=igv_folder.as_posix(), 
-        note=config_note,
-        is_unique=is_unique,         
-        fraction=fraction,
-        reweighting_iterations=reweighting_iterations,
-        is_filtered=is_filtered
-    )
-filen = filen.replace(".gz", ".txt")
-with open(filen, 'r') as f:
-    BED = f.read()    
+# TODO: Is there an easier way to get the correct filename. See below.
+# predicted_orf_filename = filenames.get_riboseq_predicted_orfs(
+#         config["riboseq_data"],
+#         project_name,
+#         sub_folder=igv_folder.as_posix(),
+#         note=config_note,
+#         is_unique=is_unique,
+#         fraction=fraction,
+#         reweighting_iterations=reweighting_iterations,
+#         is_filtered=is_filtered
+#     )
 
 _COMPONENT_ID = 'igv-chart'
 #_COMPONENT_ID = 'default-igv'
     
-reference={
-        'id': 'IGV reference',
-        'name': f'config["genome_name"]',
-        'fastaURL': fastaURL,
-        'indexURL': indexURL,
-        'order': 1000000,
-        'tracks': [
-            {
-                'name': 'Annotations',
-                'url': GTF,
-                'displayMode': 'EXPANDED',
-                'nameField': 'gene',
-                'height': 150,
-                'color': 'rgb(0,0,0)',
-                "type": "annotation",
-                "format": "gff"
-            },
-            {
-                'name': 'ORFs',
-                'url': BED,
-                'displayMode': 'EXPANDED',
-                #'nameField': 'gene',
-                'height': 150,
-                "type": "annotation",
-                "format": "bed"
-            },
-            
-        ]
-    }
+reference = {
+    "id": "IGV reference",
+    "name": config["genome_name"],
+    "fastaURL": "data/fasta",
+    "indexURL": "data/fasta/fai",
+    "order": 1000000,
+    "tracks": [
+        {
+            "name": "Annotations",
+            "url": "data/gtf",
+            "displayMode": "EXPANDED",
+            "nameField": "gene",
+            "height": 150,
+            "color": "rgb(0,0,0)",
+            "type": "annotation",
+            "format": "gff",
+        },
+        # How to get the correct filename here
+        #   { 'name': 'ORFs',
+        #     'url': f"/results/analysis/rpbp_predictions/....",
+        #     'displayMode': 'EXPANDED',
+        #     #'nameField': 'gene',
+        #     'height': 150,
+        #     "type": "annotation",
+        #     "format": "bed"
+        #   },
+    ],
+}
             
 # Circos
 filen = Path(path_to_data, sub_folder, f"{config['genome_name']}.circos_graph_data.json")
@@ -412,8 +397,26 @@ circos_tracks_config = {
 
 app = dash.Dash(__name__)
 
-# do we have to expose the flask variable in the file?
-# server = app.server
+@app.server.route("/data/<configval>", defaults={"suffix": None})
+@app.server.route("/data/<configval>/<suffix>")
+def config_data(configval, suffix):
+    """Serve the file specified for the given key in the configuration.
+    Potentially apply a suffix for derived files like an index.
+    """
+
+    # Extract the filename from configuration
+    filename = config[configval]
+    if suffix:
+        filename = filename + "." + suffix
+
+    return flask.send_file(filename)
+
+
+@app.server.route("/results/<filename>")
+def results_data(filename):
+    """Serve a file from the results directory"""
+    return flask.send_file(Path(config["riboseq_data"], filename))
+
 
 app.layout = html.Div(
     [
