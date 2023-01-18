@@ -7,10 +7,7 @@ import sys
 import re
 import yaml
 import json
-import gzip
 import tempfile
-import shutil
-import base64
 import datetime
 
 from pathlib import Path
@@ -82,42 +79,6 @@ fields = [
 
 FIELD_NAMES = bed_utils.bed12_field_names + fields[1:8]
 EXT_FIELD_NAMES = bed_utils.bed12_field_names + fields
-
-
-def is_gzip(filen):
-    ret = True
-    with gzip.open(filen, "r") as fs:
-        try:
-            fs.read(1)
-        except gzip.BadGzipFile:
-            ret = False
-    return ret
-
-
-# taken from https://github.com/igvteam/igv.js-reports
-def get_data_uri(data):
-
-    if isinstance(data, str):
-        data = gzip.compress(data.encode())
-        mediatype = "data:application/gzip"
-    else:
-        if data[0] == 0x1F and data[1] == 0x8B:
-            mediatype = "data:application/gzip"
-        else:
-            mediatype = "data:application:octet-stream"
-
-    enc_str = base64.b64encode(data)
-
-    data_uri = mediatype + ";base64," + str(enc_str)[2:-1]
-    return data_uri
-
-
-def write_uri(src, dest):
-    # src is the path to the gzipped content
-    with open(src, "rb") as fs:
-        data = fs.read()
-    with open(dest, "w+") as fs:
-        fs.write(get_data_uri(data))
 
 
 def get_predictions_file(
@@ -261,12 +222,14 @@ def get_circos_graph(orfs, sub_folder, config, args):
         }
         layout.append(record)
     circos_graph_data["genome"] = layout
+    locus = circos_graph_data['genome'][0]['label']
 
-    filen = Path(sub_folder, f"{config['genome_name']}.circos_graph_data.json")
-    filen = Path(config["riboseq_data"], filen)
+    filen = f"{config['genome_name']}.circos_graph_data.json"
+    filen = Path(config["riboseq_data"], sub_folder, filen)
     with open(filen, "w") as f:
         json.dump(circos_graph_data, f)
-
+    
+    return (filen.as_posix(), locus)
 
 def add_data(
     name,
@@ -464,7 +427,7 @@ def main():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="""This script summarizes the ORF prediction step of
-        the Rp-Bp pipeline.""",
+                        the Rp-Bp pipeline.""",
     )
 
     parser.add_argument("config", help="The (yaml) config file")
@@ -616,9 +579,6 @@ def main():
     # create directory for summary data
     sub_folder = Path("analysis", "rpbp_predictions")
     Path(config["riboseq_data"], sub_folder).mkdir(parents=True, exist_ok=True)
-    # create directory for IGV data
-    igv_folder = Path("analysis", "igv")
-    Path(config["riboseq_data"], igv_folder).mkdir(parents=True, exist_ok=True)
 
     # nomenclature
     project = config.get("project_name", "rpbp")
@@ -796,7 +756,7 @@ def main():
     # writing ORFs to disk
     # sort on the chrom field, and then on the chromStart field.
     orfs.sort_values(["seqname", "start"], ascending=[True, True], inplace=True)
-    filen = filenames.get_riboseq_predicted_orfs(
+    orfs_filen = filenames.get_riboseq_predicted_orfs(
         config["riboseq_data"],
         project,
         sub_folder=sub_folder.as_posix(),
@@ -806,50 +766,16 @@ def main():
         reweighting_iterations=reweighting_iterations,
         is_filtered=is_filtered,
     )
-    if args.overwrite or not Path(filen).is_file():
-        bed_utils.write_bed(orfs[ext_field_names], filen)
+    if args.overwrite or not Path(orfs_filen).is_file():
+        bed_utils.write_bed(orfs[ext_field_names], orfs_filen)
     else:
-        msg = f"Output file {filen} exists, skipping call!"
+        msg = f"Output file {orfs_filen} exists, skipping call!"
         logger.warning(msg)
 
     # Preparing Circos output
     msg = "Preparing Circos data"
     logger.info(msg)
-    get_circos_graph(orfs, sub_folder, config, args)
-
-    # Preparing output for visualization with IGV
-    msg = "Preparing IGV genome"
-    logger.info(msg)
-
-    for filen in [config["fasta"], f"{config['fasta']}.fai", config["gtf"]]:
-        orig = Path(filen)
-        # make sure the index exists
-        if not orig.is_file():
-            msg = f"Continuing, but file {orig} is missing!"
-            logger.warning(msg)
-            continue
-        local_filename = orig.name.replace(".gz", "")
-        dest = Path(igv_folder, f"{local_filename}.txt")
-        dest = Path(config["riboseq_data"], dest)
-        # gzip file, unless BAM
-        if is_gzip(filen):
-            if args.overwrite or not dest.is_file():
-                write_uri(orig, dest)
-            else:
-                msg = f"Output file {dest} exists, skipping call!"
-                logger.warning(msg)
-        else:
-            with tempfile.TemporaryDirectory() as tmpdirname:
-                src = Path(tmpdirname, f"{local_filename}.gz")
-                # src.write_text(orig.read_text()) # text file to gzip
-                with open(orig, "rb") as f_in:
-                    with gzip.open(src, "wb") as f_out:
-                        shutil.copyfileobj(f_in, f_out)
-                if args.overwrite or not dest.is_file():
-                    write_uri(src, dest)
-                else:
-                    msg = f"Output file {dest} exists, skipping call!"
-                    logger.warning(msg)
+    circos_filen, locus = get_circos_graph(orfs, sub_folder, config, args)
 
     # preparing the BED track
     # add ORF colors
@@ -862,36 +788,23 @@ def main():
         orfs.loc[label_m, "color"] = color
     orfs = orfs[bed_utils.bed12_field_names]
     orfs.drop_duplicates(inplace=True)
-
-    dest = filenames.get_riboseq_predicted_orfs(
+    
+    igv_filen = filenames.get_riboseq_predicted_orfs(
         config["riboseq_data"],
         project,
-        sub_folder=igv_folder.as_posix(),
+        sub_folder=sub_folder.as_posix(),
         note=note,
         is_unique=is_unique,
         fraction=fraction,
         reweighting_iterations=reweighting_iterations,
         is_filtered=is_filtered,
     )
-    dest = dest.replace(".gz", ".txt")
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        tmp_path = Path(tmpdirname)
-        filen = filenames.get_riboseq_predicted_orfs(
-            tmp_path.parent.as_posix(),
-            project,
-            sub_folder=tmp_path.name,
-            note=note,
-            is_unique=is_unique,
-            fraction=fraction,
-            reweighting_iterations=reweighting_iterations,
-            is_filtered=is_filtered,
-        )
-        bed_utils.write_bed(orfs, filen)
-        if args.overwrite or not Path(dest).is_file():
-            write_uri(filen, dest)
-        else:
-            msg = f"Output file {dest} exists, skipping call!"
-            logger.warning(msg)
+    igv_filen = igv_filen.replace("predicted-orfs", "igv-orfs")
+    if args.overwrite or not Path(igv_filen).is_file():
+        bed_utils.write_bed(orfs, igv_filen)
+    else:
+        msg = f"Output file {igv_filen} exists, skipping call!"
+        logger.warning(msg)
 
     # log options for the dashboard
     dashboard_data = {
@@ -900,6 +813,10 @@ def main():
         "keep_other": args.keep_other,
         "no_replicates": args.no_replicates,
         "circos_bin_width": args.circos_bin_width,
+        "circos_graph": circos_filen,
+        "locus": locus,
+        "orfs": orfs_filen,
+        "igv_orfs": igv_filen,
         "date_time": "{:%Y-%m-%d %H:%M:%S}".format(datetime.datetime.now()),
     }
     filen = Path(sub_folder, f"{project}.summarize_options.json")

@@ -14,8 +14,6 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-import rpbp.ribo_utils.filenames as filenames
-
 from rpbp.defaults import orf_type_colors, orf_type_labels, orf_type_name_map
 
 # ------------------------------------------------------ Functions ------------------------------------------------------
@@ -24,7 +22,7 @@ from rpbp.defaults import orf_type_colors, orf_type_labels, orf_type_name_map
 def parse_args():
     parser = argparse.ArgumentParser(
         description="""Launch a Dash app to
-                                     visualize ORF predictions from Rp-Bp."""
+                        visualize ORF predictions from Rp-Bp."""
     )
 
     parser.add_argument(
@@ -54,12 +52,6 @@ def fmt_tooltip(row):
        profile_sum,
        in_frame
     )
-    
-    #fmt = []
-    #for cond, bfm, bfv, ps, inf in it:
-        #fmt.append(f"*{cond}*\nBF mean: {bfm}, BF var: {bfv}\n" \
-                   #f"P-sites: {ps} ({inf}% in-frame)")
-    #return "\n\n".join(fmt)
     
     fmt = ["| Condition | BF mean | BF var | P-sites | in-frame |"]
     fmt.append("| :-------- | :-----: | :----: | :-----: | -------: |")
@@ -93,9 +85,9 @@ def filter_sort_table(filter_query, sort_by):
     
     if len(sort_by):
         df = df.sort_values(
-            [col['column_id'] for col in sort_by],
+            [col["column_id"] for col in sort_by],
             ascending=[
-                col['direction'] == 'asc'
+                col["direction"] == "asc"
                 for col in sort_by
             ],
             inplace=False
@@ -108,7 +100,6 @@ def filter_sort_table(filter_query, sort_by):
 
 # *** default path to summary data created by `summarize-rpbp-predictions`
 sub_folder = Path("analysis", "rpbp_predictions")
-igv_folder = Path("analysis", "igv")
 
 # *** load configuration
 configf, debug, host = parse_args()
@@ -121,28 +112,22 @@ prj_md_text = f"**Project name:** {project_name}\n\n" \
               f"**Data location:** {path_to_data}\n\n" \
               f"---"
 
-is_unique = not ("keep_riboseq_multimappers" in config)
-config_note = config.get("note", None)
-
-fraction = config.get("smoothing_fraction", None)
-reweighting_iterations = config.get("smoothing_reweighting_iterations", None)
-
 # *** load extended configuration, etc.
 filen = Path(path_to_data, sub_folder, f"{project_name}.summarize_options.json")
-extended_config = json.load(open(filen, "r"))
+config.update(json.load(open(filen, "r")))
 
-is_filtered = extended_config["is_filtered"]
+is_filtered = config["is_filtered"]
 is_filtered_str = "filtered" if is_filtered else "unfiltered" 
-no_repl_str = "excluding" if extended_config['no_replicates'] else "including"
+no_repl_str = "excluding" if config['no_replicates'] else "including"
 min_samples_str = f"ORFs were *filtered* to keep only those " \
-                  f"predicted in at least {extended_config['min_samples']} samples." 
+                  f"predicted in at least {config['min_samples']} samples." 
 default_str = "ORFs were *not* filtered based on the number of predictions per sample (default)."
-min_samples_str = min_samples_str if extended_config['min_samples'] > 1 else default_str           
+min_samples_str = min_samples_str if config['min_samples'] > 1 else default_str           
                         
-results_md_text = f"Ribo-seq ORFs from *{extended_config['date_time']}*.\n\n" \
+results_md_text = f"Ribo-seq ORFs from *{config['date_time']}*.\n\n" \
                   f"Using ORFs from *{is_filtered_str}* predictions, *{no_repl_str}* merged replicates.\n\n" \
                   f"{min_samples_str}\n\n" \
-                  f"The bin width for counting ORF predictions along chromosomes is *{extended_config['circos_bin_width']}b*."
+                  f"The bin width for counting ORF predictions along chromosomes is *{config['circos_bin_width']}b*."
 
 labels_md_text = """
     **CDS**: Canonical (annotated) coding sequence\n
@@ -162,17 +147,7 @@ for orf_type, labels in orf_type_labels.items():
         row_col[t] = col_rev[orf_type]
 
 # *** load/wrangle data
-filen = filenames.get_riboseq_predicted_orfs(
-        config["riboseq_data"], 
-        project_name, 
-        sub_folder=sub_folder.as_posix(), 
-        note=config_note,
-        is_unique=is_unique,         
-        fraction=fraction,
-        reweighting_iterations=reweighting_iterations,
-        is_filtered=is_filtered
-    )
-orfs = pd.read_csv(filen, sep="\t", low_memory=False) # bed_utils
+orfs = pd.read_csv(config["orfs"], sep="\t", low_memory=False) # bed_utils
 orfs.columns = orfs.columns.str.replace("#", "")
 orfs["orf_len"] = orfs["orf_len"]/3
 orfs["profile_sum"] = orfs[["x_1_sum", "x_2_sum", "x_3_sum"]].sum(axis=1)
@@ -321,18 +296,7 @@ drop_orf_types = dcc.Dropdown(
     style={"margin-top": "4px", "box-shadow": "0px 0px #73a5c8", "border-color": "#73a5c8"},
 )
 
-# TODO: Is there an easier way to get the correct filename. See below.
-# predicted_orf_filename = filenames.get_riboseq_predicted_orfs(
-#         config["riboseq_data"],
-#         project_name,
-#         sub_folder=igv_folder.as_posix(),
-#         note=config_note,
-#         is_unique=is_unique,
-#         fraction=fraction,
-#         reweighting_iterations=reweighting_iterations,
-#         is_filtered=is_filtered
-#     )
-
+# IGV
 _COMPONENT_ID = 'igv-chart'
 #_COMPONENT_ID = 'default-igv'
     
@@ -346,28 +310,28 @@ reference = {
         {
             "name": "Annotations",
             "url": "data/gtf",
+            #"indexURL": "data/gtf/tbi",
             "displayMode": "EXPANDED",
-            "nameField": "gene",
+            #"nameField": "gene_name",
             "height": 150,
             "color": "rgb(0,0,0)",
             "type": "annotation",
-            "format": "gff",
+            "format": "gtf",
         },
-        # How to get the correct filename here
-        #   { 'name': 'ORFs',
-        #     'url': f"/results/analysis/rpbp_predictions/....",
-        #     'displayMode': 'EXPANDED',
-        #     #'nameField': 'gene',
-        #     'height': 150,
-        #     "type": "annotation",
-        #     "format": "bed"
-        #   },
+        { 
+            "name": "ORFs",
+            "url": "data/igv_orfs",
+            "displayMode": "EXPANDED",
+            #'nameField': "gene",
+            "height": 150,
+            "type": "annotation",
+            "format": "bed"
+        },
     ],
 }
             
 # Circos
-filen = Path(path_to_data, sub_folder, f"{config['genome_name']}.circos_graph_data.json")
-circos_graph_data = json.load(open(filen, "r"))
+circos_graph_data = json.load(open(config["circos_graph"], "r"))
 
 circos_layout_config = {
     "innerRadius": 150,
@@ -417,12 +381,6 @@ def config_data(configval, suffix):
     return flask.send_file(filename)
 
 
-@app.server.route("/results/<filename>")
-def results_data(filename):
-    """Serve a file from the results directory"""
-    return flask.send_file(Path(config["riboseq_data"], filename))
-
-
 app.layout = html.Div(
     [
         html.Div(
@@ -436,7 +394,6 @@ app.layout = html.Div(
                         "top": "15px",
                     },
                 ),
-                # TODO: short intro, ref to Rp-Bp docs, etc.
                 html.H1(
                     "Ribo-seq ORF predictions",
                     style={"color": "rgb(0 0 0)"},
@@ -675,7 +632,8 @@ app.layout = html.Div(
                                         ),
                                 dash_bio.Igv(
                                     id=_COMPONENT_ID,
-                                    reference=reference
+                                    reference=reference,
+                                    locus=config["locus"]
                                 ),
                             ],
                             className="box"
