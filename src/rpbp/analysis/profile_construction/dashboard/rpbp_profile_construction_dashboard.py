@@ -54,7 +54,7 @@ def parse_args():
     )
 
     parser.add_argument("--debug", "-d", action="store_true", help="Enable debug mode")
-    
+
     parser.add_argument("--host", type=str, default="localhost", help="Host")
 
     args = parser.parse_args()

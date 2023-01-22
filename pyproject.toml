@@ -11,7 +11,12 @@ authors = [{ name = "Brandon Malone" }]
 maintainers = [
   { name = "Etienne Boileau", email = "boileau@uni-heidelberg.de" }
 ]
-keywords = ["bioinformatics", "riboseq", "open reading frame discovery", "translation"]
+keywords = [
+  "bioinformatics",
+  "riboseq",
+  "open reading frame discovery",
+  "translation"
+]
 # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -30,7 +35,7 @@ classifiers = [
 dynamic = ["version"]
 requires-python = ">=3.6,<3.11"
 dependencies = [
-  "pbiotools",
+  "pbiotools>=3.0.0",
   "appdirs",
   "biopython",
   "cmdstanpy",
@@ -39,7 +44,7 @@ dependencies = [
   "dash-bootstrap-components",
   "statsmodels",
 ]
-  
+
 [project.scripts]
 # preprocessing
 extract-orf-coordinates = "rpbp.reference_preprocessing.extract_orf_coordinates:main"
@@ -95,6 +100,9 @@ docs = [
 
 [tool.setuptools.dynamic]
 version = { attr = "rpbp.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

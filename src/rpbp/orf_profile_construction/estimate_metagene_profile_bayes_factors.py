@@ -2,11 +2,14 @@
 
 import argparse
 import logging
+import pathlib
 
 import numpy as np
 import pandas as pd
 
 from cmdstanpy import CmdStanModel
+
+import rpbp.ribo_utils.compile_rpbp_models as compile_rpbp_models
 
 import pbiotools.misc.logging_utils as logging_utils
 import pbiotools.misc.parallel as parallel
@@ -89,7 +92,7 @@ def estimate_marginal_likelihoods(
     return (bft_periodic, bft_nonperiodic)
 
 
-def estimate_profile_bayes_factors(profile, args, cpp_options):
+def estimate_profile_bayes_factors(profile, args):
 
     # logging
     cmdstanpy_logger.disabled = True
@@ -98,14 +101,13 @@ def estimate_profile_bayes_factors(profile, args, cpp_options):
 
     length = profile["length"].iloc[0]
 
-    # read in the relevant models
-    # setting compile=False results in exe_file=None?
+    # read in the relevant pre-compiled models
     periodic_models = [
-        CmdStanModel(stan_file=pm, cpp_options=cpp_options)
+        CmdStanModel(exe_file=pathlib.Path(pm).with_suffix(""))
         for pm in args.periodic_models
     ]
     nonperiodic_models = [
-        CmdStanModel(stan_file=npm, cpp_options=cpp_options)
+        CmdStanModel(exe_file=pathlib.Path(npm).with_suffix(""))
         for npm in args.nonperiodic_models
     ]
 
@@ -274,12 +276,6 @@ def main():
     )
 
     parser.add_argument(
-        "--use-stan-threads",
-        help="""If this flag is present, instantiate models using options for C++ compiler.""",
-        action="store_true",
-    )
-
-    parser.add_argument(
         "-p",
         "--num-cpus",
         help="""The number of CPUs to use. Each read
@@ -299,10 +295,7 @@ def main():
     args = parser.parse_args()
     logging_utils.update_logging(args)
 
-    # Stan model instantiation option
-    cpp_options = None
-    if args.use_stan_threads:
-        cpp_options = {"STAN_THREADS": "TRUE"}
+    compile_rpbp_models.compile()
 
     # we will parallelize based on the lengths. So we need to know which lengths
     # are present in the metagene profiles file
@@ -320,7 +313,6 @@ def main():
         args.num_cpus,
         estimate_profile_bayes_factors,
         args,
-        cpp_options,
         progress_bar=True,
     )
 

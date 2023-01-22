@@ -30,7 +30,7 @@ def parse_args():
     )
 
     parser.add_argument("--debug", "-d", action="store_true", help="Enable debug mode")
-    
+
     parser.add_argument("--host", type=str, default="localhost", help="Host")
 
     args = parser.parse_args()
@@ -39,20 +39,15 @@ def parse_args():
 
 
 def fmt_tooltip(row):
-    
+
     conditions = row.condition.split("|")
     bayes_factor_mean = row.bayes_factor_mean.split("|")
     bayes_factor_var = row.bayes_factor_var.split("|")
     profile_sum = row.profile_sum.split("|")
     in_frame = row.in_frame.split("|")
-    
-    it = zip(conditions,
-       bayes_factor_mean,
-       bayes_factor_var,
-       profile_sum,
-       in_frame
-    )
-    
+
+    it = zip(conditions, bayes_factor_mean, bayes_factor_var, profile_sum, in_frame)
+
     fmt = ["| Condition | BF mean | BF var | P-sites | in-frame |"]
     fmt.append("| :-------- | :-----: | :----: | :-----: | -------: |")
     for cond, bfm, bfv, ps, inf in it:
@@ -72,7 +67,7 @@ def filter_sort_table(filter_query, sort_by):
 
     filtering_expressions = filter_query.split(" && ")
     df = display_table
-    
+
     # first apply filtering
     for filter_part in filtering_expressions:
         col_name, operator, filter_value = split_filter_part(filter_part)
@@ -82,17 +77,14 @@ def filter_sort_table(filter_query, sort_by):
             df = df.loc[getattr(df[col_name], operator)(filter_value)]
         elif operator == "contains":
             df = df.loc[df[col_name].str.contains(filter_value)]
-    
+
     if len(sort_by):
         df = df.sort_values(
             [col["column_id"] for col in sort_by],
-            ascending=[
-                col["direction"] == "asc"
-                for col in sort_by
-            ],
-            inplace=False
+            ascending=[col["direction"] == "asc" for col in sort_by],
+            inplace=False,
         )
-    
+
     return df
 
 
@@ -108,26 +100,34 @@ config = yaml.load(open(configf), Loader=yaml.FullLoader)
 project_name = config.get("project_name", "rpbp")
 path_to_data = config["riboseq_data"]
 
-prj_md_text = f"**Project name:** {project_name}\n\n" \
-              f"**Data location:** {path_to_data}\n\n" \
-              f"---"
+prj_md_text = (
+    f"**Project name:** {project_name}\n\n"
+    f"**Data location:** {path_to_data}\n\n"
+    f"---"
+)
 
 # *** load extended configuration, etc.
 filen = Path(path_to_data, sub_folder, f"{project_name}.summarize_options.json")
 config.update(json.load(open(filen, "r")))
 
 is_filtered = config["is_filtered"]
-is_filtered_str = "filtered" if is_filtered else "unfiltered" 
-no_repl_str = "excluding" if config['no_replicates'] else "including"
-min_samples_str = f"ORFs were *filtered* to keep only those " \
-                  f"predicted in at least {config['min_samples']} samples." 
-default_str = "ORFs were *not* filtered based on the number of predictions per sample (default)."
-min_samples_str = min_samples_str if config['min_samples'] > 1 else default_str           
-                        
-results_md_text = f"Ribo-seq ORFs from *{config['date_time']}*.\n\n" \
-                  f"Using ORFs from *{is_filtered_str}* predictions, *{no_repl_str}* merged replicates.\n\n" \
-                  f"{min_samples_str}\n\n" \
-                  f"The bin width for counting ORF predictions along chromosomes is *{config['circos_bin_width']}b*."
+is_filtered_str = "filtered" if is_filtered else "unfiltered"
+no_repl_str = "excluding" if config["no_replicates"] else "including"
+min_samples_str = (
+    f"ORFs were *filtered* to keep only those "
+    f"predicted in at least {config['min_samples']} samples."
+)
+default_str = (
+    "ORFs were *not* filtered based on the number of predictions per sample (default)."
+)
+min_samples_str = min_samples_str if config["min_samples"] > 1 else default_str
+
+results_md_text = (
+    f"Ribo-seq ORFs from *{config['date_time']}*.\n\n"
+    f"Using ORFs from *{is_filtered_str}* predictions, *{no_repl_str}* merged replicates.\n\n"
+    f"{min_samples_str}\n\n"
+    f"The bin width for counting ORF predictions along chromosomes is *{config['circos_bin_width']}b*."
+)
 
 labels_md_text = """
     **CDS**: Canonical (annotated) coding sequence\n
@@ -139,7 +139,7 @@ labels_md_text = """
     **Novel**: Translation event inter- or intragenic (only when Rp-Bp is run with a *de novo* assembly)
     """
 
-col_rev = {v:k for k,v in orf_type_colors.items()}
+col_rev = {v: k for k, v in orf_type_colors.items()}
 row_col = {}
 for orf_type, labels in orf_type_labels.items():
     types = [orf_type_name_map[label] for label in labels]
@@ -147,28 +147,58 @@ for orf_type, labels in orf_type_labels.items():
         row_col[t] = col_rev[orf_type]
 
 # *** load/wrangle data
-orfs = pd.read_csv(config["orfs"], sep="\t", low_memory=False) # bed_utils
+orfs = pd.read_csv(config["orfs"], sep="\t", low_memory=False)  # bed_utils
 orfs.columns = orfs.columns.str.replace("#", "")
-orfs["orf_len"] = orfs["orf_len"]/3
+orfs["orf_len"] = orfs["orf_len"] / 3
 orfs["profile_sum"] = orfs[["x_1_sum", "x_2_sum", "x_3_sum"]].sum(axis=1)
 orfs["profile_sum"] = orfs["profile_sum"].astype(int)
-orfs["in_frame"] = orfs["x_1_sum"].div(orfs["profile_sum"].values)*100
+orfs["in_frame"] = orfs["x_1_sum"].div(orfs["profile_sum"].values) * 100
 orfs["in_frame"] = orfs["in_frame"].apply(np.round).astype(int)
 orfs["bayes_factor_mean"] = orfs["bayes_factor_mean"].apply(np.round).astype(int)
 orfs["bayes_factor_var"] = orfs["bayes_factor_var"].apply(np.round).astype(int)
 
 # main table - REDEFINE columns!
-TABLE_FIELDS = ["seqname", "id", "orf_len", "orf_type", "biotype", "transcripts", "gene_id", "gene_name", "gene_biotype"]
-DISPLAY_FIELDS = ["Chrom", "ORF ID", "ORF length", "Category", "Transcript biotype", "Transcripts", "Gene ID", "Gene name", "Gene biotype"]
+TABLE_FIELDS = [
+    "seqname",
+    "id",
+    "orf_len",
+    "orf_type",
+    "biotype",
+    "transcripts",
+    "gene_id",
+    "gene_name",
+    "gene_biotype",
+]
+DISPLAY_FIELDS = [
+    "Chrom",
+    "ORF ID",
+    "ORF length",
+    "Category",
+    "Transcript biotype",
+    "Transcripts",
+    "Gene ID",
+    "Gene name",
+    "Gene biotype",
+]
 
-display_table = orfs.groupby("id", as_index=False)["condition"].agg({"condition": lambda x: "|".join(x)})
-df = orfs.groupby("id", as_index=False)["bayes_factor_mean"].agg({"bayes_factor_mean": lambda x: "|".join([str(y) for y in x])})
+display_table = orfs.groupby("id", as_index=False)["condition"].agg(
+    {"condition": lambda x: "|".join(x)}
+)
+df = orfs.groupby("id", as_index=False)["bayes_factor_mean"].agg(
+    {"bayes_factor_mean": lambda x: "|".join([str(y) for y in x])}
+)
 display_table = display_table.join(df["bayes_factor_mean"])
-df = orfs.groupby("id", as_index=False)["bayes_factor_var"].agg({"bayes_factor_var": lambda x: "|".join([str(y) for y in x])})
+df = orfs.groupby("id", as_index=False)["bayes_factor_var"].agg(
+    {"bayes_factor_var": lambda x: "|".join([str(y) for y in x])}
+)
 display_table = display_table.join(df["bayes_factor_var"])
-df = orfs.groupby("id", as_index=False)["profile_sum"].agg({"profile_sum": lambda x: "|".join([str(y) for y in x])})
+df = orfs.groupby("id", as_index=False)["profile_sum"].agg(
+    {"profile_sum": lambda x: "|".join([str(y) for y in x])}
+)
 display_table = display_table.join(df["profile_sum"])
-df = orfs.groupby("id", as_index=False)["in_frame"].agg({"in_frame": lambda x: "|".join([str(y) for y in x])})
+df = orfs.groupby("id", as_index=False)["in_frame"].agg(
+    {"in_frame": lambda x: "|".join([str(y) for y in x])}
+)
 display_table = display_table.join(df["in_frame"])
 display_table["orf_info"] = display_table.apply(fmt_tooltip, axis=1)
 display_table = pd.merge(display_table, orfs[TABLE_FIELDS], on="id", how="left")
@@ -178,96 +208,117 @@ display_table.drop_duplicates(inplace=True)
 # summary table (tab) - show available samples and ORF types
 orf_tab = orfs.groupby("condition").apply(get_orf_type_counts)
 orf_tab.reset_index(inplace=True)
-orf_tab.drop(columns='level_1', inplace=True)
-orf_tab = orf_tab.pivot(index='condition', columns=["orf_type", "strand"], values='count')
+orf_tab.drop(columns="level_1", inplace=True)
+orf_tab = orf_tab.pivot(
+    index="condition", columns=["orf_type", "strand"], values="count"
+)
 orf_tab.fillna(0, inplace=True)
 # reorder columns
-all_multi = [(orf_type, strand) for orf_type in orf_type_name_map.values() for strand in ["+", "-"]]
+all_multi = [
+    (orf_type, strand)
+    for orf_type in orf_type_name_map.values()
+    for strand in ["+", "-"]
+]
 all_multi = [c for c in all_multi if c in orf_tab.columns]
 orf_tab = orf_tab[all_multi]
 
 # sunburst - no callback
 sunburst_table = display_table.copy()
 sunburst_table["length"] = "ORF"
-sunburst_table.loc[sunburst_table["orf_len"]<100, "length"] = "sORF"
+sunburst_table.loc[sunburst_table["orf_len"] < 100, "length"] = "sORF"
 sunburst_table["count"] = 1
 sunburst_col = row_col.copy()
 sunburst_col["(?)"] = "#ededed"
-sunburst_orfs = px.sunburst(
-    sunburst_table,
-    path=["length", "orf_type", "biotype"], # transcript biotype
-    values="count",
-    color="orf_type",
-    color_discrete_map=sunburst_col,
-).update_traces(hovertemplate="%{label}<br>" + "Count: %{value}").update_layout(
+sunburst_orfs = (
+    px.sunburst(
+        sunburst_table,
+        path=["length", "orf_type", "biotype"],  # transcript biotype
+        values="count",
+        color="orf_type",
+        color_discrete_map=sunburst_col,
+    )
+    .update_traces(hovertemplate="%{label}<br>" + "Count: %{value}")
+    .update_layout(
+        {
+            "margin": dict(t=0, l=0, r=0, b=10),
+            "plot_bgcolor": "rgba(0,0,0,0)",
+            "paper_bgcolor": "rgba(0,0,0,0)",
+        }
+    )
+)
+
+# main table - DISPLAY_FIELDS
+display_table.rename(
+    columns={k: v for k, v in zip(TABLE_FIELDS, DISPLAY_FIELDS)}, inplace=True
+)
+
+style_data_conditional = [
     {
-        "margin": dict(t=0, l=0, r=0, b=10),
-        "plot_bgcolor": "rgba(0,0,0,0)", 
-        "paper_bgcolor": "rgba(0,0,0,0)"
+        "if": {"filter_query": f'{{Category}} = "{t}"', "column_id": "Category"},
+        "backgroundColor": c,
+        "color": "white",
+    }
+    for t, c in row_col.items()
+]
+
+style_data_conditional.append(
+    {
+        "if": {"column_id": "Transcripts"},
+        "textOverflow": "ellipsis",
+        "overflow": "hidden",
+        "maxWidth": 0,
     }
 )
-    
-# main table - DISPLAY_FIELDS
-display_table.rename(columns={k:v for k,v in zip(TABLE_FIELDS, DISPLAY_FIELDS)},
-                     inplace=True)
 
-style_data_conditional = [ {
-    'if': {
-        'filter_query': f'{{Category}} = "{t}"',
-        'column_id': 'Category'
-    },
-    'backgroundColor': c,
-    'color': 'white'
-} for t, c in row_col.items()]
-    
-style_data_conditional.append({'if': {'column_id': 'Transcripts'}, 
-                               'textOverflow': 'ellipsis', 'overflow': 'hidden', 'maxWidth': 0})
+style_header_conditional = [
+    {
+        "if": {"column_id": f"{t}_{s}", "header_index": 0},
+        "backgroundColor": c,
+        "color": "white",
+    }
+    for t, c in row_col.items()
+    for s in ["+", "-"]
+]
 
-style_header_conditional = [ {
-    'if': {
-        'column_id': f'{t}_{s}', 
-        'header_index': 0
-    },
-    'backgroundColor': c,
-    'color': 'white'
-} for t, c in row_col.items() for s in ["+", "-"]]
-    
-    
+
 tooltip_header = {
-    "Chrom": "Chromosome", 
+    "Chrom": "Chromosome",
     "ORF ID": "Rp-Bp ORF ID: Transcript:Chrom:Start-End:Strand",
-    "ORF length": "ORF length (AA)", 
-    "Category": "Rio-seq ORF category (type or label)", 
-    "Transcript biotype": "Biotype of host transcript", 
-    "Transcripts": "Other compatible transcripts", 
-    "Gene ID": "Host gene ID", 
+    "ORF length": "ORF length (AA)",
+    "Category": "Rio-seq ORF category (type or label)",
+    "Transcript biotype": "Biotype of host transcript",
+    "Transcripts": "Other compatible transcripts",
+    "Gene ID": "Host gene ID",
     "Gene name": "Host gene name",
-    "Gene biotype": "Host gene biotype"
+    "Gene biotype": "Host gene biotype",
 }
 
 PAGE_SIZE = 10
-page_count = np.ceil(len(display_table)/PAGE_SIZE)
+page_count = np.ceil(len(display_table) / PAGE_SIZE)
 
 # table filtering
 # from https://dash.plotly.com/datatable/callbacks
-operators = [['ge ', '>='],
-             ['le ', '<='],
-             ['lt ', '<'],
-             ['gt ', '>'],
-             ['eq ', '='],
-             ['contains ']]
+operators = [
+    ["ge ", ">="],
+    ["le ", "<="],
+    ["lt ", "<"],
+    ["gt ", ">"],
+    ["eq ", "="],
+    ["contains "],
+]
+
 
 def split_filter_part(filter_part):
     for operator_type in operators:
         for operator in operator_type:
             if operator in filter_part:
                 name_part, value_part = filter_part.split(operator, 1)
-                name = name_part[name_part.find('{') + 1: name_part.rfind('}')]
+                name = name_part[name_part.find("{") + 1 : name_part.rfind("}")]
 
                 value_part = value_part.strip()
                 v0 = value_part[0]
-                if (v0 == value_part[-1] and v0 in ("'", '"', '`')):
-                    value = value_part[1: -1].replace('\\' + v0, v0)
+                if v0 == value_part[-1] and v0 in ("'", '"', "`"):
+                    value = value_part[1:-1].replace("\\" + v0, v0)
                 else:
                     try:
                         value = float(value_part)
@@ -280,12 +331,15 @@ def split_filter_part(filter_part):
 
     return [None] * 3
 
-# data-dependent app components
-option_orf_types = [
-    {"label": x, "value": x} for x in display_table.Category.unique()
-]
 
-orf_type_default = "CDS" if any(["CDS" in d["label"] for d in option_orf_types]) else option_orf_types[0]['value']
+# data-dependent app components
+option_orf_types = [{"label": x, "value": x} for x in display_table.Category.unique()]
+
+orf_type_default = (
+    "CDS"
+    if any(["CDS" in d["label"] for d in option_orf_types])
+    else option_orf_types[0]["value"]
+)
 
 drop_orf_types = dcc.Dropdown(
     id="drop_orf_types",
@@ -293,13 +347,17 @@ drop_orf_types = dcc.Dropdown(
     searchable=False,
     options=option_orf_types,
     value=orf_type_default,
-    style={"margin-top": "4px", "box-shadow": "0px 0px #73a5c8", "border-color": "#73a5c8"},
+    style={
+        "margin-top": "4px",
+        "box-shadow": "0px 0px #73a5c8",
+        "border-color": "#73a5c8",
+    },
 )
 
 # IGV
-_COMPONENT_ID = 'igv-chart'
-#_COMPONENT_ID = 'default-igv'
-    
+_COMPONENT_ID = "igv-chart"
+# _COMPONENT_ID = 'default-igv'
+
 reference = {
     "id": "IGV reference",
     "name": config["genome_name"],
@@ -310,26 +368,26 @@ reference = {
         {
             "name": "Annotations",
             "url": "data/gtf",
-            #"indexURL": "data/gtf/tbi",
+            # "indexURL": "data/gtf/tbi",
             "displayMode": "EXPANDED",
-            #"nameField": "gene_name",
+            # "nameField": "gene_name",
             "height": 150,
             "color": "rgb(0,0,0)",
             "type": "annotation",
             "format": "gtf",
         },
-        { 
+        {
             "name": "ORFs",
             "url": "data/igv_orfs",
             "displayMode": "EXPANDED",
             #'nameField': "gene",
             "height": 150,
             "type": "annotation",
-            "format": "bed"
+            "format": "bed",
         },
     ],
 }
-            
+
 # Circos
 circos_graph_data = json.load(open(config["circos_graph"], "r"))
 
@@ -342,29 +400,30 @@ circos_layout_config = {
         "radialOffset": 200,
         "color": "#000000",
     },
-    #"ticks": {
-        #"color": "#000000",
-        #"labelColor": "#000000",
-        #"spacing": 10000000,
-        #"labelSuffix": "Mb",
-        #"labelDenominator": 1000000,
-        #"labelSize": 10,
-    #},
+    # "ticks": {
+    # "color": "#000000",
+    # "labelColor": "#000000",
+    # "spacing": 10000000,
+    # "labelSuffix": "Mb",
+    # "labelDenominator": 1000000,
+    # "labelSize": 10,
+    # },
     "ticks": {"display": False},
 }
 
-    
+
 circos_innerRadius = 1
 circos_outerRadius = 2
 circos_tracks_config = {
-    "innerRadius": circos_innerRadius, 
-    "outerRadius": circos_outerRadius, 
-    "color": row_col[orf_type_default]
-} # "tooltipContent": {"name": "all"}
+    "innerRadius": circos_innerRadius,
+    "outerRadius": circos_outerRadius,
+    "color": row_col[orf_type_default],
+}  # "tooltipContent": {"name": "all"}
 
 # ------------------------------------------------------ APP ------------------------------------------------------
 
 app = dash.Dash(__name__)
+
 
 @app.server.route("/data/<configval>", defaults={"suffix": None})
 @app.server.route("/data/<configval>/<suffix>")
@@ -384,7 +443,7 @@ def config_data(configval, suffix):
 app.layout = html.Div(
     [
         html.Div(
-            [   
+            [
                 html.Img(
                     src=app.get_asset_url("logo-rpbp.png"),
                     style={
@@ -407,8 +466,7 @@ app.layout = html.Div(
         html.Div(
             [
                 html.Div(
-                    [   
-                        
+                    [
                         html.Div(
                             [
                                 html.Div(
@@ -419,46 +477,89 @@ app.layout = html.Div(
                                                     html.Div(
                                                         [
                                                             html.Div(
-                                                                [ 
-                                                                    html.H2("""ORF counts"""),
+                                                                [
+                                                                    html.H2(
+                                                                        """ORF counts"""
+                                                                    ),
                                                                     # table not interactive
                                                                     dash_table.DataTable(
                                                                         id="orf_tab",
-                                                                        columns=[{"name": ["Category", "Strand"], "id": "condition"}] + 
-                                                                            [{"name": [x1, x2], "id": f"{x1}_{x2}"} for x1, x2 in orf_tab.columns],
+                                                                        columns=[
+                                                                            {
+                                                                                "name": [
+                                                                                    "Category",
+                                                                                    "Strand",
+                                                                                ],
+                                                                                "id": "condition",
+                                                                            }
+                                                                        ]
+                                                                        + [
+                                                                            {
+                                                                                "name": [
+                                                                                    x1,
+                                                                                    x2,
+                                                                                ],
+                                                                                "id": f"{x1}_{x2}",
+                                                                            }
+                                                                            for x1, x2 in orf_tab.columns
+                                                                        ],
                                                                         data=[
                                                                             {
-                                                                                **{"condition": orf_tab.index[n]},
-                                                                                **{f"{x1}_{x2}": y for (x1, x2), y in data},
+                                                                                **{
+                                                                                    "condition": orf_tab.index[
+                                                                                        n
+                                                                                    ]
+                                                                                },
+                                                                                **{
+                                                                                    f"{x1}_{x2}": y
+                                                                                    for (
+                                                                                        x1,
+                                                                                        x2,
+                                                                                    ), y in data
+                                                                                },
                                                                             }
-                                                                                for (n, data) in [
-                                                                                    *enumerate([list(x.items()) for x in orf_tab.T.to_dict().values()])
-                                                                                ]
+                                                                            for (
+                                                                                n,
+                                                                                data,
+                                                                            ) in [
+                                                                                *enumerate(
+                                                                                    [
+                                                                                        list(
+                                                                                            x.items()
+                                                                                        )
+                                                                                        for x in orf_tab.T.to_dict().values()
+                                                                                    ]
+                                                                                )
+                                                                            ]
                                                                         ],
                                                                         merge_duplicate_headers=True,
                                                                         style_header_conditional=style_header_conditional,
                                                                         style_data={
-                                                                            'width': '100px',
-                                                                            'maxWidth': '100px',
-                                                                            'minWidth': '100px',
+                                                                            "width": "100px",
+                                                                            "maxWidth": "100px",
+                                                                            "minWidth": "100px",
                                                                         },
                                                                         style_cell_conditional=[
                                                                             {
-                                                                                'if': {'column_id': 'condition'},
-                                                                                'width': '250px'
+                                                                                "if": {
+                                                                                    "column_id": "condition"
+                                                                                },
+                                                                                "width": "250px",
                                                                             },
                                                                         ],
                                                                         style_table={
-                                                                            'overflowX': 'auto'
+                                                                            "overflowX": "auto"
                                                                         },
                                                                     ),
                                                                 ],
-                                                                style={"margin": "20px"},
+                                                                style={
+                                                                    "margin": "20px"
+                                                                },
                                                             ),
                                                         ],
                                                         className="column",
                                                     ),
-                                                    label='Data summary',
+                                                    label="Data summary",
                                                 ),
                                                 dcc.Tab(
                                                     html.Div(
@@ -468,7 +569,9 @@ app.layout = html.Div(
                                                                     html.Div(
                                                                         [
                                                                             html.Img(
-                                                                                src=app.get_asset_url("schematic.png"),
+                                                                                src=app.get_asset_url(
+                                                                                    "schematic.png"
+                                                                                ),
                                                                                 style={
                                                                                     "width": "90%",
                                                                                     "position": "relative",
@@ -481,13 +584,15 @@ app.layout = html.Div(
                                                             ),
                                                             html.Div(
                                                                 [
-                                                                    dcc.Markdown(labels_md_text),
+                                                                    dcc.Markdown(
+                                                                        labels_md_text
+                                                                    ),
                                                                 ],
                                                                 style={
                                                                     "width": "60%",
                                                                     "position": "relative",
                                                                     "margin": "5px",
-                                                                    "margin-top": "15px"
+                                                                    "margin-top": "15px",
                                                                 },
                                                             ),
                                                         ],
@@ -498,27 +603,33 @@ app.layout = html.Div(
                                             ],
                                         ),
                                     ],
-                                    className="box"
-                                ),  
+                                    className="box",
+                                ),
                             ],
-                            ),
+                        ),
                         html.Div(
                             [
                                 html.Div(
                                     [
-                                        html.H2("""1. ORF predictions per length, category, and host transcript biotype"""
+                                        html.H2(
+                                            """1. ORF predictions per length, category, and host transcript biotype"""
                                         ),
-                                        html.Br(), # ad hoc
+                                        html.Br(),  # ad hoc
                                         html.Br(),
-                                        dcc.Graph(figure=sunburst_orfs,
-                                                  style={"margin-top": "50px",
-                                                         "margin-bottom": "200px"}),
-                                        html.Label("""Hint: Click on sections to expand. Short ORFs (sORFs), also known
+                                        dcc.Graph(
+                                            figure=sunburst_orfs,
+                                            style={
+                                                "margin-top": "50px",
+                                                "margin-bottom": "200px",
+                                            },
+                                        ),
+                                        html.Label(
+                                            """Hint: Click on sections to expand. Short ORFs (sORFs), also known
                                             as small ORFs (smORFs) are Ribo-seq ORFs < 100 amino acids in size. A transcript
-                                            biotype is shown for the assigned host-transcript. Categories of Ribo-seq ORFs 
+                                            biotype is shown for the assigned host-transcript. Categories of Ribo-seq ORFs
                                             are assigned based on transcript-exon structure. To resolve seemingly incoherent
                                             assignments, look at all compatible transcripts in the ORF predictions table below.""",
-                                            style={"font-style": "italic"}
+                                            style={"font-style": "italic"},
                                         ),
                                     ],
                                     className="box",
@@ -526,12 +637,14 @@ app.layout = html.Div(
                                 ),
                                 html.Div(
                                     [
-                                        html.H2("""2. Distribution of Ribo-seq ORFs along genomic coordinates"""
+                                        html.H2(
+                                            """2. Distribution of Ribo-seq ORFs along genomic coordinates"""
                                         ),
                                         html.Div(
                                             [
-                                                html.Label("Select category",
-                                                        style={"margin": "10px"},
+                                                html.Label(
+                                                    "Select category",
+                                                    style={"margin": "10px"},
                                                 ),
                                                 html.Div(
                                                     [
@@ -539,7 +652,7 @@ app.layout = html.Div(
                                                     ],
                                                     style={
                                                         "width": "25%",
-                                                        "margin-right": "25px"
+                                                        "margin-right": "25px",
                                                     },
                                                 ),
                                             ],
@@ -552,7 +665,9 @@ app.layout = html.Div(
                                             # selectEvent={"0": "hover"},
                                             tracks=[
                                                 {
-                                                    "data": circos_graph_data[f"histogram_{orf_type_default}"],
+                                                    "data": circos_graph_data[
+                                                        f"histogram_{orf_type_default}"
+                                                    ],
                                                     "type": "HISTOGRAM",
                                                     "config": circos_tracks_config,
                                                 }
@@ -569,57 +684,63 @@ app.layout = html.Div(
                         html.Div(
                             [
                                 html.Div(
-                                    [   
-                                        html.H2("""3. ORF predictions (Table)"""
-                                        ),
+                                    [
+                                        html.H2("""3. ORF predictions (Table)"""),
                                         html.Div(
                                             [
-                                                html.Button("Download CSV", id="btn_csv"),
-                                                dcc.Download(id="download-dataframe-csv"),
+                                                html.Button(
+                                                    "Download CSV", id="btn_csv"
+                                                ),
+                                                dcc.Download(
+                                                    id="download-dataframe-csv"
+                                                ),
                                             ]
                                         ),
                                         html.Br(),
                                         # all backend paging/sorting/filtering
                                         dash_table.DataTable(
-                                            id='main_datatable',
+                                            id="main_datatable",
                                             columns=[
-                                                {"name": i, "id": i} for i in DISPLAY_FIELDS
+                                                {"name": i, "id": i}
+                                                for i in DISPLAY_FIELDS
                                             ],
                                             page_current=0,
                                             page_size=PAGE_SIZE,
                                             page_count=page_count,
-                                            page_action='custom',
+                                            page_action="custom",
                                             # sorting
-                                            sort_action='custom',
-                                            sort_mode='multi', # allow multi-column sorting
+                                            sort_action="custom",
+                                            sort_mode="multi",  # allow multi-column sorting
                                             sort_by=[],
                                             # filtering
-                                            filter_action='custom',
-                                            filter_query='',
+                                            filter_action="custom",
+                                            filter_query="",
                                             tooltip_header=tooltip_header,
                                             tooltip_delay=0,
                                             tooltip_duration=None,
                                             style_header={
-                                                'textDecoration': 'underline',
-                                                'textDecorationStyle': 'dotted',
+                                                "textDecoration": "underline",
+                                                "textDecorationStyle": "dotted",
                                             },
                                             style_data_conditional=style_data_conditional,
-                                            #export_format="csv",
+                                            # export_format="csv",
                                         ),
-                                        dcc.Markdown("""**Filtering syntax:** Use *eq (=)*, *le (<=)*, *lt (<)*, *ge (>=)*
-                                            , *gt (>)*, or *contains*, such as `< 100` in the "ORF length" column, or 
-                                            `contains C30F8.2.1` in the "Transcripts" column, or `= uORF` in the "Category" 
+                                        dcc.Markdown(
+                                            """**Filtering syntax:** Use *eq (=)*, *le (<=)*, *lt (<)*, *ge (>=)*
+                                            , *gt (>)*, or *contains*, such as `< 100` in the "ORF length" column, or
+                                            `contains C30F8.2.1` in the "Transcripts" column, or `= uORF` in the "Category"
                                             column, *etc*. The default filtering behavior depends on the data type *e.g.*
                                             `contains 12652389` in "ORF ID" will not work, but `contains 12652389-12654351`
                                             will. Check the little *Aa* box to toggle case sensitivity. Filters and sorting
-                                            can be combined, but do not forget to clear the filters, this is not done 
+                                            can be combined, but do not forget to clear the filters, this is not done
                                             automatically! You can download the full table, or a selection based on filters."""
                                         ),
                                         html.Br(),
-                                        html.Label("""Hint: Hover over ORF IDs to see in which sample/replicates they were found, 
+                                        html.Label(
+                                            """Hint: Hover over ORF IDs to see in which sample/replicates they were found,
                                             with evidence from Bayes factors and P-site counts. All transcripts compatible with
                                             an ORF are listed (Transcripts).""",
-                                            style={"font-style": "italic"}
+                                            style={"font-style": "italic"},
                                         ),
                                     ],
                                 ),
@@ -628,15 +749,14 @@ app.layout = html.Div(
                         ),
                         html.Div(
                             [
-                                html.H2("""4. ORF predictions (IGV genome browser)"""
-                                        ),
+                                html.H2("""4. ORF predictions (IGV genome browser)"""),
                                 dash_bio.Igv(
                                     id=_COMPONENT_ID,
                                     reference=reference,
-                                    locus=config["locus"]
+                                    locus=config["locus"],
                                 ),
                             ],
-                            className="box"
+                            className="box",
                         ),
                         html.Div(
                             [
@@ -700,13 +820,16 @@ app.layout = html.Div(
 
 # ------------------------------------------------------ Callbacks ------------------------------------------------------
 
+
 @app.callback(
-[Output('main_datatable', 'data'),
- Output('main_datatable', 'tooltip_data')],
-[Input('main_datatable', "page_current"),
-Input('main_datatable', "page_size"),
-Input('main_datatable', 'sort_by'),
-Input('main_datatable', 'filter_query')])
+    [Output("main_datatable", "data"), Output("main_datatable", "tooltip_data")],
+    [
+        Input("main_datatable", "page_current"),
+        Input("main_datatable", "page_size"),
+        Input("main_datatable", "sort_by"),
+        Input("main_datatable", "filter_query"),
+    ],
+)
 def update_main_table(page_current, page_size, sort_by, filter_query):
     def refmt(trx):
         trxs = trx.split(",")
@@ -714,17 +837,18 @@ def update_main_table(page_current, page_size, sort_by, filter_query):
 
     df = filter_sort_table(filter_query, sort_by)
 
-    data = df.iloc[
-        page_current*page_size:(page_current+ 1)*page_size
-    ].to_dict('records')
-    
-    tooltip_data=[{
-                'ORF ID': {'value': row['orf_info'], 'type': 'markdown'},
-                'Transcripts': {'value': refmt(row['Transcripts']), 'type': 'markdown'},
-                } for row in data
-            ]
-    
-    
+    data = df.iloc[page_current * page_size : (page_current + 1) * page_size].to_dict(
+        "records"
+    )
+
+    tooltip_data = [
+        {
+            "ORF ID": {"value": row["orf_info"], "type": "markdown"},
+            "Transcripts": {"value": refmt(row["Transcripts"]), "type": "markdown"},
+        }
+        for row in data
+    ]
+
     return data, tooltip_data
 
 
@@ -734,50 +858,49 @@ def update_main_table(page_current, page_size, sort_by, filter_query):
     State("circos_fig", "tracks"),
 )
 def hist_orf_type(value, current):
-    
+
     tracks_config = {
-        "innerRadius": circos_innerRadius, 
+        "innerRadius": circos_innerRadius,
         "outerRadius": circos_outerRadius,
-        "color": row_col[value]
+        "color": row_col[value],
     }
     current[0].update(
-        data=circos_graph_data[f"histogram_{value}"], 
+        data=circos_graph_data[f"histogram_{value}"],
         type="HISTOGRAM",
-        config=tracks_config
+        config=tracks_config,
     )
     return current
 
 
-#@app.callback(
-    #Output("circos_output", "children"),
-    #Input("circos_fig", "eventDatum"),
-#)
-#def update_output(value):
-    #if value is not None:
-        #return [html.Div("{}: {}".format(v.title(), value[v])) for v in value.keys()]
-    #return "Hover over a bar to get more information."
+# @app.callback(
+# Output("circos_output", "children"),
+# Input("circos_fig", "eventDatum"),
+# )
+# def update_output(value):
+# if value is not None:
+# return [html.Div("{}: {}".format(v.title(), value[v])) for v in value.keys()]
+# return "Hover over a bar to get more information."
 
 
 @app.callback(
     Output("download-dataframe-csv", "data"),
-    [Input("btn_csv", "n_clicks"),
-     Input('main_datatable', 'sort_by'),
-     Input('main_datatable', 'filter_query')],
-    #State("main_datatable", "data"),
+    [
+        Input("btn_csv", "n_clicks"),
+        Input("main_datatable", "sort_by"),
+        Input("main_datatable", "filter_query"),
+    ],
+    # State("main_datatable", "data"),
     prevent_initial_call=True,
 )
-def func(n_clicks, sort_by, filter_query): # table_data
+def func(n_clicks, sort_by, filter_query):  # table_data
 
     # df = pd.DataFrame.from_dict(table_data)
-    changed_inputs = [
-        x["prop_id"]
-        for x in ctx.triggered
-    ]
+    changed_inputs = [x["prop_id"] for x in ctx.triggered]
     if "btn_csv.n_clicks" in changed_inputs:
         df = filter_sort_table(filter_query, sort_by)
         df.drop(columns="orf_info", inplace=True)
         return dcc.send_data_frame(df.to_csv(index=False), "selected-orfs.csv")
-     
+
 
 def main():
     app.run(debug=debug, host=host)

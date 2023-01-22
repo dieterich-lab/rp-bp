@@ -263,10 +263,6 @@ def main():
     periodic_models_str = "--periodic-models {}".format(periodic_models_str)
     non_periodic_models_str = "--nonperiodic-models {}".format(non_periodic_models_str)
 
-    stan_threads_str = ""
-    if model_inst_options["stan_threads"]:
-        stan_threads_str = "--use-stan-threads"
-
     periodic_offset_start_str = utils.get_config_argument(
         config,
         "periodic_offset_start",
@@ -295,7 +291,7 @@ def main():
 
     cmd = (
         "estimate-metagene-profile-bayes-factors {} {} --num-cpus {} {} {} "
-        "{} {} {} {} {} {} {} {}".format(
+        "{} {} {} {} {} {} {}".format(
             metagene_profiles,
             metagene_profile_bayes_factors,
             args.num_cpus,
@@ -307,7 +303,6 @@ def main():
             seed_str,
             chains_str,
             iterations_str,
-            stan_threads_str,
             logging_str,
         )
     )
