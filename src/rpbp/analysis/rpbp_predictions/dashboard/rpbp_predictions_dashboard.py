@@ -109,6 +109,8 @@ prj_md_text = (
 # *** load extended configuration, etc.
 filen = Path(path_to_data, sub_folder, f"{project_name}.summarize_options.json")
 config.update(json.load(open(filen, "r")))
+config["orfs"] = config["igv_tracks"]["orfs"]["file"]
+config["annotation"] = config["igv_tracks"]["annotation"]["file"]
 
 is_filtered = config["is_filtered"]
 is_filtered_str = "filtered" if is_filtered else "unfiltered"
@@ -147,7 +149,7 @@ for orf_type, labels in orf_type_labels.items():
         row_col[t] = col_rev[orf_type]
 
 # *** load/wrangle data
-orfs = pd.read_csv(config["orfs"], sep="\t", low_memory=False)  # bed_utils
+orfs = pd.read_csv(config["predicted_orfs"], sep="\t", low_memory=False)  # bed_utils
 orfs.columns = orfs.columns.str.replace("#", "")
 orfs["orf_len"] = orfs["orf_len"] / 3
 orfs["profile_sum"] = orfs[["x_1_sum", "x_2_sum", "x_3_sum"]].sum(axis=1)
@@ -363,27 +365,24 @@ reference = {
     "name": config["genome_name"],
     "fastaURL": "data/fasta",
     "indexURL": "data/fasta/fai",
-    "order": 1000000,
     "tracks": [
         {
-            "name": "Annotations",
-            "url": "data/gtf",
-            # "indexURL": "data/gtf/tbi",
-            "displayMode": "EXPANDED",
-            # "nameField": "gene_name",
-            "height": 150,
-            "color": "rgb(0,0,0)",
-            "type": "annotation",
-            "format": "gtf",
+            "name": "Annotation",
+            "format": config["igv_tracks"]["annotation"]["format"],
+            "url": "data/annotation",
+            "visibilityWindow": -1,
+            "supportsWholeGenome": "false",
+            "removable": "false",
+            "order": 1000000,
         },
         {
-            "name": "ORFs",
-            "url": "data/igv_orfs",
-            "displayMode": "EXPANDED",
-            #'nameField': "gene",
-            "height": 150,
-            "type": "annotation",
-            "format": "bed",
+            "name": "Ribo-seq ORFs",
+            "format": config["igv_tracks"]["orfs"]["format"],
+            "url": "data/orfs",
+            "visibilityWindow": -1,
+            "supportsWholeGenome": "false",
+            "removable": "false",
+            "order": 1000000,
         },
     ],
 }
@@ -752,8 +751,7 @@ app.layout = html.Div(
                                 html.H2("""4. ORF predictions (IGV genome browser)"""),
                                 dash_bio.Igv(
                                     id=_COMPONENT_ID,
-                                    reference=reference,
-                                    locus=config["locus"],
+                                    reference=reference
                                 ),
                             ],
                             className="box",

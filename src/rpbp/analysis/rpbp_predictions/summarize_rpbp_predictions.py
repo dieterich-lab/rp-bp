@@ -222,14 +222,13 @@ def get_circos_graph(orfs, sub_folder, config, args):
         }
         layout.append(record)
     circos_graph_data["genome"] = layout
-    locus = circos_graph_data["genome"][0]["label"]
 
     filen = f"{config['genome_name']}.circos_graph_data.json"
     filen = Path(config["riboseq_data"], sub_folder, filen)
     with open(filen, "w") as f:
         json.dump(circos_graph_data, f)
 
-    return (filen.as_posix(), locus)
+    return filen.as_posix()
 
 
 def add_data(
@@ -776,7 +775,7 @@ def main():
     # Preparing Circos output
     msg = "Preparing Circos data"
     logger.info(msg)
-    circos_filen, locus = get_circos_graph(orfs, sub_folder, config, args)
+    circos_filen = get_circos_graph(orfs, sub_folder, config, args)
 
     # preparing the BED track
     # add ORF colors
@@ -815,9 +814,11 @@ def main():
         "no_replicates": args.no_replicates,
         "circos_bin_width": args.circos_bin_width,
         "circos_graph": circos_filen,
-        "locus": locus,
-        "orfs": orfs_filen,
-        "igv_orfs": igv_filen,
+        "predicted_orfs": orfs_filen,
+        "igv_tracks": {
+            "orfs": {"file": igv_filen, "format": "bed"},
+            "annotation": {"file": transcript_bed, "format": "bed"}
+        },
         "date_time": "{:%Y-%m-%d %H:%M:%S}".format(datetime.datetime.now()),
     }
     filen = Path(sub_folder, f"{project}.summarize_options.json")
