@@ -33,3 +33,10 @@ _templates
 # build
 build/
 dist/
+
+# compiled Stan models
+src/rpbp/models/*
+!src/rpbp/models/**/
+src/rpbp/models/**/*/*
+!src/rpbp/models/**/*.stan
+
