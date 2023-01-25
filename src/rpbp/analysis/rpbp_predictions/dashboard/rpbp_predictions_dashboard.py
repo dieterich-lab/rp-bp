@@ -203,6 +203,11 @@ df = orfs.groupby("id", as_index=False)["in_frame"].agg(
 )
 display_table = display_table.join(df["in_frame"])
 display_table["orf_info"] = display_table.apply(fmt_tooltip, axis=1)
+# ad hoc - if we have the standardized ORFs 
+if "PHASE I ORFs" in orfs.columns:
+    TABLE_FIELDS.extend(["PHASE I ORFs", "SS ORFs"])
+    DISPLAY_FIELDS.extend(["Phase I", "Single-study"])
+    orfs[["PHASE I ORFs", "SS ORFs"]] = orfs[["PHASE I ORFs", "SS ORFs"]].fillna(value="NA")
 display_table = pd.merge(display_table, orfs[TABLE_FIELDS], on="id", how="left")
 display_table = display_table[TABLE_FIELDS + ["orf_info"]]
 display_table.drop_duplicates(inplace=True)
@@ -733,6 +738,11 @@ app.layout = html.Div(
                                             will. Check the little *Aa* box to toggle case sensitivity. Filters and sorting
                                             can be combined, but do not forget to clear the filters, this is not done
                                             automatically! You can download the full table, or a selection based on filters."""
+                                        ),
+                                        dcc.Markdown(
+                                            """**Standardized Ribo-seq ORFs:** If present, additional columns are shown. Search 
+                                            for PHASE I ORFs using *e.g* "c1" for ORFs on chromosome 1, or just "orf". Search 
+                                            for Single-study ORFs using the same syntax, or "norep"."""
                                         ),
                                         html.Br(),
                                         html.Label(
