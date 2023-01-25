@@ -66,7 +66,7 @@ def get_orf_type_counts(condition):
 def filter_sort_table(filter_query, sort_by):
 
     filtering_expressions = filter_query.split(" && ")
-    df = display_table
+    df = display_table.copy()
 
     # first apply filtering
     for filter_part in filtering_expressions:
@@ -367,15 +367,6 @@ reference = {
     "indexURL": "data/fasta/fai",
     "tracks": [
         {
-            "name": "Annotation",
-            "format": config["igv_tracks"]["annotation"]["format"],
-            "url": "data/annotation",
-            "visibilityWindow": -1,
-            "supportsWholeGenome": "false",
-            "removable": "false",
-            "order": 1000000,
-        },
-        {
             "name": "Ribo-seq ORFs",
             "format": config["igv_tracks"]["orfs"]["format"],
             "url": "data/orfs",
@@ -384,6 +375,15 @@ reference = {
             "removable": "false",
             "order": 1000000,
         },
+        {
+            "name": "Annotation",
+            "format": config["igv_tracks"]["annotation"]["format"],
+            "url": "data/annotation",
+            "visibilityWindow": -1,
+            "supportsWholeGenome": "false",
+            "removable": "false",
+            "order": 1000000,
+        }
     ],
 }
 
@@ -897,7 +897,7 @@ def func(n_clicks, sort_by, filter_query):  # table_data
     if "btn_csv.n_clicks" in changed_inputs:
         df = filter_sort_table(filter_query, sort_by)
         df.drop(columns="orf_info", inplace=True)
-        return dcc.send_data_frame(df.to_csv(index=False), "selected-orfs.csv")
+        return dcc.send_data_frame(df.to_csv, "selected-orfs.csv", index=False)
 
 
 def main():
