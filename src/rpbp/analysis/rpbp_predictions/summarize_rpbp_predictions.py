@@ -817,7 +817,7 @@ def main():
         "predicted_orfs": orfs_filen,
         "igv_tracks": {
             "orfs": {"file": igv_filen, "format": "bed"},
-            "annotation": {"file": transcript_bed, "format": "bed"}
+            "annotation": {"file": transcript_bed, "format": "bed"},
         },
         "date_time": "{:%Y-%m-%d %H:%M:%S}".format(datetime.datetime.now()),
     }

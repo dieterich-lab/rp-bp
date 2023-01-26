@@ -1377,7 +1377,9 @@ def all_metagenes(window_upstream, window_downstream, step, plot, selected):
 
 def main():
     if "DISPLAY" in os.environ and os.environ["DISPLAY"]:
-        threading.Timer(1, lambda: webbrowser.open_new(f"http://{host}:{port}/")).start()
+        threading.Timer(
+            1, lambda: webbrowser.open_new(f"http://{host}:{port}/")
+        ).start()
     app.run(debug=debug, host=host, port=port)
 
 

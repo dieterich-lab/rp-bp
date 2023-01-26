@@ -207,11 +207,13 @@ df = orfs.groupby("id", as_index=False)["in_frame"].agg(
 )
 display_table = display_table.join(df["in_frame"])
 display_table["orf_info"] = display_table.apply(fmt_tooltip, axis=1)
-# ad hoc - if we have the standardized ORFs 
+# ad hoc - if we have the standardized ORFs
 if "PHASE I ORFs" in orfs.columns:
     TABLE_FIELDS.extend(["PHASE I ORFs", "SS ORFs"])
     DISPLAY_FIELDS.extend(["Phase I", "Single-study"])
-    orfs[["PHASE I ORFs", "SS ORFs"]] = orfs[["PHASE I ORFs", "SS ORFs"]].fillna(value="NA")
+    orfs[["PHASE I ORFs", "SS ORFs"]] = orfs[["PHASE I ORFs", "SS ORFs"]].fillna(
+        value="NA"
+    )
 display_table = pd.merge(display_table, orfs[TABLE_FIELDS], on="id", how="left")
 display_table = display_table[TABLE_FIELDS + ["orf_info"]]
 display_table.drop_duplicates(inplace=True)
@@ -392,7 +394,7 @@ reference = {
             "supportsWholeGenome": "false",
             "removable": "false",
             "order": 1000000,
-        }
+        },
     ],
 }
 
@@ -744,8 +746,8 @@ app.layout = html.Div(
                                             automatically! You can download the full table, or a selection based on filters."""
                                         ),
                                         dcc.Markdown(
-                                            """**Standardized Ribo-seq ORFs:** If present, additional columns are shown. Search 
-                                            for PHASE I ORFs using *e.g* "c1" for ORFs on chromosome 1, or just "orf". Search 
+                                            """**Standardized Ribo-seq ORFs:** If present, additional columns are shown. Search
+                                            for PHASE I ORFs using *e.g* "c1" for ORFs on chromosome 1, or just "orf". Search
                                             for Single-study ORFs using the same syntax, or "norep"."""
                                         ),
                                         html.Br(),
@@ -763,10 +765,7 @@ app.layout = html.Div(
                         html.Div(
                             [
                                 html.H2("""4. ORF predictions (IGV genome browser)"""),
-                                dash_bio.Igv(
-                                    id=_COMPONENT_ID,
-                                    reference=reference
-                                ),
+                                dash_bio.Igv(id=_COMPONENT_ID, reference=reference),
                             ],
                             className="box",
                         ),
@@ -916,7 +915,9 @@ def func(n_clicks, sort_by, filter_query):  # table_data
 
 def main():
     if "DISPLAY" in os.environ and os.environ["DISPLAY"]:
-        threading.Timer(1, lambda: webbrowser.open_new(f"http://{host}:{port}/")).start()
+        threading.Timer(
+            1, lambda: webbrowser.open_new(f"http://{host}:{port}/")
+        ).start()
     app.run(debug=debug, host=host, port=port)
 
 
