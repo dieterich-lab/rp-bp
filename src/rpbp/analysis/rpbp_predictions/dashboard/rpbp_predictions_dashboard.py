@@ -6,6 +6,8 @@ import json
 import dash
 import dash_bio
 import flask
+import threading
+import webbrowser
 
 from pathlib import Path
 from dash import Dash, html, dcc, Input, Output, State, dash_table, ctx
@@ -33,9 +35,11 @@ def parse_args():
 
     parser.add_argument("--host", type=str, default="localhost", help="Host")
 
+    parser.add_argument("--port", type=int, default=8050, help="Port number")
+
     args = parser.parse_args()
 
-    return args.config, args.debug, args.host
+    return args.config, args.debug, args.host, args.port
 
 
 def fmt_tooltip(row):
@@ -94,7 +98,7 @@ def filter_sort_table(filter_query, sort_by):
 sub_folder = Path("analysis", "rpbp_predictions")
 
 # *** load configuration
-configf, debug, host = parse_args()
+configf, debug, host, port = parse_args()
 config = yaml.load(open(configf), Loader=yaml.FullLoader)
 
 project_name = config.get("project_name", "rpbp")
@@ -911,7 +915,9 @@ def func(n_clicks, sort_by, filter_query):  # table_data
 
 
 def main():
-    app.run(debug=debug, host=host)
+    if "DISPLAY" in os.environ and os.environ["DISPLAY"]:
+        threading.Timer(1, lambda: webbrowser.open_new(f"http://{host}:{port}/")).start()
+    app.run(debug=debug, host=host, port=port)
 
 
 if __name__ == "__main__":
