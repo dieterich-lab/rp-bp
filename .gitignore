@@ -39,4 +39,3 @@ src/rpbp/models/*
 !src/rpbp/models/**/
 src/rpbp/models/**/*/*
 !src/rpbp/models/**/*.stan
-

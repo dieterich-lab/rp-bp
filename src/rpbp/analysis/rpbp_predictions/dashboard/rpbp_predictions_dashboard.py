@@ -6,6 +6,8 @@ import json
 import dash
 import dash_bio
 import flask
+import threading
+import webbrowser
 
 from pathlib import Path
 from dash import Dash, html, dcc, Input, Output, State, dash_table, ctx
@@ -33,9 +35,11 @@ def parse_args():
 
     parser.add_argument("--host", type=str, default="localhost", help="Host")
 
+    parser.add_argument("--port", type=int, default=8050, help="Port number")
+
     args = parser.parse_args()
 
-    return args.config, args.debug, args.host
+    return args.config, args.debug, args.host, args.port
 
 
 def fmt_tooltip(row):
@@ -94,7 +98,7 @@ def filter_sort_table(filter_query, sort_by):
 sub_folder = Path("analysis", "rpbp_predictions")
 
 # *** load configuration
-configf, debug, host = parse_args()
+configf, debug, host, port = parse_args()
 config = yaml.load(open(configf), Loader=yaml.FullLoader)
 
 project_name = config.get("project_name", "rpbp")
@@ -203,11 +207,13 @@ df = orfs.groupby("id", as_index=False)["in_frame"].agg(
 )
 display_table = display_table.join(df["in_frame"])
 display_table["orf_info"] = display_table.apply(fmt_tooltip, axis=1)
-# ad hoc - if we have the standardized ORFs 
+# ad hoc - if we have the standardized ORFs
 if "PHASE I ORFs" in orfs.columns:
     TABLE_FIELDS.extend(["PHASE I ORFs", "SS ORFs"])
     DISPLAY_FIELDS.extend(["Phase I", "Single-study"])
-    orfs[["PHASE I ORFs", "SS ORFs"]] = orfs[["PHASE I ORFs", "SS ORFs"]].fillna(value="NA")
+    orfs[["PHASE I ORFs", "SS ORFs"]] = orfs[["PHASE I ORFs", "SS ORFs"]].fillna(
+        value="NA"
+    )
 display_table = pd.merge(display_table, orfs[TABLE_FIELDS], on="id", how="left")
 display_table = display_table[TABLE_FIELDS + ["orf_info"]]
 display_table.drop_duplicates(inplace=True)
@@ -388,7 +394,7 @@ reference = {
             "supportsWholeGenome": "false",
             "removable": "false",
             "order": 1000000,
-        }
+        },
     ],
 }
 
@@ -740,8 +746,8 @@ app.layout = html.Div(
                                             automatically! You can download the full table, or a selection based on filters."""
                                         ),
                                         dcc.Markdown(
-                                            """**Standardized Ribo-seq ORFs:** If present, additional columns are shown. Search 
-                                            for PHASE I ORFs using *e.g* "c1" for ORFs on chromosome 1, or just "orf". Search 
+                                            """**Standardized Ribo-seq ORFs:** If present, additional columns are shown. Search
+                                            for PHASE I ORFs using *e.g* "c1" for ORFs on chromosome 1, or just "orf". Search
                                             for Single-study ORFs using the same syntax, or "norep"."""
                                         ),
                                         html.Br(),
@@ -759,10 +765,7 @@ app.layout = html.Div(
                         html.Div(
                             [
                                 html.H2("""4. ORF predictions (IGV genome browser)"""),
-                                dash_bio.Igv(
-                                    id=_COMPONENT_ID,
-                                    reference=reference
-                                ),
+                                dash_bio.Igv(id=_COMPONENT_ID, reference=reference),
                             ],
                             className="box",
                         ),
@@ -911,7 +914,11 @@ def func(n_clicks, sort_by, filter_query):  # table_data
 
 
 def main():
-    app.run(debug=debug, host=host)
+    if "DISPLAY" in os.environ and os.environ["DISPLAY"]:
+        threading.Timer(
+            1, lambda: webbrowser.open_new(f"http://{host}:{port}/")
+        ).start()
+    app.run(debug=debug, host=host, port=port)
 
 
 if __name__ == "__main__":

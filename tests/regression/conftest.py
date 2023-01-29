@@ -202,7 +202,7 @@ def get_pipeline(getf_config):
     if sys.platform == "darwin":
         num_cpus = 1  # avoid parallel processing issue on macos: https://github.com/dieterich-lab/rp-bp/issues/140
     else:
-        num_cpus = 6 # multiprocessing.cpu_count() see https://github.com/dieterich-lab/rp-bp/issues/144
+        num_cpus = 6  # multiprocessing.cpu_count() see https://github.com/dieterich-lab/rp-bp/issues/144
     opts = (
         "--merge-replicates --run-replicates --overwrite "
         "--keep-intermediate-files --write-unfiltered"

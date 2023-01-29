@@ -9,6 +9,8 @@ import json
 import ast
 import base64
 import dash
+import threading
+import webbrowser
 
 from pathlib import Path
 from io import BytesIO
@@ -57,9 +59,11 @@ def parse_args():
 
     parser.add_argument("--host", type=str, default="localhost", help="Host")
 
+    parser.add_argument("--port", type=int, default=8050, help="Port number")
+
     args = parser.parse_args()
 
-    return args.config, args.debug, args.host
+    return args.config, args.debug, args.host, args.port
 
 
 def get_diff_counts(data_np):
@@ -387,7 +391,7 @@ def fig_to_uri(in_fig, close_all=True, **save_args):
 sub_folder = Path("analysis", "profile_construction")
 
 # *** load configuration
-configf, debug, host = parse_args()
+configf, debug, host, port = parse_args()
 config = yaml.load(open(configf), Loader=yaml.FullLoader)
 
 project_name = config.get("project_name", "rpbp")
@@ -1372,7 +1376,11 @@ def all_metagenes(window_upstream, window_downstream, step, plot, selected):
 
 
 def main():
-    app.run(debug=debug, host=host)
+    if "DISPLAY" in os.environ and os.environ["DISPLAY"]:
+        threading.Timer(
+            1, lambda: webbrowser.open_new(f"http://{host}:{port}/")
+        ).start()
+    app.run(debug=debug, host=host, port=port)
 
 
 if __name__ == "__main__":
