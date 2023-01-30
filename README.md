@@ -1,27 +1,29 @@
-# **R**ibosome **p**rofiling with **B**ayesian **p**redictions (Rp-Bp)
+# Ribosome profiling with Bayesian predictions (Rp-Bp)
 
-An unsupervised Bayesian approach to predict translated open reading frames (ORFs) from ribosome profiles, using an automatic **B**ayesian **P**eriodic fragment length and ribosome **P**-site offset **S**election (BPPS).
+**Rp-Bp** is an unsupervised Bayesian approach to predict translated open reading frames (ORFs) from ribosome profiles. **Rp-Bp** can be used for ORF discovery, or simply to estimate periodicity in a set of Ribo-seq samples.
+
+**Rp-Bp** comes with two *interactive dashboards* or *web applications*, one for read and periodicity quality control, the other to facilitate Ribo-seq ORFs discovery. 
 
 ![rpbp](docs/images/logo-rpbp-final.png)
 
 ---
 
+Ribosome profiling (Ribo-seq) is an RNA-sequencing-based readout of RNA translation. Isolation and deep-sequencing of ribosome-protected RNA fragments (ribosome footprints) provides a genome-wide snapshot of the translatome at sub-codon resolution. **Rp-Bp** is an unsupervised Bayesian approach to predict translated open reading frames (ORFs) from ribosome profiles, using the automatic Bayesian Periodic fragment length and ribosome P-site offset Selection (BPPS), *i.e.* read lengths and ribosome P-site offsets are inferred from the data, without supervision. **Rp-Bp** is able to handle *de novo* translatome annotation by directly assessing the periodicity of the Ribo-seq signal.
+
+**Rp-Bp** can be used for ORF discovery, or simply to estimate periodicity in a set of Ribo-seq replicates, *e.g.* to know which samples and read lengths are usable for downstream analyses. When used for ORF discovery, **Rp-Bp** automatically classifies ORFs into different biotypes or categories, relative to their host transcript. 
+
 ## Documentation
 
-Read the Docs: [![Documentation Status](https://readthedocs.org/projects/rp-bp/badge/?version=latest)](http://rp-bp.readthedocs.io/en/latest/?badge=latest) or just click [here](http://rp-bp.readthedocs.io/en/latest/) to access the complete documentation.
+Consult the [user guide](http://rp-bp.readthedocs.io/en/latest/) for instructions on how to install the package, or to use Docker/Singularity containers with the package pre-installed. Detailed usage instructions and tutorials are available. 
 
-## Installation
+## How to report issues
 
-This package is written in Python3. It has a number of external dependencies, mostly standard bioinformatics tools. Rp-Bp is not published on PyPI, but the installation is easily managed through `pip3`. The required privileges are determined by the installation location of `pip3`. In particular, if `pip3` does not require sudo access, then none of the installation process requires sudo access; this is the case within a virtual environment, for example. For detailed instructions, including dependencies/prerequisites and step-by-step details of installing within a virtual environment and anaconda. refer to [installation instructrions](http://rp-bp.readthedocs.io/en/latest/installation.html).
+Bugs and issues should be reported in the [bug tracker](https://github.com/dieterich-lab/rp-bp/issues). Follow the instructions and guidelines given in the template.
 
-<a name="get-start-usage"></a>
+## How to cite
 
-## Usage
+Brandon Malone, Ilian Atanassov, Florian Aeschimann, Xinping Li, Helge Großhans, Christoph Dieterich. [Bayesian prediction of RNA translation from ribosome profiling](https://doi.org/10.1093/nar/gkw1350), *Nucleic Acids Research*, Volume 45, Issue 6, 7 April 2017, Pages 2960-2972.
 
-Please see [Running the Rp-Bp pipeline step-by-step](http://rp-bp.readthedocs.io/en/latest/usage-instructions.html) for more detailed usage instructions. We also provide a number of tools to "post-process" and visualise the results, see [QC and downstream analysis of the Rp-Bp results](http://rp-bp.readthedocs.io/en/latest/analysis-scripts.html). To get started, the package also includes a small example using a _C. elegans_ dataset. Please see [Running Rp-Bp on the example dataset](http://rp-bp.readthedocs.io/en/latest/running-example.html) for instructions on running the example.
+## License
 
-<a name="get-start-cite"></a>
-
-## Citation
-
-Malone, B.; Atanassov, I.; Aeschimann, F.; Li, X. & Dieterich, C. Bayesian prediction of RNA translation from ribosome profiling. Nucleic Acids Research, 2017, gkw1350. (Volume and pages have not yet been assigned). The paper is [available at NAR](https://academic.oup.com/nar/article-lookup/doi/10.1093/nar/gkw1350).
+The MIT License (MIT). Copyright (c) 2016 dieterich-lab.
