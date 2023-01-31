@@ -8,7 +8,7 @@ Rp-Bp: Ribosome profiling with Bayesian predictions
 
 .. figure:: images/logo-rpbp-final.png
    :align: center
-   
+
 Introduction
 ------------
 

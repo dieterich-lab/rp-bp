@@ -6,11 +6,11 @@ What is **Rp-Bp**?
 
 **Rp-Bp** is an unsupervised Bayesian approach to predict translated open reading frames (ORFs) from ribosome profiles. **Rp-Bp** can be used for ORF discovery, or simply to estimate periodicity in a set of Ribo-seq samples.
 
-To get started, you need 
+To get started, you need
 
 * Ribo-seq data (FASTQ)
 * genome sequence and annotation for your organism (FASTA, GTF)
-* ribosomal sequence for *in-silico* rRNA removal (FASTA) 
+* ribosomal sequence for *in-silico* rRNA removal (FASTA)
 * protocol-specific or general adapter sequences to be removed (FASTA)
 
 .. _getting_started:
@@ -27,10 +27,10 @@ Install with
     # conda config --add channels bioconda
     # conda config --add channels conda-forge
     # conda config --set channel_priority strict
-    
+
     # create a conda environment called rpbp and install rpbp
     conda create -n rpbp rpbp
-    
+
 or use a container
 
 .. code-block:: bash
@@ -53,15 +53,15 @@ In a nutshell, you need to prepare genome indices and annotations for your organ
 .. code-block:: bash
 
     prepare-rpbp-genome <config> [options]
-    
-    
+
+
 To estimate periodicity on a set of Ribo-seq samples, or to run the ORF discovery pipeline, simply call
 
 
 .. code-block:: bash
 
     run-all-rpbp-instances <config> [options]
-    
+
 
 For step-by-step instructions, and guidelines to prepare the configuration file, refer to `Running the pipeline <usage.html>`_.
 For visualisation and quality control, see `Visualization and quality control <apps.html>`_.
@@ -86,4 +86,3 @@ License
 -------
 
 The MIT License (MIT). Copyright (c) 2016 dieterich-lab.
-

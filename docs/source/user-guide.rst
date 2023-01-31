@@ -4,9 +4,9 @@ User guide
 The **Rp-Bp** pipeline
 ----------------------
 
-You want to "quality control" your Ribo-seq samples for downstrean analyses, or run the Ribo-seq ORF discovery pipeline? First, you need to prepare genome indices and annotations for your organism. This has to be done once for any given reference genome and annotation. 
+You want to "quality control" your Ribo-seq samples for downstrean analyses, or run the Ribo-seq ORF discovery pipeline? First, you need to prepare genome indices and annotations for your organism. This has to be done once for any given reference genome and annotation.
 
-The pipeline itself consists of two "modules": the *ORF profile construction*, where periodic read lengths and ribosome P-site offsets are inferred from the data; and the *translation prediction*, where translation events are predicted. 
+The pipeline itself consists of two "modules": the *ORF profile construction*, where periodic read lengths and ribosome P-site offsets are inferred from the data; and the *translation prediction*, where translation events are predicted.
 
 .. _top:
 .. use with `back to top <#top>`_
@@ -51,7 +51,7 @@ In addition to the above required keys:
 
 
 A configuration file with the above required keys is sufficient to run the pipeline with default parameters. To change the default parameters, see `Default parameters and options`_. A "template" configuration file is available to download with the `tutorial <tutorial.html>`_. See also `More about biological replicates`_, for an example how to use biological replicates.
-    
+
 
 How to prepare genome indices and annotations
 ---------------------------------------------
@@ -94,7 +94,7 @@ The reference annotations (format GTF2), with *exons* and *CDS* features (*start
 .. caution::
 
     The GTF2 format does not include the stop codon in the terminal exon, *i.e.* the stop codon is not included in the CDS. This is important, as **Rp-Bp** treats annotations according to the GTF2 (GTF) specifications.
-    
+
 
 Reference genome sequence
 """""""""""""""""""""""""
@@ -108,7 +108,7 @@ Ribosomal sequence
 A separate FASTA file for the ribosomal DNA (rDNA) sequence/cluster, which is generally not included in the genome assembly. This file can also include other sequences to filter out, depending on the goal of the analysis (*.e.g* snRNAs). We typically include the following
 
 * The large and small ribosomal subunit sequences, *e.g.* from NCBI.
-* The genomic tRNA sequences *e.g.* from `GtRNAdb <http://gtrnadb.ucsc.edu>`_. 
+* The genomic tRNA sequences *e.g.* from `GtRNAdb <http://gtrnadb.ucsc.edu>`_.
 * Mt_rRNA, Mt_tRNA and rRNA genes from BioMart. In particular, we select those options for the "Gene type" filter. For "Attributes", we select "Sequences", and then specifically "Exon sequences". Additionally, including the "Gene type" in the header can be helpful for identifying where reads mapped, for quality control purposes.
 
 
@@ -138,7 +138,7 @@ The base path for the following files is: *<genome_base_path>/transcript-index*
 
 * *<genome_name>.orfs-genomic.annotated[.orf_note].bed.gz*. A BED12+ with the ORFs extracted from all transcripts. The ORFs are numbered, and their length is also reported. The ORF ids are of the form: *transcript_seqname:start-end:strand*. The start codon is included, but the stop codon is not.
 
-* *<genome_name>.orfs-exons.annotated[.orf_note].bed.gz*. A BED6+ file with the ORF exons. The extra columns are *exon_index*, giving the order of the exon in the transcript, and *transcript_start*, giving the start position of that index in transcript coordinates. 
+* *<genome_name>.orfs-exons.annotated[.orf_note].bed.gz*. A BED6+ file with the ORF exons. The extra columns are *exon_index*, giving the order of the exon in the transcript, and *transcript_start*, giving the start position of that index in transcript coordinates.
 
 * *<genome_name>.orfs-labels.annotated[.orf_note].tab.gz*. A TAB-delimited file with ORF categories and all compatible transcripts. See `More about prepare-rpbp-genome`_ to learn about ORF categories or labels.
 
@@ -179,7 +179,7 @@ General usage
     # Run the ORF discovery pipeline for all samples in the configuration file, merge the replicates, and make predictions for merged replicates.
     run-all-rpbp-instances <config> --merge-replicates --run-replicates [--tmp] [--overwrite] [-k/--keep-intermediate-files] [--flexbar-options] [--star-executable] [--star-options] [--write-unfiltered] [logging options] [processing options]
 
-    
+
 Command line options
 """"""""""""""""""""
 
@@ -187,7 +187,7 @@ Command line options
 * ``--tmp`` *(optional)* A temporary directory (STAR).
 * ``--overwrite`` *(optional)* Overwrite existing output. Default: False.
 * ``-k/--keep-intermediate-files`` *(optional)* Keep all intermediate files. Default: False.
-* ``--flexbar-options`` *(optional)* A space-delimited list of options to pass to flexbar. 
+* ``--flexbar-options`` *(optional)* A space-delimited list of options to pass to flexbar.
 * ``--star-executable`` *(optional)* The name of the STAR executable. Default: STAR.
 * ``--star-options`` *(optional)* A space-delimited list of options to pass to STAR (for the mapping step only).
 * ``--write-unfiltered`` *(optional)* In addition to the default filtered predictions, output all ORF predictions. Default: False.
@@ -207,11 +207,11 @@ More about biological replicates
 The **Rp-Bp** pipeline handles replicates by adding the ORF profiles. The Bayes factors and predictions are then calculated based on the combined profiles. The ``--merge-replicates`` flag indicates that the replicates should be merged. By default, if the ``--merge-replicates`` flag is given, then predictions will not be made for the individual samples, unless the ``--run-replicates`` flag is also given, in which case predictions will be made for both the merged replicates as well as the individual samples. This is how you would prepare a configuration file for four samples of two different "conditons":
 
 .. code-block:: yaml
-    
+
     # example of 4 samples: 2 controls and 2 conditions
     # <sample_name> below is replaced by ctrl1, ctrl2, cond1, and cond2
     # <condition_name> below is replaced by ctrl and cond
-    
+
     riboseq_samples:
      ctrl1: /path/to/sample1.fastq.gz
      ctrl2: /path/to/sample2.fastq.gz
@@ -225,7 +225,7 @@ The **Rp-Bp** pipeline handles replicates by adding the ORF profiles. The Bayes 
      cond:
       - cond1
       - cond2
-      
+
     # fancy names to use for downstream analyses
     riboseq_sample_name_map:
      ctrl1: Ctrl-1
@@ -241,13 +241,13 @@ The **Rp-Bp** pipeline handles replicates by adding the ORF profiles. The Bayes 
 ORF profile construction
 ------------------------
 
-To run the periodicity estimation only, pass the ``--profiles-only`` option, as described above. 
+To run the periodicity estimation only, pass the ``--profiles-only`` option, as described above.
 
 
 .. note::
-    
+
     This part of the pipeline uses Flexbar, Bowtie2, and STAR to process and align Ribo-seq reads, however you can estimate periodicity (and predict translation events) using your own existing alignment files (BAM format), see `How to use existing alignment files <existing-alignments.html>`_
-    
+
 
 ----
 
@@ -321,7 +321,7 @@ Output files
 
 The base path for the following files is: *<riboseq_data>/orf-predictions*
 
-* *<sample_name>[.note][-unique].length-<lengths>.offset-<offsets>.bayes-factors.bed.gz* A BED12+ file with model outputs for all ORFs. Additional columns include the ORF number, ORF length, model outputs, Bayes factor mean and variance, and P-site coverage across 3 frames. 
+* *<sample_name>[.note][-unique].length-<lengths>.offset-<offsets>.bayes-factors.bed.gz* A BED12+ file with model outputs for all ORFs. Additional columns include the ORF number, ORF length, model outputs, Bayes factor mean and variance, and P-site coverage across 3 frames.
 * *<sample_name>[.note][-unique].length-<lengths>.offset-<offsets>[.filtered].predicted-orfs.bed.gz* Same format as above, with the predicted translation events. **This file contains the translated Ribo-seq ORFs**.
 * *<sample_name>[.note][-unique].length-<lengths>.offset-<offsets>[.filtered].predicted-orfs.dna.fa* A FASTA file with the predicted translation events. The FASTA header matches the "id" column in the corresponding BED file. **This file contains the DNA sequence for each translated Ribo-seq ORF**.
 * *<sample_name>[.note][-unique].length-<lengths>.offset-<offsets>[.filtered].predicted-orfs.protein.fa* A FASTA file with the predicted translation events. The FASTA header matches the "id" column in the corresponding BED file. **This file contains the protein sequence for each translated Ribo-seq ORF**.
@@ -334,10 +334,10 @@ The base path for the following files is: *<riboseq_data>/orf-predictions*
 .. attention::
 
     Translation events are predicted using Bayesian model selection. Our model does not distinguishes between overlapping ORFs. To select the best overlapping ORF among a group of overlapping ORFs, we first select the longest ORF, then the highest Bayes factor. This is referred to as the *filtered* predictions.
-    
-    In previous versions, both *filtered* and *unfiltered* (including all overlapping ORFs) predictions were written to file. In general, we recommend to use *filtered* predictions. Unless the ``--write-unfiltered`` option is used, **Rp-Bp** now only outputs the *filtered* predictions. If using ``--write-unfiltered``, *unfiltered* predictions are also written to file, without the *[.filtered]* flag. Hence to avoid confusion with older results, the *filtered* predictions have kept the *[.filtered]* flag. 
-    
-                        
+
+    In previous versions, both *filtered* and *unfiltered* (including all overlapping ORFs) predictions were written to file. In general, we recommend to use *filtered* predictions. Unless the ``--write-unfiltered`` option is used, **Rp-Bp** now only outputs the *filtered* predictions. If using ``--write-unfiltered``, *unfiltered* predictions are also written to file, without the *[.filtered]* flag. Hence to avoid confusion with older results, the *filtered* predictions have kept the *[.filtered]* flag.
+
+
 .. note::
 
     If *smoothing parameters* (see `Default parameters and options`_) are given in the configuration file, the following string *.frac-<smoothing_fraction>.rw-<smoothing_reweighting_iterations>* is also added to the file names. Default values (unless they are explicitly given in the configuration file) are not written.
@@ -354,7 +354,7 @@ The parameters and options decribed below are all optional. All parameters and o
 
     **Rp-Bp** parameters can be changed via the configuration file, and options for external programs (Flexbar, STAR) are handled via command line arguments.
     You do not need to include **Rp-Bp** parameters in the configuration file, unless you wish to change their values.
-    
+
 
 Flexbar and STAR options
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -423,7 +423,7 @@ Metagene and periodicity estimation parameters
 .. note::
 
     A profile is periodic if [P(bf > ``min_metagene_bf_mean``)] > ``min_metagene_bf_likelihood``. By default, we do not filter on the variance. If given, then both filters are applied and the result is the intersection.
-    
+
 
 Fixed lengths and offsets
 """""""""""""""""""""""""
@@ -431,7 +431,7 @@ Fixed lengths and offsets
 * ``use_fixed_lengths`` If this variable is present in the config file with any value (even something like "no" or "null" or "false"), fixed values given by ``lengths`` and ``offsets`` are used (no periodicity estimation).
 * ``lengths`` A list of read lengths to use for creating the profiles if the ``use_fixed_lengths`` option is given. Presumably, these are lengths that have periodic metagene profiles.
 * ``offsets``  The P-site offset to use for each read length specifed by ``lengths`` if the ``use_fixed_lengths`` option is given. The number of offsets must match the number of lengths, and they are assumed to match. For example ``lengths``:  [26, 29] with ``offsets``: [9, 12] means only reads of lengths 26 bp and 29 bp are used to create the profiles. The 26 bp reads will be shifted by 9 bp in the 5' direction, while reads of length 29 bp will be shifted by 12 bp.
-    
+
 
 Smoothing parameters
 """"""""""""""""""""
@@ -439,7 +439,7 @@ Smoothing parameters
 * ``smoothing_fraction`` The fraction of the data used when estimating each y-value for LOWESS. Default: 0.2.
 * ``smoothing_reweighting_iterations`` The number of residual-based reweightings to perform for LOWESS. See the `statsmodels documentation <https://www.statsmodels.org>`_. Default: 0.
 
-    
+
 Translation prediction parameters
 """""""""""""""""""""""""""""""""
 
@@ -458,12 +458,12 @@ Translation prediction parameters
 .. note::
 
     A Ribo-seq ORF is translated if [P(bf > ``min_bf_mean``)] > ``min_bf_likelihood``. By default, we do not filter on the variance. If given, then both filters are applied and the result is the intersection.
-    
+
 
 .. attention::
 
     Chi-square values are reported, but they are not used for prediction, unless the ``chi_square_only`` flag is present in the configuration file, in which case the translation models are not fit to the data, and the posterior distributions are not estimated. This is mostly kept for historical reasons, and may eventually be removed.
-    
+
 .. _logging:
 
 Logging and parallel processing options
@@ -486,14 +486,14 @@ Logging and parallel processing options
 * ``--stderr-logging-level`` Logging level for stderr. This option overrides `--logging-level`. Default: NOTSET
 
 
-Most scripts accept the following options: 
+Most scripts accept the following options:
 
 
 * ``--num-cpus`` The number of CPUs to use. The definition of a "CPU" varies somewhat among the programs. For example, for STAR, these are actually threads. For many of the python scripts, this number is translated into the number of processes to spawn. None of the code parallelizes across machines, so the value should not be greater than the number of cores on the machine on which the programs are executed. When used with SLURM, this will be translated into an sbatch request like: ``--ntasks 1 --cpus-per-task <num-cpus>``. Default: 1
 
 * ``--mem`` For STAR genome indexing, the amount of RAM to request. The rest of the programs do not use this value. When used with SLURM, this will be translated into an sbatch request like: ``--mem=<mem>``. Default: 2G
 
-* ``--do-not-call`` If this flag is present, then the program will not be executed (dry run). 
+* ``--do-not-call`` If this flag is present, then the program will not be executed (dry run).
 
 
 To use **Rp-Bp** with the `SLURM <http://slurm.schedmd.com>`_ scheduler, the following options are allowed:
@@ -528,10 +528,9 @@ Create indices by submitting the script to SLURM as a single job using logging l
     prepare-rpbp-genome config.yaml --use-slurm --num-cpus 10 --mem 100G --logging-level INFO
 
 
-Run the pipeline by submitting each sample as a separate job to SLURM. Each submitted job will request 4 cpus and 50 of RAM: 
+Run the pipeline by submitting each sample as a separate job to SLURM. Each submitted job will request 4 cpus and 50 of RAM:
 
 
 .. code-block:: bash
 
     run-all-rpbp-instances config.yaml --use-slurm --num-cpus 4 --mem 50G --merge-replicates --logging-level INFO
-
