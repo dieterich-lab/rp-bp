@@ -31,3 +31,4 @@ Conceptually, actively translated ORFs are predicted based on ribosome density. 
    rpbp-genome
    existing-alignments
    tutorial
+   api

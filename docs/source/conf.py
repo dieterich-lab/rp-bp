@@ -15,7 +15,9 @@ release = "3.0.0"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 # extensions = ['sphinx.ext.autosectionlabel']
-extensions = []
+extensions = ["sphinx.ext.autodoc",
+              "sphinx.ext.autosummary",
+              "sphinxarg.ext"]
 
 templates_path = ["_templates"]
 exclude_patterns = []
