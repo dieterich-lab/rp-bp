@@ -15,7 +15,7 @@ To use a container (Docker or Singularity) with **Rp-Bp** pre-installed, simply 
 
 There is no *latest* tag, you need to specify the version tag. See `rpbp/tags <https://quay.io/repository/biocontainers/rpbp?tab=tags>`_ for valid values for <tag>.
 
-    
+
 .. _conda_install:
 
 Conda installation
@@ -24,7 +24,7 @@ Conda installation
 If required, set up the conda channels as described `here <https://bioconda.github.io/#usage>`_, and install with
 
 .. code-block:: bash
-    
+
     # preferably install in some conda environment...
     conda install rpbp
 
@@ -39,11 +39,11 @@ or create an environment, called *rpbp*, containing the **Rp-Bp** package
 Contributing to **Rp-Bp**
 -------------------------
 
-To install the local VCS project in development mode 
+To install the local VCS project in development mode
 
 .. code-block:: bash
-    
-    # create a conda environment... 
+
+    # create a conda environment...
     conda create -n rpbp_dev
     # ...activate it...
     conda activate rpbp_dev
@@ -51,15 +51,15 @@ To install the local VCS project in development mode
     (rpbp_dev) conda install --only-deps rpbp
     # clone the git repository
     (rpbp_dev) git clone https://github.com/dieterich-lab/rp-bp.git && cd rp-bp
-    # install 
+    # install
     (rpbp_dev) pip --verbose install --no-deps -e . 2>&1 | tee install.log
-        
+
 
 PyPI installation
 ^^^^^^^^^^^^^^^^^
 
 We do not recommend to install **Rp-Bp** directly from `PyPI <https://pypi.org/project/rpbp>`_.
-However, if you already have the required dependencies installed on your system, to install 
+However, if you already have the required dependencies installed on your system, to install
 
 .. code-block:: bash
 
@@ -93,15 +93,15 @@ Remove the conda environment
 .. code-block:: bash
 
     conda env remove --name rpbp
-    
+
 or remove the package installed in another environment
 
 .. code-block:: bash
-    
+
     # remove the rpbp package from myenv environment...
     (myenv) conda remove -n myenv rpbp
 
-    
+
 To remove **Rp-Bp** if installed with pip
 
 .. code-block:: bash
