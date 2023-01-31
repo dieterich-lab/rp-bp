@@ -98,4 +98,3 @@ To navigate the apps is easy, just follow the "hints". Most items are interactiv
 .. note::
 
     Any of the above command will open a browser page with the web application running locally. You can also specify a ``--host`` and a ``--port``, *e.g.* if launching the app from a remote server. In the latter case, you have to open a browser page at the correct address. For example, you use ``--host 123.123.123.123``, then open a page on *http://123.123.123.123:8050/*.
-
