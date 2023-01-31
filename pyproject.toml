@@ -95,7 +95,8 @@ docs = [
   "nbsphinx",
   "pandoc",
   "sphinx>=4.5.0",
-  "sphinx_rtd_theme>=1.0.0"
+  "sphinx_rtd_theme>=1.0.0",
+  "furo",
 ]
 
 [tool.setuptools.dynamic]
