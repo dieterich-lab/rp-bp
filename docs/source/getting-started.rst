@@ -40,7 +40,7 @@ or use a container
     # ...singularity
     singularity pull rpbp.sif docker://quay.io/biocontainers/rpbp:<tag>
 
-There is no *latest* tag, you need to specify the version tag. See `rpbp/tags <https://quay.io/repository/biocontainers/rpbp?tab=tags>`_ for valid values for <tag>.
+There is no *latest* tag, you need to specify the version tag. See `rpbp/tags <https://quay.io/repository/biocontainers/rpbp?tab=tags>`_ for valid values for ``<tag>``.
 
 For detailed installation instructions, refer to `Installation <installation.html>`_.
 
@@ -57,23 +57,41 @@ In a nutshell, you need to prepare genome indices and annotations for your organ
 
 To estimate periodicity on a set of Ribo-seq samples, or to run the ORF discovery pipeline, simply call
 
-
 .. code-block:: bash
 
     run-all-rpbp-instances <config> [options]
 
+To get started, the package also includes a small example using a *C. elegans* dataset. Check the `Tutorials <tutorial.html>`_.
 
-For step-by-step instructions, and guidelines to prepare the configuration file, refer to `Running the pipeline <usage.html>`_.
+For more information and guidelines on how to prepare the configuration file, refer to the `User guide <user-guide.html>`_.
 For visualisation and quality control, see `Visualization and quality control <apps.html>`_.
-
-To get started, the package also includes a small example using a *C. elegans* dataset.
-To run **Rp-Bp** using the example, refer to `Tutorial <tutorial.html>`_.
 
 
 How to report issues
 --------------------
 
 Bugs and issues should be reported in the `bug tracker <https://github.com/dieterich-lab/rp-bp/issues>`_. Follow the instructions and guidelines given in the template.
+
+
+How to contribute
+-----------------
+
+Contributions are welcome! New code should follow `Black <https://black.readthedocs.io/en/stable/>`_ and `flake8 <https://flake8.pycqa.org/en/latest/>`_. A typical development workflow would include *(i)* forking the repository, *(ii)* creating a new branch for your PR, *(iii)* adding features or bug fixes, *(iv)* making sure all tests are passing, *(v)* building the documentation if necessary, and *(vi)* opening a PR back to the main repository.
+
+Running the tests
+^^^^^^^^^^^^^^^^^
+
+We use pytest to test **Rp-Bp**. Currently, only regression tests are implemented. Dependencies can be installed with ``pip install -e .[tests]``.
+
+Building the docs
+^^^^^^^^^^^^^^^^^
+
+Dependencies for building the documentation can be installed with ``pip install -e .[docs]``.
+
+Semantic versioning
+^^^^^^^^^^^^^^^^^^^
+
+We try to follow `semantic versioning <https://semver.org/>`_.
 
 
 How to cite

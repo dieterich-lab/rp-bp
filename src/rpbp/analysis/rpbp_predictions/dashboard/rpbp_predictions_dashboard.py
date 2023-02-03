@@ -22,21 +22,23 @@ from rpbp.defaults import orf_type_colors, orf_type_labels, orf_type_name_map
 # ------------------------------------------------------ Functions ------------------------------------------------------
 
 
-def parse_args():
+def get_parser():
     parser = argparse.ArgumentParser(
-        description="""Launch a Dash app to
-                        visualize ORF predictions from Rp-Bp."""
+        description="Launch a Dash app to visualize "
+        "Ribo-seq ORF predicted with Rp-Bp."
     )
 
     parser.add_argument(
-        "config", type=str, help="Configuration (yaml) file used by Rp-Bp."
+        "config",
+        type=str,
+        help="A YAML configuration file." "The same used to run the pipeline.",
     )
 
-    parser.add_argument("--debug", "-d", action="store_true", help="Enable debug mode")
+    parser.add_argument("--debug", "-d", action="store_true", help="Enable debug mode.")
 
-    parser.add_argument("--host", type=str, default="localhost", help="Host")
+    parser.add_argument("--host", type=str, default="localhost", help="Host.")
 
-    parser.add_argument("--port", type=int, default=8050, help="Port number")
+    parser.add_argument("--port", type=int, default=8050, help="Port number.")
 
     args = parser.parse_args()
 
@@ -99,7 +101,7 @@ def filter_sort_table(filter_query, sort_by):
 sub_folder = Path("analysis", "rpbp_predictions")
 
 # *** load configuration
-configf, debug, host, port = parse_args()
+configf, debug, host, port = get_parser()
 config = yaml.load(open(configf), Loader=yaml.FullLoader)
 
 project_name = config.get("project_name", "rpbp")

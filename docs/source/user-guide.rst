@@ -1,3 +1,5 @@
+.. _user_guide:
+
 User guide
 ==========
 
@@ -50,7 +52,7 @@ In addition to the above required keys:
 * ``note`` *(optional, output)* An additional description used in the filenames. It should not contain spaces or special characters.
 
 
-A configuration file with the above required keys is sufficient to run the pipeline with default parameters. To change the default parameters, see `Default parameters and options`_. A "template" configuration file is available to download with the `tutorial <tutorial.html>`_. See also `More about biological replicates`_, for an example how to use biological replicates.
+A configuration file with the above required keys is sufficient to run the pipeline with default parameters. To change the default parameters, see `Default parameters and options`_. A "template" configuration file is available to download with the `Tutorials <tutorial.html>`_. See also `More about biological replicates`_, for an example of how to use biological replicates.
 
 
 How to prepare genome indices and annotations
@@ -69,17 +71,9 @@ General usage
 
 .. code-block:: bash
 
-    prepare-rpbp-genome <config> [--overwrite] [logging options] [processing options]
+    prepare-rpbp-genome <config> [options]
 
-
-Command line options
-""""""""""""""""""""
-
-* ``config`` *(required)* A YAML configuration file, see `How to prepare the configuration file`_.
-* ``--overwrite`` *(optional)* Overwrite existing output. Default: False.
-* ``logging options`` *(optional)* See `Logging and parallel processing options`_.
-* ``processing options`` *(optional)* See `Logging and parallel processing options`_.
-
+**Rp-Bp** can be run with the `SLURM <http://slurm.schedmd.com>`_ scheduler. For all options, consult the `API <api.html>`_. See also `How to prepare the configuration file`_.
 
 ----
 
@@ -171,33 +165,21 @@ General usage
 .. code-block:: bash
 
     # Only create the ORF profiles (estimate periodicity).
-    run-all-rpbp-instances <config> --profiles-only [--tmp] [--overwrite] [-k/--keep-intermediate-files] [--flexbar-options] [--star-executable] [--star-options] [logging options] [processing options]
+    run-all-rpbp-instances <config> --profiles-only [options]
 
     # Run the ORF discovery pipeline for all samples in the configuration file (only samples, i.e. do not merge the replicates).
-    run-all-rpbp-instances <config> [--tmp] [--overwrite] [-k/--keep-intermediate-files] [--flexbar-options] [--star-executable] [--star-options] [--write-unfiltered] [logging options] [processing options]
+    run-all-rpbp-instances <config> [options]
 
     # Run the ORF discovery pipeline for all samples in the configuration file, merge the replicates, and make predictions for merged replicates.
-    run-all-rpbp-instances <config> --merge-replicates --run-replicates [--tmp] [--overwrite] [-k/--keep-intermediate-files] [--flexbar-options] [--star-executable] [--star-options] [--write-unfiltered] [logging options] [processing options]
+    run-all-rpbp-instances <config> --merge-replicates --run-replicates [options]
 
 
-Command line options
-""""""""""""""""""""
-
-* ``config`` *(required)* A YAML configuration file, see `How to prepare the configuration file`_.
-* ``--tmp`` *(optional)* A temporary directory (STAR).
-* ``--overwrite`` *(optional)* Overwrite existing output. Default: False.
-* ``-k/--keep-intermediate-files`` *(optional)* Keep all intermediate files. Default: False.
-* ``--flexbar-options`` *(optional)* A space-delimited list of options to pass to flexbar.
-* ``--star-executable`` *(optional)* The name of the STAR executable. Default: STAR.
-* ``--star-options`` *(optional)* A space-delimited list of options to pass to STAR (for the mapping step only).
-* ``--write-unfiltered`` *(optional)* In addition to the default filtered predictions, output all ORF predictions. Default: False.
-* ``logging options`` *(optional)* See `Logging and parallel processing options`_.
-* ``processing options`` *(optional)* See `Logging and parallel processing options`_.
+**Rp-Bp** can be run with the `SLURM <http://slurm.schedmd.com>`_ scheduler. For all options, consult the `API <api.html>`_. See also `How to prepare the configuration file`_.
 
 
 .. tip::
 
-    To be able to perform read filtering quality control, use ``-k/--keep-intermediate-files``. Intermediate files *e.g.* Flexbar, or Bowtie2 output can be deleted afterwards, see :ref:`apps`.
+    To be able to perform read filtering quality control, use the ``-k/--keep-intermediate-files`` option. Intermediate files *e.g.* Flexbar, or Bowtie2 output can be deleted afterwards, see :ref:`apps`.
 
 ----
 
@@ -241,7 +223,7 @@ The **Rp-Bp** pipeline handles replicates by adding the ORF profiles. The Bayes 
 ORF profile construction
 ------------------------
 
-To run the periodicity estimation only, pass the ``--profiles-only`` option, as described above.
+To run the periodicity estimation only, pass the ``--profiles-only`` option.
 
 
 .. note::
@@ -463,74 +445,3 @@ Translation prediction parameters
 .. attention::
 
     Chi-square values are reported, but they are not used for prediction, unless the ``chi_square_only`` flag is present in the configuration file, in which case the translation models are not fit to the data, and the posterior distributions are not estimated. This is mostly kept for historical reasons, and may eventually be removed.
-
-.. _logging:
-
-Logging and parallel processing options
----------------------------------------
-
-* ``--log-file`` Log file (logging will be redirected to this file, in addition to stdout and stderr, if specified). Default: None
-
-* ``--log-stdout`` Log to stdout (in addition to a file and stderr, if specified). Default: False
-
-* ``--no-log-stderr`` By default, logging is redirected to stderr (in addition to a file and stdout, if specified). If this flag is present, then no logging will be written to stderr. Default: False
-
-* ``--enable-ext-logging`` Enable logging for external programs that may be disabled by default, *e.g.* CmdStanPy.
-
-* ``--logging-level`` Logging level for all logs. default: WARNING
-
-* ``--file-logging-level`` Logging level for the log file. This option overrides ``--logging-level``. Default: NOTSET
-
-* ``--stdout-logging-level`` Logging level for stdout. This option overrides ``--logging-level``. Default: NOTSET
-
-* ``--stderr-logging-level`` Logging level for stderr. This option overrides `--logging-level`. Default: NOTSET
-
-
-Most scripts accept the following options:
-
-
-* ``--num-cpus`` The number of CPUs to use. The definition of a "CPU" varies somewhat among the programs. For example, for STAR, these are actually threads. For many of the python scripts, this number is translated into the number of processes to spawn. None of the code parallelizes across machines, so the value should not be greater than the number of cores on the machine on which the programs are executed. When used with SLURM, this will be translated into an sbatch request like: ``--ntasks 1 --cpus-per-task <num-cpus>``. Default: 1
-
-* ``--mem`` For STAR genome indexing, the amount of RAM to request. The rest of the programs do not use this value. When used with SLURM, this will be translated into an sbatch request like: ``--mem=<mem>``. Default: 2G
-
-* ``--do-not-call`` If this flag is present, then the program will not be executed (dry run).
-
-
-To use **Rp-Bp** with the `SLURM <http://slurm.schedmd.com>`_ scheduler, the following options are allowed:
-
-
-* ``--use-slurm`` Submit to SLURM via sbatch. Default: False
-
-* ``--time`` The amount of time to request. This will be translated into an sbatch request like: ``--time <time>``. Default: None
-
-* ``--partitions`` The partitions to request. This will be translated into an sbatch request like: ``-p <partitions>``. Default: None
-
-* ``--no-output`` Redirect stdout to /dev/null. This will be translated into an sbatch request like: ``--output=/dev/null``. Default: False (stdout is redirected to a log file with the job number ``--output=slurm-%J.out``)
-
-* ``--no-error`` Redirect stderr to /dev/null. This will be translated into an sbatch request like: ``--output=/dev/null``. Default: False (stderr is redirected to a log file with the job number ``--output=slurm-%J.err``)
-
-* ``--stdout-file`` Log file (stdout). This corresponds to ``--output=stdout-file`` in the sbatch call. Default: ``slurm-%J.out``
-
-* ``--stderr-file`` Log file (stderr). This corresponds to ``--error=stderr-file`` in the sbatch call. Default: ``slurm-%J.err``
-
-* ``--mail-user`` To whom an email will be sent, in accordance with mail-type. Default: None
-
-* ``--mail-type`` When to send an email notification of the job status. See official documentation for a description of the values. If a mail-user is not specified, this will revert to 'None'. Defaut: ``FAIL``, ``TIME_LIMIT``
-
-
-Usage (example calls)
-^^^^^^^^^^^^^^^^^^^^^
-
-Create indices by submitting the script to SLURM as a single job using logging level ``INFO`` (more verbose). That job will request 10 CPUs and 100G of RAM:
-
-.. code-block:: bash
-
-    prepare-rpbp-genome config.yaml --use-slurm --num-cpus 10 --mem 100G --logging-level INFO
-
-
-Run the pipeline by submitting each sample as a separate job to SLURM. Each submitted job will request 4 cpus and 50 of RAM:
-
-
-.. code-block:: bash
-
-    run-all-rpbp-instances config.yaml --use-slurm --num-cpus 4 --mem 50G --merge-replicates --logging-level INFO

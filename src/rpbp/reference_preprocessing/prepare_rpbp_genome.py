@@ -168,26 +168,31 @@ def get_orfs(gtf, args, config, is_annotated=False, is_de_novo=False):
     )
 
 
-def main():
+def get_parser():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description="""Prepare a reference genome and matching
-        annotations, including labelled ORFs, for use with the Rp-Bp periodicity estimation
-        and ORF translation prediction pipeline.""",
+        description="Prepare genome indices and annotations "
+        "to use with the Rp-Bp profile construction/periodicity estimation "
+        "and ORF discovery pipeline.",
     )
 
-    parser.add_argument("config", help="""The (yaml) configuration file""")
+    parser.add_argument("config", help="A YAML configuration file.")
 
     parser.add_argument(
         "--overwrite",
-        help="""If this flag is present, existing files
-        will be overwritten.""",
+        help="Overwrite existing output.",
         action="store_true",
     )
 
+    pgrm_utils.add_star_options(parser, star_executable)
     slurm.add_sbatch_options(parser, num_cpus=default_num_cpus, mem=default_mem)
     logging_utils.add_logging_options(parser)
-    pgrm_utils.add_star_options(parser, star_executable)
+
+    return parser
+
+
+def main():
+    parser = get_parser()
     args = parser.parse_args()
     logging_utils.update_logging(args)
 

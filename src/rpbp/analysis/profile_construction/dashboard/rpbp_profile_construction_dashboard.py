@@ -44,22 +44,24 @@ sns.set(rc={"axes.facecolor": "#F9F9F8", "figure.facecolor": "#F9F9F8"})
 # ------------------------------------------------------ Functions ------------------------------------------------------
 
 
-def parse_args():
+def get_parser():
     parser = argparse.ArgumentParser(
-        description="""Launch a Dash app for quality
-                                     control and visualization of ribosome profiling
-                                     data processed with Rp-Bp."""
+        description="Launch a Dash app for quality "
+        "control and visualization of ribosome profiling "
+        "data processed with Rp-Bp."
     )
 
     parser.add_argument(
-        "config", type=str, help="Configuration (yaml) file used by Rp-Bp."
+        "config",
+        type=str,
+        help="A YAML configuration file." "The same used to run the pipeline.",
     )
 
-    parser.add_argument("--debug", "-d", action="store_true", help="Enable debug mode")
+    parser.add_argument("--debug", "-d", action="store_true", help="Enable debug mode.")
 
-    parser.add_argument("--host", type=str, default="localhost", help="Host")
+    parser.add_argument("--host", type=str, default="localhost", help="Host.")
 
-    parser.add_argument("--port", type=int, default=8050, help="Port number")
+    parser.add_argument("--port", type=int, default=8050, help="Port number.")
 
     args = parser.parse_args()
 
@@ -391,7 +393,7 @@ def fig_to_uri(in_fig, close_all=True, **save_args):
 sub_folder = Path("analysis", "profile_construction")
 
 # *** load configuration
-configf, debug, host, port = parse_args()
+configf, debug, host, port = get_parser()
 config = yaml.load(open(configf), Loader=yaml.FullLoader)
 
 project_name = config.get("project_name", "rpbp")

@@ -318,47 +318,53 @@ def create_fastqc_reports(sample_data, config, note, is_unique, args):
         logger.warning(msg)
 
 
-def main():
+def get_parser():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description="""This script summarizes the ORF profile creation step of
-        the Rp-Bp pipeline (read filtering, periodicity estimations, etc.).""",
+        description="Summarize the ORF profile creation step "
+        "and prepare data for the web application.",
     )
 
-    parser.add_argument("config", help="The (yaml) config file for the project.")
+    parser.add_argument(
+        "config",
+        help="A YAML configuration file. " "The same used to run the pipeline.",
+    )
 
     # TODO MultiQC
     parser.add_argument(
         "-c",
         "--create-fastqc-reports",
-        help="""If this flag
-                        is given, then fastqc reports will be created""",
+        help="Create FastQC reports.",
         action="store_true",
     )
 
     parser.add_argument(
         "--overwrite",
-        help="""If this flag is present,
-                        existing files will be overwritten.""",
+        help="Overwrite existing output",
         action="store_true",
     )
 
     parser.add_argument(
         "--tmp",
-        help="""If the fastqc reports are created,
-                        they will use this location for temporary files""",
+        help="A temporary directory (FastQC).",
         default=None,
     )
 
     parser.add_argument(
         "-p",
         "--num-cpus",
-        help="The number of processors to use",
+        help="The number of CPUs to use.",
         type=int,
         default=default_num_cpus,
     )
 
     logging_utils.add_logging_options(parser)
+
+    return parser
+
+
+def main():
+    parser = get_parser()
     args = parser.parse_args()
     logging_utils.update_logging(args)
 

@@ -17,18 +17,10 @@ To prepare the input for the *profile construction dashboard*
 
 .. code-block:: bash
 
-    summarize-rpbp-profile-construction <config> [-c/--create-fastqc-reports] [--tmp] [--overwrite] [-p/--num-cpus] [logging options]
+    summarize-rpbp-profile-construction <config> [options]
 
 
-Command line options
-""""""""""""""""""""
-
-* ``config`` *(required)* The same YAML configuration file as the one used to run the pipeline.
-* ``-c/--create-fastqc-reports`` *(optional)* If this flag is given, then `FastQC <https://www.bioinformatics.babraham.ac.uk/projects/fastqc/>`_ reports will be created. Default: False.
-* ``--tmp`` *(optional)* If the FastQC reports are created, use this location for temporary files.
-* ``--overwrite`` *(optional)* Overwrite existing output. Default: False.
-* ``logging options`` *(optional)* See :ref:`logging`.
-
+With the ``-c/--create-fastqc-reports`` flag, `FastQC <https://www.bioinformatics.babraham.ac.uk/projects/fastqc/>`_ reports are be created. For all options, consult the `API <api.html>`_.
 
 ----
 
@@ -60,15 +52,10 @@ To prepare the input for the *predictions dashboard*
 
 .. code-block:: bash
 
-    summarize-rpbp-predictions <config> [--min-samples] [-k/--keep-other] [--no-replicates] [--use-unfiltered] [--use-name-maps] [--match-standardized-orfs] [--circos-bin-width] [--circos-show-chroms] [--show-orf-periodicity] [--image-type] [--overwrite] [logging options]
+    summarize-rpbp-predictions <config> [options]
 
 
-
-Command line options
-""""""""""""""""""""
-
-* ``config`` *(required)* The same YAML configuration file as the one used to run the pipeline.
-
+For all options, consult the `API <api.html>`_.
 
 ----
 
@@ -100,7 +87,7 @@ To launch the *profile construction dashboard*
 
 .. code-block:: bash
 
-    rpbp-profile-construction-dashboard <config> [-d/--debug]
+    rpbp-profile-construction-dashboard <config>
 
 
 
@@ -108,8 +95,10 @@ To launch the *predictions dashboard*
 
 .. code-block:: bash
 
-    rpbp-predictions-dashboard <config> [-d/--debug]
+    rpbp-predictions-dashboard <config>
 
+
+For all options, consult the `API <api.html>`_.
 
 .. note::
 

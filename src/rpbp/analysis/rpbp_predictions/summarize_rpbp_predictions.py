@@ -423,23 +423,26 @@ def create_all_figures(config, sample_name_map, condition_name_map, args):
     )
 
 
-def main():
+def get_parser():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description="""This script summarizes the ORF prediction step of
-                        the Rp-Bp pipeline.""",
+        description="Summarizes the ORF prediction step "
+        "and prepare data for the web application.",
     )
 
-    parser.add_argument("config", help="The (yaml) config file")
+    parser.add_argument(
+        "config",
+        help="A YAML configuration file. " "The same used to run the pipeline.",
+    )
 
     # post-hoc filters - other filters such as ORF min length, etc. must be
     # set in the config before running the pipeline
     parser.add_argument(
         "--min-samples",
-        help="""An ORF is filtered out
-                        if not predicted in at least [--min-samples] number of
-                        samples. By default all ORFs are kept. This is ignored
-                        if merged replicates are included in the output.""",
+        help="An ORF is filtered out if not predicted in at "
+        "least [--min-samples] number of samples. By default "
+        "all ORFs are kept. This is ignored if merged replicates "
+        "are included in the output.",
         type=int,
         default=1,
     )
@@ -447,69 +450,62 @@ def main():
     parser.add_argument(
         "-k",
         "--keep-other",
-        help="""If this flag is present
-                        then ORFs labeled as "other" will be included.
-                        They are discarded by default.""",
+        help="Include ORFs labeled as 'other', if present. "
+        "They are discarded by default.",
         action="store_true",
     )
 
     parser.add_argument(
         "--no-replicates",
-        help="""If Rp-Bp was
-                        run with [--merge-replicates], predictions from merged
-                        replicates are included by default, unless this flag
-                        is present.""",
+        help="If Rp-Bp was run with [--merge-replicates], "
+        "predictions from merged replicates are included by "
+        "default, unless this flag is present.",
         required="--min-samples" in sys.argv,
         action="store_true",
     )
 
     parser.add_argument(
         "--use-unfiltered",
-        help="""If this flag
-                        is present, the "unfiltered" ORF predictions are
-                        used. Unless Rp-Bp was run with [--write-unfiltered],
-                        these will not be available. By default,
-                        "filtered" are used.""",
+        help="Use the 'unfiltered' ORF predictions. "
+        "Unless Rp-Bp was run with [--write-unfiltered], "
+        "these will not be available. By default, the "
+        "'filtered' predictions are used.",
         action="store_true",
     )
 
     # display
     parser.add_argument(
         "--use-name-maps",
-        help="""If this flag
-                        is present, the "riboseq_sample_name_map" and
-                        "riboseq_condition_name_map" will be used. Do
-                        not use when preparing results for the dashboard,
-                        mapping is done in the app.""",
+        help="Use 'riboseq_sample_name_map' and 'riboseq_condition_name_map' "
+        "from the config. Do not use this flag when preparing results for "
+        "the dashboard, mapping is done in the app.",
         action="store_true",
     )
 
     # extra
     parser.add_argument(
         "--match-standardized-orfs",
-        help="""Add matching ORF
-                        names from https://doi.org/10.1038/s41587-022-01369-0.
-                        Human data.""",
+        help="Add matching ORF names from "
+        "https://doi.org/10.1038/s41587-022-01369-0 (Human data)",
         action="store_true",
     )
 
     parser.add_argument(
         "--circos-bin-width",
-        help="""Bin width for counting
-                        ORF predictions along chromosomes. Same bin width for
-                        all chromosomes. Last bin adjusted ad hoc to chromosome
-                        size.""",
+        help="Bin width for counting ORF predictions along chromosomes. "
+        "Same bin width for all chromosomes. Last bin adjusted ad hoc "
+        "to chromosome size.",
         type=int,
         default=10000000,
     )
 
     parser.add_argument(
         "--circos-show-chroms",
-        help="""A list of chromosomes
-                        for which predictions are shown. By default, only numbered
-                        chromosomes (and X/x, Y/y) are shown, to avoid cluttering
-                        the figure. Use this option for organisms with a different
-                        nomenclature, or to show additional chromosomes.""",
+        help="A list of chromosomes for which predictions are shown. "
+        "By default, only numbered chromosomes (and X/x, Y/y) are shown, "
+        "to avoid cluttering the figure. Use this option for organisms "
+        "with a different nomenclature, or to show additional chromosomes "
+        "or contigs. ",
         nargs="+",
         default=["\d", "X", "x", "Y", "y"],
     )
@@ -530,28 +526,30 @@ def main():
     # keep some figures from the old reporting tool for debugging
     parser.add_argument(
         "--show-orf-periodicity",
-        help="""If this flag
-                        is present, bar charts showing the periodicity
-                        of each ORF type will be plotted.""",
+        help="Create bar charts showing the periodicity "
+        "of each ORF type (not for the app).",
         action="store_true",
     )
 
     parser.add_argument(
         "--image-type",
-        help="""The format of the image
-                        files. This must be a format usable by matplotlib.
-                        Only relevant with [--show-orf-periodicity].""",
+        help="Format for [--show-orf-periodicity].",
         default="eps",
     )
 
     parser.add_argument(
         "--overwrite",
-        help="""If this flag is present,
-                        existing files will be overwritten.""",
+        help="Overwrite existing output.",
         action="store_true",
     )
 
     logging_utils.add_logging_options(parser)
+
+    return parser
+
+
+def main():
+    parser = get_parser()
     args = parser.parse_args()
     logging_utils.update_logging(args)
 

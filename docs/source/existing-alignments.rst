@@ -3,6 +3,8 @@
 How to use existing alignment files
 ===================================
 
+For this tutorial, we use the *c-elegans-chrI-example* with the *c-elegans.alignments-only.yaml* configuration file.
+
 The **Rp-Bp** pipeline is designed to handle all steps from raw FASTQ files up to the final list of translated Ribo-seq ORFs, but you can start the pipeline from any step.
 
 
@@ -22,37 +24,55 @@ In our example, the files should be placed (or symlinked) to the following locat
     *<riboseq_data>/without-rrna/<sample_name>[.note].fastq.gz*
 
 * Aligned reads
-    *<sample_name>[.note].bam*
+    *<sample_name>[.note].Aligned.sortedByCoord.out.bam* or
+    *<sample_name>[.note].bam* or
     *<sample_name>[.note]-unique.bam* (unless the ``keep_riboseq_multimappers`` configuration option is given)
 
-
-See the :ref:`rpbp_usage` for more details about required input and output files. Only the last files must be in the expected location. For example, if trimming, filtering and alignment has been performed, only the alignment files must be present. The pipeline will issue warning messages that some files are missing, but will continue once it finds the alignment files.
+See the :ref:`rpbp_usage` for more details about required input and output files. Only the "last files" must be in the expected location. For example, if trimming, filtering and alignment has been performed, only the alignment files must be present.
 
 
 Example
 -------
 
-This example shows how to run **Rp-Bp** starting with the alignment files for the `Tutorial <tutorial.html>`_, using the *c-elegans.alignments-only.yaml*.
+This example shows how to run **Rp-Bp** starting with the alignment files created in the first tutorial :ref:`tutorial_cel`.
 
 .. important::
 
-    You first need to go through the tutorial, and "run the example dataset" to be able to reproduce this example, as it uses existing alignment files!
-    You also need to update the paths in the *c-elegans.alignments-only.yaml* configuration file!
+    You first need to go through the first tutorial, and "run the example dataset" to be able to reproduce this example, as it uses existing alignment files!
 
-
-First create the necessary directory structure under *<riboseq_data>*, and symlink existing files
+Navigate to the same *c-elegans-chrI-example* directory (where you extracted the data).
+Create a new directory called *alignments-only*, and symlink existing alignment files
 
 .. code-block:: bash
 
-    # we are inside <riboseq_data> given by c-elegans.alignments-only.yaml
-    mkdir without-rrna-mapping && cd without-rrna-mapping
+    mkdir alignments-only && cd alignments-only && mkdir without-rrna-mapping && cd without-rrna-mapping
+    # you are now inside */c-elegans-chrI-example/alignments-only/without-rrna-mapping
+    # symlink files using absolute or relative path
+    # e.g. ln -s <original-example>/without-rrna-mapping/c-elegans-rep-1Aligned.sortedByCoord.out.bam .
+    # here we use relative paths
+    ln -s ../../without-rrna-mapping/c-elegans-rep-1Aligned.sortedByCoord.out.bam .
+    ln -s ../../without-rrna-mapping/c-elegans-rep-2Aligned.sortedByCoord.out.bam .
+    # return to c-elegans-chrI-example
+    cd ../../
 
-    # <original-example> is the base path <riboseq_data> from c-elegans-test.yaml, i.e.
-    # the output from the tutorial
-    ln -s <original-example>/without-rrna-mapping/c-elegans-rep-1.bam c-elegans-rep-1.bam
-    ln -s <original-example>/without-rrna-mapping/c-elegans-rep-1.bam.bai c-elegans-rep-1.bam.bai
-    ln -s <original-example>/without-rrna-mapping/c-elegans-rep-2.bam c-elegans-rep-2.bam
-    ln -s <original-example>/without-rrna-mapping/c-elegans-rep-2.bam.bai c-elegans-rep-2.bam.bai
+
+Change the paths in the configuration file, as explained in the first tutorial, or simply modify in place
+
+.. code-block:: bash
+
+    sed -i 's|/path/to/your/c-elegans-example|'`pwd`'|g' c-elegans.alignments-only.yaml
+
+It is now important to also adjust the configuration file by adding the *alignments-only* directory at the end of the path given by the ``riboseq_data`` key in *c-elegans.alignments-only.yaml*
+
+.. code-block:: yaml
+
+    # e.g. if your path is /home/user/data
+    riboseq_data: /home/user/data/c-elegans-chrI-example/alignments-only
+
+
+.. hint::
+
+    Instead of the above commands, you can also create directories using your menu/shortcuts, *etc.*, copy files by hand, and/or use a text editor to modify the configuration file.
 
 
 Run the pipeline
@@ -61,12 +81,4 @@ Run the pipeline
 
     run-all-rpbp-instances c-elegans.alignments-only.yaml --merge-replicates --run-replicates --num-cpus 4 --logging-level INFO --log-file alignments-only.txt
 
-
-Logging reports various missing files, *e.g.*
-
-.. code-block:: bash
-
-    WARNING  misc.shell_utils 2017-06-15 19:02:35,224 : Some input files ['/this/does/not/matter.rep-1.fastq.gz'] are missing. Skipping call: flexbar --qtrim-format sanger --max-uncalled 1  -n 2 --zip-output GZ -r /this/does/not/matter.rep-1.fastq.gz -t /home/bmalone/python-projects/rp-bp/c-elegans.alignments-only/without-adapters/c-elegans-rep-1 --pre-trim-left 0
-
-
-but the alignment files are eventually found, and the pipeline proceeds from there.
+Logging reports a few ``WARNING ... Some input files are missing. Skipping call...``, but the alignment files are eventually found, and the pipeline proceeds from there. You should end up with the same final output as that obtained in the first tutorial.
