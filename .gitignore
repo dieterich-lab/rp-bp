@@ -31,6 +31,9 @@ share/python-wheels/
 # Sphinx documentation
 docs/_build/
 docs/build/
+docs/source/_build/
+doc/source/build/
+_readthedocs/
 
 # Local and other files
 /local/
