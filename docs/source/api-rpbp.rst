@@ -2,7 +2,7 @@ run-all-rpbp-instances
 ======================
 
 .. argparse::
-   :filename: ../../src/rpbp/run_all_rpbp_instances.py
+   :module: rpbp.run_all_rpbp_instances
    :func: get_parser
    :prog: run-all-rpbp-instances
 
