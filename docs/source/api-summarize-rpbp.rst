@@ -2,7 +2,7 @@ summarize-rpbp-predictions
 ==========================
 
 .. argparse::
-   :filename: ../src/rpbp/analysis/rpbp_predictions/summarize_rpbp_predictions.py
+   :module: rpbp.analysis.rpbp_predictions.summarize_rpbp_predictions
    :func: get_parser
    :prog: summarize-rpbp-predictions
 
