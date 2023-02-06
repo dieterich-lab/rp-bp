@@ -15,7 +15,12 @@ release = "3.0.0"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 # extensions = ['sphinx.ext.autosectionlabel']
-extensions = ["sphinx.ext.autodoc", "sphinx.ext.autosummary", "sphinxarg.ext"]
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinxarg.ext",
+    "sphinx_copybutton",
+]
 
 templates_path = ["_templates"]
 exclude_patterns = []
@@ -26,3 +31,7 @@ exclude_patterns = []
 
 html_theme = "furo"
 html_static_path = ["_static"]
+html_theme_options = {
+    "light_logo": "logo-rpbp-light.png",
+    "dark_logo": "logo-rpbp-dark.png",
+}

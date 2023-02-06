@@ -6,6 +6,13 @@ run-all-rpbp-instances
    :func: get_parser
    :prog: run-all-rpbp-instances
 
+   --flexbar-options : @replace
+         A space-delimited list of options to pass to Flexbar. Each option is quoted separately as in "--flexbarOption value", using soft quotes, where --flexbarOption is the long parameter name from Flexbar, and value is the value given to this parameter. If specified, Flexbar options will override default settings.
+
+   --star-options : @replace
+         A space-delimited list of options to pass to STAR. Each option is quoted separately as in "--starOption value", using soft quotes, where --starOption is the long parameter name from STAR, and value is the value given to this parameter. If specified, STAR options will override
+         default settings.
+
    --num-cpus : @replace
          The number of CPUs to use (not only for SLURM). The definition of a "CPU" varies somewhat among the programs. For example, for STAR, these are actually threads. For many of the python scripts, this number is translated into the number of processes to spawn. None of the code parallelizes across machines, so the value should not be greater than the number of cores on the machine on which the programs are executed. When used with SLURM, this will be translated into an sbatch request like: ``--ntasks 1 --cpus-per-task <num-cpus>``.
 

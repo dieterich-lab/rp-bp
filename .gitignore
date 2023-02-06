@@ -1,6 +1,41 @@
-*checkpoint.ipynb
-*egg-info
-__pycache__
+# Byte-compiled, optimized, etc.
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Sphinx documentation
+docs/_build/
+docs/build/
+
+# Local and other files
+/local/
+/data/
+
 *pkl
 *bbl
 *blg
@@ -10,31 +45,20 @@ __pycache__
 *vim
 *swp
 *orig
-
-scratch*ipynb
-
 *bak
 
-# local
-/local/
-/data/
+# Environments
+.env
+.venv
+env/
+venv/
+env.bak/
+venv.bak/
 
-# test data
+# Example data
 c-elegans*
 
-# docs
-docs/_build/
-docs/_static/
-docs/_templates/
-_build
-_static
-_templates
-
-# build
-build/
-dist/
-
-# compiled Stan models
+# Stan models (compiled)
 src/rpbp/models/*
 !src/rpbp/models/**/
 src/rpbp/models/**/*/*

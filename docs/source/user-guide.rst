@@ -75,7 +75,6 @@ General usage
 
 **Rp-Bp** can be run with the `SLURM <http://slurm.schedmd.com>`_ scheduler. For all options, consult the `API <api.html>`_. See also `How to prepare the configuration file`_.
 
-----
 
 Required input
 ^^^^^^^^^^^^^^
@@ -105,8 +104,6 @@ A separate FASTA file for the ribosomal DNA (rDNA) sequence/cluster, which is ge
 * The genomic tRNA sequences *e.g.* from `GtRNAdb <http://gtrnadb.ucsc.edu>`_.
 * Mt_rRNA, Mt_tRNA and rRNA genes from BioMart. In particular, we select those options for the "Gene type" filter. For "Attributes", we select "Sequences", and then specifically "Exon sequences". Additionally, including the "Gene type" in the header can be helpful for identifying where reads mapped, for quality control purposes.
 
-
-----
 
 Output files
 ^^^^^^^^^^^^
@@ -231,14 +228,11 @@ To run the periodicity estimation only, pass the ``--profiles-only`` option.
     This part of the pipeline uses Flexbar, Bowtie2, and STAR to process and align Ribo-seq reads, however you can estimate periodicity (and predict translation events) using your own existing alignment files (BAM format), see `How to use existing alignment files <existing-alignments.html>`_
 
 
-----
-
 Required input
 ^^^^^^^^^^^^^^
 
 All the input files are those specified by the configuration file.
 
-----
 
 Output files
 ^^^^^^^^^^^^
@@ -289,14 +283,11 @@ Without the ``--profiles-only`` option, the pipeline will predict which ORFs sho
     If you first created profiles and estimated periodicity using the ``--profiles-only`` option, you can decide to continue with the translation prediction step at a later stage. You only have to ```run-all-rpbp-instances <config> [--merge-replicates] [--run-replicates]``` using the same configuration file. Steps for which output files already exists will be skipped, unless the ``--overwrite`` option is set.
 
 
-----
-
 Required input
 ^^^^^^^^^^^^^^
 
 All the input files are those specified by the configuration file. In addition, metagene and ORF profile output files are required (see output files from `ORF profile construction`_). If the pipeline is run sequentially, you do not normally have to worry about the intermediate output.
 
-----
 
 Output files
 ^^^^^^^^^^^^

@@ -1,16 +1,12 @@
 # Ribosome profiling with Bayesian predictions (Rp-Bp)
 
-**Rp-Bp** is an unsupervised Bayesian approach to predict translated open reading frames (ORFs) from ribosome profiles. **Rp-Bp** can be used for ORF discovery, or simply to estimate periodicity in a set of Ribo-seq samples.
+Ribosome profiling (Ribo-seq) is an RNA-sequencing-based readout of RNA translation. Isolation and deep-sequencing of ribosome-protected RNA fragments (ribosome footprints) provides a genome-wide snapshot of the translatome at sub-codon resolution. **Rp-Bp** is an unsupervised Bayesian approach to predict translated open reading frames (ORFs) from ribosome profiles. **Rp-Bp** can be used for ORF discovery, or simply to estimate periodicity in a set of Ribo-seq samples. When used for ORF discovery, **Rp-Bp** automatically classifies ORFs into different biotypes or categories, relative to their host transcript.
 
 **Rp-Bp** comes with two _interactive dashboards_ or _web applications_, one for read and periodicity quality control, the other to facilitate Ribo-seq ORFs discovery.
 
-![rpbp](docs/images/logo-rpbp-final.png)
+![rpbp](docs/source/_static/logo-rpbp-dark.png)
 
 ---
-
-Ribosome profiling (Ribo-seq) is an RNA-sequencing-based readout of RNA translation. Isolation and deep-sequencing of ribosome-protected RNA fragments (ribosome footprints) provides a genome-wide snapshot of the translatome at sub-codon resolution. **Rp-Bp** is an unsupervised Bayesian approach to predict translated open reading frames (ORFs) from ribosome profiles, using the automatic Bayesian Periodic fragment length and ribosome P-site offset Selection (BPPS), _i.e._ read lengths and ribosome P-site offsets are inferred from the data, without supervision. **Rp-Bp** is able to handle _de novo_ translatome annotation by directly assessing the periodicity of the Ribo-seq signal.
-
-**Rp-Bp** can be used for ORF discovery, or simply to estimate periodicity in a set of Ribo-seq replicates, _e.g._ to know which samples and read lengths are usable for downstream analyses. When used for ORF discovery, **Rp-Bp** automatically classifies ORFs into different biotypes or categories, relative to their host transcript.
 
 ## Documentation
 
@@ -18,7 +14,7 @@ Consult the [user guide](http://rp-bp.readthedocs.io/en/latest/) for instruction
 
 ## How to report issues
 
-Bugs and issues should be reported in the [bug tracker](https://github.com/dieterich-lab/rp-bp/issues). Follow the instructions and guidelines given in the template.
+For bugs, issues, or feature requests, use the [bug tracker](https://github.com/dieterich-lab/rp-bp/issues). Follow the instructions and guidelines given in the templates.
 
 ## How to cite
 

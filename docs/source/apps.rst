@@ -3,9 +3,9 @@
 Visualization and quality control
 =================================
 
-**Rp-Bp** provides two *interactive dashboards* or *web applications*, one for read and periodicity quality control, the other to facilitate Ribo-seq ORFs discovery. To navigate the apps is easy, just follow the "hints". Most items are interactive.
+**Rp-Bp** provides two *interactive dashboards* or *web applications*, one for read and periodicity quality control, the other to facilitate Ribo-seq ORFs discovery. The latter has an integrated `IGV browser <https://software.broadinstitute.org/software/igv/>`_ for the visual exploration of predicted Ribo-seq ORFs. To navigate the apps is easy, just follow the "hints". Most items are interactive.
 
-But before you can visualize the results, you need to prepare the input for the dashboards.
+**Before you can visualize the results, you need to prepare the input for the dashboards.**
 
 How to prepare the input for the dashboards
 -------------------------------------------
@@ -22,17 +22,15 @@ To prepare the input for the *profile construction dashboard*
 
 With the ``-c/--create-fastqc-reports`` flag, `FastQC <https://www.bioinformatics.babraham.ac.uk/projects/fastqc/>`_ reports are be created. For all options, consult the `API <api.html>`_.
 
-----
 
 Required input
-^^^^^^^^^^^^^^
+""""""""""""""
 
 Output files from the *ORF profile construction* step.
 
-----
 
 Output files
-^^^^^^^^^^^^
+""""""""""""
 
 The base path for these files is: *<riboseq_data>/analysis/profile_construction*.
 
@@ -57,17 +55,15 @@ To prepare the input for the *predictions dashboard*
 
 For all options, consult the `API <api.html>`_.
 
-----
 
 Required input
-^^^^^^^^^^^^^^
+""""""""""""""
 
 Output files from the *translation prediction* step.
 
-----
 
 Output files
-^^^^^^^^^^^^
+""""""""""""
 
 The base path for these files is: *<riboseq_data>/analysis/rpbp_predictions*.
 
@@ -78,6 +74,10 @@ The base path for these files is: *<riboseq_data>/analysis/rpbp_predictions*.
 * *<project_name>.summarize_options.json* A json summary file for the app.
 
 * *<genome_name>.circos_graph_data.json* A json file with the ORF distribution across chromosomes.
+
+.. hint::
+
+    Use *<project_name>[.note][-unique][.filtered].predicted-orfs.bed.gz* has a final output combining all predictions across your samples and/or replicates (including Bayes factor mean and variance for each sample, *etc.*). If you need a unique list of Ribo-seq ORFs (only coordinates *i.e* standard BED12, without duplicated entries for samples and/or replicates), use *<project_name>[.note][-unique][.filtered].igv-orfs.bed.gz*.
 
 
 How to launch the web applications
@@ -90,6 +90,15 @@ To launch the *profile construction dashboard*
     rpbp-profile-construction-dashboard <config>
 
 
+The application has multiple views to facilitate quality control, *e.g.*
+
+.. figure:: _static/app1_1.png
+   :align: center
+
+
+.. figure:: _static/app1_2.png
+   :align: center
+
 
 To launch the *predictions dashboard*
 
@@ -98,7 +107,20 @@ To launch the *predictions dashboard*
     rpbp-predictions-dashboard <config>
 
 
+The application has multiple views to facilitate ORF discovery, including an integrated `IGV browser <https://software.broadinstitute.org/software/igv/>`_ for the visual exploration of predicted Ribo-seq ORFs, *e.g.*
+
+.. figure:: _static/app2_1.png
+   :align: center
+
+
+.. figure:: _static/app2_2.png
+   :align: center
+
+
+Try it out, and see more!
+
 For all options, consult the `API <api.html>`_.
+
 
 .. note::
 

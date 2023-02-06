@@ -15,7 +15,7 @@ As part of the index creation step, **Rp-Bp** extract all putative ORFs and assi
 Categories of Ribo-seq ORFs
 ---------------------------
 
-.. figure:: images/schematic.png
+.. figure:: _static/schematic.png
    :align: center
 
 * **CDS**: Canonical (annotated) coding sequence
