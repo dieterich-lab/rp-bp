@@ -4,7 +4,14 @@ Ribosome profiling (Ribo-seq) is an RNA-sequencing-based readout of RNA translat
 
 **Rp-Bp** comes with two _interactive dashboards_ or _web applications_, one for read and periodicity quality control, the other to facilitate Ribo-seq ORFs discovery.
 
-![rpbp](docs/source/_static/logo-rpbp-dark.png)
+[![rpbp](docs/source/_static/logo-rpbp-dark.png)](https://rp-bp.readthedocs.io/en/stable/)
+
+<a href="http://bioconda.github.io/recipes/rpbp/README.ht"><img alt="Install with bioconda" src="https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat"></a>
+<a href="https://pypi.org/project/rpbp/"><img alt="PyPI" src="https://img.shields.io/pypi/v/rpbp"></a>
+<a href="https://github.com/dieterich-lab/rpbp/actions/workflows/ci.yml/badge.svg"><img alt="CI" src="https://github.com/dieterich-lab/rpbp/actions/workflows/ci.yml/badge.svg"></a>
+<a href="https://rp-bp.readthedocs.io/en/stable/?badge=stable"><img alt="Docs" src="https://readthedocs.org/projects/rp-bp/badge/?version=stable"></a>
+
+</p>
 
 ---
 
