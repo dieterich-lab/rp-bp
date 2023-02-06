@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+  pull_request:
+    branches:
+      - master
+      - dev
+
+jobs:
+  install-and-test:
+    runs-on: ${{matrix.os}}
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create rpbp conda environment
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          channels: bioconda,conda-forge,defaults
+          channel-priority: true
+          auto-update-conda: true
+          auto-activate-base: false
+          activate-environment: rpbp
+          environment-file: environment.yml
+      - name: Display conda env info
+        run: |
+          conda info
+          conda list
+          conda config --show-sources
+          conda config --show
+          printenv | sort
+      - name: Install test requirements
+        run: pip install pytest pytest-cov pytest-depends
+      - name: Install rp-bp with --no-deps option
+        run: pip install . --no-deps --verbose
+      - name: Run tests
+        run: python -m pytest . --cov=rpbp --cov-report=xml -s -v
+      - name: Compile stan models (should already exist -> no-op)
+        run: compile-rpbp-models
+      - name: Compile stan models with --force
+        run: compile-rpbp-models --force
+      - name: Upload code coverage to codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+          name: ${{ matrix.os }}
+          fail_ci_if_error: true
+          verbose: true

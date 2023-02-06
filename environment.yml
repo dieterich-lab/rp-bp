@@ -1,0 +1,25 @@
+name: rpbp
+channels:
+  - defaults
+  - conda-forge
+  - bioconda
+dependencies:
+  - python
+  - biopython
+  - bowtie2
+  - cmdstanpy
+  - dash
+  - dash-bio
+  - dash-bootstrap-components
+  - fastqc
+  - flexbar
+  - joblib
+  - numpy
+  - pandas
+  - pbiotools>=4.0.0
+  - pyyaml
+  - samtools
+  - scipy
+  - star
+  - statsmodels
+  - pysam
