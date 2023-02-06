@@ -26,14 +26,13 @@ classifiers = [
   "Operating System :: MacOS :: MacOS X",
   "Operating System :: POSIX :: Linux",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.6",
   "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
 ]
 dynamic = ["version"]
-requires-python = ">=3.6,<3.11"
+requires-python = ">=3.7,<3.11"
 dependencies = [
   "pbiotools>=4.0.0",
   "appdirs",

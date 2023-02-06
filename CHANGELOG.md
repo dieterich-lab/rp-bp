@@ -5,17 +5,17 @@ All notable changes to Rp-Bp will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased] - started 2022-07
+## [Unreleased] - started 2023-02
 
-We are working on a major version upgrade.
+## [3.0.0] 2023-02-06
 
 ### Changed
 
-- Upgrade all dependencies/required packages, install via Conda
-- Location of (compiled) Stan models for Conda environment
+- Upgrade all dependencies/required packages, install via bioconda
+- Location of (compiled) Stan models
 - PyStan 2 to CmdStanPy API
 - Handling of ORF labels
-- CmdStanPy logging
+- Documentation
 
 ### Removed
 
@@ -29,12 +29,12 @@ We are working on a major version upgrade.
 ### Fixed
 
 - Stan models transformed data/parameters name/definition (no-periodicity.stan, gaussian-naive-bayes.stan)
-- CmdSTanPy tmp file handling
+- CmdStanPy logging
 
 ### Added
 
-- Regression tests, pre-commit, GitHub CI workflow
-- WIP: STAR options handling for `prepare_rpbp_genome`
+- Regression tests, pre-commit, GitHub CI workflow, etc.
+- Options handling for `prepare_rpbp_genome`
 - Retrieve gene_id, etc. from annotations
 - Dashboad applications to replace PDF reports
 - Data wrangling: `summarize_rpbp_profile_construction.py`, and `summarize_rpbp_predictions.py`
@@ -42,8 +42,6 @@ We are working on a major version upgrade.
 - orf_profile_construction scripts from pbiotools.ribo
 
 ## [2.0.0] 2019-05-24
-
-This is a major version upgrade due to changes in API and package dependencies.
 
 ### Changed
 
