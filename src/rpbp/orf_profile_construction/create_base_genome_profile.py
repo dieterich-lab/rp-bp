@@ -5,12 +5,13 @@ create base genome profile.
 
 """
 
-import argparse
-import logging
 import os
 import sys
-
 import yaml
+import logging
+import argparse
+
+from pathlib import Path
 
 import pbiotools.utils.bam_utils as bam_utils
 import pbiotools.utils.fastx_utils as fastx_utils
@@ -196,10 +197,15 @@ def main():
 
     # Step 2: Running STAR to align rRNA-depleted reads to genome
 
+    # STAR standard output
     star_output_prefix = filenames.get_riboseq_bam_base(
         config["riboseq_data"], args.name, note=note
     )
     genome_star_bam = "{}{}".format(star_output_prefix, "Aligned.sortedByCoord.out.bam")
+    # Rp-Bp file name
+    genome_sorted_bam = filenames.get_riboseq_bam(
+        config["riboseq_data"], args.name, note=note
+    )
 
     # get all options, command line options override defaults
 
@@ -213,11 +219,7 @@ def main():
 
     star_option_str = pgrm_utils.get_final_args(star_options, args.star_options)
 
-    gtf_file = filenames.get_gtf(
-        config["genome_base_path"],
-        config["genome_name"],
-        is_star_input=True,
-    )
+    gtf_file = filenames.get_gtf(config)
 
     cmd = (
         "{} --runThreadN {} --genomeDir {} --sjdbGTFfile {} --readFilesIn {} "
@@ -234,7 +236,9 @@ def main():
     in_files = [without_rrna]
     in_files.extend(pgrm_utils.get_star_index_files(config["star_index"]))
     to_delete = [without_rrna]
-    out_files = [genome_star_bam]
+    # run if any of the two doesn't exist, but only validate genome_star_bam
+    # as genome_sorted_bam normally doesn't exist yet
+    out_files = [genome_star_bam, genome_sorted_bam]
     file_checkers = {genome_star_bam: bam_utils.check_bam_file}
     shell_utils.call_if_not_exists(
         cmd,
@@ -247,28 +251,16 @@ def main():
         to_delete=to_delete,
     )
 
-    # now, we need to symlink the (genome) STAR output to that expected by the rest of the pipeline
-    genome_sorted_bam = filenames.get_riboseq_bam(
-        config["riboseq_data"], args.name, note=note
-    )
-
-    if os.path.exists(genome_star_bam):
-        shell_utils.create_symlink(
-            genome_star_bam, genome_sorted_bam, remove=args.overwrite, call=call
-        )
-    else:
-        msg = (
-            "Could not find the STAR genome bam alignment file. Unless "
-            "[--do-not-call] was given, this is a problem!"
-        )
-        logger.critical(msg)
+    # rename STAR output to that expected by the pipeline
+    genome_star_bam = Path(genome_star_bam)
+    genome_star_bam.replace(genome_sorted_bam)
 
     # create the bamtools index
     cmd = "samtools index -b {}".format(genome_sorted_bam)
     shell_utils.check_call(cmd, call=call)
 
     # check if we want to keep multimappers
-    if "keep_riboseq_multimappers" in config:
+    if config.get("keep_riboseq_multimappers", False):
         return
 
     # remove multimapping reads from the genome file
@@ -286,7 +278,7 @@ def main():
 
     in_files = [genome_sorted_bam]
     out_files = [unique_genome_filename]
-    to_delete = [genome_star_bam, genome_sorted_bam]
+    to_delete = [genome_sorted_bam]
     file_checkers = {unique_genome_filename: bam_utils.check_bam_file}
     shell_utils.call_if_not_exists(
         cmd,

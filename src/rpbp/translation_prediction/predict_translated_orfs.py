@@ -30,7 +30,7 @@ def get_profile(name, config, args):
     from the given parameters.
     """
     # keep multimappers?
-    is_unique = not ("keep_riboseq_multimappers" in config)
+    is_unique = not config.get("keep_riboseq_multimappers", False)
 
     # get the lengths and offsets which meet the required criteria from the config file
     lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
@@ -157,7 +157,7 @@ def main():
         logger.info(msg)
 
     # keep multimappers?
-    is_unique = not ("keep_riboseq_multimappers" in config)
+    is_unique = not config.get("keep_riboseq_multimappers", False)
 
     # first, check if we are merging replicates
 

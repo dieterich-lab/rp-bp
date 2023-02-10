@@ -38,15 +38,15 @@ def get_parser():
 
     parser.add_argument(
         "--merge-replicates",
-        help="Predict Ribo-seq ORFs in merged profiles. If [--merge-replicates], "
-        "then use [--run-replicates] to also predict Ribo-seq ORFs in all samples.",
+        help="Predict Ribo-seq ORFs in merged profiles. If ``--merge-replicates``, "
+        "then use ``--run-replicates`` to also predict Ribo-seq ORFs in all samples.",
         action="store_true",
     )
 
     parser.add_argument(
         "--run-replicates",
-        help="With [--merge-replicates], predict Ribo-seq ORFs in all samples and "
-        "in merged profiles. This has no effect without [--merge-replicates], i.e. "
+        help="With ``--merge-replicates``, predict Ribo-seq ORFs in all samples and "
+        "in merged profiles. This has no effect without ``--merge-replicates``, *i.e.* "
         "predictions are made for all samples by default.",
         action="store_true",
     )

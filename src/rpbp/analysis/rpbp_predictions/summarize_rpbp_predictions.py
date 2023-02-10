@@ -321,7 +321,7 @@ def _create_figures(name_pretty_name_is_sample, config, args):
 
     name, pretty_name, is_sample = name_pretty_name_is_sample
 
-    is_unique = not ("keep_riboseq_multimappers" in config)
+    is_unique = not config.get("keep_riboseq_multimappers", False)
     note = config.get("note", None)
     fraction = config.get("smoothing_fraction", None)
     reweighting_iterations = config.get("smoothing_reweighting_iterations", None)
@@ -440,7 +440,7 @@ def get_parser():
     parser.add_argument(
         "--min-samples",
         help="An ORF is filtered out if not predicted in at "
-        "least [--min-samples] number of samples. By default "
+        "least ``--min-samples`` number of samples. By default "
         "all ORFs are kept. This is ignored if merged replicates "
         "are included in the output.",
         type=int,
@@ -450,14 +450,14 @@ def get_parser():
     parser.add_argument(
         "-k",
         "--keep-other",
-        help="Include ORFs labeled as 'other', if present. "
+        help="Include ORFs labeled as *other*, if present. "
         "They are discarded by default.",
         action="store_true",
     )
 
     parser.add_argument(
         "--no-replicates",
-        help="If Rp-Bp was run with [--merge-replicates], "
+        help="If Rp-Bp was run with ``--merge-replicates``, "
         "predictions from merged replicates are included by "
         "default, unless this flag is present.",
         required="--min-samples" in sys.argv,
@@ -466,17 +466,17 @@ def get_parser():
 
     parser.add_argument(
         "--use-unfiltered",
-        help="Use the 'unfiltered' ORF predictions. "
-        "Unless Rp-Bp was run with [--write-unfiltered], "
+        help="Use the *unfiltered* ORF predictions. "
+        "Unless Rp-Bp was run with ``--write-unfiltered``, "
         "these will not be available. By default, the "
-        "'filtered' predictions are used.",
+        "*filtered* predictions are used.",
         action="store_true",
     )
 
     # display
     parser.add_argument(
         "--use-name-maps",
-        help="Use 'riboseq_sample_name_map' and 'riboseq_condition_name_map' "
+        help="Use ``riboseq_sample_name_map`` and ``riboseq_condition_name_map`` "
         "from the config. Do not use this flag when preparing results for "
         "the dashboard, mapping is done in the app.",
         action="store_true",
@@ -533,7 +533,7 @@ def get_parser():
 
     parser.add_argument(
         "--image-type",
-        help="Format for [--show-orf-periodicity].",
+        help="Format for ``--show-orf-periodicity``.",
         default="eps",
     )
 
@@ -568,8 +568,6 @@ def main():
         "riboseq_samples",
         "genome_base_path",
         "genome_name",
-        "fasta",
-        "gtf",
         "star_index",
     ]
     utils.check_keys_exist(config, required_keys)
@@ -581,7 +579,8 @@ def main():
     # nomenclature
     project = config.get("project_name", "rpbp")
     note = config.get("note", None)
-    is_unique = not ("keep_riboseq_multimappers" in config)
+    orf_note = config.get("orf_note", None)
+    is_unique = not config.get("keep_riboseq_multimappers", False)
     # defaults are unused in file names
     fraction = config.get("smoothing_fraction", None)
     reweighting_iterations = config.get("smoothing_reweighting_iterations", None)
@@ -683,8 +682,21 @@ def main():
     bed_df = bed_utils.read_bed(transcript_bed, low_memory=False)[cols]
     bed_df.rename(columns={"id": "transcript_id"}, inplace=True)
 
+    # add info for de novo
+    if "de_novo_gtf" in config:
+        transcript_bed_dn = filenames.get_bed(
+            config["genome_base_path"],
+            config["genome_name"],
+            is_annotated=False,
+            is_de_novo=True,
+        )
+        cols = ["id", "biotype", "gene_id", "gene_name", "gene_biotype"]
+        bed_df_dn = bed_utils.read_bed(transcript_bed_dn, low_memory=False)[cols]
+        bed_df_dn.rename(columns={"id": "transcript_id"}, inplace=True)
+        bed_df = pd.concat([bed_df, bed_df_dn])
+
     labeled_orfs = filenames.get_labels(
-        config["genome_base_path"], config["genome_name"], note=note
+        config["genome_base_path"], config["genome_name"], note=orf_note
     )
     cols = ["id", "orf_type", "transcripts"]
     labels_df = bed_utils.read_bed(labeled_orfs)[cols]

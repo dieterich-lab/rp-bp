@@ -82,7 +82,7 @@ Required input
 Reference annotations
 """""""""""""""""""""
 
-The reference annotations (format GTF2), with *exons* and *CDS* features (*start_codon* and *stop_codon* features are not required). The attribute field must include *transcript_id*, *transcript_biotype*, *gene_id*, *gene_name*, and *gene_biotype*. The annotations must match the version of the reference genome sequence.
+The reference annotations (format GTF2), with *transcript*, *exon*, and *CDS* features (*start_codon* and *stop_codon* features are not required). The attribute field must include *transcript_id* and *gene_id*, and optionally *transcript_biotype*, *gene_name*, and *gene_biotype*. The annotations must match the version of the reference genome sequence.
 
 .. caution::
 
@@ -127,16 +127,16 @@ The base path for the following files is: *<genome_base_path>/transcript-index*
 
 * *<genome_name>.transcripts.annotated.fa* A FASTA file with the annotated transcript sequences.
 
-* *<genome_name>.orfs-genomic.annotated[.orf_note].bed.gz*. A BED12+ with the ORFs extracted from all transcripts. The ORFs are numbered, and their length is also reported. The ORF ids are of the form: *transcript_seqname:start-end:strand*. The start codon is included, but the stop codon is not.
+* *<genome_name>.orfs-genomic[.orf_note].bed.gz*. A BED12+ with the ORFs extracted from all transcripts. The ORFs are numbered, and their length is also reported. The ORF ids are of the form: *transcript_seqname:start-end:strand*. The start codon is included, but the stop codon is not.
 
-* *<genome_name>.orfs-exons.annotated[.orf_note].bed.gz*. A BED6+ file with the ORF exons. The extra columns are *exon_index*, giving the order of the exon in the transcript, and *transcript_start*, giving the start position of that index in transcript coordinates.
+* *<genome_name>.orfs-exons[.orf_note].bed.gz*. A BED6+ file with the ORF exons. The extra columns are *exon_index*, giving the order of the exon in the transcript, and *transcript_start*, giving the start position of that index in transcript coordinates.
 
-* *<genome_name>.orfs-labels.annotated[.orf_note].tab.gz*. A TAB-delimited file with ORF categories and all compatible transcripts. See `More about prepare-rpbp-genome`_ to learn about ORF categories or labels.
+* *<genome_name>.orfs-labels[.orf_note].tab.gz*. A TAB-delimited file with ORF categories and all compatible transcripts. See `More about prepare-rpbp-genome`_ to learn about ORF categories or labels.
 
 
 .. note::
 
-    If a ``de_novo_gtf`` file is provided, additional output files are created using the same convention as described above, with the addition of a *<de-novo>* flag. In this case, the files used by the pipeline are the "concatenation" of the respective *annotated* and *de-novo* files; otherwise, they are symlink to the respective *annotated* files.
+    If a ``de_novo_gtf`` file is provided, intermediate output files are split into *annotated* and *de-novo*. The files used by the pipeline, as described above, are the "concatenation" of the respective *annotated* and *de-novo* files. In addition, a GTF file is created by concatenating ``gtf`` and ``de_novo_gtf``. This new GTF file is written to ``genome_base_path``. Be careful not to overwrite any existing GTF file there!
 
 
 .. _running_rpbp:
@@ -251,14 +251,13 @@ The base path for the following files is: *<riboseq_data>/without-rrna*
 
 The base path for the following files is: *<riboseq_data>/without-rrna-mapping*
 
-* *<sample_name>[.note].Aligned.sortedByCoord.out.bam* A sorted BAM file with genome alignments.
-* *<sample_name>[.note].bam* A symlink to *Aligned.sortedByCoord.out.bam*
+* *<sample_name>[.note].bam* A sorted BAM file with genome alignments (the *Aligned.sortedByCoord.out.bam* STAR output).
 * *<sample_name>[.note]-unique.bam* A sorted BAM file with unique alignments (multimapping reads removed).
 
 
 .. note::
 
-    If the ``keep_riboseq_multimappers`` configuration option is given, then there will be no *-unique* files. In general, we do not recommend to keep multimappers.
+    If ``keep_riboseq_multimappers`` is ``True`` in the configuration file, then there will be no *-unique* files. In general, we do not recommend to keep multimappers.
 
 
 The base path for the following files is: *<riboseq_data>/metagene-profiles*
@@ -365,7 +364,7 @@ STAR
 Rp-Bp parameters
 ^^^^^^^^^^^^^^^^
 
-* ``keep_riboseq_multimappers`` If this key is present in the configuration file with any value (even something like "no" or "null" or "false"), then multimapping riboseq reads *will not* be removed. They will be treated as "normal" reads in every place they map, *i.e.* the weight of the read will not be distributed fractionally, probabilistically, *etc.* We do not in general recommend to use this option.
+* ``keep_riboseq_multimappers`` If ``True`` in the configuration file, then multimapping riboseq reads *will not* be removed. They will be treated as "normal" reads in every place they map, *i.e.* the weight of the read will not be distributed fractionally, probabilistically, *etc.* We do not in general recommend to use this option.
 * ``models_base`` The path to the compiled models, if installed in a different location. The models are included with the source distribution and compiled as part of the installation. *Do not change this, unless you know what you are doing!*
 
 
@@ -401,9 +400,9 @@ Metagene and periodicity estimation parameters
 Fixed lengths and offsets
 """""""""""""""""""""""""
 
-* ``use_fixed_lengths`` If this variable is present in the config file with any value (even something like "no" or "null" or "false"), fixed values given by ``lengths`` and ``offsets`` are used (no periodicity estimation).
-* ``lengths`` A list of read lengths to use for creating the profiles if the ``use_fixed_lengths`` option is given. Presumably, these are lengths that have periodic metagene profiles.
-* ``offsets``  The P-site offset to use for each read length specifed by ``lengths`` if the ``use_fixed_lengths`` option is given. The number of offsets must match the number of lengths, and they are assumed to match. For example ``lengths``:  [26, 29] with ``offsets``: [9, 12] means only reads of lengths 26 bp and 29 bp are used to create the profiles. The 26 bp reads will be shifted by 9 bp in the 5' direction, while reads of length 29 bp will be shifted by 12 bp.
+* ``use_fixed_lengths`` If ``True`` in the configuration file, fixed values given by ``lengths`` and ``offsets`` are used (no periodicity estimation).
+* ``lengths`` A list of read lengths to use for creating the profiles if the ``use_fixed_lengths`` option is ``True``. Presumably, these are lengths that have periodic metagene profiles.
+* ``offsets``  The P-site offset to use for each read length specifed by ``lengths`` if the ``use_fixed_lengths`` option is ``True``. The number of offsets must match the number of lengths, and they are assumed to match. For example ``lengths``:  [26, 29] with ``offsets``: [9, 12] means only reads of lengths 26 bp and 29 bp are used to create the profiles. The 26 bp reads will be shifted by 9 bp in the 5' direction, while reads of length 29 bp will be shifted by 12 bp.
 
 
 Smoothing parameters

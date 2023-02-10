@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - started 2023-02
 
+## [3.0.1] 2023-02-10
+
+### Changed
+
+- I/O: ensure bool in config, remove symlinks
+- Documentation
+
+### Fixed
+
+- Missing GTF attributes
+
 ## [3.0.0] 2023-02-06
 
 ### Changed

@@ -200,7 +200,7 @@ def get_periodic_lengths_and_offsets(
     import scipy.stats
 
     # check if we specified to just use a fixed offset and length
-    if "use_fixed_lengths" in config:
+    if config.get("use_fixed_lengths", False):
         lengths = [str(l) for l in config["lengths"]]
         offsets = [str(o) for o in config["offsets"]]
 

@@ -395,7 +395,7 @@ def main():
     # nomenclature
     project = config.get("project_name", "rpbp")
     note = config.get("note", None)
-    is_unique = not ("keep_riboseq_multimappers" in config)
+    is_unique = not config.get("keep_riboseq_multimappers", False)
 
     msg = "Collecting all read filtering counts..."
     logger.info(msg)
