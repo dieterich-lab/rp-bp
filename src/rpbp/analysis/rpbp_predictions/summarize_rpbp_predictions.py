@@ -440,7 +440,7 @@ def get_parser():
     parser.add_argument(
         "--min-samples",
         help="An ORF is filtered out if not predicted in at "
-        "least [--min-samples] number of samples. By default "
+        "least ``--min-samples`` number of samples. By default "
         "all ORFs are kept. This is ignored if merged replicates "
         "are included in the output.",
         type=int,
@@ -450,14 +450,14 @@ def get_parser():
     parser.add_argument(
         "-k",
         "--keep-other",
-        help="Include ORFs labeled as 'other', if present. "
+        help="Include ORFs labeled as *other*, if present. "
         "They are discarded by default.",
         action="store_true",
     )
 
     parser.add_argument(
         "--no-replicates",
-        help="If Rp-Bp was run with [--merge-replicates], "
+        help="If Rp-Bp was run with ``--merge-replicates``, "
         "predictions from merged replicates are included by "
         "default, unless this flag is present.",
         required="--min-samples" in sys.argv,
@@ -466,17 +466,17 @@ def get_parser():
 
     parser.add_argument(
         "--use-unfiltered",
-        help="Use the 'unfiltered' ORF predictions. "
-        "Unless Rp-Bp was run with [--write-unfiltered], "
+        help="Use the *unfiltered* ORF predictions. "
+        "Unless Rp-Bp was run with ``--write-unfiltered``, "
         "these will not be available. By default, the "
-        "'filtered' predictions are used.",
+        "*filtered* predictions are used.",
         action="store_true",
     )
 
     # display
     parser.add_argument(
         "--use-name-maps",
-        help="Use 'riboseq_sample_name_map' and 'riboseq_condition_name_map' "
+        help="Use ``riboseq_sample_name_map`` and ``riboseq_condition_name_map`` "
         "from the config. Do not use this flag when preparing results for "
         "the dashboard, mapping is done in the app.",
         action="store_true",
@@ -533,7 +533,7 @@ def get_parser():
 
     parser.add_argument(
         "--image-type",
-        help="Format for [--show-orf-periodicity].",
+        help="Format for ``--show-orf-periodicity``.",
         default="eps",
     )
 
