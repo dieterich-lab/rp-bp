@@ -119,7 +119,6 @@ def main():
     required_keys = [
         "riboseq_data",
         "ribosomal_index",
-        "gtf",
         "genome_base_path",
         "genome_name",
     ]
@@ -154,7 +153,7 @@ def main():
     mem_str = "--mem {}".format(shlex.quote(args.mem))
 
     # check if we want to keep multimappers
-    is_unique = not ("keep_riboseq_multimappers" in config)
+    is_unique = not config.get("keep_riboseq_multimappers", False)
 
     riboseq_raw_data = args.raw_data
     riboseq_bam_filename = filenames.get_riboseq_bam(

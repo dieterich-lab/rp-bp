@@ -407,7 +407,7 @@ prj_md_text = (
     f"---"
 )
 
-is_unique = not ("keep_riboseq_multimappers" in config)
+is_unique = not config.get("keep_riboseq_multimappers", False)
 config_note = config.get("note", None)
 
 # ribo_utils._return_key_dict

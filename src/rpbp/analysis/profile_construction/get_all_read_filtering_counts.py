@@ -30,7 +30,7 @@ def get_counts(name_data, config, args):
     note = config.get("note", None)
 
     # keep multimappers?
-    is_unique = not ("keep_riboseq_multimappers" in config)
+    is_unique = not config.get("keep_riboseq_multimappers", False)
 
     raw_data = data
     without_adapters = filenames.get_without_adapters_fastq(

@@ -11,8 +11,10 @@ Calls:
 import os
 import sys
 import yaml
-import argparse
 import logging
+import argparse
+
+from pathlib import Path
 
 import pbiotools.misc.logging_utils as logging_utils
 import pbiotools.misc.shell_utils as shell_utils
@@ -307,12 +309,6 @@ def main():
         config["genome_base_path"], config["genome_name"], note=config.get("orf_note")
     )
 
-    gtf_file = filenames.get_gtf(
-        config["genome_base_path"],
-        config["genome_name"],
-        is_star_input=True,
-    )
-
     # now, check if we have a de novo assembly
     if "de_novo_gtf" in config:
         get_orfs(
@@ -394,9 +390,8 @@ def main():
             msg = "Skipping concatenation due to --call value"
             logger.info(msg)
 
-        # we also need to concat the annotations to inform STAR
-        # there is no particular reason to merge and sort the files, so
-        # we just concatenate them...
+        # concat the annotations to inform STAR
+        gtf_file = filenames.get_gtf(config)
         star_files_str = " ".join([config["gtf"], config["de_novo_gtf"]])
         msg = "Concatenating files. Output file: {}; Input files: {}".format(
             gtf_file, star_files_str
@@ -413,27 +408,15 @@ def main():
         )
 
     else:
-        # if we do not have a de novo assembly, symlink the files
+        # if we do not have a de novo assembly, rename the files
+        annotated_orfs = Path(annotated_orfs)
+        annotated_orfs.replace(orfs_genomic)
 
-        if os.path.exists(annotated_orfs):
-            shell_utils.create_symlink(
-                annotated_orfs, orfs_genomic, remove=args.overwrite, call=call
-            )
+        annotated_exons_file = Path(annotated_exons_file)
+        annotated_exons_file.replace(exons_file)
 
-        if os.path.exists(annotated_exons_file):
-            shell_utils.create_symlink(
-                annotated_exons_file, exons_file, remove=args.overwrite, call=call
-            )
-
-        if os.path.exists(annotated_labeled_orfs):
-            shell_utils.create_symlink(
-                annotated_labeled_orfs, labeled_orfs, remove=args.overwrite, call=call
-            )
-
-        if os.path.exists(config["gtf"]):
-            shell_utils.create_symlink(
-                config["gtf"], gtf_file, remove=args.overwrite, call=call
-            )
+        annotated_labeled_orfs = Path(annotated_labeled_orfs)
+        annotated_labeled_orfs.replace(labeled_orfs)
 
 
 if __name__ == "__main__":

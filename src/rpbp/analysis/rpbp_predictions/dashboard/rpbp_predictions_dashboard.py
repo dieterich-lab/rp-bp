@@ -217,6 +217,8 @@ if "PHASE I ORFs" in orfs.columns:
     orfs[["PHASE I ORFs", "SS ORFs"]] = orfs[["PHASE I ORFs", "SS ORFs"]].fillna(
         value="NA"
     )
+# missing GTF fields - typically with de novo
+orfs[TABLE_FIELDS[4:]] = orfs[TABLE_FIELDS[4:]].fillna(value="NA")
 display_table = pd.merge(display_table, orfs[TABLE_FIELDS], on="id", how="left")
 display_table = display_table[TABLE_FIELDS + ["orf_info"]]
 display_table.drop_duplicates(inplace=True)

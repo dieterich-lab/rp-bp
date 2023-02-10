@@ -140,19 +140,16 @@ def getf_genome(get_genome):
             config["genome_base_path"],
             config["genome_name"],
             note=config.get("orf_note"),
-            is_annotated=True,
         ),
         "exons": filenames.get_exons(
             config["genome_base_path"],
             config["genome_name"],
             note=config.get("orf_note"),
-            is_annotated=True,
         ),
         "labels": filenames.get_labels(
             config["genome_base_path"],
             config["genome_name"],
             note=config.get("orf_note"),
-            is_annotated=True,
         ),
     }
 
@@ -164,13 +161,13 @@ def getf_genome(get_genome):
             ref_config["genome_base_path"], ref_config["genome_name"], is_annotated=True
         ),
         "orfs": filenames.get_orfs(
-            ref_config["genome_base_path"], ref_config["genome_name"], is_annotated=True
+            ref_config["genome_base_path"], ref_config["genome_name"]
         ),
         "exons": filenames.get_exons(
-            ref_config["genome_base_path"], ref_config["genome_name"], is_annotated=True
+            ref_config["genome_base_path"], ref_config["genome_name"]
         ),
         "labels": filenames.get_labels(
-            ref_config["genome_base_path"], ref_config["genome_name"], is_annotated=True
+            ref_config["genome_base_path"], ref_config["genome_name"]
         ),
     }
 

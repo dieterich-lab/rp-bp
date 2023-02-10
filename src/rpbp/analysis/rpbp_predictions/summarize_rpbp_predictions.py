@@ -321,7 +321,7 @@ def _create_figures(name_pretty_name_is_sample, config, args):
 
     name, pretty_name, is_sample = name_pretty_name_is_sample
 
-    is_unique = not ("keep_riboseq_multimappers" in config)
+    is_unique = not config.get("keep_riboseq_multimappers", False)
     note = config.get("note", None)
     fraction = config.get("smoothing_fraction", None)
     reweighting_iterations = config.get("smoothing_reweighting_iterations", None)
@@ -568,8 +568,6 @@ def main():
         "riboseq_samples",
         "genome_base_path",
         "genome_name",
-        "fasta",
-        "gtf",
         "star_index",
     ]
     utils.check_keys_exist(config, required_keys)
@@ -581,7 +579,8 @@ def main():
     # nomenclature
     project = config.get("project_name", "rpbp")
     note = config.get("note", None)
-    is_unique = not ("keep_riboseq_multimappers" in config)
+    orf_note = config.get("orf_note", None)
+    is_unique = not config.get("keep_riboseq_multimappers", False)
     # defaults are unused in file names
     fraction = config.get("smoothing_fraction", None)
     reweighting_iterations = config.get("smoothing_reweighting_iterations", None)
@@ -683,8 +682,21 @@ def main():
     bed_df = bed_utils.read_bed(transcript_bed, low_memory=False)[cols]
     bed_df.rename(columns={"id": "transcript_id"}, inplace=True)
 
+    # add info for de novo
+    if "de_novo_gtf" in config:
+        transcript_bed_dn = filenames.get_bed(
+            config["genome_base_path"],
+            config["genome_name"],
+            is_annotated=False,
+            is_de_novo=True,
+        )
+        cols = ["id", "biotype", "gene_id", "gene_name", "gene_biotype"]
+        bed_df_dn = bed_utils.read_bed(transcript_bed_dn, low_memory=False)[cols]
+        bed_df_dn.rename(columns={"id": "transcript_id"}, inplace=True)
+        bed_df = pd.concat([bed_df, bed_df_dn])
+
     labeled_orfs = filenames.get_labels(
-        config["genome_base_path"], config["genome_name"], note=note
+        config["genome_base_path"], config["genome_name"], note=orf_note
     )
     cols = ["id", "orf_type", "transcripts"]
     labels_df = bed_utils.read_bed(labeled_orfs)[cols]

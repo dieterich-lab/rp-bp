@@ -70,7 +70,7 @@ def main():
     config = yaml.load(open(args.config), Loader=yaml.FullLoader)
 
     # pull out what we need from the config file
-    is_unique = not ("keep_riboseq_multimappers" in config)
+    is_unique = not config.get("keep_riboseq_multimappers", False)
     seqname_str = utils.get_config_argument(config, "seqname_prefix")
     note = config.get("note", None)
     orf_note = config.get("orf_note", None)
@@ -80,7 +80,7 @@ def main():
     )
 
     exons = filenames.get_exons(
-        config["genome_base_path"], config["genome_name"], note=orf_note, is_orf=True
+        config["genome_base_path"], config["genome_name"], note=orf_note
     )
 
     # make sure the necessary files exist

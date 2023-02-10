@@ -254,23 +254,20 @@ def get_riboseq_frame_counts(riboseq_base, name, **kwargs):
     return loc
 
 
-### g
+# g
 
 
 def get_gtf(
-    base_path,
-    name,
-    is_de_novo=False,
-    is_annotated=False,
-    is_star_input=False,
+    config,
 ):
 
-    c = get_annotated_string(is_annotated)
-    d = get_de_novo_string(is_de_novo)
-    s = get_star_input_string(is_star_input)
-    ext = "gtf"  # GTF only
-    fn = "{}{}{}{}.{}".format(name, c, d, s, ext)
-    return os.path.join(base_path, fn)
+    if "de_novo_gtf" in config:
+        base_path = config["genome_base_path"]
+        name = config["genome_name"]
+        fn = f"{name}.gtf"
+        return os.path.join(base_path, fn)
+    else:
+        return config["gtf"]
 
 
 # m
