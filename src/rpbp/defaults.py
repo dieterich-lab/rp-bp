@@ -89,7 +89,7 @@ flexbar_options = {
 # Stan model instantiation
 # Stan's multi-threaded processing is based on the Intel Threading Building Blocks (TBB) library,
 # which must be linked to by the C++ compiler. True uses cpp_options={'STAN_THREADS': 'TRUE'}, or False.
-model_inst_options = {"stan_threads": True}
+model_inst_options = {"stan_threads": False}
 
 # shared options
 mcmc_shared = {

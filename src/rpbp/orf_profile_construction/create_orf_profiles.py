@@ -31,7 +31,6 @@ from rpbp.defaults import (
     default_num_cpus,
     default_mem,
     star_executable,
-    model_inst_options,
     metagene_options,
 )
 

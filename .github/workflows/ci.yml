@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           channels: bioconda,conda-forge,defaults
-          channel-priority: true
+          channel-priority: strict
           auto-update-conda: true
           auto-activate-base: false
           activate-environment: rpbp
