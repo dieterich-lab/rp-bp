@@ -1,8 +1,8 @@
 name: rpbp
 channels:
-  - defaults
   - conda-forge
   - bioconda
+  - defaults
 dependencies:
   - python
   - biopython
