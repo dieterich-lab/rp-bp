@@ -16,7 +16,6 @@ import rpbp.ribo_utils.filenames as filenames
 from rpbp.defaults import (
     default_num_cpus,
     translation_options,
-    model_inst_options,
     metagene_options,
 )
 
