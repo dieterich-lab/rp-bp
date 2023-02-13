@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Missing GTF attributes
 
+### Added
+
+- Dash assets to MANIFEST
+
 ## [3.0.0] 2023-02-06
 
 ### Changed
