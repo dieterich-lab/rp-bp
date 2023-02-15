@@ -7,7 +7,7 @@ dependencies:
   - python
   - biopython
   - bowtie2
-  - cmdstanpy
+  - cmdstanpy>=1.0.0
   - dash
   - dash-bio
   - dash-bootstrap-components
