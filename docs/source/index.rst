@@ -9,7 +9,7 @@ Rp-Bp: Ribosome profiling with Bayesian predictions
 Introduction
 ------------
 
-Ribosome profiling (Ribo-seq) is an RNA-sequencing-based readout of RNA translation. Isolation and deep-sequencing of ribosome-protected RNA fragments (ribosome footprints) provides a genome-wide snapshot of the translatome at sub-codon resolution. Aligned by their P-site positions, the footprints from actively translating ribosomes should exhibit a 3-nt periodicity along the ORF (the ribosome moves by steps of a codon, *i.e.* 3-nt). To select reads and predict translation, most methods, including **Rp-Bp**, take advantage of this periodic signal.
+Ribosome profiling (Ribo-seq) is an RNA-sequencing-based readout of RNA translation. Isolation and deep-sequencing of ribosome-protected RNA fragments (ribosome footprints) provides a genome-wide snapshot of the translatome at sub-codon resolution. Aligned by their P-site positions, the footprints from actively translating ribosomes should exhibit a 3-nt periodicity. To select reads and predict translation, most methods, including **Rp-Bp**, take advantage of this periodic signal.
 
 **Rp-Bp** is an unsupervised Bayesian approach to predict translated open reading frames (ORFs) from ribosome profiles, using the automatic Bayesian Periodic fragment length and ribosome P-site offset Selection (BPPS), *i.e.* read lengths and ribosome P-site offsets are inferred from the data, without supervision. **Rp-Bp** is able to handle *de novo* translatome annotation by directly assessing the periodicity of the Ribo-seq signal.
 
