@@ -1,3 +1,4 @@
 include README.md
 include src/rpbp/models/*/*.stan
 include src/rpbp/analysis/rpbp_predictions/dashboard/assets/*.*
+include src/rpbp/analysis/profile_construction/dashboard/assets/*.*
