@@ -35,7 +35,7 @@ or create an environment, called *rpbp*, containing the **Rp-Bp** package
 .. code-block:: bash
 
     conda create -n rpbp rpbp
-    
+
 .. tip::
 
     `Mamba <https://mamba.readthedocs.io/en/latest/user_guide/mamba.html#mamba>`_ can be used as a drop-in replacement, you can swap almost all commands between conda and mamba.

@@ -60,8 +60,3 @@ I get ``RuntimeWarning: invalid value encountered in divide res, _ = _lowess(y, 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This happens for 3 nt ORFs.
-
-
-
-
-
