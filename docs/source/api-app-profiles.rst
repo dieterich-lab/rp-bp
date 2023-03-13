@@ -5,17 +5,14 @@ Launch a Dash app for quality control and visualization of ribosome profiling da
 
 .. code-block:: bash
 
-    usage: rpbp-profile-construction-dashboard [-h] [-d] [--host] [--port] config
+    usage: rpbp-profile-construction-dashboard [-h] [-c CONFIG] [-d] [--host] [--port]
 
-
-Positional Arguments
---------------------
-
--config
-    A YAML configuration file. The same used to run the pipeline.
 
 Named Arguments
 ---------------
+
+-c, --config
+    A YAML configuration file (required). The same used to run the pipeline.
 
 -d, --debug
     Enable debug mode.

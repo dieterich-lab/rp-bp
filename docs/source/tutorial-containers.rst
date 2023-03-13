@@ -91,21 +91,26 @@ Launch any of the web applications with
 
 .. code-block:: bash
 
-    docker run -p 8050:8050 --volume `pwd`:/data quay.io/biocontainers/rpbp:3.0.1--py310h30d9df9_0 rpbp-profile-construction-dashboard /data/c-elegans-test.yaml --host="0.0.0.0"
+    docker run -p 8050:8050 --volume `pwd`:/data quay.io/biocontainers/rpbp:3.0.1--py310h30d9df9_0 rpbp-profile-construction-dashboard -c /data/c-elegans-test.yaml --host="0.0.0.0"
 
 .. code-block:: bash
 
-    singularity run --bind `pwd`:/data rpbp.sif rpbp-profile-construction-dashboard /data/c-elegans-test.yaml --host="0.0.0.0"
+    singularity run --bind `pwd`:/data rpbp.sif rpbp-profile-construction-dashboard -c /data/c-elegans-test.yaml --host="0.0.0.0"
 
 or
 
 .. code-block:: bash
 
-    docker run -p 8050:8050 --volume `pwd`:/data quay.io/biocontainers/rpbp:3.0.1--py310h30d9df9_0 rpbp-predictions-dashboard /data/c-elegans-test.yaml --host="0.0.0.0"
+    docker run -p 8050:8050 --volume `pwd`:/data quay.io/biocontainers/rpbp:3.0.1--py310h30d9df9_0 rpbp-predictions-dashboard -c /data/c-elegans-test.yaml --host="0.0.0.0"
 
 .. code-block:: bash
 
-    singularity run --bind `pwd`:/data rpbp.sif rpbp-predictions-dashboard /data/c-elegans-test.yaml --host="0.0.0.0"
+    singularity run --bind `pwd`:/data rpbp.sif rpbp-predictions-dashboard -c /data/c-elegans-test.yaml --host="0.0.0.0"
 
 
 You then have to open a browser page at the correct address, *e.g.* you see ``Running on http://127.0.0.1:8050``, click on this link, or open a browser page at this address. To navigate the apps is easy, just follow the "hints". Most items are interactive. Press ``CTRL+C`` to quit.
+
+.. attention::
+
+    For the apps only, the configuration file is passed using a (required) named argument ``-c/--config CONFIG``.
+

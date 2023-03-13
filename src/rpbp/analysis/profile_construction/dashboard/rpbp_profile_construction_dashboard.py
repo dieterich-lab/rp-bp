@@ -44,6 +44,12 @@ sns.set(rc={"axes.facecolor": "#F9F9F8", "figure.facecolor": "#F9F9F8"})
 # ------------------------------------------------------ Functions ------------------------------------------------------
 
 
+def parse_env(key):
+    return (
+        {"default": os.environ.get(key)} if os.environ.get(key) else {"required": True}
+    )
+
+
 def get_parser():
     parser = argparse.ArgumentParser(
         description="Launch a Dash app for quality "
@@ -52,8 +58,10 @@ def get_parser():
     )
 
     parser.add_argument(
-        "config",
+        "--config",
+        "-c",
         type=str,
+        **parse_env("RPBP_CFG"),
         help="A YAML configuration file." "The same used to run the pipeline.",
     )
 
@@ -63,7 +71,8 @@ def get_parser():
 
     parser.add_argument("--port", type=int, default=8050, help="Port number.")
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
+    args, unkn = parser.parse_known_args()
 
     return args.config, args.debug, args.host, args.port
 
@@ -626,7 +635,7 @@ frame_counts.rename(columns={"sample": "Sample"}, inplace=True)
 app = dash.Dash(__name__)
 
 # do we have to expose the flask variable in the file?
-# server = app.server
+server = app.server
 
 app.layout = html.Div(
     [

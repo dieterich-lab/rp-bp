@@ -22,6 +22,12 @@ from rpbp.defaults import orf_type_colors, orf_type_labels, orf_type_name_map
 # ------------------------------------------------------ Functions ------------------------------------------------------
 
 
+def parse_env(key):
+    return (
+        {"default": os.environ.get(key)} if os.environ.get(key) else {"required": True}
+    )
+
+
 def get_parser():
     parser = argparse.ArgumentParser(
         description="Launch a Dash app to visualize "
@@ -29,8 +35,10 @@ def get_parser():
     )
 
     parser.add_argument(
-        "config",
+        "--config",
+        "-c",
         type=str,
+        **parse_env("RPBP_CFG"),
         help="A YAML configuration file." "The same used to run the pipeline.",
     )
 
@@ -40,7 +48,8 @@ def get_parser():
 
     parser.add_argument("--port", type=int, default=8050, help="Port number.")
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
+    args, unkn = parser.parse_known_args()
 
     return args.config, args.debug, args.host, args.port
 
@@ -438,10 +447,18 @@ circos_tracks_config = {
 # ------------------------------------------------------ APP ------------------------------------------------------
 
 app = dash.Dash(__name__)
+server = app.server
+
+# we need this for serving the app
+base_url = (
+    os.environ["DASH_URL_BASE_PATHNAME"]
+    if "DASH_URL_BASE_PATHNAME" in os.environ
+    else ""
+)
 
 
-@app.server.route("/data/<configval>", defaults={"suffix": None})
-@app.server.route("/data/<configval>/<suffix>")
+@app.server.route(f"{base_url}/data/<configval>", defaults={"suffix": None})
+@app.server.route(f"{base_url}/data/<configval>/<suffix>")
 def config_data(configval, suffix):
     """Serve the file specified for the given key in the configuration.
     Potentially apply a suffix for derived files like an index.
