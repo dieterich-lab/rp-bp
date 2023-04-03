@@ -215,7 +215,6 @@ def main():
     merge_replicates_str = "--merge-replicates"
 
     for condition_name in sorted(riboseq_replicates.keys()):
-
         # then we predict the ORFs
         cmd = "predict-translated-orfs {} {} --num-cpus {} {} {} {} {} {}".format(
             args.config,

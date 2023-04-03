@@ -13,7 +13,6 @@ REF_CONFIG = "c-elegans-test.yaml"
 
 @pytest.fixture(scope="session")
 def data_loc(tmp_path_factory):
-
     """\
     Download reference dataset for regression testing.
 
@@ -41,7 +40,6 @@ def data_loc(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def getf_config(data_loc):
-
     """\
     Set configuration file.
 
@@ -77,7 +75,6 @@ def getf_config(data_loc):
 
 @pytest.fixture(scope="session")
 def get_genome(getf_config):
-
     """\
     Run `prepare-rpbp-genome`.
 
@@ -107,7 +104,6 @@ def get_genome(getf_config):
 
 @pytest.fixture(scope="session")
 def getf_genome(get_genome):
-
     """\
     Get all the Rp-Bp outpout file names
     for the reference genome indices, for the current output
@@ -179,7 +175,6 @@ def getf_genome(get_genome):
 
 @pytest.fixture(scope="session")
 def get_pipeline(getf_config):
-
     """\
     Run `run-all-rpbp-instances`.
 
@@ -213,7 +208,6 @@ def get_pipeline(getf_config):
 @pytest.mark.depends(on=["getf_genome"])
 @pytest.fixture(scope="session")
 def getf_pipeline(get_pipeline):
-
     """\
     Get all the Rp-Bp outpout file names
     for the ORF periodicity estimates, ORF profiles,

@@ -46,7 +46,6 @@ def get_parser():
 
 
 def fmt_tooltip(row):
-
     conditions = row.condition.split("|")
     bayes_factor_mean = row.bayes_factor_mean.split("|")
     bayes_factor_var = row.bayes_factor_var.split("|")
@@ -63,7 +62,6 @@ def fmt_tooltip(row):
 
 
 def get_orf_type_counts(condition):
-
     orf_type_counts = condition.groupby(["orf_type", "strand"]).size()
     orf_type_counts = orf_type_counts.reset_index(name="count")
 
@@ -71,7 +69,6 @@ def get_orf_type_counts(condition):
 
 
 def filter_sort_table(filter_query, sort_by):
-
     filtering_expressions = filter_query.split(" && ")
     df = display_table.copy()
 
@@ -874,7 +871,6 @@ def update_main_table(page_current, page_size, sort_by, filter_query):
     State("circos_fig", "tracks"),
 )
 def hist_orf_type(value, current):
-
     tracks_config = {
         "innerRadius": circos_innerRadius,
         "outerRadius": circos_outerRadius,
@@ -909,7 +905,6 @@ def hist_orf_type(value, current):
     prevent_initial_call=True,
 )
 def func(n_clicks, sort_by, filter_query):  # table_data
-
     # df = pd.DataFrame.from_dict(table_data)
     changed_inputs = [x["prop_id"] for x in ctx.triggered]
     if "btn_csv.n_clicks" in changed_inputs:

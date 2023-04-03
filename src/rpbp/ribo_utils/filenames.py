@@ -106,7 +106,6 @@ def get_riboseq_base(
     is_filtered=False,
     note=None,
 ):
-
     unique = get_unique_string(is_unique)
     l = get_length_string(length)
     o = get_offset_string(offset)
@@ -122,14 +121,12 @@ def get_riboseq_base(
 
 
 def get_riboseq_bam_base(riboseq_base, name, **kwargs):
-
     bam_base = get_riboseq_base(riboseq_base, name, "without-rrna-mapping", **kwargs)
 
     return bam_base
 
 
 def get_riboseq_bam(riboseq_base, name, **kwargs):
-
     s = get_riboseq_bam_base(riboseq_base, name, **kwargs)
     s = s + ".bam"
     return s
@@ -147,7 +144,6 @@ def get_riboseq_bam_fastqc_data(
     note=None,
     is_chisq=False,
 ):
-
     unique = get_unique_string(is_unique)
     l = get_length_string(length)
     n = get_note_string(note)
@@ -166,7 +162,6 @@ def get_bed(
     is_annotated=False,
     is_de_novo=False,
 ):
-
     c = get_annotated_string(is_annotated)
     d = get_de_novo_string(is_de_novo)
     fn = "{}{}{}.bed.gz".format(name, c, d)
@@ -174,7 +169,6 @@ def get_bed(
 
 
 def get_riboseq_bayes_factors(riboseq_base, name, **kwargs):
-
     s = get_riboseq_base(riboseq_base, name, "orf-predictions", **kwargs)
 
     s = s + ".bayes-factors.bed.gz"
@@ -185,7 +179,6 @@ def get_riboseq_bayes_factors(riboseq_base, name, **kwargs):
 
 
 def get_riboseq_cell_type_protein(riboseq_base, name, **kwargs):
-
     s = get_riboseq_base(riboseq_base, name, "cell-types", **kwargs)
     s = s + ".predicted-orfs.protein.fa"
     return s
@@ -195,7 +188,6 @@ def get_riboseq_cell_type_protein(riboseq_base, name, **kwargs):
 
 
 def get_exons(base_path, name, is_annotated=False, is_de_novo=False, note=None):
-
     note_str = get_note_string(note)
     c = get_annotated_string(is_annotated)
     d = get_de_novo_string(is_de_novo)
@@ -204,7 +196,6 @@ def get_exons(base_path, name, is_annotated=False, is_de_novo=False, note=None):
 
 
 def get_labels(base_path, name, is_annotated=False, is_de_novo=False, note=None):
-
     note_str = get_note_string(note)
     c = get_annotated_string(is_annotated)
     d = get_de_novo_string(is_de_novo)
@@ -260,7 +251,6 @@ def get_riboseq_frame_counts(riboseq_base, name, **kwargs):
 def get_gtf(
     config,
 ):
-
     if "de_novo_gtf" in config:
         base_path = config["genome_base_path"]
         name = config["genome_name"]
@@ -274,21 +264,18 @@ def get_gtf(
 
 
 def get_metagene_profile_image(base, name, image_type="eps", **kwargs):
-
     s = get_riboseq_base(base, name, "metagene-profiles", **kwargs)
     s = s + "." + image_type
     return s
 
 
 def get_metagene_profiles(riboseq_base, name, **kwargs):
-
     s = get_riboseq_base(riboseq_base, name, "metagene-profiles", **kwargs)
     s = s + ".metagene-profile.csv.gz"
     return s
 
 
 def get_metagene_profiles_bayes_factors(riboseq_base, name, **kwargs):
-
     s = get_riboseq_base(riboseq_base, name, "metagene-profiles", **kwargs)
     s = s + ".metagene-periodicity-bayes-factors.csv.gz"
     return s
@@ -315,7 +302,6 @@ def get_models(models_base, model_type):
 def get_metagene_profile_bayes_factor_image(
     riboseq_base, name, image_type="eps", **kwargs
 ):
-
     s = get_riboseq_base(riboseq_base, name, "metagene-profiles", **kwargs)
     s = s + ".bayes-factors." + image_type
     return s
@@ -344,7 +330,6 @@ def get_orf_type_profile_base(
     is_chisq=False,
     subfolder="orf-predictions",
 ):
-
     subfolder = os.path.join(subfolder, "plots")
     s = get_riboseq_base(
         riboseq_base,
@@ -370,7 +355,6 @@ def get_orf_type_profile_image(base_path, orf_type, strand, image_type="eps"):
 
 
 def get_periodic_offsets(riboseq_base, name, **kwargs):
-
     sub_folder = kwargs.pop("sub_folder", "metagene-profiles")
     s = get_riboseq_base(riboseq_base, name, sub_folder, **kwargs)
     s = s + ".periodic-offsets.csv.gz"
@@ -378,7 +362,6 @@ def get_periodic_offsets(riboseq_base, name, **kwargs):
 
 
 def get_riboseq_peptide_matches(riboseq_base, name, peptide_name, **kwargs):
-
     n = "{}-{}".format(name, peptide_name)
 
     s = get_riboseq_base(riboseq_base, n, "peptide-matches", **kwargs)
@@ -394,21 +377,18 @@ def get_riboseq_predicted_orfs(riboseq_base, name, **kwargs):
 
 
 def get_riboseq_predicted_orfs_dna(riboseq_base, name, **kwargs):
-
     s = get_riboseq_base(riboseq_base, name, "orf-predictions", **kwargs)
     s = s + ".predicted-orfs.dna.fa"
     return s
 
 
 def get_riboseq_predicted_orfs_protein(riboseq_base, name, **kwargs):
-
     s = get_riboseq_base(riboseq_base, name, "orf-predictions", **kwargs)
     s = s + ".predicted-orfs.protein.fa"
     return s
 
 
 def get_riboseq_profiles(riboseq_base, name, **kwargs):
-
     s = get_riboseq_base(riboseq_base, name, "orf-profiles", **kwargs)
     s = s + ".profiles.mtx.gz"
     return s
@@ -441,7 +421,6 @@ def get_raw_data_fastqc_path(base_path):
 
 
 def get_raw_data_fastqc_data(base_path, filename):
-
     name = get_fastqc_name(filename)
     fastqc_folder = "{}_fastqc".format(name)
     rdp = get_raw_data_fastqc_path(base_path)
@@ -467,7 +446,6 @@ def get_transcript_fasta(
     is_annotated=False,
     is_de_novo=False,
 ):
-
     c = get_annotated_string(is_annotated)
     d = get_de_novo_string(is_de_novo)
     fn = "{}.transcripts{}{}.fa".format(name, c, d)

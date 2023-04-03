@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 def get_most_periodic_offset(profile_df):
-
     # mask_largest_count = profile_df['profile_sum'] == profile_df['profile_sum'].max()
     # largest_count_row = profile_df[mask_largest_count].iloc[0]
     m_highest_peak = profile_df["profile_peak"] == profile_df["profile_peak"].max()

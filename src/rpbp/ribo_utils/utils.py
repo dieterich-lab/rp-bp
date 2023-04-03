@@ -22,12 +22,10 @@ class _return_key_dict(dict):
 
 
 def get_transcript_id(orf_id, sep="_"):
-
     return orf_id.split(sep)[0]
 
 
 def get_all_transcript_ids(orfs, sep="_", num_cpus=1, progress_bar=False):
-
     import pbiotools.misc.parallel as parallel
 
     transcript_ids = parallel.apply_parallel_iter(
@@ -43,7 +41,6 @@ def get_all_transcript_ids(orfs, sep="_", num_cpus=1, progress_bar=False):
 
 
 def get_riboseq_replicates(config):
-
     if "riboseq_biological_replicates" in config:
         if config["riboseq_biological_replicates"] is not None:
             msg = "Found 'riboseq_biological_replicates' key in config file"
@@ -131,7 +128,6 @@ def get_periodic_lengths_and_offsets(
     is_unique=True,
     default_params=None,
 ):
-
     """This function applies a set of filters to metagene profiles to select those
     which are "periodic" based on the read counts and Bayes factor estimates.
 
@@ -469,7 +465,6 @@ def smooth_profile(
     reweighting_iterations=translation_options["smoothing_reweighting_iterations"],
     fraction=translation_options["smoothing_fraction"],
 ):
-
     """This function smoothes the given ORF profile using the frame-specific
     approach. It assumes the profile is a dense numpy array and that any
     filtering due to differences of counts in reading frames, lengths, etc.,
@@ -592,7 +587,6 @@ def get_bf_filter(
     max_bf_var=translation_options["max_bf_var"],
     min_bf_likelihood=translation_options["min_bf_likelihood"],
 ):
-
     """This function applies filters to the Bayes factor estimates to find all
     ORFs which should be predicted as translated. This does not consider the
     length and profile sums, so this filter would need to be combined with

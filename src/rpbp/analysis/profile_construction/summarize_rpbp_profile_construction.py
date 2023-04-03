@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 
 
 def get_read_filtering_summary(filename, args):
-
     overwrite_str = ""
     if args.overwrite:
         overwrite_str = "--overwrite"
@@ -48,7 +47,6 @@ def get_read_filtering_summary(filename, args):
 
 
 def get_read_length_distributions(sample, config, is_unique, note, args):
-
     logging_str = logging_utils.get_logging_options_string(args)
     cpus_str = "--num-cpus {}".format(args.num_cpus)
 
@@ -83,7 +81,6 @@ def get_read_length_distributions(sample, config, is_unique, note, args):
 
 
 def collect_all_read_length_distributions(sample, config, note, args):
-
     # distribution for this sample
     read_length_distribution = filenames.get_riboseq_read_length_distribution(
         config["riboseq_data"], sample, note=note
@@ -96,7 +93,6 @@ def collect_all_read_length_distributions(sample, config, note, args):
 
 
 def collect_lengths_and_offsets(sample, config, is_unique, note, args):
-
     # not only the periodic lengths and offsets, but all
     # and add status information based on filters
 
@@ -123,7 +119,6 @@ def collect_lengths_and_offsets(sample, config, is_unique, note, args):
 
     lengths, offsets, statuses = [], [], []
     for length in range(min_read_length, max_read_length + 1):
-
         # check which offset is used
         # select the row for this length
         mask_length = offsets_df["length"] == length
@@ -194,7 +189,6 @@ def get_profile(sample, config, is_unique, note):
 
 
 def get_frame_counts(sample, config, is_unique, note):
-
     msg = "{}: extracting frame counts".format(sample)
     logger.info(msg)
 
@@ -221,7 +215,6 @@ def get_frame_counts(sample, config, is_unique, note):
 
 
 def create_fastqc_reports(sample_data, config, note, is_unique, args):
-
     sample, raw_data = sample_data
     msg = "{}: creating fastqc reports".format(sample)
     logger.info(msg)
@@ -509,7 +502,6 @@ def main():
     )
 
     if args.create_fastqc_reports:
-
         msg = "Calling FastQC..."
         logger.info(msg)
 
