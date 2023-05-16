@@ -40,7 +40,6 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="""This script runs all of the processing necessary to

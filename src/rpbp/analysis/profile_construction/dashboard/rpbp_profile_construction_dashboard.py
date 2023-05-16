@@ -78,7 +78,6 @@ def get_parser():
 
 
 def get_diff_counts(data_np):
-
     # add an extra column so the diff counts will work
     zeros = np.zeros((data_np.shape[0], 1))
     data_np = np.append(zeros, data_np, axis=1)
@@ -96,7 +95,6 @@ def get_window_counts(
     end_upstream_window,
     end_downstream_window,
 ):
-
     # profile around start codon
     start_upstream = start_upstream_window - offset
     start_downstream = start_downstream_window - offset
@@ -129,7 +127,6 @@ def get_profiles_bars(
     end_upstream_window,
     end_downstream_window,
 ):
-
     start_window_size = start_downstream_window - start_upstream_window + 1
     end_window_size = end_downstream_window - end_upstream_window + 1
 
@@ -137,7 +134,6 @@ def get_profiles_bars(
     metagene_profile_end = np.zeros(end_window_size)
 
     for sample in samples:
-
         sample_name = reverse_sample_name_map[sample]
 
         # TODO: if we have the df with all lengths and offsets ready, we don't need to
@@ -158,7 +154,6 @@ def get_profiles_bars(
         )
 
         for length, offset in zip(lengths, offsets):
-
             m_length = metagene_profiles["length"] == int(length)
             metagene_profile = metagene_profiles[m_length]
 
@@ -183,7 +178,6 @@ def get_profiles_lines(
     end_upstream_window,
     end_downstream_window,
 ):
-
     start_window_size = start_downstream_window - start_upstream_window + 1
     end_window_size = end_downstream_window - end_upstream_window + 1
 
@@ -191,7 +185,6 @@ def get_profiles_lines(
     all_ribo_metagene_profile_end_df = pd.DataFrame(columns=range(end_window_size))
 
     for sample in samples:
-
         sample_name = reverse_sample_name_map[sample]
 
         # TODO: if we have the df with all lengths and offsets ready, we don't need to
@@ -216,7 +209,6 @@ def get_profiles_lines(
         metagene_profile_end = np.zeros(end_window_size)
 
         for length, offset in zip(lengths, offsets):
-
             m_length = metagene_profiles["length"] == int(length)
             metagene_profile = metagene_profiles[m_length]
 
@@ -259,7 +251,6 @@ def metagene_plot_bars(
     y_max=None,
     layout=None,
 ):
-
     indices = [(0, 1, 2), (1, 0, 2), (2, 1, 0)]
     start_window_size = start_downstream_window - start_upstream_window + 1
     end_window_size = end_downstream_window - end_upstream_window + 1
@@ -336,7 +327,6 @@ def metagene_plot_lines(
     y_label,
     y_max=None,
 ):
-
     start_window_size = start_downstream_window - start_upstream_window + 1
     end_window_size = end_downstream_window - end_upstream_window + 1
 
@@ -958,7 +948,6 @@ app.layout = html.Div(
     [Input("drop_samples", "value"), Input("radio_stacked_reads", "value")],
 )
 def stacked_reads(selected, zoom):
-
     selected_samples = selected.split(",")
 
     stack_cts_order = STACK_CTS_ORDER
@@ -1001,7 +990,6 @@ def stacked_reads(selected, zoom):
     ],
 )
 def funnel_reads(hoverData, zoom, selected):
-
     stack_cts_order = STACK_CTS_ORDER
     funnel_cts_name = FUNNEL_CTS_NAME
     if zoom == 1:  # exclude ribosomal/poor quality
@@ -1068,7 +1056,6 @@ def update_available_samples(selected):
     [Input("dropdown_available_samples", "value"), Input("drop_unique", "value")],
 )
 def read_length_min_max(sample, unique):
-
     unique = ast.literal_eval(unique)
     m_unique = read_length_distributions.is_unique == unique
     m_sample = read_length_distributions.Sample == sample
@@ -1090,7 +1077,6 @@ def read_length_min_max(sample, unique):
     ],
 )
 def length_bars(sample, unique, log_y, slider):
-
     unique = ast.literal_eval(unique)
     pal = pal_bars[2]
     if unique:
@@ -1142,7 +1128,6 @@ def length_bars(sample, unique, log_y, slider):
     ],
 )
 def read_length_metagene_bars(hoverData, sample):
-
     # TODO: how to get a default value, i.e. not hoverData['points'][0] is None?
 
     m_sample = lengths_and_offsets.Sample == sample
@@ -1280,7 +1265,6 @@ def read_length_metagene_bars(hoverData, sample):
 # percentage of reads in each frame
 @app.callback(Output("stacked_frames_fig", "figure"), Input("drop_samples", "value"))
 def stacked_frames(selected):
-
     selected_samples = selected.split(",")
     df = frame_counts[frame_counts.Sample.isin(selected_samples)]
 
@@ -1314,7 +1298,6 @@ def stacked_frames(selected):
     ],
 )
 def all_metagenes(window_upstream, window_downstream, step, plot, selected):
-
     # instead of defining a default value and override placeholder...
     if window_upstream is None:
         window_upstream = 3

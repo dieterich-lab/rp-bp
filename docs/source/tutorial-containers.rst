@@ -113,4 +113,3 @@ You then have to open a browser page at the correct address, *e.g.* you see ``Ru
 .. attention::
 
     For the apps only, the configuration file is passed using a (required) named argument ``-c/--config CONFIG``.
-
