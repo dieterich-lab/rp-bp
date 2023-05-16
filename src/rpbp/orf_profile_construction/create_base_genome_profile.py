@@ -253,11 +253,25 @@ def main():
 
     # rename STAR output to that expected by the pipeline
     genome_star_bam = Path(genome_star_bam)
-    genome_star_bam.replace(genome_sorted_bam)
+    # otherwise check and replace
+    if genome_star_bam.is_file():
+        if not Path(genome_sorted_bam).is_file() or args.overwrite :
+            genome_star_bam.replace(genome_sorted_bam)
+            msg = f"Replacing {genome_star_bam.as_posix()} by {genome_sorted_bam}"
+            logger.info(msg)
+        else:
+            msg = f"Both files {genome_star_bam.as_posix()} and {genome_sorted_bam} " \
+                  f"already exist! You should re-run using [--overwrite] to avoid " \
+                  f"data corruption!"
+            logger.error(msg)
+    else:
+        # re-run w/o overwrite
+        msg = f"The file {genome_sorted_bam} already exists. Continuing..."
+        logger.warning(msg)
+
 
     # create the bamtools index
-    cmd = "samtools index -b {}".format(genome_sorted_bam)
-    shell_utils.check_call(cmd, call=call)
+    bam_utils.index_bam_file(genome_sorted_bam, args)
 
     # check if we want to keep multimappers
     if config.get("keep_riboseq_multimappers", False):
