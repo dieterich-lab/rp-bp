@@ -60,17 +60,20 @@ Launch any of the web applications with
 
 .. code-block:: bash
 
-    rpbp-profile-construction-dashboard c-elegans-test.yaml
+    rpbp-profile-construction-dashboard -c c-elegans-test.yaml
 
 or
 
 .. code-block:: bash
 
-    rpbp-predictions-dashboard c-elegans-test.yaml
+    rpbp-predictions-dashboard -c c-elegans-test.yaml
 
 
 To navigate the apps is easy, just follow the "hints". Most items are interactive. Press ``CTRL+C`` to quit.
 
+.. attention::
+
+    For the apps only, the configuration file is passed using a (required) named argument ``-c/--config CONFIG``.
 
 .. note::
 

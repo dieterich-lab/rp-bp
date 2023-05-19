@@ -207,7 +207,6 @@ def get_bayes_factor(profile, translated_models, untranslated_models, args):
 
 
 def get_all_bayes_factors(orfs):
-
     """This function calculates the Bayes' factor term for each region in regions. See the
     description of the script for the Bayes' factor calculations.
 

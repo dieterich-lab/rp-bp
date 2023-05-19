@@ -64,7 +64,6 @@ def get_profile(name, config, args):
 
 
 def main():
-
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description=""""This script runs the second part of the pipeline:
@@ -332,7 +331,6 @@ def main():
     if args.write_unfiltered:
         filters.append(False)
     for is_filtered in filters:
-
         filtered_str = ""
         if is_filtered:
             filtered_str = "--select-longest-by-stop --select-best-overlapping"

@@ -331,7 +331,6 @@ def main():
     # transcript structure (i.e start upstream but otherwise
     # have the same structure).
     if args.nonoverlapping_label is None:
-
         transcript_matches = bed_utils.get_bed_overlaps(
             annotated_exons, extracted_orf_exons, min_b_overlap=1
         )
@@ -345,7 +344,6 @@ def main():
         }
 
     else:
-
         extended_match_ids = {
             m.b_info
             for m in extended_matches
@@ -414,7 +412,6 @@ def main():
     trailer_match_pairs = {(m.a_info, m.b_info) for m in trailer_matches}
 
     if args.nonoverlapping_label is None:
-
         # For standard assembly, we also need to make sure that
         # all overlap matches are fully contained within the
         # transcript structure.
@@ -491,7 +488,6 @@ def main():
         logger.info(msg)
 
     else:
-
         overlap_ids = {m.b_info for m in out_of_frame_matches}
         overlap_ids |= {m.b_info for m in leader_matches}
         overlap_ids |= {m.b_info for m in trailer_matches}

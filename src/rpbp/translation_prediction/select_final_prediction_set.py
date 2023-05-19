@@ -29,7 +29,6 @@ default_profile_sum_field = "profile_sum"
 
 
 def get_best_overlapping_orf(merged_ids, predicted_orfs):
-
     if len(merged_ids) == 1:
         m_id = predicted_orfs["id"] == merged_ids[0]
         return predicted_orfs[m_id].iloc[0]
@@ -192,7 +191,6 @@ def main():
     logger.info(msg)
 
     if args.select_best_overlapping:
-
         msg = "Finding overlapping ORFs"
         logger.info(msg)
 

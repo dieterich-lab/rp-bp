@@ -30,7 +30,6 @@ logger = logging.getLogger(__name__)
 
 
 def get_p_site_intersections(seqname, strand, p_sites, exons_df):
-
     # only the things in the right direction, etc.
     m_exons_seqname = exons_df["seqname"] == seqname
     m_p_sites_seqname = p_sites["seqname"] == seqname

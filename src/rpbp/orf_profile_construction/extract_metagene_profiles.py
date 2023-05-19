@@ -34,7 +34,6 @@ default_end_downstream = 300
 
 
 def get_interval_df(start, end, seqname, strand):
-
     interval_df = pd.DataFrame()
     interval_df["start"] = start
     interval_df["end"] = end
@@ -47,7 +46,6 @@ def get_interval_df(start, end, seqname, strand):
 
 
 def get_length_strand_profiles(matches, profile_length):
-
     init = lambda: np.zeros(profile_length, int)
     length_strand_profiles = collections.defaultdict(init)
 
@@ -68,7 +66,6 @@ def get_length_strand_profiles(matches, profile_length):
 def get_metagene_profile_df(
     length, type_label, length_strand_profiles, upstream, downstream
 ):
-
     reverse_metagene_profile = length_strand_profiles[(length, "-")]
     forward_metagene_profile = length_strand_profiles[(length, "+")]
 
@@ -89,7 +86,6 @@ def get_metagene_profile_df(
 
 
 def main():
-
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="""This script extracts the metagene profile

@@ -85,7 +85,6 @@ def main():
     length_profile_map = {}
 
     for name in names:
-
         msg = "Processing sample: {}".format(name)
         logger.info(msg)
 
@@ -104,7 +103,6 @@ def main():
             return
 
         for length, offset in zip(lengths, offsets):
-
             mtx = filenames.get_riboseq_profiles(
                 config["riboseq_data"],
                 name,
@@ -125,7 +123,6 @@ def main():
 
     if args.add_ids:
         with gzip.open(args.out, "wb") as target_gz:
-
             for length, mtx in length_profile_map.items():
                 mtx = mtx.tocoo()
 
@@ -139,7 +136,6 @@ def main():
                     target_gz.write(s.encode())
     else:
         with gzip.open(args.out, "wb") as target_gz:
-
             for length, mtx in length_profile_map.items():
                 mtx = mtx.tocoo()
 

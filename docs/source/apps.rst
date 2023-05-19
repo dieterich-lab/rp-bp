@@ -87,7 +87,7 @@ To launch the *profile construction dashboard*
 
 .. code-block:: bash
 
-    rpbp-profile-construction-dashboard <config>
+    rpbp-profile-construction-dashboard -c CONFIG
 
 
 The application has multiple views to facilitate quality control, *e.g.*
@@ -104,7 +104,7 @@ To launch the *predictions dashboard*
 
 .. code-block:: bash
 
-    rpbp-predictions-dashboard <config>
+    rpbp-predictions-dashboard -c CONFIG
 
 
 The application has multiple views to facilitate ORF discovery, including an integrated `IGV browser <https://software.broadinstitute.org/software/igv/>`_ for the visual exploration of predicted Ribo-seq ORFs, *e.g.*

@@ -41,7 +41,6 @@ default_count_field = "count"
 def estimate_marginal_likelihoods(
     signal, periodic_models, nonperiodic_models, iterations, chains, seed
 ):
-
     # construct the input for the models
     x_1 = signal[0::3]
     x_2 = signal[1::3]
@@ -93,7 +92,6 @@ def estimate_marginal_likelihoods(
 
 
 def estimate_profile_bayes_factors(profile, args):
-
     # logging
     cmdstanpy_logger.disabled = True
     if args.enable_ext_logging:

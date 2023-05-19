@@ -17,9 +17,17 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
+import rpbp.ribo_utils.utils as ribo_utils
+
 from rpbp.defaults import orf_type_colors, orf_type_labels, orf_type_name_map
 
 # ------------------------------------------------------ Functions ------------------------------------------------------
+
+
+def parse_env(key):
+    return (
+        {"default": os.environ.get(key)} if os.environ.get(key) else {"required": True}
+    )
 
 
 def get_parser():
@@ -29,8 +37,10 @@ def get_parser():
     )
 
     parser.add_argument(
-        "config",
+        "--config",
+        "-c",
         type=str,
+        **parse_env("RPBP_CFG"),
         help="A YAML configuration file." "The same used to run the pipeline.",
     )
 
@@ -40,13 +50,13 @@ def get_parser():
 
     parser.add_argument("--port", type=int, default=8050, help="Port number.")
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
+    args, unkn = parser.parse_known_args()
 
     return args.config, args.debug, args.host, args.port
 
 
 def fmt_tooltip(row):
-
     conditions = row.condition.split("|")
     bayes_factor_mean = row.bayes_factor_mean.split("|")
     bayes_factor_var = row.bayes_factor_var.split("|")
@@ -63,7 +73,6 @@ def fmt_tooltip(row):
 
 
 def get_orf_type_counts(condition):
-
     orf_type_counts = condition.groupby(["orf_type", "strand"]).size()
     orf_type_counts = orf_type_counts.reset_index(name="count")
 
@@ -71,7 +80,6 @@ def get_orf_type_counts(condition):
 
 
 def filter_sort_table(filter_query, sort_by):
-
     filtering_expressions = filter_query.split(" && ")
     df = display_table.copy()
 
@@ -148,6 +156,14 @@ labels_md_text = """
     **Novel**: Translation event inter- or intragenic (only when Rp-Bp is run with a *de novo* assembly)
     """
 
+# ribo_utils._return_key_dict
+sample_name_map = ribo_utils.get_sample_name_map(
+    config
+)  # default to riboseq_samples.keys()
+condition_name_map = ribo_utils.get_condition_name_map(
+    config
+)  # default to riboseq_biological_replicates.keys()
+
 col_rev = {v: k for k, v in orf_type_colors.items()}
 row_col = {}
 for orf_type, labels in orf_type_labels.items():
@@ -158,6 +174,9 @@ for orf_type, labels in orf_type_labels.items():
 # *** load/wrangle data
 orfs = pd.read_csv(config["predicted_orfs"], sep="\t", low_memory=False)  # bed_utils
 orfs.columns = orfs.columns.str.replace("#", "")
+orfs["condition"] = orfs["condition"].apply(lambda x: sample_name_map[x])
+# apply condition name map, in case we also have conditions
+orfs["condition"] = orfs["condition"].apply(lambda x: condition_name_map[x])
 orfs["orf_len"] = orfs["orf_len"] / 3
 orfs["profile_sum"] = orfs[["x_1_sum", "x_2_sum", "x_3_sum"]].sum(axis=1)
 orfs["profile_sum"] = orfs["profile_sum"].astype(int)
@@ -438,10 +457,18 @@ circos_tracks_config = {
 # ------------------------------------------------------ APP ------------------------------------------------------
 
 app = dash.Dash(__name__)
+server = app.server
+
+# we need this for serving the app
+base_url = (
+    os.environ["DASH_URL_BASE_PATHNAME"]
+    if "DASH_URL_BASE_PATHNAME" in os.environ
+    else ""
+)
 
 
-@app.server.route("/data/<configval>", defaults={"suffix": None})
-@app.server.route("/data/<configval>/<suffix>")
+@app.server.route(f"{base_url}/data/<configval>", defaults={"suffix": None})
+@app.server.route(f"{base_url}/data/<configval>/<suffix>")
 def config_data(configval, suffix):
     """Serve the file specified for the given key in the configuration.
     Potentially apply a suffix for derived files like an index.
@@ -874,7 +901,6 @@ def update_main_table(page_current, page_size, sort_by, filter_query):
     State("circos_fig", "tracks"),
 )
 def hist_orf_type(value, current):
-
     tracks_config = {
         "innerRadius": circos_innerRadius,
         "outerRadius": circos_outerRadius,
@@ -909,7 +935,6 @@ def hist_orf_type(value, current):
     prevent_initial_call=True,
 )
 def func(n_clicks, sort_by, filter_query):  # table_data
-
     # df = pd.DataFrame.from_dict(table_data)
     changed_inputs = [x["prop_id"] for x in ctx.triggered]
     if "btn_csv.n_clicks" in changed_inputs:

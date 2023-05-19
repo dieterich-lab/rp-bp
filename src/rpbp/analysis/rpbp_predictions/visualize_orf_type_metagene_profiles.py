@@ -31,7 +31,6 @@ default_max_orfs = 10000
 
 
 def get_windows(profile):
-
     profile = profile / np.max(profile)
 
     orf_len = len(profile)
@@ -66,7 +65,6 @@ def get_profile(orf, profiles, min_profile):
 
 
 def plot_windows(windows, title, out):
-
     if len(windows) == 0:
         msg = "Did not find any windows for: {}".format(title)
         logger.warning(msg)

@@ -38,7 +38,7 @@ A single YAML configuration file can be used for both index creation and running
 
 In addition to the above required keys:
 
-* ``riboseq_samples`` *(required, input)* A dictionary *key: value*, where *key* is used to construct filenames, and *value* is the full path to the FASTQ.GZ file for a given sample. The *key* should not contain spaces or special characters.
+* ``riboseq_samples`` *(required, input)* A dictionary *key: value*, where *key* is used to construct filenames, and *value* is the full path to the FASTQ.gz file for a given sample. The *key* should not contain spaces or special characters.
 
 * ``riboseq_biological_replicates`` *(optional, input)* A dictionary *key: value*, where *key* is a condition, and *value* contains all samples which are replicates of the condition. Items of the *value* list must match the ``riboseq_samples`` *key*.
 * ``adapter_file`` *(optional, input)* Path to adapter sequences to be removed (FASTA).
@@ -279,7 +279,7 @@ Without the ``--profiles-only`` option, the pipeline will predict which ORFs sho
 
 .. tip::
 
-    If you first created profiles and estimated periodicity using the ``--profiles-only`` option, you can decide to continue with the translation prediction step at a later stage. You only have to ```run-all-rpbp-instances <config> [--merge-replicates] [--run-replicates]``` using the same configuration file. Steps for which output files already exists will be skipped, unless the ``--overwrite`` option is set.
+    If you first created profiles and estimated periodicity using the ``--profiles-only`` option, you can decide to continue with the translation prediction step at a later stage. You only have to ``run-all-rpbp-instances <config> [--merge-replicates] [--run-replicates]`` using the same configuration file. Steps for which output files already exists will be skipped, unless the ``--overwrite`` option is set.
 
 
 Required input

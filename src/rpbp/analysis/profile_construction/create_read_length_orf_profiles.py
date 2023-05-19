@@ -98,7 +98,6 @@ def main():
 
     job_ids = []
     for name in names:
-
         msg = "Processing sample: {}".format(name)
         logger.info(msg)
 

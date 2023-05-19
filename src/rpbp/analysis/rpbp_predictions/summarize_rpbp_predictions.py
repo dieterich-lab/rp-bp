@@ -92,7 +92,6 @@ def get_predictions_file(
     config,
     ftype="predictions",
 ):
-
     if is_sample:
         try:
             lengths, offsets = ribo_utils.get_periodic_lengths_and_offsets(
@@ -169,7 +168,6 @@ def cut_it(x, seqname, karyotype, args):
 
 
 def get_circos_graph(orfs, sub_folder, config, args):
-
     orf_types = orfs.orf_type.unique()
     df = orfs.drop_duplicates(subset=bed_utils.bed12_field_names).copy()
     df.rename(columns={"seqname": "block_id"}, inplace=True)
@@ -242,7 +240,6 @@ def add_data(
     is_filtered,
     config,
 ):
-
     orfs_file = get_predictions_file(
         name,
         is_sample,
@@ -261,7 +258,6 @@ def add_data(
 
 
 def get_bed_blocks(row):
-
     # convert genomic coordinates to bed blocks
     # ad-hoc for standardized ORFs
 
@@ -298,7 +294,6 @@ def get_bed_blocks(row):
 
 
 def get_standardized_orfs(filen, sheet):
-
     # ad-hoc for standardized ORFs
 
     colmap = [
@@ -318,7 +313,6 @@ def get_standardized_orfs(filen, sheet):
 
 
 def _create_figures(name_pretty_name_is_sample, config, args):
-
     name, pretty_name, is_sample = name_pretty_name_is_sample
 
     is_unique = not config.get("keep_riboseq_multimappers", False)
@@ -404,7 +398,6 @@ def _create_figures(name_pretty_name_is_sample, config, args):
 
 
 def create_all_figures(config, sample_name_map, condition_name_map, args):
-
     is_sample = True
     sample_names = sorted(config["riboseq_samples"].keys())
     samples = [(name, sample_name_map[name], is_sample) for name in sample_names]
@@ -694,6 +687,10 @@ def main():
         bed_df_dn = bed_utils.read_bed(transcript_bed_dn, low_memory=False)[cols]
         bed_df_dn.rename(columns={"id": "transcript_id"}, inplace=True)
         bed_df = pd.concat([bed_df, bed_df_dn])
+        # now we have the problem that bed_df may contain duplicate transcript ids
+        # for the purpose of display/annotation, we favour the annotated one
+        # in general the novel transcript will be a variant (matched introns, extension, etc.)
+        bed_df.drop_duplicates(subset=["transcript_id"], inplace=True)
 
     labeled_orfs = filenames.get_labels(
         config["genome_base_path"], config["genome_name"], note=orf_note

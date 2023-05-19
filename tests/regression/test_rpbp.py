@@ -30,7 +30,6 @@ def test_pipeline_part1(getf_genome):
 # test output of `run-all-rpbp-instances`
 @pytest.mark.depends(on=["test_pipeline_part1"])
 def test_pipeline_part2(getf_pipeline):
-
     from pbiotools.utils.fastx_utils import get_fasta_dict
 
     # deterministic output - profiles should match exactly
@@ -43,7 +42,6 @@ def test_pipeline_part2(getf_pipeline):
 
     # periodic-offsets - compare only the periodic lengths
     for file, ref_file in periodics:
-
         file_df = to_df(file[0])
         file_lengths = file[1]
 
@@ -82,7 +80,6 @@ def test_pipeline_part2(getf_pipeline):
         "profile_sum",
     ]
     for file, ref_file in predictions:
-
         file_df = to_df(file)
         ref_file_df = to_df(ref_file)
 
