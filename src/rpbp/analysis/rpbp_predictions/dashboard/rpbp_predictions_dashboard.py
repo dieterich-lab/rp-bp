@@ -17,6 +17,8 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
+import rpbp.ribo_utils.utils as ribo_utils
+
 from rpbp.defaults import orf_type_colors, orf_type_labels, orf_type_name_map
 
 # ------------------------------------------------------ Functions ------------------------------------------------------
@@ -154,6 +156,14 @@ labels_md_text = """
     **Novel**: Translation event inter- or intragenic (only when Rp-Bp is run with a *de novo* assembly)
     """
 
+# ribo_utils._return_key_dict
+sample_name_map = ribo_utils.get_sample_name_map(
+    config
+)  # default to riboseq_samples.keys()
+condition_name_map = ribo_utils.get_condition_name_map(
+    config
+)  # default to riboseq_biological_replicates.keys()
+
 col_rev = {v: k for k, v in orf_type_colors.items()}
 row_col = {}
 for orf_type, labels in orf_type_labels.items():
@@ -164,6 +174,9 @@ for orf_type, labels in orf_type_labels.items():
 # *** load/wrangle data
 orfs = pd.read_csv(config["predicted_orfs"], sep="\t", low_memory=False)  # bed_utils
 orfs.columns = orfs.columns.str.replace("#", "")
+orfs["condition"] = orfs["condition"].apply(lambda x: sample_name_map[x])
+# apply condition name map, in case we also have conditions
+orfs["condition"] = orfs["condition"].apply(lambda x: condition_name_map[x])
 orfs["orf_len"] = orfs["orf_len"] / 3
 orfs["profile_sum"] = orfs[["x_1_sum", "x_2_sum", "x_3_sum"]].sum(axis=1)
 orfs["profile_sum"] = orfs["profile_sum"].astype(int)

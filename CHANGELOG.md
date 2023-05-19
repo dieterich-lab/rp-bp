@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - started 2023-02
 
+## [3.0.2] 2023-05-19
+
+### Added
+
+- `riboseq_sample_name_map`, `riboseq_condition_name_map` to `rpbp_predictions_dashboard.py`
+- Exception for duplicated transcript ids with _de novo_ annotation.
+
+### Fixed
+
+- STAR output
+- Redundant transcripts with _de novo_ annotation in `summarize_rpbp_predictions.py`
+- ORF numbers in labels
+
 ## [3.0.1] 2023-02-10
 
 ### Changed

@@ -687,6 +687,10 @@ def main():
         bed_df_dn = bed_utils.read_bed(transcript_bed_dn, low_memory=False)[cols]
         bed_df_dn.rename(columns={"id": "transcript_id"}, inplace=True)
         bed_df = pd.concat([bed_df, bed_df_dn])
+        # now we have the problem that bed_df may contain duplicate transcript ids
+        # for the purpose of display/annotation, we favour the annotated one
+        # in general the novel transcript will be a variant (matched introns, extension, etc.)
+        bed_df.drop_duplicates(subset=["transcript_id"], inplace=True)
 
     labeled_orfs = filenames.get_labels(
         config["genome_base_path"], config["genome_name"], note=orf_note

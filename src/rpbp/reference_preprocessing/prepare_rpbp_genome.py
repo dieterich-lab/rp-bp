@@ -16,6 +16,8 @@ import argparse
 
 from pathlib import Path
 
+import pandas as pd
+
 import pbiotools.misc.logging_utils as logging_utils
 import pbiotools.misc.shell_utils as shell_utils
 import pbiotools.misc.slurm as slurm
@@ -36,6 +38,11 @@ from rpbp.defaults import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class DuplicateIdsError(Exception):
+    def __init__(self, message):
+        self.message = message
 
 
 def get_orfs(gtf, args, config, is_annotated=False, is_de_novo=False):
@@ -333,11 +340,20 @@ def main():
         logger.info(msg)
 
         if call:
-            concatenated_bed = bed_utils.concatenate(orfs_files, sort_bed=True)
-            concatenated_bed["orf_num"] = range(len(concatenated_bed))
+            concatenated_orfs = bed_utils.concatenate(orfs_files, sort_bed=True)
+            # this can happen... and is not currently well handled
+            if not concatenated_orfs.id.is_unique:
+                msg = (
+                    "Duplicate ORF ids were found when merging annotated and de novo ORFs. "
+                    "This is due to matching transcript ids and start/stop boundaries. "
+                    "Check you de novo annotation, and remove (or rename) these transcripts."
+                )
+                logger.error(msg)
+                raise DuplicateIdsError(msg)
+            concatenated_orfs["orf_num"] = range(len(concatenated_orfs))
             additional_columns = ["orf_num", "orf_len"]
             fields = bed_utils.bed12_field_names + additional_columns
-            bed_utils.write_bed(concatenated_bed[fields], orfs_genomic)
+            bed_utils.write_bed(concatenated_orfs[fields], orfs_genomic)
         else:
             msg = "Skipping concatenation due to --call value"
             logger.info(msg)
@@ -359,9 +375,9 @@ def main():
         logger.info(msg)
 
         if call:
-            concatenated_bed = bed_utils.concatenate(exons_files, sort_bed=True)
+            concatenated_exons = bed_utils.concatenate(exons_files, sort_bed=True)
             fields = bed_utils.bed6_field_names + ["exon_index", "transcript_start"]
-            bed_utils.write_bed(concatenated_bed[fields], exons_file)
+            bed_utils.write_bed(concatenated_exons[fields], exons_file)
         else:
             msg = "Skipping concatenation due to --call value"
             logger.info(msg)
@@ -384,8 +400,17 @@ def main():
 
         if call:
             # not a BED file
-            concatenated_bed = bed_utils.concatenate(label_files, sort_bed=False)
-            bed_utils.write_bed(concatenated_bed, labeled_orfs)
+            concatenated_labels = bed_utils.concatenate(label_files, sort_bed=False)[
+                ["id", "orf_type", "transcripts"]
+            ]
+            # make sure the orf numbering is the same
+            concatenated_labels = pd.merge(
+                concatenated_labels,
+                concatenated_orfs[["id", "orf_num"]],
+                how="left",
+                on="id",
+            )
+            bed_utils.write_bed(concatenated_labels, labeled_orfs)
         else:
             msg = "Skipping concatenation due to --call value"
             logger.info(msg)
