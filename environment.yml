@@ -16,7 +16,7 @@ dependencies:
   - joblib
   - numpy
   - pandas
-  - pbiotools>=4.0.1
+  - pbiotools>=4.0.2
   - pyyaml
   - samtools
   - scipy

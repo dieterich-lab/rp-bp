@@ -34,7 +34,7 @@ classifiers = [
 dynamic = ["version"]
 requires-python = ">=3.7,<3.11"
 dependencies = [
-  "pbiotools>=4.0.1",
+  "pbiotools>=4.0.2",
   "appdirs",
   "biopython",
   "cmdstanpy",
