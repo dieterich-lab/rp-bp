@@ -5,7 +5,13 @@ All notable changes to Rp-Bp will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased] - started 2023-09
+## [Unreleased] - started 2024-03
+
+## [3.0.4] 2024-03-14
+
+### Fixed
+
+- Pandas `str.split` API in `summarize_rpbp_predictions.py`
 
 ## [3.0.3] 2023-09-13
 

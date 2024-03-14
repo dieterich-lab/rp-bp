@@ -701,7 +701,7 @@ def main():
     orfs = pd.merge(orfs, labels_df, on="id", how="left")
     # pick assigned transcript to annotate ORF
     orfs[["transcript_id", "others"]] = orfs["transcripts"].str.split(
-        ",", 1, expand=True
+        ",", n=1, expand=True
     )
     orfs = pd.merge(orfs, bed_df, on="transcript_id", how="left")
 
