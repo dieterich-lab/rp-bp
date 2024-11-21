@@ -1,40 +1,38 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "rpbp"
 description = "Rp-Bp: Ribosome Profiling with Bayesian Predictions"
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "Brandon Malone" }]
 maintainers = [
   { name = "Etienne Boileau", email = "boileau@uni-heidelberg.de" }
 ]
 keywords = [
-  "bioinformatics",
-  "riboseq",
-  "open reading frame discovery",
-  "translation"
+  "Bioinformatics",
+  "Ribo-seq/Ribosome profiling quality control",
+  "Open reading frame (ORF) discovery",
+  "Translation prediction"
 ]
 # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering :: Bio-Informatics",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: MacOS :: MacOS X",
   "Operating System :: POSIX :: Linux",
-  "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.7",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
 dynamic = ["version"]
-requires-python = ">=3.7,<3.11"
+requires-python = ">=3.11,<3.14"
 dependencies = [
-  "pbiotools>=4.0.2",
+  "pbiotools>=5.0.0",
   "appdirs",
   "biopython",
   "cmdstanpy",
@@ -93,8 +91,8 @@ docs = [
   "matplotlib",
   "nbsphinx",
   "pandoc",
-  "sphinx>=4.5.0",
-  "sphinx_rtd_theme>=1.0.0",
+  "sphinx",
+  "sphinx_rtd_theme",
   "furo",
   "sphinx-argparse",
   "sphinx-copybutton"

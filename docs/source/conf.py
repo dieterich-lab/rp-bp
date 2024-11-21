@@ -6,10 +6,13 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import rpbp
+
 project = "Rp-Bp"
 copyright = "2023, Etienne Boileau"
 author = "Etienne Boileau"
-release = "3.0.0"
+version = ".".join(str(x) for x in rpbp.__version_info__[:2])
+release = rpbp.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

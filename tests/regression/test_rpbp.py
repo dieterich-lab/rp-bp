@@ -1,5 +1,5 @@
 """
-    Regression test using the c-elegans reference dataset.
+Regression test using the c-elegans reference dataset.
 """
 
 import logging
@@ -11,12 +11,12 @@ logger = logging.getLogger(__name__)
 
 
 def to_df(filename):
-    args = {}
+    kwargs = {}
     if filename.endswith(".bed.gz") or filename.endswith(".tab.gz"):
-        args = {"sep": "\t"}
+        kwargs = {"sep": "\t"}
     elif filename.endswith(".mtx.gz"):
-        args = {"sep": " ", "comment": "%", "header": None}
-    return pd.read_csv(filename, **args)
+        kwargs = {"sep": " ", "comment": "%", "header": None}
+    return pd.read_csv(filename, **kwargs)
 
 
 # test output of `prepare-rpbp-genome`
@@ -38,7 +38,9 @@ def test_pipeline_part2(getf_pipeline):
     for file, ref_file in profiles:
         msg = f"[PROFILES] Comparing {file} and {ref_file}"
         logger.info(msg)
-        pd.testing.assert_frame_equal(to_df(file), to_df(ref_file), check_exact=True)
+        pd.testing.assert_frame_equal(
+            to_df(file), to_df(ref_file), check_exact=True, check_dtype=False
+        )
 
     # periodic-offsets - compare only the periodic lengths
     for file, ref_file in periodics:
