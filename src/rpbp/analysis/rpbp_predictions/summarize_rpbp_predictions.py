@@ -562,8 +562,15 @@ def main():
         "genome_base_path",
         "genome_name",
         "star_index",
+        "fasta",
     ]
     utils.check_keys_exist(config, required_keys)
+    # check for the app
+    utils.check_files_exist(
+        [config["fasta"], f"{config['fasta']}.fai"],
+        raise_on_error=False,
+        msg="The following files were missing, but are required for the app: ",
+    )
 
     # create directory for summary data
     sub_folder = Path("analysis", "rpbp_predictions")
@@ -790,6 +797,7 @@ def main():
     logger.info(msg)
 
     # add color before, then cut to BED12
+    orfs["color"] = orfs["color"].astype(str)
     for color, label in orf_type_colors.items():
         label_m = orfs["orf_category"] == label
         orfs.loc[label_m, "color"] = color

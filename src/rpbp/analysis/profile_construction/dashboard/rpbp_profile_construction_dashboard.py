@@ -994,8 +994,7 @@ def funnel_reads(hoverData, zoom, selected):
     funnel_cts_name = FUNNEL_CTS_NAME
     if zoom == 1:  # exclude ribosomal/poor quality
         stack_cts_order = stack_cts_order[:4]
-        funnel_cts_name = funnel_cts_name[:4]
-    pal = pal_set3[: len(stack_cts_order)]
+        funnel_cts_name = funnel_cts_name[-4:]
 
     if hoverData is not None:
         sample_name = hoverData["points"][0]["label"]

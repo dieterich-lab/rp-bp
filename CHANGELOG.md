@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - started 2024-03
 
+### Fixed
+
+- Labels in funnel plot in `rpbp_profile_construction_dashboard`
+
 ## [3.0.4] 2024-03-14
 
 ### Fixed
