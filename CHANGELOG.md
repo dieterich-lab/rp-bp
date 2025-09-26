@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Labels in funnel plot in `rpbp_profile_construction_dashboard`
 
+### Removed
+
+- `get_all_orf_peptide_matches.py`, `ribo_utils.get_riboseq_cell_type_samples`,
+  `filenames.get_riboseq_cell_type_protein`, and `filenames.get_riboseq_peptide_matches`
+
 ## [3.0.4] 2024-03-14
 
 ### Fixed

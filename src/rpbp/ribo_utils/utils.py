@@ -71,25 +71,6 @@ def get_riboseq_replicates_reverse_map(config):
     return ret_reverse_map
 
 
-def get_riboseq_cell_type_samples(config):
-    if "riboseq_cell_type_samples" in config:
-        if config["riboseq_cell_type_samples"] is not None:
-            msg = "Found 'riboseq_cell_type_samples' key in config file"
-            logger.info(msg)
-            return config["riboseq_cell_type_samples"]
-
-    msg = (
-        "Did not find 'riboseq_cell_type_samples' key in config file. Using "
-        "riboseq conditions (biological_replicate entries) as the cell types"
-    )
-    logger.info(msg)
-
-    riboseq_replicates = get_riboseq_replicates(config)
-    cell_type_samples = {x: [x] for x in riboseq_replicates}
-
-    return cell_type_samples
-
-
 def get_sample_name_map(config):
     """Extract the mapping from the 'riboseq_sample_name_map', or create
     a default one for all samples without an entry.
