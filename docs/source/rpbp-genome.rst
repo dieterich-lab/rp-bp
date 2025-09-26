@@ -1,7 +1,9 @@
-More about ``prepare-rpbp-genome``
-==================================
+.. _rpbp_genome:
 
-As part of the index creation step, **Rp-Bp** extract all putative ORFs and assign to each one a label based on its position relative to the annotated transcript-exon structure. Labels can be useful to quickly identify certain ORF types that may be of particular interest, *e.g.* upstream ORFs, or ORFs from non-coding RNAs.
+More about annotations
+======================
+
+When running ``prepare-rpbp-genome``, **Rp-Bp** extracts all putative Ribo-seq ORFs and assigns to each one a label based on its position relative to the annotated transcript-exon structure. Labels can be useful to quickly identify certain ORF types that may be of particular interest, *e.g.* upstream ORFs, or ORFs from non-coding RNAs.
 
 .. note::
 
@@ -9,8 +11,7 @@ As part of the index creation step, **Rp-Bp** extract all putative ORFs and assi
 
 .. hint::
 
-    In some cases, the ORF label may not be consistent with the host transcript, as reported by the ORF "id". To resolve such seemingly incoherent assignments, compatible transcripts are reported for each ORF in *<genome_name>.orfs-labels.annotated[.orf_note].tab.gz* and shown in the prediction dashboard (see `Visualization and quality control <apps.html>`_).
-
+    In some cases, the ORF label may not be consistent with the host transcript, as reported by the ORF "id". To resolve such seemingly incoherent assignments, compatible transcripts are reported for each ORF in *<genome_name>.orfs-labels.annotated[.orf_note].tab.gz* and shown in the prediction dashboard (see :ref:`apps`).
 
 Categories of Ribo-seq ORFs
 ---------------------------
@@ -26,11 +27,25 @@ Categories of Ribo-seq ORFs
 * **ncORF**: Translation event in an RNA annotated as non-coding (lncRNA, pseudogene, *etc.*)
 * **Novel**: Translation event inter- or intragenic (only when **Rp-Bp** is run with a *de novo* assembly, see below)
 
-Labels such as *overlap* or *suspect* arise when **Rp-Bp** is not able to resolve the position of an ORF without ambiguity. In practice, for standard annotations, we do not see these categories.
+Labels such as *overlap* or *suspect* arise when **Rp-Bp** is not able to resolve the position of an ORF without ambiguity. In practice, we do not see these categories for standard organisms.
+
+.. _denovo:
 
 More about *de novo* ORF discovery
 ----------------------------------
 
-For **Rp-Bp**, there is no difference between annotated and *de novo* assembled transcripts. In both cases, ORFs are extracted from the transcripts based on the given start and stop codons. However, it is often of scientific interest to identify *Novel* Ribo-seq ORFs. These are the most interesting, as they do not overlap the annotations at all, but **Rp-Bp** also identifies *Novel altCDS* and *Novel ncORF*.
+It is often of interest to identify *Novel* Ribo-seq ORFs, *i.e.* not only un-annotated ORFs, but ORFs that do not overlap the annotation at all. For **Rp-Bp**, there is no difference between annotated and *de novo* assembled transcripts. In both cases, ORFs are extracted from the transcripts based on the given start and stop codons. Hence, when matching RNA-seq is available, we highly recommend to create a *de novo* assembly. The only requirement is that the assembler produces a valid GTF file (or a format that can be converted to GTF).
 
-Hence, when matching RNA-seq is available (same reference genome), we highly recommend to create a *de novo* assembly. The only requirement is that the assembler produces a valid GTF file (or a format that can be converted to GTF). In a *de novo* assembly, coding regions are typically not identified (that is what Ribo-seq is for!). However, if your assembly also includes CDS annotations, they must satisfy the start/stop codon GTF2 specifications (stop codon not included in the CDS.)
+.. caution::
+
+   In a *de novo* assembly, coding regions are typically not identified (that is what Ribo-seq is for!). However, if your assembly also includes
+   CDS annotations, they must satisfy the start/stop codon GFF2 specifications (stop codon not included in the CDS.)
+
+.. hint::
+
+   ``prepare-rpbp-genome`` may fail unexpectedly with ``ERROR: Duplicate ORF ids were found``. Duplicate ORF ids can arise due to different ORFs having the same start/end coordinates and the same host transcript, or when a *de novo* assembled transcript has a complete, exact match of the intron chain with an existing, annotated transcript. This usually only affects a handful of transcripts. To handle this situation, you can identify duplicate ORF ids in *<genome_name>.orfs-genomic[.orf_note].annotated.bed.gz* and *<genome_name>.orfs-genomic[.orf_note].de-novo.bed.gz*, collect the associated host transcript ids into a file, remove them from the newly created *de novo* GTF *.e.g* with ``grep -v -f duplicated_transcripts.txt path/to/de-novo.gtf > path/to/de-novo.slim.gtf``, update ``de_novo_gtf`` in the configuration file, and re-run ``prepare-rpbp-genome``.
+
+.. tip::
+
+   When matching RNA-seq is available, you can also perform translational efficiency analysis (TEA), see
+   `Ribotools <https://ribotools.readthedocs.io/en/latest/index.html>`_ for more information.

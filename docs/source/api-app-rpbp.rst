@@ -1,3 +1,5 @@
+.. _api_app2:
+
 rpbp-predictions-dashboard
 ==========================
 
