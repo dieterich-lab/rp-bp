@@ -42,7 +42,7 @@ default_stop_codons = ["TAA", "TGA", "TAG"]
 
 default_read_files_command = "zcat"
 if sys.platform.startswith("darwin"):
-    default_read_files_command = "gunzip -c"
+    default_read_files_command = "gzcat"
 
 # NOTES:
 #   --limitBAMsortRAM 0 (with --genomeLoad NoSharedMemory)
