@@ -44,13 +44,13 @@ jobs:
         run: pip install pytest pytest-cov pytest-depends
       - name: Install rp-bp with --no-deps option
         run: pip install . --no-deps --verbose
-      - name: Debug system and gzip
-        run: |
-          echo "Running on ${{ matrix.os }} with Python ${{ matrix.python-version }}"
-          which gzcat || echo "gzcat not found"
-      - name: Install gzcat (macOS only)
+      - name: Install gzip (macOS only)
         if: matrix.os == 'macos-latest'
-        run: brew install coreutils
+        run: brew install gzip
+      - name: Check gzip is available to STAR
+        run: |
+          echo "PATH=$PATH"
+          which gunzip
       - name: Run tests
         run: python -m pytest . --cov=rpbp --cov-report=xml -s -v
       - name: Compile stan models (should already exist -> no-op)
