@@ -40,17 +40,17 @@ jobs:
           conda config --show-sources
           conda config --show
           printenv | sort
-      - name: Install test requirements
-        run: pip install pytest pytest-cov pytest-depends
-      - name: Install rp-bp with --no-deps option
-        run: pip install . --no-deps --verbose
-      - name: Install gzip (macOS only)
+      - name: Install gzip in Conda env (macOS only)
         if: matrix.os == 'macos-latest'
-        run: brew install gzip
+        run: conda install -c conda-forge gzip
       - name: Check gzip is available to STAR
         run: |
           echo "PATH=$PATH"
           which gunzip
+      - name: Install test requirements
+        run: pip install pytest pytest-cov pytest-depends
+      - name: Install rp-bp with --no-deps option
+        run: pip install . --no-deps --verbose
       - name: Run tests
         run: python -m pytest . --cov=rpbp --cov-report=xml -s -v
       - name: Compile stan models (should already exist -> no-op)
