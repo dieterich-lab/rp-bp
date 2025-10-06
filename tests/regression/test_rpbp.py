@@ -1,5 +1,5 @@
 """
-    Regression test using the c-elegans reference dataset.
+Regression test using the c-elegans reference dataset.
 """
 
 import logging

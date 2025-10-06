@@ -1,5 +1,5 @@
 """
-    confest.py
+confest.py
 """
 
 import pytest
