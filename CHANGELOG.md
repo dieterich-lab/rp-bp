@@ -5,7 +5,27 @@ All notable changes to Rp-Bp will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased] - started 2024-03
+## [Unreleased] - started 2025-10
+
+## [4.0.0] 2025-10-16
+
+### Changed
+
+- Requires pbiotools >= 5.0.0
+
+### Added
+
+- Support for Python 3.11, 3.12, and 3.13
+
+### Fixed
+
+- Labels in funnel plot in `rpbp_profile_construction_dashboard`
+
+### Removed
+
+- Support for Python 3.7, 3.8 (EOL), 3.9 and 3.10
+- `get_all_orf_peptide_matches.py`, `ribo_utils.get_riboseq_cell_type_samples`,
+  `filenames.get_riboseq_cell_type_protein`, and `filenames.get_riboseq_peptide_matches`
 
 ### Changed
 
