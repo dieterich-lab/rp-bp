@@ -171,11 +171,6 @@ def get_profile(sample, config, is_unique, note):
         config, sample, is_unique=is_unique, default_params=metagene_options
     )
 
-    if len(lengths) == 0:
-        msg = "No periodic read lengths and offsets were found!"
-        logger.critical(msg)
-        return
-
     profiles = filenames.get_riboseq_profiles(
         config["riboseq_data"],
         sample,
@@ -192,7 +187,11 @@ def get_frame_counts(sample, config, is_unique, note):
     msg = "{}: extracting frame counts".format(sample)
     logger.info(msg)
 
-    mtx = get_profile(sample, config, is_unique, note)
+    try:
+        mtx = get_profile(sample, config, is_unique, note)
+    except ValueError as e:
+        logger.warning("Skipping profile count due to: {}".format(e))
+        return
 
     # we don't need to load as sparse matrix, use numpy and
     # mask based on ORF offset (2nd column), taking into account that
@@ -482,24 +481,26 @@ def main():
         progress_bar=True,
         backend="multiprocessing",
     )
-    frame_counts = pd.DataFrame(frame_counts)
+    frame_counts = [df for df in frame_counts if df is not None]
+    if frame_counts:
+        frame_counts = pd.DataFrame(frame_counts)
 
-    summary_file = filenames.get_riboseq_frame_counts(
-        config["riboseq_data"],
-        project,
-        sub_folder=sub_folder.as_posix(),
-        is_unique=is_unique,
-        note=note,
-    )
-    pandas_utils.write_df(
-        frame_counts,
-        summary_file,
-        index=False,
-        sep=",",
-        header=True,
-        do_not_compress=False,
-        quoting=csv.QUOTE_NONE,
-    )
+        summary_file = filenames.get_riboseq_frame_counts(
+            config["riboseq_data"],
+            project,
+            sub_folder=sub_folder.as_posix(),
+            is_unique=is_unique,
+            note=note,
+        )
+        pandas_utils.write_df(
+            frame_counts,
+            summary_file,
+            index=False,
+            sep=",",
+            header=True,
+            do_not_compress=False,
+            quoting=csv.QUOTE_NONE,
+        )
 
     if args.create_fastqc_reports:
         msg = "Calling FastQC..."

@@ -8,6 +8,7 @@ Frequently asked questions
 * :ref:`q5`
 * :ref:`q6`
 * :ref:`q7`
+* :ref:`q8`
 
 .. _q1:
 
@@ -29,14 +30,14 @@ By default, the application is opened in a browser page on *localhost:8050*. You
 Why is the ORF label not consistent with the host transcript?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In some cases, the ORF label may not be consistent with the host transcript, as reported by the ORF "id" (*transcript_seqname:start-end:strand*). To resolve such seemingly incoherent assignments, compatible transcripts are reported for each ORF in *<genome_name>.orfs-labels.annotated[.orf_note].tab.gz* and shown in the prediction dashboard, see :ref:`apps`.
+In some cases, the ORF label may not be consistent with the host transcript, as reported by the ORF "id" (*transcript_seqname:start-end:strand*). To resolve such seemingly incoherent assignments, compatible transcripts are reported for each ORF in *<genome_name>.orfs-labels.annotated[.orf_note].tab.gz* and shown in the prediction dashboard, see :ref:`rpbp_genome`.
 
 .. _q4:
 
 I have my own alignments, can I use **Rp-Bp**?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The short answer is yes. The pipeline is designed to handle all steps from raw FASTQ files up to the final list of translated Ribo-seq ORFs, but you can start the pipeline from any step. Check the tutorial :ref:`existing-alignment`.
+The short answer is yes. The pipeline is designed to handle all steps from raw FASTQ files up to the final list of translated Ribo-seq ORFs, but you can start the pipeline from any step. Check the tutorial :ref:`existing_alignment`.
 
 
 .. _q5:
@@ -60,3 +61,11 @@ I get ``RuntimeWarning: invalid value encountered in divide res, _ = _lowess(y, 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This happens for 3 nt ORFs.
+
+.. _q8:
+
+Can **Rp-Bp** handle matched RNA-seq data?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+No, but if you have matched RNA-seq data, you can generate a *de novo* assembly, which can be used by **Rp-Bp**, see :ref:`denovo`. Check
+`Ribotools <https://ribotools.readthedocs.io/en/latest/index.html>`_ for translation efficiency (TE) and differential expression (DE) analyses using matched Ribo-seq and/or RNA-seq data. It uses **Rp-Bp** for periodicity estimation, and follows the same alignment workflow, directory structure, and naming convention. It can also use the output of **Rp-Bp** directly, handling separately the RNA-seq data, and combines the results for TE analysis.

@@ -1,11 +1,14 @@
 .. _apps:
 
-Visualization and quality control
-=================================
+Visualization and QC
+====================
 
-**Rp-Bp** provides two *interactive dashboards* or *web applications*, one for read and periodicity quality control, the other to facilitate Ribo-seq ORFs discovery. The latter has an integrated `IGV browser <https://software.broadinstitute.org/software/igv/>`_ for the visual exploration of predicted Ribo-seq ORFs. To navigate the apps is easy, just follow the "hints". Most items are interactive.
+Use the *interactive dashboards* to facilitate quality control (QC) and Ribo-seq ORFs discovery, just follow the "hints".
 
-**Before you can visualize the results, you need to prepare the input for the dashboards.**
+.. important::
+
+    To prepare the input for the dashboards, follow the instructions below. To use the quality control app, intermediate
+    files are required, *i.e.* the pipeline must have been run with the ``-k/--keep-intermediate-files`` flag.
 
 How to prepare the input for the dashboards
 -------------------------------------------
@@ -20,17 +23,17 @@ To prepare the input for the *profile construction dashboard*
     summarize-rpbp-profile-construction <config> [options]
 
 
-With the ``-c/--create-fastqc-reports`` flag, `FastQC <https://www.bioinformatics.babraham.ac.uk/projects/fastqc/>`_ reports are be created. For all options, consult the `API <api.html>`_.
+For all options, consult the API for :ref:`api_profile`.
 
 
 Required input
 """"""""""""""
 
-Output files from the *ORF profile construction* step.
+Output files from the :ref:`run_profile` step.
 
 
-Output files
-""""""""""""
+Expected output
+"""""""""""""""
 
 The base path for these files is: *<riboseq_data>/analysis/profile_construction*.
 
@@ -53,42 +56,47 @@ To prepare the input for the *predictions dashboard*
     summarize-rpbp-predictions <config> [options]
 
 
-For all options, consult the `API <api.html>`_.
+For all options, consult the API for :ref:`api_predictions`.
 
 
 Required input
 """"""""""""""
 
-Output files from the *translation prediction* step.
+Output files from the :ref:`run_predictions` step.
 
 
-Output files
-""""""""""""
+Expected output
+"""""""""""""""
 
 The base path for these files is: *<riboseq_data>/analysis/rpbp_predictions*.
 
-* *<project_name>[.note][-unique][.filtered].predicted-orfs.bed.gz* A BED12+ file with the combined predicted translation events from all samples and replicates. Additional columns include sample or replicate, Bayes factor mean and variance, P-site coverage across 3 frames, ORF number, ORF length, label, host transcript biotype, and associated gene id, name and biotype, and compatible transcripts.
+* *<project_name>[.note][-unique][.filtered].predicted-orfs.bed.gz* A BED12+ file with the combined predicted translation events (Ribo-seq ORFs) from all samples and replicates. Additional columns include sample or replicate, Bayes factor mean and variance, P-site coverage across 3 frames, ORF number, ORF length, label, host transcript biotype, and associated gene id, name and biotype, and compatible transcripts.
 
-* *<project_name>[.note][-unique][.filtered].igv-orfs.bed.gz* A BED12 file with all unique ORFs.
+* *<project_name>[.note][-unique][.filtered].igv-orfs.bed.gz* A BED12 file with all unique Ribo-seq ORFs.
 
 * *<project_name>.summarize_options.json* A json summary file for the app.
 
-* *<genome_name>.circos_graph_data.json* A json file with the ORF distribution across chromosomes.
+* *<genome_name>.circos_graph_data.json* A json file with the ORF distribution across chromosomes for the app.
 
 .. hint::
 
-    Use *<project_name>[.note][-unique][.filtered].predicted-orfs.bed.gz* has a final output combining all predictions across your samples and/or replicates (including Bayes factor mean and variance for each sample, *etc.*). If you need a unique list of Ribo-seq ORFs (only coordinates *i.e* standard BED12, without duplicated entries for samples and/or replicates), use *<project_name>[.note][-unique][.filtered].igv-orfs.bed.gz*.
+    The file *<project_name>[.note][-unique][.filtered].predicted-orfs.bed.gz* has a final output combining all predictions across your samples and/or replicates (including Bayes factor mean and variance for each sample, *etc.*). If you need a unique list of Ribo-seq ORFs (only coordinates *i.e* standard BED12, without duplicated entries for samples and/or replicates), use *<project_name>[.note][-unique][.filtered].igv-orfs.bed.gz*.
 
+
+.. _apps_launch:
 
 How to launch the web applications
 ----------------------------------
+
+.. tip::
+
+    Check the logs to make sure all files were created successfully before running the apps!
 
 To launch the *profile construction dashboard*
 
 .. code-block:: bash
 
     rpbp-profile-construction-dashboard -c CONFIG
-
 
 The application has multiple views to facilitate quality control, *e.g.*
 
@@ -99,13 +107,13 @@ The application has multiple views to facilitate quality control, *e.g.*
 .. figure:: _static/app1_2.png
    :align: center
 
+For all options, consult the API for :ref:`api_app1`.
 
 To launch the *predictions dashboard*
 
 .. code-block:: bash
 
     rpbp-predictions-dashboard -c CONFIG
-
 
 The application has multiple views to facilitate ORF discovery, including an integrated `IGV browser <https://software.broadinstitute.org/software/igv/>`_ for the visual exploration of predicted Ribo-seq ORFs, *e.g.*
 
@@ -116,12 +124,9 @@ The application has multiple views to facilitate ORF discovery, including an int
 .. figure:: _static/app2_2.png
    :align: center
 
-
 Try it out, and see more!
-
-For all options, consult the `API <api.html>`_.
-
+For all options, consult the API for :ref:`api_app2`.
 
 .. note::
 
-    Any of the above command will open a browser page with the web application running locally. You can also specify a ``--host`` and a ``--port``, *e.g.* if launching the app from a remote server. In the latter case, you have to open a browser page at the correct address. For example, you use ``--host 123.123.123.123``, then open a page on *http://123.123.123.123:8050/*.
+    Any of the above command will open a browser page with the web application running locally. You can also specify a ``--host`` and a ``--port``, *e.g.* if launching the app from a remote server use ``--host 0.0.0.0``, then open a page on *http://X.X.X.X:8050* where *X.X.X.X* is the public IP of your remote server.

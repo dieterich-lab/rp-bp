@@ -1,4 +1,4 @@
-.. _existing-alignment:
+.. _existing_alignment:
 
 How to use existing alignment files
 ===================================

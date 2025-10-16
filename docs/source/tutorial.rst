@@ -1,3 +1,5 @@
+.. _all_tutorials:
+
 Tutorials
 =========
 
@@ -20,7 +22,7 @@ Content
 ^^^^^^^
 
 * *c-elegans-test.yaml* The YAML configuration file.
-* *c-elegans.alignments-only.yaml* Another YAML configuration to explain :ref:`existing-alignment`.
+* *c-elegans.alignments-only.yaml* Another YAML configuration to explain :ref:`existing_alignment`.
 
 **input**
 

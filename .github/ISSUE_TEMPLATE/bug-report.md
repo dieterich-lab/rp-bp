@@ -7,14 +7,14 @@ assignees: ""
 ---
 
 <!--
-Please make sure that the bug is not already fixed either in newer versions or the
+Please make sure that the bug is not already fixed in newer versions or the
 current development version.
 
 1. Update version if a newer release exists: `conda update rpbp` or
 2. Use the dev branch:
    - create a conda environment and only install dependencies;
    - clone this repository;
-   - run `pip install --no-deps -e .[test]`;
+   - run `pip install --no-deps -e .[tests]`;
    - make sure it works by running `python -m pytest`.
 
 If the bug persists, please make sure that it has not already been filed before
@@ -45,9 +45,9 @@ Minimal steps to reproduce the bug:
 
 **Environment**
 
-- Version of the package
+- Version of the package, and installation method (containers, conda, pip)
 - Conda/pip version and if relevant output of `conda list` or `pip freeze`
-- Operating system and Python version <!-- e.g. [Linux/Python 3.10.6] -->
+- Operating system and Python version <!-- e.g. [Linux/Python 3.13.8] -->
 
 **Additional context**
 

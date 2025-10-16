@@ -109,7 +109,6 @@ metagene_options = {
     "chains": mcmc_shared["chains"],
     "metagene_iterations": 500,  # incl. warmup
     "min_metagene_profile_count": 1000,
-    "min_metagene_image_count": 500,  # TODO: profiles with count < min_metagene_image_count will not be displayed (only for report)
     "min_metagene_bf_mean": 5,
     "max_metagene_bf_var": None,
     "min_metagene_bf_likelihood": 0.5,

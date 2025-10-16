@@ -1,3 +1,5 @@
+.. _api_profile:
+
 summarize-rpbp-profile-construction
 ===================================
 

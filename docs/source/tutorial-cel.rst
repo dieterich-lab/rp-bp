@@ -69,12 +69,8 @@ or
     rpbp-predictions-dashboard -c c-elegans-test.yaml
 
 
-To navigate the apps is easy, just follow the "hints". Most items are interactive. Press ``CTRL+C`` to quit.
+To navigate the apps is easy, just follow the "hints". Most items are interactive. Press ``CTRL+C`` to quit. Check :ref:`apps` for more details.
 
 .. attention::
 
     For the apps only, the configuration file is passed using a (required) named argument ``-c/--config CONFIG``.
-
-.. note::
-
-    Any of the above command will open a browser page with the web application running locally. You can also specify a ``--host`` and a ``--port``, *e.g.* if launching the app from a remote server. In the latter case, you have to open a browser page at the correct address. For example, if you use ``--host 123.123.123.123``, then open a page on *http://123.123.123.123:8050/*.

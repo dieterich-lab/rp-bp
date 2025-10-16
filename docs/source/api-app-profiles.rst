@@ -1,3 +1,5 @@
+.. _api_app1:
+
 rpbp-profile-construction-dashboard
 ===================================
 

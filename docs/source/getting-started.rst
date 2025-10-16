@@ -42,7 +42,7 @@ or use a container
 
 There is no *latest* tag, you need to specify the version tag. See `rpbp/tags <https://quay.io/repository/biocontainers/rpbp?tab=tags>`_ for valid values for ``<tag>``.
 
-For detailed installation instructions, refer to `Installation <installation.html>`_.
+For detailed installation instructions, refer to :ref:`installation_full`.
 
 
 **Rp-Bp** quickstart
@@ -61,10 +61,10 @@ To estimate periodicity on a set of Ribo-seq samples, or to run the ORF discover
 
     run-all-rpbp-instances <config> [options]
 
-To get started, the package also includes a small example using a *C. elegans* dataset. Check the `Tutorials <tutorial.html>`_.
+To get started, the package also includes a small example using a *C. elegans* dataset. Check the :ref:`all_tutorials`.
 
-For more information and guidelines on how to prepare the configuration file, refer to the `User guide <user-guide.html>`_.
-For visualisation and quality control, see `Visualization and quality control <apps.html>`_.
+For more information and guidelines on how to prepare the configuration file, refer to the :ref:`user_guide`.
+For visualization and quality control, see :ref:`apps`.
 
 
 How to report issues

@@ -5,21 +5,17 @@ channels:
   - defaults
 dependencies:
   - python
-  - biopython
-  - bowtie2
+  - pbiotools>=5.0.0
+  - appdirs
   - cmdstanpy>=1.0.0
   - dash
   - dash-bio
   - dash-bootstrap-components
+  - pytest
+  - pyyaml
+  - statsmodels
+  - bowtie2
   - fastqc
   - flexbar
-  - joblib
-  - numpy
-  - pandas
-  - pbiotools>=4.0.2
-  - pyyaml
   - samtools
-  - scipy
   - star
-  - statsmodels
-  - pysam

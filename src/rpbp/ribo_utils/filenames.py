@@ -175,15 +175,6 @@ def get_riboseq_bayes_factors(riboseq_base, name, **kwargs):
     return s
 
 
-# c
-
-
-def get_riboseq_cell_type_protein(riboseq_base, name, **kwargs):
-    s = get_riboseq_base(riboseq_base, name, "cell-types", **kwargs)
-    s = s + ".predicted-orfs.protein.fa"
-    return s
-
-
 # e
 
 
@@ -358,14 +349,6 @@ def get_periodic_offsets(riboseq_base, name, **kwargs):
     sub_folder = kwargs.pop("sub_folder", "metagene-profiles")
     s = get_riboseq_base(riboseq_base, name, sub_folder, **kwargs)
     s = s + ".periodic-offsets.csv.gz"
-    return s
-
-
-def get_riboseq_peptide_matches(riboseq_base, name, peptide_name, **kwargs):
-    n = "{}-{}".format(name, peptide_name)
-
-    s = get_riboseq_base(riboseq_base, n, "peptide-matches", **kwargs)
-    s = s + ".peptide-matches.csv.gz"
     return s
 
 
