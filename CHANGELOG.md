@@ -5,7 +5,17 @@ All notable changes to Rp-Bp will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased] - started 2025-10
+## [Unreleased] - started 2025-11
+
+## [4.0.1] 2025-11-20
+
+### Changed
+
+- Documentation
+
+### Fixed
+
+- #167
 
 ## [4.0.0] 2025-10-16
 
