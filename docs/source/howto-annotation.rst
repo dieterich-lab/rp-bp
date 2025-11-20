@@ -12,7 +12,7 @@ General usage
 
 .. code-block:: bash
 
-    prepare-rpbp-genome <config> [options]
+    prepare-rpbp-genome [options] config
 
 For all options, consult the API for :ref:`api_prepare`. See also :ref:`howto_config`.
 
@@ -77,4 +77,4 @@ The base path for the following files is: *<genome_base_path>/transcript-index*
 
 .. note::
 
-    If a ``de_novo_gtf`` file is provided, the last three output files are split into *annotated* and *de-novo*. The files used by the pipeline, as described above, are the "concatenation" of the respective *annotated* and *de-novo* files. In addition, *de-novo* transcript BED and FASTA files are created. A new GTF file, created by concatenating ``gtf`` and ``de_novo_gtf``, is written to ``genome_base_path``. This file may contain repeated features. For mapping with STAR, this is generally not a problem, but it can be for abundance estimation, *cf.* `Ribotools documentation <https://ribotools.readthedocs.io/en/latest/user-guide.html#general-usage>`_.
+    If a ``de_novo_gtf`` file is provided, the last three output files are split into *annotated* and *de-novo*. The files used by the pipeline, as described above, are the "concatenation" of the respective *annotated* and *de-novo* files. In addition, *de-novo* transcript BED and FASTA files are created. A new GTF file, created by concatenating ``gtf`` and ``de_novo_gtf``, is written to ``genome_base_path``. This file may contain repeated features. For mapping with STAR, this is generally not a problem, but it can be for abundance estimation, *cf.* `Ribotools documentation <https://ribotools.readthedocs.io/en/latest/howto-run.html#general-usage>`_.

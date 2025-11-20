@@ -36,6 +36,8 @@ Finally, run the ORF discovery pipeline
 
     run-all-rpbp-instances c-elegans-test.yaml --merge-replicates --run-replicates --keep-intermediate-files --num-cpus 4 --logging-level INFO --log-file rpbp-pipeline.log
 
+If you have access to a cluster with a cluster management and job scheduling system such as `Slurm <https://slurm.schedmd.com/>`_, you can ``--use-slurm`` and pass additional options.
+
 The file *rpbp-pipeline.log* contains logging output for the different processing steps. You now have four new directories (*with-*, *without-*) including output from Flexbar, Bowtie2, and STAR, and directories with **Rp-Bp** output: *metagene-profiles*, *orf-profiles*, and *orf-predictions*. The *orf-predictions* include the output for each sample *c-elegans-rep-1* and *c-elegans-rep-2* as well as for the merged replicates *c-elegans-test*.
 
 How to summarize the results and launch the apps
@@ -70,7 +72,3 @@ or
 
 
 To navigate the apps is easy, just follow the "hints". Most items are interactive. Press ``CTRL+C`` to quit. Check :ref:`apps` for more details.
-
-.. attention::
-
-    For the apps only, the configuration file is passed using a (required) named argument ``-c/--config CONFIG``.

@@ -23,11 +23,6 @@ Install with
 .. code-block:: bash
 
     # set up the conda channels if required
-    # conda config --add channels defaults
-    # conda config --add channels bioconda
-    # conda config --add channels conda-forge
-    # conda config --set channel_priority strict
-
     # create a conda environment called rpbp and install rpbp
     conda create -n rpbp rpbp
 
@@ -52,20 +47,19 @@ In a nutshell, you need to prepare genome indices and annotations for your organ
 
 .. code-block:: bash
 
-    prepare-rpbp-genome <config> [options]
+    prepare-rpbp-genome [options] config
 
 
 To estimate periodicity on a set of Ribo-seq samples, or to run the ORF discovery pipeline, simply call
 
 .. code-block:: bash
 
-    run-all-rpbp-instances <config> [options]
+    run-all-rpbp-instances [options] config
 
-To get started, the package also includes a small example using a *C. elegans* dataset. Check the :ref:`all_tutorials`.
-
-For more information and guidelines on how to prepare the configuration file, refer to the :ref:`user_guide`.
+For more information and guidelines how to prepare the configuration file and run the pipeline, refer to the :ref:`user_guide`.
 For visualization and quality control, see :ref:`apps`.
 
+To get started, the package includes a small example dataset. Check the :ref:`all_tutorials`.
 
 How to report issues
 --------------------

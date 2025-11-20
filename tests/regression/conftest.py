@@ -205,7 +205,6 @@ def get_pipeline(getf_config):
     return config, ref_config
 
 
-@pytest.mark.depends(on=["getf_genome"])
 @pytest.fixture(scope="session")
 def getf_pipeline(get_pipeline):
     """\
