@@ -60,7 +60,15 @@ def main():
     # read in the Bayes' factors and profiles
     bayes_factors_df = pd.read_csv(args.profile_bayes_factors)
     length_groups = bayes_factors_df.groupby("length")
-    periodic_offsets = length_groups.apply(get_most_periodic_offset)
+    cols = [
+        "profile_sum",
+        "profile_peak",
+        "bayes_factor_mean",
+        "bayes_factor_var",
+        "length",
+        "offset",
+    ]
+    periodic_offsets = length_groups[cols].apply(get_most_periodic_offset)
     pandas_utils.write_df(periodic_offsets, args.out, index=False)
 
 

@@ -11,7 +11,7 @@ Tutorials
    tutorial-containers
 
 
-The tutorials includes a small test Ribo-seq dataset and reference **Rp-Bp** output that is also used for regression tests. It has been constructed to include some reads which uniquely map to the annotated transcripts, some reads which map to ribosomal sequences, some reads which do not uniquely map to the genome, and some reads which are filtered due to quality issues.
+The tutorials include a small test Ribo-seq dataset and reference output that is also used for regression tests. It has been constructed to include some reads which uniquely map to the annotated transcripts, some reads which map to ribosomal sequences, some reads which do not uniquely map to the genome, and some reads which are filtered due to quality issues.
 
 Download the dataset
 --------------------

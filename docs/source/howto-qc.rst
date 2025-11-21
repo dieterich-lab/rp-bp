@@ -20,7 +20,7 @@ To prepare the input for the *profile construction dashboard*
 
 .. code-block:: bash
 
-    summarize-rpbp-profile-construction <config> [options]
+    summarize-rpbp-profile-construction [options] config
 
 
 For all options, consult the API for :ref:`api_profile`.
@@ -53,7 +53,7 @@ To prepare the input for the *predictions dashboard*
 
 .. code-block:: bash
 
-    summarize-rpbp-predictions <config> [options]
+    summarize-rpbp-predictions [options] config
 
 
 For all options, consult the API for :ref:`api_predictions`.
@@ -88,15 +88,22 @@ The base path for these files is: *<riboseq_data>/analysis/rpbp_predictions*.
 How to launch the web applications
 ----------------------------------
 
+.. attention::
+
+    For the apps, the configuration file is passed via a (required) named argument using `-c/--config`.
+
 .. tip::
 
-    Check the logs to make sure all files were created successfully before running the apps!
+    Any of the above command will open a browser page with the web application running locally. You can also specify a ``--host`` and a ``--port``, *e.g.* if launching the app from a remote server use ``--host 0.0.0.0``, then open a page on *http://X.X.X.X:8050* where *X.X.X.X* is the public IP of your remote server.
+
+Ribo-seq quality control
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 To launch the *profile construction dashboard*
 
 .. code-block:: bash
 
-    rpbp-profile-construction-dashboard -c CONFIG
+    rpbp-profile-construction-dashboard [options] -c CONFIG
 
 The application has multiple views to facilitate quality control, *e.g.*
 
@@ -109,11 +116,14 @@ The application has multiple views to facilitate quality control, *e.g.*
 
 For all options, consult the API for :ref:`api_app1`.
 
+Ribo-seq ORFs discovery
+^^^^^^^^^^^^^^^^^^^^^^^
+
 To launch the *predictions dashboard*
 
 .. code-block:: bash
 
-    rpbp-predictions-dashboard -c CONFIG
+    rpbp-predictions-dashboard [options] -c CONFIG
 
 The application has multiple views to facilitate ORF discovery, including an integrated `IGV browser <https://software.broadinstitute.org/software/igv/>`_ for the visual exploration of predicted Ribo-seq ORFs, *e.g.*
 
@@ -126,7 +136,3 @@ The application has multiple views to facilitate ORF discovery, including an int
 
 Try it out, and see more!
 For all options, consult the API for :ref:`api_app2`.
-
-.. note::
-
-    Any of the above command will open a browser page with the web application running locally. You can also specify a ``--host`` and a ``--port``, *e.g.* if launching the app from a remote server use ``--host 0.0.0.0``, then open a page on *http://X.X.X.X:8050* where *X.X.X.X* is the public IP of your remote server.

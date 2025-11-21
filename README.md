@@ -12,9 +12,6 @@ Ribosome profiling (Ribo-seq) is an RNA-sequencing-based readout of RNA translat
 <a href="http://bioconda.github.io/recipes/rpbp/README.html"><img alt="Install with bioconda" src="https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat"></a>
 <a href="https://pypi.org/project/rpbp/"><img alt="PyPI" src="https://img.shields.io/pypi/v/rpbp"></a>
 <a href="https://github.com/dieterich-lab/rp-bp/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/dieterich-lab/rp-bp/actions/workflows/ci.yml/badge.svg"></a>
-<a href="https://codecov.io/github/dieterich-lab/rp-bp">
- <img src="https://codecov.io/github/dieterich-lab/rp-bp/graph/badge.svg?token=UJ6juSea3m"/>
-</a>
 <a href="https://rp-bp.readthedocs.io/en/latest/?badge=latest"><img alt="Docs" src="https://readthedocs.org/projects/rp-bp/badge/?version=latest"></a>
 </p>
 

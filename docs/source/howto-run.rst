@@ -17,13 +17,13 @@ General usage
 .. code-block:: bash
 
     # Only create the ORF profiles (estimate periodicity) for QC.
-    run-all-rpbp-instances <config> --profiles-only [options]
+    run-all-rpbp-instances --profiles-only [options] config
 
     # Run the ORF discovery pipeline for all samples in the configuration file (only samples, i.e. do not merge the replicates).
-    run-all-rpbp-instances <config> [options]
+    run-all-rpbp-instances [options] config
 
     # Run the ORF discovery pipeline for all samples in the configuration file, merge the replicates, and make predictions for merged replicates.
-    run-all-rpbp-instances <config> --merge-replicates --run-replicates [options]
+    run-all-rpbp-instances --merge-replicates --run-replicates [options] config
 
 For all options, consult the API for :ref:`api_prepare`. See also :ref:`howto_config`.
 

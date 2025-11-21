@@ -1,11 +1,9 @@
 #! /usr/bin/env python3
 
 import os
-import sys
 
 import argparse
 import yaml
-import json
 import ast
 import base64
 import dash
@@ -14,7 +12,7 @@ import webbrowser
 
 from pathlib import Path
 from io import BytesIO
-from dash import Dash, html, dcc, Input, Output
+from dash import html, dcc, Input, Output
 
 import dash_bootstrap_components as dbc
 import numpy as np
@@ -34,7 +32,6 @@ from rpbp.analysis.profile_construction.dashboard.controls import (
 )
 
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 import seaborn as sns
 
 sns.set({"ytick.direction": "out"}, style="ticks")
@@ -624,6 +621,9 @@ frame_counts.rename(columns={"sample": "Sample"}, inplace=True)
 
 app = dash.Dash(__name__)
 
+# https://github.com/plotly/plotly.py/issues/3441
+go.Figure(layout=dict(template="plotly"))
+
 # do we have to expose the flask variable in the file?
 server = app.server
 
@@ -673,6 +673,7 @@ app.layout = html.Div(
                                         radio_stacked_reads,
                                         dcc.Graph(
                                             id="stacked_reads_fig",
+                                            style={"height": "450px"},
                                         ),
                                         html.Label(
                                             """Hint: Hover over bars to create a funnel
@@ -685,7 +686,10 @@ app.layout = html.Div(
                                 ),
                                 html.Div(
                                     [
-                                        dcc.Graph(id="funnel_fig"),
+                                        dcc.Graph(
+                                            id="funnel_fig",
+                                            style={"height": "450px"},
+                                        ),
                                         html.Br(),  # why does the label sticks to the plot?
                                         html.Br(),  # TODO: flush to bottom
                                         html.Br(),
@@ -762,7 +766,10 @@ app.layout = html.Div(
                                             ],
                                             className="row",
                                         ),
-                                        dcc.Graph(id="length_bars_fig"),
+                                        dcc.Graph(
+                                            id="length_bars_fig",
+                                            style={"height": "450px"},
+                                        ),
                                         html.Label(
                                             """Hint: Hover over bars to see the metagene
                                             profile for this read length (right).""",
@@ -798,7 +805,10 @@ app.layout = html.Div(
                                             """3. Periodicity for all selected samples"""
                                         ),
                                         html.Br(),
-                                        dcc.Graph(id="stacked_frames_fig"),
+                                        dcc.Graph(
+                                            id="stacked_frames_fig",
+                                            style={"height": "450px"},
+                                        ),
                                     ],
                                     className="box",
                                     style={"width": "40%"},

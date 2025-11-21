@@ -11,10 +11,11 @@ import threading
 import webbrowser
 
 from pathlib import Path
-from dash import Dash, html, dcc, Input, Output, State, dash_table, ctx
+from dash import html, dcc, Input, Output, State, dash_table, ctx
 
 import numpy as np
 import pandas as pd
+import plotly.graph_objs as go
 import plotly.express as px
 
 import rpbp.ribo_utils.utils as ribo_utils
@@ -90,8 +91,8 @@ def filter_sort_table(filter_query, sort_by):
         if operator in ("eq", "lt", "le", "gt", "ge"):
             # these operators match pandas series operator method names
             df = df.loc[getattr(df[col_name], operator)(filter_value)]
-        elif operator == "contains":
-            df = df.loc[df[col_name].str.contains(filter_value)]
+        elif operator == "contains" and col_name != "ORF length":
+            df = df.loc[df[col_name].str.contains(str(filter_value))]
 
     if len(sort_by):
         df = df.sort_values(
@@ -172,7 +173,9 @@ for orf_type, labels in orf_type_labels.items():
         row_col[t] = col_rev[orf_type]
 
 # *** load/wrangle data
-orfs = pd.read_csv(config["predicted_orfs"], sep="\t", low_memory=False)  # bed_utils
+orfs = pd.read_csv(
+    config["predicted_orfs"], sep="\t", low_memory=False, dtype={"#seqname": str}
+)  # bed_utils
 orfs.columns = orfs.columns.str.replace("#", "")
 orfs["condition"] = orfs["condition"].apply(lambda x: sample_name_map[x])
 # apply condition name map, in case we also have conditions
@@ -209,33 +212,31 @@ DISPLAY_FIELDS = [
     "Gene biotype",
 ]
 
-display_table = orfs.groupby("id", as_index=False)["condition"].agg(
-    {"condition": lambda x: "|".join(x)}
+display_table = orfs.groupby("id", as_index=False).agg(
+    condition=("condition", lambda x: "|".join(x))
 )
-df = orfs.groupby("id", as_index=False)["bayes_factor_mean"].agg(
-    {"bayes_factor_mean": lambda x: "|".join([str(y) for y in x])}
+df = orfs.groupby("id", as_index=False).agg(
+    bayes_factor_mean=("bayes_factor_mean", lambda x: "|".join([str(y) for y in x]))
 )
 display_table = display_table.join(df["bayes_factor_mean"])
-df = orfs.groupby("id", as_index=False)["bayes_factor_var"].agg(
-    {"bayes_factor_var": lambda x: "|".join([str(y) for y in x])}
+df = orfs.groupby("id", as_index=False).agg(
+    bayes_factor_var=("bayes_factor_var", lambda x: "|".join([str(y) for y in x]))
 )
 display_table = display_table.join(df["bayes_factor_var"])
-df = orfs.groupby("id", as_index=False)["profile_sum"].agg(
-    {"profile_sum": lambda x: "|".join([str(y) for y in x])}
+df = orfs.groupby("id", as_index=False).agg(
+    profile_sum=("profile_sum", lambda x: "|".join([str(y) for y in x]))
 )
 display_table = display_table.join(df["profile_sum"])
-df = orfs.groupby("id", as_index=False)["in_frame"].agg(
-    {"in_frame": lambda x: "|".join([str(y) for y in x])}
+df = orfs.groupby("id", as_index=False).agg(
+    in_frame=("in_frame", lambda x: "|".join([str(y) for y in x]))
 )
 display_table = display_table.join(df["in_frame"])
 display_table["orf_info"] = display_table.apply(fmt_tooltip, axis=1)
 # ad hoc - if we have the standardized ORFs
 if "PHASE I ORFs" in orfs.columns:
-    TABLE_FIELDS.extend(["PHASE I ORFs", "SS ORFs"])
-    DISPLAY_FIELDS.extend(["Phase I", "Single-study"])
-    orfs[["PHASE I ORFs", "SS ORFs"]] = orfs[["PHASE I ORFs", "SS ORFs"]].fillna(
-        value="NA"
-    )
+    TABLE_FIELDS.extend(["PHASE I ORFs"])
+    DISPLAY_FIELDS.extend(["Phase I ORFs"])
+    orfs[["PHASE I ORFs"]] = orfs[["PHASE I ORFs"]].fillna(value="NA")
 # missing GTF fields - typically with de novo
 orfs[TABLE_FIELDS[4:]] = orfs[TABLE_FIELDS[4:]].fillna(value="NA")
 display_table = pd.merge(display_table, orfs[TABLE_FIELDS], on="id", how="left")
@@ -243,7 +244,7 @@ display_table = display_table[TABLE_FIELDS + ["orf_info"]]
 display_table.drop_duplicates(inplace=True)
 
 # summary table (tab) - show available samples and ORF types
-orf_tab = orfs.groupby("condition").apply(get_orf_type_counts)
+orf_tab = orfs.groupby("condition")[["orf_type", "strand"]].apply(get_orf_type_counts)
 orf_tab.reset_index(inplace=True)
 orf_tab.drop(columns="level_1", inplace=True)
 orf_tab = orf_tab.pivot(
@@ -457,6 +458,10 @@ circos_tracks_config = {
 # ------------------------------------------------------ APP ------------------------------------------------------
 
 app = dash.Dash(__name__)
+
+# https://github.com/plotly/plotly.py/issues/3441
+go.Figure(layout=dict(template="plotly"))
+
 server = app.server
 
 # we need this for serving the app
@@ -661,6 +666,7 @@ app.layout = html.Div(
                                         dcc.Graph(
                                             figure=sunburst_orfs,
                                             style={
+                                                "height": "450px",
                                                 "margin-top": "50px",
                                                 "margin-bottom": "200px",
                                             },
@@ -769,18 +775,16 @@ app.layout = html.Div(
                                         ),
                                         dcc.Markdown(
                                             """**Filtering syntax:** Use *eq (=)*, *le (<=)*, *lt (<)*, *ge (>=)*
-                                            , *gt (>)*, or *contains*, such as `< 100` in the "ORF length" column, or
-                                            `contains C30F8.2.1` in the "Transcripts" column, or `= uORF` in the "Category"
-                                            column, *etc*. The default filtering behavior depends on the data type *e.g.*
-                                            `contains 12652389` in "ORF ID" will not work, but `contains 12652389-12654351`
-                                            will. Check the little *Aa* box to toggle case sensitivity. Filters and sorting
+                                            , or *gt (>)*, such as `< 100` in the "ORF length" column, or
+                                            `(contains) uORF` in the "Category" column, *etc*. Default filtering
+                                            behavior depends on the data type. For "Chrom", use quotes.
+                                            Check the little *Aa* box to toggle case sensitivity. Filters and sorting
                                             can be combined, but do not forget to clear the filters, this is not done
                                             automatically! You can download the full table, or a selection based on filters."""
                                         ),
                                         dcc.Markdown(
-                                            """**Standardized Ribo-seq ORFs:** If present, additional columns are shown. Search
-                                            for PHASE I ORFs using *e.g* "c1" for ORFs on chromosome 1, or just "orf". Search
-                                            for Single-study ORFs using the same syntax, or "norep"."""
+                                            """**Standardized Ribo-seq ORFs:** If present, an additional column is shown. Search
+                                            for PHASE I or Single-study ORFs (norep) using *e.g* "c1" for ORFs on chromosome 1."""
                                         ),
                                         html.Br(),
                                         html.Label(
@@ -876,7 +880,13 @@ app.layout = html.Div(
 def update_main_table(page_current, page_size, sort_by, filter_query):
     def refmt(trx):
         trxs = trx.split(",")
-        return "\n".join(list(map(" ".join, zip(trxs[::2], trxs[1::2]))))
+        if len(trxs) == 1:
+            return trxs[0]
+        trx_str = "\n".join(list(map(" ".join, zip(trxs[::2], trxs[1::2]))))
+        if len(trxs) % 2 == 0:
+            return trx_str
+        else:
+            return f"{trx_str}\n{trxs[-1]}"
 
     df = filter_sort_table(filter_query, sort_by)
 

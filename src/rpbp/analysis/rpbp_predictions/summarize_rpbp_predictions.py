@@ -15,6 +15,7 @@ from collections import defaultdict
 
 import pandas as pd
 import numpy as np
+import requests
 
 import pbiotools.misc.logging_utils as logging_utils
 import pbiotools.misc.parallel as parallel
@@ -35,20 +36,10 @@ from rpbp.defaults import (
 
 logger = logging.getLogger(__name__)
 
-# Supplement in xlsx format (Phase I Table S2, sheet 2)
-# and single-study Ribo-seq ORFs (Table S3, sheet 3).
+# Phase I Ribo-seq ORFs, incl single-study
 standardized_orfs_url = (
-    "https://static-content.springer.com/"
-    "esm/art%3A10.1038%2Fs41587-022-01369-0/MediaObjects/"
-    "41587_2022_1369_MOESM2_ESM.xlsx"
+    "https://ftp.ebi.ac.uk/pub/databases/gencode/riboseq_orfs/data/Ribo-seq_ORFs.bed"
 )
-
-# appris_url = "https://apprisws.bioinfo.cnio.es/pub/current_release/datafiles"
-# appris_file = "appris_data.appris.txt"
-# appris_organisms = ["bos_taurus", "caenorhabditis_elegans", "danio_rerio",
-# "drosophila_melanogaster", "gallus_gallus", "homo_sapiens",
-# "macaca_mulatta", "mus_musculus", "rattus_norvegicus",
-# "sus_scrofa"]
 
 MERGE_FIELDS = [
     "seqname",
@@ -184,7 +175,7 @@ def get_circos_graph(orfs, sub_folder, config, args):
     karyotype = {k: v for k, v in karyotype.items() if k in df.block_id.unique()}
 
     vals = (
-        df.groupby("block_id")
+        df.groupby("block_id")[["start"]]
         .apply(lambda x: cut_it(x, x.name, karyotype, args))
         .values
     )
@@ -257,59 +248,51 @@ def add_data(
     return orfs
 
 
-def get_bed_blocks(row):
-    # convert genomic coordinates to bed blocks
-    # ad-hoc for standardized ORFs
-
-    starts = row.starts.split(";")
-    ends = row.ends.split(";")
-    # coordinates include stop codon
-    # a few ORFs have a stop codon overlapping 2 exons
-    # since we are getting rid of it, we can discard these blocks
-    if row.strand == "+":
-        if abs(int(ends[-1]) - int(starts[-1])) <= 3:
-            starts = starts[:-1]
-            ends = ends[:-1]
-        else:
-            stop = int(ends[-1])
-            stop -= 3
-            ends[-1] = str(stop)
-    else:
-        if abs(int(ends[0]) - int(starts[0])) <= 3:
-            starts = starts[1:]
-            ends = ends[1:]
-        else:
-            stop = int(starts[0])
-            stop += 3
-            starts[0] = str(stop)
-
-    coords = [f"{start}-{end}" for start, end in zip(starts, ends)]
-    coords = ",".join(coords)
-    coords = bed_utils.convert_genomic_coords_to_bed_blocks(coords)
-    # we now subtract 1 from the start because BED is base-0
-    coords["start"] = int(starts[0]) - 1
-    coords["end"] = int(ends[-1])
-
-    return coords
-
-
-def get_standardized_orfs(filen, sheet):
-    # ad-hoc for standardized ORFs
-
-    colmap = [
-        {"chrm": "seqname", "orf_name": "PHASE I ORFs"},
-        {"chrm": "seqname", "orf_name": "SS ORFs"},
+def fix_stop_codon(row):
+    start = row["start"]
+    end = row["end"]
+    strand = row["strand"]
+    lengths = [int(el) for el in row["exon_lengths"].rstrip(",").split(",")]
+    rel_starts = [
+        int(rs) for rs in row["exon_genomic_relative_starts"].rstrip(",").split(",")
     ]
-    col = colmap[sheet - 2]["orf_name"]
-    standardized_fields = MERGE_FIELDS + [col]
+    if strand == "+":
+        end = end - 3
+        lengths[-1] = lengths[-1] - 3
+    else:
+        start = start + 3
+        lengths[0] = lengths[0] - 3
+        rel_starts[1:] = [rs - 3 for rs in rel_starts[1:]]
+    return pd.Series(
+        {
+            "PHASE I ORFs": row["id"],
+            "seqname": row["seqname"],
+            "start": start,
+            "end": end,
+            "strand": strand,
+            "num_exons": row["num_exons"],
+            "exon_lengths": ",".join([str(el) for el in lengths]),
+            "exon_genomic_relative_starts": ",".join([str(rs) for rs in rel_starts]),
+        }
+    )
 
-    standardized_orfs = pd.read_excel(filen, sheet_name=sheet)
-    blocks = standardized_orfs.apply(get_bed_blocks, axis=1)
-    blocks = pd.DataFrame(blocks.to_list())
-    standardized_orfs = standardized_orfs.join(blocks)
-    standardized_orfs.rename(columns=colmap[sheet - 2], inplace=True)
 
-    return col, standardized_orfs[standardized_fields]
+def get_standardized_orfs():
+    # ad-hoc for standardized ORFs
+    local_filename = Path(standardized_orfs_url).name
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        filen = shell_utils.download_file(
+            standardized_orfs_url, local_filename=Path(tmpdirname, local_filename)
+        )
+        df = pd.read_csv(
+            filen,
+            header=None,
+            usecols=range(12),
+            names=bed_utils.bed12_field_names,
+            sep="\t",
+        )
+    df["seqname"] = df["seqname"].str.replace("chr", "")
+    return df.apply(fix_stop_codon, axis=1)
 
 
 def _create_figures(name_pretty_name_is_sample, config, args):
@@ -500,21 +483,8 @@ def get_parser():
         "with a different nomenclature, or to show additional chromosomes "
         "or contigs. ",
         nargs="+",
-        default=["\d", "X", "x", "Y", "y"],
+        default=["\\d", "X", "x", "Y", "y"],
     )
-
-    # subparser = parser.add_subparsers()
-    # parser_appris = subparser.add_parser('APPRIS',
-    # help='Add APPRIS Annotation to transcripts.'
-    # )
-
-    # parser_appris.add_argument('appris-organism', help="Organism.",
-    # type=str, choices=appris_organisms
-    # )
-
-    # parser_appris.add_argument('appris-assembly-version', help="""Assemble version/
-    # Gene Dataset. Must be a valid entry from """,
-    # type=str)
 
     # keep some figures from the old reporting tool for debugging
     parser.add_argument(
@@ -751,21 +721,16 @@ def main():
         )
         logger.info(msg)
 
-    # Adding standardized ORFs - hard coded
-    # based on published data Table S2 and S3
+    # Adding standardized ORFs
     if args.match_standardized_orfs:
         msg = "Adding standardized ORFs (Human)"
         logger.info(msg)
-        local_filename = Path(standardized_orfs_url).name
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            filen = shell_utils.download_file(
-                standardized_orfs_url, local_filename=Path(tmpdirname, local_filename)
-            )
-            for sheet in range(2, 4):
-                field, standardized_orfs = get_standardized_orfs(filen, sheet)
-                orfs = pd.merge(orfs, standardized_orfs, on=MERGE_FIELDS, how="left")
-
-                ext_field_names += [field]
+        try:
+            standardized_orfs = get_standardized_orfs()
+            orfs = pd.merge(orfs, standardized_orfs, on=MERGE_FIELDS, how="left")
+            ext_field_names += ["PHASE I ORFs"]
+        except requests.exceptions.RequestException as exc:
+            logger.warning(f"Failed to add standardized ORFs: {exc}")
 
     # writing ORFs to disk
     # sort on the chrom field, and then on the chromStart field.

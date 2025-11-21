@@ -7,7 +7,7 @@ First pull a Docker or Singularity container, see `installation <installation.ht
 
 .. note::
 
-    You can also launch a container with an interactive shell *e.g.* ``docker run -it quay.io/biocontainers/rpbp:3.0.1--py310h30d9df9_0 /bin/bash`` or ``singularity shell rpbp.sif``. With ``singularity shell``, ``$HOME`` is mounted by default.
+    You can also launch a container with an interactive shell *e.g.* ``docker run -it quay.io/biocontainers/rpbp:3.0.1--py310h30d9df9_0 bash`` or ``singularity shell rpbp.sif``. With ``singularity shell``, ``$HOME`` is mounted by default.
 
 .. attention::
 
@@ -109,7 +109,3 @@ or
 
 
 You then have to open a browser page at the correct address, *e.g.* you see ``Running on http://127.0.0.1:8050``, click on this link, or open a browser page at this address. To navigate the apps is easy, just follow the "hints". Most items are interactive. Press ``CTRL+C`` to quit.
-
-.. attention::
-
-    For the apps only, the configuration file is passed using a (required) named argument ``-c/--config CONFIG``.
