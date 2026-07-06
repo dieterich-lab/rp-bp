@@ -143,7 +143,7 @@ def estimate_profile_bayes_factors(profile, args):
 
         # pull out the signal for this offset
         signal = start_counts[i : i + args.metagene_profile_length]
-        (bft_periodic, bft_nonperiodic) = estimate_marginal_likelihoods(
+        bft_periodic, bft_nonperiodic = estimate_marginal_likelihoods(
             signal,
             periodic_models,
             nonperiodic_models,
