@@ -41,15 +41,15 @@ jobs:
           conda config --show
           printenv | sort
       - name: Install test requirements
-        run: pip install pytest pytest-cov pytest-depends
+        run: conda run -n rpbp -- python -m pip install "pytest==8.4.2" "pytest-cov==7.1.0" "pytest-depends==1.0.1"
       - name: Install rp-bp with --no-deps option
-        run: pip install . --no-deps --verbose
+        run: conda run -n rpbp -- python -m pip install . --no-deps --verbose
       - name: Run tests
-        run: python -m pytest . --cov=rpbp --cov-report=xml -s -v
+        run: conda run -n rpbp -- python -m pytest . --cov=rpbp --cov-report=xml -s -v
       - name: Compile stan models (should already exist -> no-op)
-        run: compile-rpbp-models
+        run: conda run -n rpbp -- compile-rpbp-models
       - name: Compile stan models with --force
-        run: compile-rpbp-models --force
+        run: conda run -n rpbp -- compile-rpbp-models --force
       - name: Upload code coverage to codecov
         uses: codecov/codecov-action@v4
         env:
