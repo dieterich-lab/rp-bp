@@ -5,13 +5,13 @@ channels:
   - defaults
 dependencies:
   - python
+  - pip
   - pbiotools>=5.0.0
   - appdirs
   - cmdstanpy>=1.0.0
   - dash
   - dash-bio
   - dash-bootstrap-components
-  - pytest
   - pyyaml
   - statsmodels
   - bowtie2
